@@ -1,0 +1,25 @@
+name: AnarlogDualAudioProbe
+options:
+  deploymentTarget:
+    iOS: "27.0"
+targets:
+  AnarlogDualAudioProbe:
+    type: application
+    platform: iOS
+    sources:
+      - Sources
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDisplayName: Audio Probe
+        NSMicrophoneUsageDescription: Record the microphone separately from device audio for an on-device capture experiment.
+        NSScreenCaptureUsageDescription: Capture device audio with the system screen-sharing picker for an on-device experiment.
+        UILaunchScreen: {}
+        UIBackgroundModes:
+          - screen-capture
+          - audio
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: so.anarlog.dualaudioprobe
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1"
