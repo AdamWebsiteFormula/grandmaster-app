@@ -33,8 +33,9 @@ struct AudioProbeApp: App {
             }
           }
           Section {
-            Text("These files stay on this device until you share them or delete the app. "
-              + "A sample count does not prove that a track contains audible sound.")
+            Text(
+              "These files stay on this device until you share them or delete the app. "
+                + "A sample count does not prove that a track contains audible sound.")
           }
         }
         .navigationTitle("Dual audio probe")

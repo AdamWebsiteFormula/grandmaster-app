@@ -76,7 +76,8 @@ final class DualAudioCapture: NSObject, ObservableObject, SCContentSharingPicker
       deviceAudio = AudioTrack(url: directory.appendingPathComponent("device-audio.m4a"))
       sampleError = nil
 
-      try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: .mixWithOthers)
+      try AVAudioSession.sharedInstance().setCategory(
+        .playback, mode: .default, options: .mixWithOthers)
       try AVAudioSession.sharedInstance().setActive(true)
       audioRoute = AVAudioSession.sharedInstance().currentRoute.outputs
         .map(\.portName).joined(separator: ", ")
@@ -95,7 +96,8 @@ final class DualAudioCapture: NSObject, ObservableObject, SCContentSharingPicker
       try await newStream.startCapture()
       stream = newStream
       recording = true
-      status = filter.isMicrophoneEnabled
+      status =
+        filter.isMicrophoneEnabled
         ? "Capturing device audio and microphone."
         : "Microphone disabled in the system picker; only device audio is capturing."
     } catch {
@@ -150,7 +152,8 @@ final class DualAudioCapture: NSObject, ObservableObject, SCContentSharingPicker
     do {
       microphoneURL = try await mic?.finish()
       deviceAudioURL = try await device?.finish()
-      counts = "Mic: \(mic?.sampleCount ?? 0) samples, \(mic?.droppedBufferCount ?? 0) dropped buffers, "
+      counts =
+        "Mic: \(mic?.sampleCount ?? 0) samples, \(mic?.droppedBufferCount ?? 0) dropped buffers, "
         + "PTS \(mic?.firstTimestamp ?? 0)–\(mic?.lastTimestamp ?? 0)s. "
         + "Device: \(device?.sampleCount ?? 0) samples, \(device?.droppedBufferCount ?? 0) dropped buffers, "
         + "PTS \(device?.firstTimestamp ?? 0)–\(device?.lastTimestamp ?? 0)s."
