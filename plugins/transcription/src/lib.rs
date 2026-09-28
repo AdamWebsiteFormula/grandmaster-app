@@ -92,12 +92,14 @@ impl AudioCleanupStatus {
 pub struct BatchSessionRegistry {
     pub sessions: StdMutex<HashMap<String, BatchSessionEntry>>,
     pub completed: StdMutex<HashMap<String, CompletedBatchEntry>>,
+    pub completed_dir: Option<std::path::PathBuf>,
 }
 
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct CompletedBatchEntry {
     pub session: TranscriptionSession,
     pub response: owhisper_interface::batch::Response,
-    pub completed_at: std::time::Instant,
+    pub completed_at_ms: i64,
 }
 
 pub struct BatchSessionEntry {
@@ -184,7 +186,16 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                 app: app_handle.clone(),
             }));
             app.manage(state);
-            app.manage(Arc::new(BatchSessionRegistry::default()));
+            let batch_registry = Arc::new(BatchSessionRegistry {
+                completed_dir: app
+                    .path()
+                    .app_data_dir()
+                    .ok()
+                    .map(|dir| dir.join("batch-results")),
+                ..Default::default()
+            });
+            listener2::load_completed_batches(&batch_registry);
+            app.manage(batch_registry);
 
             let audio = app.state::<Arc<dyn AudioProvider>>().inner().clone();
             let session_state_cache: SessionStateCache = Arc::new(StdMutex::new(HashMap::new()));

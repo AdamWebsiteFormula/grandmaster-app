@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, MutexGuard};
 use std::time::{Duration, Instant};
 
@@ -13,7 +14,7 @@ use crate::{
 
 const BATCH_IDLE_TIMEOUT: Duration = Duration::from_secs(60);
 const MAX_ACTIVE_BATCH_SESSIONS: usize = 4;
-const COMPLETED_BATCH_RETENTION: Duration = Duration::from_secs(60 * 60);
+const COMPLETED_BATCH_RETENTION_MS: i64 = 7 * 24 * 60 * 60 * 1000;
 
 pub struct Listener2<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
@@ -164,7 +165,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener2<'a, R, M> {
             running_batch_sessions(&running)
         };
         let mut completed = lock_completed_batches(&registry)?;
-        prune_completed_batches(&mut completed, Instant::now());
+        prune_completed_batches(&registry, &mut completed, now_ms());
         let completed_sessions: Vec<_> = completed
             .values()
             .filter(|entry| {
@@ -185,7 +186,7 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener2<'a, R, M> {
     ) -> Result<Option<crate::CompletedTranscription>, core::Error> {
         let registry = self.manager.state::<Arc<BatchSessionRegistry>>();
         let mut completed = lock_completed_batches(&registry)?;
-        prune_completed_batches(&mut completed, Instant::now());
+        prune_completed_batches(&registry, &mut completed, now_ms());
         Ok(completed
             .get(&session_id)
             .map(|entry| crate::CompletedTranscription {
@@ -315,8 +316,88 @@ fn lock_completed_batches(
         .map_err(|_| batch_lock_poisoned("completed batch registry"))
 }
 
-fn prune_completed_batches(completed: &mut HashMap<String, CompletedBatchEntry>, now: Instant) {
-    completed.retain(|_, entry| now.duration_since(entry.completed_at) < COMPLETED_BATCH_RETENTION);
+fn now_ms() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|elapsed| elapsed.as_millis() as i64)
+        .unwrap_or_default()
+}
+
+fn prune_completed_batches(
+    registry: &BatchSessionRegistry,
+    completed: &mut HashMap<String, CompletedBatchEntry>,
+    now_ms: i64,
+) {
+    completed.retain(|session_id, entry| {
+        let keep = now_ms - entry.completed_at_ms < COMPLETED_BATCH_RETENTION_MS;
+        if !keep {
+            remove_completed_batch_file(registry, session_id);
+        }
+        keep
+    });
+}
+
+fn completed_batch_path(dir: &Path, session_id: &str) -> PathBuf {
+    let name: String = session_id.bytes().map(|b| format!("{b:02x}")).collect();
+    dir.join(format!("{name}.json"))
+}
+
+fn write_completed_batch_file(registry: &BatchSessionRegistry, entry: &CompletedBatchEntry) {
+    let Some(dir) = &registry.completed_dir else {
+        return;
+    };
+    let result = (|| -> std::io::Result<()> {
+        std::fs::create_dir_all(dir)?;
+        let path = completed_batch_path(dir, &entry.session.session_id);
+        let tmp = path.with_extension("json.tmp");
+        std::fs::write(&tmp, serde_json::to_vec(entry)?)?;
+        std::fs::rename(&tmp, &path)
+    })();
+    if let Err(error) = result {
+        tracing::warn!(?error, "failed_to_persist_completed_batch");
+    }
+}
+
+fn remove_completed_batch_file(registry: &BatchSessionRegistry, session_id: &str) {
+    let Some(dir) = &registry.completed_dir else {
+        return;
+    };
+    match std::fs::remove_file(completed_batch_path(dir, session_id)) {
+        Ok(()) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(error) => tracing::warn!(?error, "failed_to_remove_completed_batch"),
+    }
+}
+
+pub fn load_completed_batches(registry: &BatchSessionRegistry) {
+    let Some(dir) = &registry.completed_dir else {
+        return;
+    };
+    let Ok(files) = std::fs::read_dir(dir) else {
+        return;
+    };
+    let Ok(mut completed) = lock_completed_batches(registry) else {
+        return;
+    };
+    for file in files.flatten() {
+        let path = file.path();
+        let entry = if path.extension().is_some_and(|ext| ext == "json") {
+            std::fs::read(&path)
+                .ok()
+                .and_then(|bytes| serde_json::from_slice::<CompletedBatchEntry>(&bytes).ok())
+        } else {
+            None
+        };
+        match entry {
+            Some(entry) => {
+                completed.insert(entry.session.session_id.clone(), entry);
+            }
+            None => {
+                let _ = std::fs::remove_file(&path);
+            }
+        }
+    }
+    prune_completed_batches(registry, &mut completed, now_ms());
 }
 
 fn store_completed_batch(
@@ -327,22 +408,22 @@ fn store_completed_batch(
     let Ok(mut completed) = lock_completed_batches(registry) else {
         return;
     };
-    let now = Instant::now();
-    prune_completed_batches(&mut completed, now);
-    completed.insert(
-        session.session_id.clone(),
-        CompletedBatchEntry {
-            session,
-            response,
-            completed_at: now,
-        },
-    );
+    let now = now_ms();
+    prune_completed_batches(registry, &mut completed, now);
+    let entry = CompletedBatchEntry {
+        session,
+        response,
+        completed_at_ms: now,
+    };
+    write_completed_batch_file(registry, &entry);
+    completed.insert(entry.session.session_id.clone(), entry);
 }
 
 fn discard_completed_batch(registry: &BatchSessionRegistry, session_id: &str) {
     if let Ok(mut completed) = lock_completed_batches(registry) {
         completed.remove(session_id);
     }
+    remove_completed_batch_file(registry, session_id);
 }
 
 fn lock_terminal_state(
@@ -684,9 +765,51 @@ mod tests {
         let registry = BatchSessionRegistry::default();
         store_completed_batch(&registry, completed_session("session-1"), empty_response());
         let mut completed = lock_completed_batches(&registry).unwrap();
-        let stored_at = completed["session-1"].completed_at;
-        prune_completed_batches(&mut completed, stored_at + COMPLETED_BATCH_RETENTION);
+        let stored_at = completed["session-1"].completed_at_ms;
+        prune_completed_batches(
+            &registry,
+            &mut completed,
+            stored_at + COMPLETED_BATCH_RETENTION_MS,
+        );
         assert!(completed.is_empty());
+    }
+
+    #[test]
+    fn completed_batches_survive_restart_until_discarded() {
+        let dir = std::env::temp_dir().join(format!(
+            "anarlog-batch-results-{}-{}",
+            std::process::id(),
+            now_ms()
+        ));
+        let registry = BatchSessionRegistry {
+            completed_dir: Some(dir.clone()),
+            ..Default::default()
+        };
+        store_completed_batch(
+            &registry,
+            completed_session("session-1:recovery"),
+            empty_response(),
+        );
+
+        let restarted = BatchSessionRegistry {
+            completed_dir: Some(dir.clone()),
+            ..Default::default()
+        };
+        load_completed_batches(&restarted);
+        assert!(
+            lock_completed_batches(&restarted)
+                .unwrap()
+                .contains_key("session-1:recovery")
+        );
+
+        discard_completed_batch(&restarted, "session-1:recovery");
+        let reloaded = BatchSessionRegistry {
+            completed_dir: Some(dir.clone()),
+            ..Default::default()
+        };
+        load_completed_batches(&reloaded);
+        assert!(lock_completed_batches(&reloaded).unwrap().is_empty());
+        let _ = std::fs::remove_dir_all(dir);
     }
 
     #[test]
