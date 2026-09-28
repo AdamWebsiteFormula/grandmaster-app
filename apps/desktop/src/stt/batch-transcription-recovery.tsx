@@ -59,13 +59,12 @@ function ResumeBatchTranscription({
   useEffect(() => {
     if (started.current || !record) return;
     const context = parseBatchResumeContext(session.resume_context);
-    if (!context) return;
+    if (!context || !session.provider || !session.model) return;
     started.current = true;
 
     void runBatch(session.file_path, {
       promotion: { scope: context.promotion },
-      provider: context.provider,
-      model: context.model,
+      resume: { provider: session.provider, model: session.model },
     })
       .then(() =>
         getEnhancerService()?.queueAutoEnhanceIfSummaryEmpty(sessionId),

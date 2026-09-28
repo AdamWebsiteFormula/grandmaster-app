@@ -1,7 +1,5 @@
 export type BatchResumeContext = {
   promotion: "whole_session";
-  provider?: string;
-  model?: string;
 };
 
 export function serializeBatchResumeContext(context: BatchResumeContext) {
@@ -22,15 +20,7 @@ export function parseBatchResumeContext(
     ) {
       return null;
     }
-    const provider =
-      "provider" in parsed && typeof parsed.provider === "string"
-        ? parsed.provider
-        : undefined;
-    const model =
-      "model" in parsed && typeof parsed.model === "string"
-        ? parsed.model
-        : undefined;
-    return { promotion: "whole_session", provider, model };
+    return { promotion: "whole_session" };
   } catch {
     return null;
   }

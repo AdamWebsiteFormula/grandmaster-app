@@ -2,7 +2,10 @@ import { t } from "@lingui/core/macro";
 import { arch, platform } from "@tauri-apps/plugin-os";
 import { useCallback } from "react";
 
-import type { TranscriptionParams } from "@anlg/plugin-transcription";
+import type {
+  BatchProvider,
+  TranscriptionParams,
+} from "@anlg/plugin-transcription";
 import { toast } from "@anlg/ui/components/ui/toast";
 
 import { BatchResponseProcessingError } from "./batch-response-processing-error";
@@ -28,7 +31,10 @@ import { markSessionAudioTranscriptionComplete } from "~/session/attachments";
 import { useSession, useSessionParticipants } from "~/session/queries";
 import { useConfigValue } from "~/shared/config";
 import { id } from "~/shared/utils";
-import { notifyBatchCompleted } from "~/store/zustand/listener/general-batch";
+import {
+  acknowledgeCompletedBatch,
+  notifyBatchCompleted,
+} from "~/store/zustand/listener/general-batch";
 import type { BatchPersistCallback } from "~/store/zustand/listener/transcript";
 import { serializeBatchResumeContext } from "~/stt/batch-resume-context";
 import {
@@ -58,6 +64,7 @@ type RunOptions = {
   deferAudioFinalization?: boolean;
   handlePersist?: BatchPersistCallback;
   notifyOnCompletion?: boolean;
+  resume?: { provider: BatchProvider; model: string };
   provider?: string;
   model?: string;
   baseUrl?: string;
@@ -772,9 +779,17 @@ export const useRunBatch = (sessionId: string) => {
       const shouldUseSelectedTarget =
         selectedTargetSupported ||
         (fallbackTarget && sameBatchTarget(selectedTarget, fallbackTarget));
-      let target = shouldUseSelectedTarget
-        ? (selectedTarget ?? fallbackTarget)
-        : fallbackTarget;
+      let target = options?.resume
+        ? {
+            provider: options.resume.provider,
+            model: options.resume.model,
+            baseUrl: conn?.baseUrl ?? "",
+            apiKey: conn?.apiKey ?? "",
+            label: options.resume.model,
+          }
+        : shouldUseSelectedTarget
+          ? (selectedTarget ?? fallbackTarget)
+          : fallbackTarget;
 
       if (!target) {
         throw new Error(
@@ -791,7 +806,7 @@ export const useRunBatch = (sessionId: string) => {
         target = { ...target, apiKey: cloudAccessToken };
       }
 
-      if (!shouldUseSelectedTarget && !options?.recovery) {
+      if (!shouldUseSelectedTarget && !options?.recovery && !options?.resume) {
         toast.warning("Using a batch transcription provider", {
           description: `${
             selectedTarget
@@ -920,11 +935,7 @@ export const useRunBatch = (sessionId: string) => {
               !handlePersist &&
               !options?.recovery &&
               options?.promotion?.scope === "whole_session"
-                ? serializeBatchResumeContext({
-                    promotion: "whole_session",
-                    provider: selectedProviderId,
-                    model: selectedModel,
-                  })
+                ? serializeBatchResumeContext({ promotion: "whole_session" })
                 : null,
           };
 
@@ -981,6 +992,7 @@ export const useRunBatch = (sessionId: string) => {
           if (options?.recovery) {
             options.signal?.throwIfAborted();
             await options.recovery.persist(stagedWords, stagedHints);
+            await acknowledgeCompletedBatch(jobId);
             return;
           }
 
@@ -1089,6 +1101,7 @@ export const useRunBatch = (sessionId: string) => {
             }
             throw new BatchResponseProcessingError(error);
           }
+          await acknowledgeCompletedBatch(jobId);
           if (options?.notifyOnCompletion !== false) {
             await notifyBatchCompleted(sessionId);
           }

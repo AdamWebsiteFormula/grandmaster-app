@@ -4,6 +4,7 @@ import type { StoreApi } from "zustand";
 import { commands as notificationCommands } from "@anlg/plugin-notification";
 import {
   type BatchErrorCode,
+  type TranscriptionEvent,
   type TranscriptionParams,
   type TranscriptionSession,
   commands as transcriptionCommands,
@@ -165,7 +166,6 @@ export const runBatchSession = async <T extends BatchStore>(
         mode: "batch",
         provider: params.provider,
       });
-      void acknowledgeCompletedBatch(params.session_id);
       cleanup();
     } catch (error) {
       console.error("[runBatch] error handling batch response", error);
@@ -372,7 +372,7 @@ async function takeCompletedBatchResponse(params: TranscriptionParams) {
   return result.data?.response;
 }
 
-async function acknowledgeCompletedBatch(sessionId: string) {
+export async function acknowledgeCompletedBatch(sessionId: string) {
   try {
     const result =
       await transcriptionCommands.acknowledgeCompletedTranscription(sessionId);
@@ -415,7 +415,7 @@ export async function recoverRunningBatchSessions<T extends BatchStore>(
 ) {
   const pending = new Set<string>();
   const resumable = new Set<string>();
-  const finished = new Set<string>();
+  const finished = new Map<string, TranscriptionEvent["type"]>();
   let unlisten: (() => void) | undefined;
   const release = (sessionId: string) => {
     pending.delete(sessionId);
@@ -430,7 +430,7 @@ export async function recoverRunningBatchSessions<T extends BatchStore>(
       const sessionId = payload.session_id;
       if (!pending.has(sessionId)) {
         if (payload.type !== "started" && payload.type !== "progress") {
-          finished.add(sessionId);
+          finished.set(sessionId, payload.type);
         }
         return;
       }
@@ -479,10 +479,15 @@ export async function recoverRunningBatchSessions<T extends BatchStore>(
     }
     const recovered: TranscriptionSession[] = [];
     for (const session of result.data) {
-      if (get().batch[session.session_id] || finished.has(session.session_id)) {
+      if (get().batch[session.session_id]) {
         continue;
       }
-      if (session.completed && !session.resume_context) {
+      const finishedAs = finished.get(session.session_id);
+      const completed = session.completed || finishedAs === "completed";
+      if (
+        (finishedAs !== undefined && finishedAs !== "completed") ||
+        (completed && !session.resume_context)
+      ) {
         continue;
       }
       get().handleBatchRecovered(session.session_id);
@@ -490,7 +495,7 @@ export async function recoverRunningBatchSessions<T extends BatchStore>(
         resumable.add(session.session_id);
         recovered.push(session);
       }
-      if (session.completed) {
+      if (completed) {
         get().handleBatchCompleted(session.session_id);
       } else {
         pending.add(session.session_id);

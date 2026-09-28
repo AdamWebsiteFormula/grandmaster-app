@@ -1234,9 +1234,7 @@ describe("batch recovery after reload", () => {
       "session-1",
       response,
     );
-    expect(acknowledgeCompletedTranscriptionMock).toHaveBeenCalledWith(
-      "session-1",
-    );
+    expect(acknowledgeCompletedTranscriptionMock).not.toHaveBeenCalled();
   });
 
   test("does not adopt a running batch for a different file", async () => {
@@ -1333,6 +1331,35 @@ describe("batch recovery after reload", () => {
 
     expect(store.handleBatchRecovered).not.toHaveBeenCalled();
     expect(unlisten).toHaveBeenCalledOnce();
+  });
+
+  test("still resumes a resumable batch that completed while sessions were listed", async () => {
+    let emit!: (event: { payload: unknown }) => void;
+    listenMock.mockImplementation(async (handler) => {
+      emit = handler;
+      return vi.fn();
+    });
+    const session = {
+      session_id: "session-1",
+      file_path: "/tmp/a.wav",
+      provider: "soniqo",
+      model: "whisper",
+      started_at_ms: 0,
+      resume_context: '{"promotion":"whole_session"}',
+      completed: false,
+    };
+    listTranscriptionSessionsMock.mockImplementation(async () => {
+      emit({ payload: { type: "completed", session_id: "session-1" } });
+      return { status: "ok", data: [session] };
+    });
+    const store = makeStore();
+    const onResumable = vi.fn();
+
+    await recoverRunningBatchSessions(() => store, onResumable);
+
+    expect(store.handleBatchRecovered).toHaveBeenCalledWith("session-1");
+    expect(store.handleBatchCompleted).toHaveBeenCalledWith("session-1");
+    expect(onResumable).toHaveBeenCalledWith([session]);
   });
 
   test("marks running Rust batches as recovered and tracks their terminal state", async () => {
