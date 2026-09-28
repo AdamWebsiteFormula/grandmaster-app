@@ -177,13 +177,15 @@ pub(crate) fn delete<S: SecretSlot>(
     account: &str,
 ) -> Result<(), ChunkedError> {
     let primary = slot(account).map_err(ChunkedError::Slot)?;
-    if let Some(manifest) = existing_manifest(&primary) {
+    let manifest = existing_manifest(&primary);
+    match primary.delete() {
+        Ok(()) | Err(keyring::Error::NoEntry) => {}
+        Err(error) => return Err(error.into()),
+    }
+    if let Some(manifest) = manifest {
         delete_chunks(&slot, account, &manifest);
     }
-    match primary.delete() {
-        Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
-        Err(error) => Err(error.into()),
-    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -237,6 +239,12 @@ mod tests {
         }
 
         fn delete(&self) -> keyring::Result<()> {
+            if self.store.fail_account.borrow().as_deref() == Some(self.account.as_str()) {
+                return Err(keyring::Error::Invalid(
+                    "mock".to_string(),
+                    "failure".to_string(),
+                ));
+            }
             self.store
                 .entries
                 .borrow_mut()
@@ -336,6 +344,19 @@ mod tests {
             read(slots(&store), "provider:openai"),
             Err(ChunkedError::Keyring(keyring::Error::NoEntry))
         ));
+    }
+
+    #[test]
+    fn failed_delete_keeps_the_chunked_secret_readable() {
+        let store = Rc::new(Store::default());
+        let secret = chatgpt_sized_credential();
+        write(slots(&store), "provider:openai", &secret).unwrap();
+        *store.fail_account.borrow_mut() = Some("provider:openai".to_string());
+
+        assert!(delete(slots(&store), "provider:openai").is_err());
+        *store.fail_account.borrow_mut() = None;
+
+        assert_eq!(read(slots(&store), "provider:openai").unwrap(), secret);
     }
 
     #[test]
