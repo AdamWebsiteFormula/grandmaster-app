@@ -725,6 +725,40 @@ describe("useStartListening", () => {
     });
   });
 
+  test("a new recording adopts untranscribed zero-retention audio from the same note", async () => {
+    const pending = {
+      version: 1,
+      chunkedAudio: true,
+      retainAudio: false,
+      sessionId: "session-1",
+      transcriptId: "crashed-transcript",
+      startedAt: 1_000,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      audioOffsetMs: 0,
+      preserveExistingTranscript: false,
+      ownerUserId: "user-1",
+      memo: "",
+    };
+    loadCaptureLifecycleMarkerMock.mockResolvedValueOnce(pending);
+    const { result } = renderHook(() => useStartListening("session-1"));
+    await act(async () => {
+      await result.current();
+    });
+    expect(saveCaptureLifecycleMarkerMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        transcriptId: "generated-id",
+        inheritedCaptures: [
+          expect.objectContaining({
+            transcriptId: "crashed-transcript",
+            startedAt: 1_000,
+            retainAudio: false,
+          }),
+        ],
+      }),
+      "crashed-transcript",
+    );
+  });
+
   test("keeps zero-retention Scribe V2 audio until batch transcription finishes", async () => {
     useConfigValueMock.mockImplementation((key: string) =>
       key === "audio_retention" ? "none" : undefined,

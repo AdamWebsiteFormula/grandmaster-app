@@ -89,10 +89,15 @@ impl ChunkedSink {
         retain_audio: bool,
     ) -> Result<Self, ActorProcessingErr> {
         std::fs::create_dir_all(session_dir)?;
-        if retain_audio && session_dir.join(DELETE_ON_STOP).exists() {
-            delete_capture_audio(session_dir)?;
-        }
         recover_partial_chunks(session_dir)?;
+        if retain_audio && session_dir.join(DELETE_ON_STOP).exists() {
+            // Earlier zero-retention audio stays until its transcript is recovered.
+            if has_pending_recovery_audio(session_dir)? {
+                std::fs::remove_file(session_dir.join(DELETE_ON_STOP))?;
+            } else {
+                delete_capture_audio(session_dir)?;
+            }
+        }
         check_storage(session_dir)?;
         if !retain_audio {
             File::create(session_dir.join(DELETE_ON_STOP))?.sync_all()?;
@@ -387,11 +392,45 @@ pub fn delete_capture_audio(session_dir: &Path) -> std::io::Result<()> {
 /// Call only after the session's writer has stopped.
 pub fn delete_transcribed_capture_audio(session_dir: &Path) -> std::io::Result<bool> {
     recover_partial_chunks(session_dir)?;
-    if !list_recovery_chunks(session_dir)?.is_empty() {
+    if has_pending_recovery_audio(session_dir)? {
         return Ok(false);
     }
     delete_capture_audio(session_dir)?;
     Ok(true)
+}
+
+/// Published chunks or unfinished audio that could not be decoded yet.
+fn has_pending_recovery_audio(session_dir: &Path) -> std::io::Result<bool> {
+    if !list_recovery_chunks(session_dir)?.is_empty() {
+        return Ok(true);
+    }
+    let entries = match std::fs::read_dir(session_dir.join(RECOVERY_DIR)) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(false),
+        Err(error) => return Err(error),
+    };
+    for entry in entries {
+        let entry = entry?;
+        if entry.file_type()?.is_file()
+            && is_recovery_partial_name(&entry.file_name().to_string_lossy())
+            && entry.metadata()?.len() > 0
+            && partial_is_unreadable(&entry.path())
+        {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
+fn is_recovery_partial_name(name: &str) -> bool {
+    name.strip_suffix(".part").is_some_and(|stem| {
+        let parts: Vec<_> = stem.split('-').collect();
+        parts.len() == 3 && parts.iter().all(|part| part.parse::<u64>().is_ok())
+    })
+}
+
+fn partial_is_unreadable(path: &Path) -> bool {
+    anlg_audio_utils::source_from_path(path).is_err()
 }
 
 // Call only before a writer starts or during application startup. Active .part
@@ -630,6 +669,9 @@ mod tests {
         for chunk in &chunks {
             acknowledge_recovery_chunk(&dir, &chunk.id).unwrap();
         }
+        assert!(!delete_transcribed_capture_audio(&dir).unwrap());
+        assert!(part.exists());
+        std::fs::write(&part, b"").unwrap();
         assert!(delete_transcribed_capture_audio(&dir).unwrap());
         assert!(!part.exists());
         let mut sink = ChunkedSink::new(&dir, 124, 0, false).unwrap();
@@ -642,6 +684,26 @@ mod tests {
         assert!(delete_transcribed_capture_audio(&dir).unwrap());
         assert!(!dir.join(RECOVERY_DIR).exists());
         assert!(!dir.join(DELETE_ON_STOP).exists());
+    }
+
+    #[test]
+    fn later_capture_appends_to_untranscribed_zero_retention_audio() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut sink = ChunkedSink::new(dir.path(), 123, 0, false).unwrap();
+        sink.write(&vec![0.1; SAMPLE_RATE as usize], &[]).unwrap();
+        sink.finish().unwrap();
+        let mut sink = ChunkedSink::new(dir.path(), 200_000, 1_000, true).unwrap();
+        sink.write(&vec![0.1; SAMPLE_RATE as usize], &[]).unwrap();
+        sink.finish().unwrap();
+        let chunks = list_recovery_chunks(dir.path()).unwrap();
+        assert_eq!(
+            chunks
+                .iter()
+                .map(|chunk| chunk.capture_started_at)
+                .collect::<Vec<_>>(),
+            vec![123, 200_000]
+        );
+        assert!(!dir.path().join(DELETE_ON_STOP).exists());
     }
 
     #[test]

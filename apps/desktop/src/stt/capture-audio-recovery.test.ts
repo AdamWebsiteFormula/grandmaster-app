@@ -62,6 +62,36 @@ describe("capture audio recovery", () => {
     expect(acknowledge).toHaveBeenCalledOnce();
   });
 
+  it("repairs a whole earlier capture chunk before acknowledging it", async () => {
+    const earlier = {
+      id: "-100000-0-60000-0.mp3",
+      path: "/earlier.mp3",
+      capture_started_at: -100_000,
+      start_ms: 0,
+      audio_start_ms: 0,
+      end_ms: 60_000,
+    };
+    let chunks = [earlier];
+    const acknowledge = vi.fn(async (_chunk: { id: string }) => {
+      chunks = [];
+    });
+    const repair = vi.fn(async (_chunk, _gaps, _signal: AbortSignal) => {});
+    const worker = createCaptureAudioRecovery({
+      startedAt: 0,
+      list: async () => chunks,
+      acknowledge,
+      flush: async () => {},
+      repair,
+      inherited: (chunk) => chunk.capture_started_at < 0,
+      now: () => 1_000,
+    });
+    worker.connected();
+    await worker.tick();
+    expect(repair).toHaveBeenCalledWith(earlier, [], expect.anything());
+    expect(acknowledge).toHaveBeenCalledWith(earlier);
+    expect((await worker.stop()).incomplete).toBe(false);
+  });
+
   it("does not acknowledge a repair whose database write failed", async () => {
     const { worker, repair, acknowledge } = setup();
     worker.persistenceFailed();

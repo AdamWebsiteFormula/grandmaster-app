@@ -3,12 +3,16 @@ import { useCallback, useRef } from "react";
 import { beginCloudsyncActivity } from "@anlg/plugin-db";
 import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
 import {
+  type RecoveryAudioChunk,
   commands as transcriptionCommands,
   events as transcriptionEvents,
 } from "@anlg/plugin-transcription";
 import { toast } from "@anlg/ui/components/ui/toast";
 
-import { createCaptureAudioRecovery } from "./capture-audio-recovery";
+import {
+  chunkInterval,
+  createCaptureAudioRecovery,
+} from "./capture-audio-recovery";
 import {
   saveIncompleteCapture,
   clearIncompleteCapture,
@@ -64,6 +68,7 @@ import {
 import {
   type CaptureLifecycleMarker,
   clearCaptureLifecycleMarker,
+  type InheritedCapture,
   saveCaptureLifecycleMarker,
 } from "~/stt/capture-lifecycle-storage";
 import { requestCaptureRecovery } from "~/stt/capture-recovery-requests";
@@ -228,7 +233,36 @@ export function useCaptureLifecycle(sessionId: string) {
     (
       recoveredMarker?: CaptureLifecycleMarker,
       startedAutomatically = false,
+      pendingMarker?: CaptureLifecycleMarker,
     ) => {
+      const inheritedCaptures: InheritedCapture[] =
+        recoveredMarker?.inheritedCaptures ??
+        (pendingMarker
+          ? [
+              ...(pendingMarker.inheritedCaptures ?? []),
+              {
+                transcriptId: pendingMarker.transcriptId,
+                startedAt: pendingMarker.startedAt,
+                createdAt: pendingMarker.createdAt,
+                ownerUserId: pendingMarker.ownerUserId,
+                memo: pendingMarker.memo,
+                ...(pendingMarker.retainAudio !== undefined
+                  ? { retainAudio: pendingMarker.retainAudio }
+                  : {}),
+                ...(pendingMarker.provider
+                  ? { provider: pendingMarker.provider }
+                  : {}),
+                ...(pendingMarker.model ? { model: pendingMarker.model } : {}),
+              },
+            ]
+          : []);
+      const inheritedAudioPending = inheritedCaptures.some(
+        (capture) => capture.retainAudio === false,
+      );
+      const clearInheritedIncomplete = async () => {
+        for (const capture of inheritedCaptures)
+          await clearIncompleteCapture(sessionId, capture.transcriptId);
+      };
       let usesChunkedAudio =
         !recoveredMarker || recoveredMarker.chunkedAudio === true;
       const automatic = recoveredMarker
@@ -448,6 +482,24 @@ export function useCaptureLifecycle(sessionId: string) {
             ),
         },
       );
+      const earliestStartedAt = Math.min(
+        startedAt,
+        ...inheritedCaptures.map((capture) => capture.startedAt),
+      );
+      const inheritedCaptureFor = (chunk: RecoveryAudioChunk) => {
+        if (chunk.capture_started_at >= startedAt - 5_000) return undefined;
+        return inheritedCaptures
+          .filter(
+            (capture) => chunk.capture_started_at >= capture.startedAt - 5_000,
+          )
+          .reduce<InheritedCapture | undefined>(
+            (latest, capture) =>
+              !latest || capture.startedAt > latest.startedAt
+                ? capture
+                : latest,
+            undefined,
+          );
+      };
       const audioRecovery = createCaptureAudioRecovery({
         startedAt,
         list: async () => {
@@ -455,9 +507,10 @@ export function useCaptureLifecycle(sessionId: string) {
             await transcriptionCommands.listCaptureAudioChunks(sessionId);
           if (result.status === "error") throw new Error(result.error);
           return result.data.filter(
-            (chunk) => chunk.capture_started_at >= startedAt - 5_000,
+            (chunk) => chunk.capture_started_at >= earliestStartedAt - 5_000,
           );
         },
+        inherited: (chunk) => inheritedCaptureFor(chunk) !== undefined,
         acknowledge: async (chunk) => {
           const result =
             await transcriptionCommands.acknowledgeCaptureAudioChunk(
@@ -472,10 +525,23 @@ export function useCaptureLifecycle(sessionId: string) {
             audioRecovery.persistenceFailed();
           else transcriptWriteError = undefined;
         },
-        repair: async (chunk, intervals, signal) => {
-          const beforeRepair = await getTranscriptRecord(transcriptId);
+        repair: async (chunk, requestedIntervals, signal) => {
+          const inherited = inheritedCaptureFor(chunk);
+          const target = inherited ?? {
+            transcriptId,
+            startedAt,
+            createdAt,
+            ownerUserId,
+            memo: memoMd,
+            provider,
+            model,
+          };
+          const intervals = inherited
+            ? [chunkInterval(chunk, target.startedAt)]
+            : requestedIntervals;
+          const beforeRepair = await getTranscriptRecord(target.transcriptId);
           const audioOffset =
-            chunk.capture_started_at - startedAt + chunk.audio_start_ms;
+            chunk.capture_started_at - target.startedAt + chunk.audio_start_ms;
           try {
             await runBatchRef.current(chunk.path, {
               signal,
@@ -490,25 +556,26 @@ export function useCaptureLifecycle(sessionId: string) {
                       "Waiting for transcript storage to recover",
                     );
                   if (!words.length) return;
-                  if (!transcriptCreated) {
-                    transcriptCreated = await transcriptExists(transcriptId);
-                    if (!transcriptCreated) {
-                      await createLiveTranscript(
-                        {
-                          id: transcriptId,
-                          sessionId,
-                          ownerUserId,
-                          createdAt,
-                          startedAt,
-                          memo: memoMd,
-                          source: "live_capture",
-                          provider,
-                          model,
-                        },
-                        { new_words: [], replaced_ids: [], partials: [] },
-                      );
-                      transcriptCreated = true;
-                    }
+                  const created = inherited
+                    ? await transcriptExists(target.transcriptId)
+                    : (transcriptCreated ||=
+                        await transcriptExists(transcriptId));
+                  if (!created) {
+                    await createLiveTranscript(
+                      {
+                        id: target.transcriptId,
+                        sessionId,
+                        ownerUserId: target.ownerUserId,
+                        createdAt: target.createdAt,
+                        startedAt: target.startedAt,
+                        memo: target.memo,
+                        source: "live_capture",
+                        provider: target.provider,
+                        model: target.model,
+                      },
+                      { new_words: [], replaced_ids: [], partials: [] },
+                    );
+                    if (!inherited) transcriptCreated = true;
                   }
                   const shifted = words.map((word) => ({
                     ...word,
@@ -517,7 +584,7 @@ export function useCaptureLifecycle(sessionId: string) {
                   }));
                   await persistTranscriptWrite(() =>
                     appendRecoveredTranscriptWords(
-                      transcriptId,
+                      target.transcriptId,
                       shifted,
                       beforeRepair
                         ? reconcileRefinedSpeakerClusters(
@@ -530,7 +597,7 @@ export function useCaptureLifecycle(sessionId: string) {
                       beforeRepair?.words ?? [],
                     ),
                   );
-                  transcriptTouched = true;
+                  if (!inherited) transcriptTouched = true;
                 },
               },
             });
@@ -635,6 +702,7 @@ export function useCaptureLifecycle(sessionId: string) {
         ...(refreshSummaryAfterRepair
           ? { refreshSummaryAfterRepair: true }
           : {}),
+        ...(inheritedCaptures.length > 0 ? { inheritedCaptures } : {}),
       });
       const finalizeStoppedInner = async (
         details: Parameters<OnStoppedCallback>[1],
@@ -1123,13 +1191,22 @@ export function useCaptureLifecycle(sessionId: string) {
             liveTranscriptionActive:
               !recovery.incomplete && !batchFromRetainedAudio,
           };
+          const audioKeptForTranscription =
+            recovery.incomplete && (!retainAudio || inheritedAudioPending);
+          if (!recovery.incomplete)
+            await clearInheritedIncomplete().catch((error) =>
+              console.error(
+                "[listener] failed to clear earlier capture status",
+                error,
+              ),
+            );
           if (recovery.incomplete || details.audioDeletionFailed) {
             await saveIncompleteCapture(
               sessionId,
               transcriptId,
               false,
               details.audioDeletionFailed ?? false,
-              !retainAudio && recovery.incomplete,
+              audioKeptForTranscription,
             ).catch((error) =>
               console.error(
                 "[listener] failed to save incomplete capture status",
@@ -1144,7 +1221,7 @@ export function useCaptureLifecycle(sessionId: string) {
               description:
                 "Anarlog could not remove the temporary audio. Cleanup will be retried automatically.",
             });
-          } else if (!retainAudio && recovery.incomplete) {
+          } else if (audioKeptForTranscription) {
             toast.warning("Audio kept to finish your transcript", {
               id: `capture-incomplete-${sessionId}`,
               duration: Infinity,
@@ -1192,6 +1269,7 @@ export function useCaptureLifecycle(sessionId: string) {
         }
         if (usesChunkedAudio && !details.needsBatchRepair) {
           await clearIncompleteCapture(sessionId, transcriptId);
+          await clearInheritedIncomplete();
           toast.dismiss(`capture-incomplete-${sessionId}`);
         } else if (usesChunkedAudio)
           await saveIncompleteCapture(
@@ -1199,7 +1277,7 @@ export function useCaptureLifecycle(sessionId: string) {
             transcriptId,
             false,
             false,
-            !retainAudio,
+            !retainAudio || inheritedAudioPending,
           );
         markExpectedPostStopBatch(details);
         return finalizeStopped(details, false);
@@ -1228,7 +1306,10 @@ export function useCaptureLifecycle(sessionId: string) {
         persistMarker: async () => {
           await startAudioRecovery();
           await persistTranscriptWrite(async () => {
-            await saveCaptureLifecycleMarker(await marker());
+            const next = await marker();
+            await (pendingMarker
+              ? saveCaptureLifecycleMarker(next, pendingMarker.transcriptId)
+              : saveCaptureLifecycleMarker(next));
           });
         },
         cleanupFailedStart: async () => {
@@ -1238,7 +1319,9 @@ export function useCaptureLifecycle(sessionId: string) {
           recoveryUnlisten.forEach((unlisten) => unlisten());
           await transcriptPersistence.flush();
           transcriptPersistence.dispose();
-          await clearCaptureLifecycleMarker(sessionId, transcriptId);
+          if (pendingMarker)
+            await saveCaptureLifecycleMarker(pendingMarker, transcriptId);
+          else await clearCaptureLifecycleMarker(sessionId, transcriptId);
           if (transcriptCreated) {
             await softDeleteTranscript(transcriptId);
           }

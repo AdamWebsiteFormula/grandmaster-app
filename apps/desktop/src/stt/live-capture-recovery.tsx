@@ -14,6 +14,19 @@ const CAPTURE_RECOVERY_BASE_RETRY_MS = 2_000;
 const CAPTURE_RECOVERY_MAX_ATTEMPTS = 5;
 const PENDING_AUDIO_RETRY_MS = 5 * 60_000;
 
+async function isCapturing(sessionId: string) {
+  try {
+    const result = await listenerCommands.getCaptureSnapshot();
+    return (
+      result.status === "ok" &&
+      (result.data.activeSessionId === sessionId ||
+        result.data.finalizingSessionIds.includes(sessionId))
+    );
+  } catch {
+    return false;
+  }
+}
+
 async function hasPendingAudio(sessionId: string) {
   try {
     const marker = await loadCaptureLifecycleMarker(sessionId);
@@ -166,9 +179,17 @@ function LiveCaptureSessionRecovery({
             return;
           }
           // Zero-retention audio is kept only until transcription succeeds.
-          retryTimer = setTimeout(() => {
+          const retry = async () => {
+            if (!active) return;
+            // A new capture in this note adopts the pending audio.
+            if (await isCapturing(sessionId)) {
+              if (active)
+                retryTimer = setTimeout(retry, PENDING_AUDIO_RETRY_MS);
+              return;
+            }
             void recover(attempt + 1);
-          }, PENDING_AUDIO_RETRY_MS);
+          };
+          retryTimer = setTimeout(retry, PENDING_AUDIO_RETRY_MS);
           return;
         }
         if (attempt >= CAPTURE_RECOVERY_MAX_ATTEMPTS) {
