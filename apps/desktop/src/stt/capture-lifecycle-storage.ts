@@ -195,3 +195,7 @@ function parseCaptureLifecycleMarker(
     return null;
   }
 }
+
+export function hasPendingZeroRetentionAudio(marker: CaptureLifecycleMarker) {
+  return marker.chunkedAudio === true && marker.retainAudio === false;
+}

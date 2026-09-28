@@ -382,6 +382,16 @@ pub fn delete_capture_audio(session_dir: &Path) -> std::io::Result<()> {
     }
 }
 
+/// Deletes zero-retention audio only after every recovery chunk was acknowledged.
+/// Returns `false` while chunks still wait for transcription.
+pub fn delete_transcribed_capture_audio(session_dir: &Path) -> std::io::Result<bool> {
+    if !list_recovery_chunks(session_dir)?.is_empty() {
+        return Ok(false);
+    }
+    delete_capture_audio(session_dir)?;
+    Ok(true)
+}
+
 // Call only before a writer starts or during application startup. Active .part
 // files must stay invisible to recovery workers until their writer closes them.
 fn recover_partial_chunks(session_dir: &Path) -> std::io::Result<()> {
@@ -462,8 +472,11 @@ pub(crate) fn recover_interrupted_captures_except(
                 return Ok(());
             }
             if dir.join(DELETE_ON_STOP).try_exists()? {
-                let result = delete_capture_audio(&dir);
-                on_cleanup(&name, true, &result);
+                let result = recover_partial_chunks(&dir)
+                    .and_then(|()| delete_transcribed_capture_audio(&dir));
+                let deleting = !matches!(result, Ok(false));
+                let result = result.map(|_| ());
+                on_cleanup(&name, deleting, &result);
                 result
             } else if uuid::Uuid::parse_str(&name).is_ok() {
                 let result = recover_partial_chunks(&dir);
@@ -600,6 +613,23 @@ mod tests {
         assert!(!dir.path().join("audio.recovery-old.wav").exists());
         assert!(!dir.path().join("audio.mp3.tmp").exists());
         assert!(dir.path().join("note.md").exists());
+    }
+
+    #[test]
+    fn zero_retention_keeps_untranscribed_chunks_until_acknowledged() {
+        let root = tempfile::tempdir().unwrap();
+        let dir = root.path().join(uuid::Uuid::new_v4().to_string());
+        let mut sink = ChunkedSink::new(&dir, 123, 0, false).unwrap();
+        sink.write(&vec![0.1; SAMPLE_RATE as usize], &[]).unwrap();
+        sink.finish().unwrap();
+        assert!(!delete_transcribed_capture_audio(&dir).unwrap());
+        recover_interrupted_captures(root.path()).unwrap();
+        let chunks = list_recovery_chunks(&dir).unwrap();
+        assert_eq!(chunks.len(), 1);
+        acknowledge_recovery_chunk(&dir, &chunks[0].id).unwrap();
+        assert!(delete_transcribed_capture_audio(&dir).unwrap());
+        assert!(!dir.join(RECOVERY_DIR).exists());
+        assert!(!dir.join(DELETE_ON_STOP).exists());
     }
 
     #[test]

@@ -163,17 +163,9 @@ export function createCaptureAudioRecovery(options: {
       failed = true;
       markGap();
     },
-    async stop(retainAudio: boolean) {
+    async stop() {
       active = false;
       clearTimeout(timer);
-      if (!retainAudio) {
-        controller.abort();
-        await running;
-        return {
-          incomplete:
-            pending || failed || gapStart !== undefined || gaps.length > 0,
-        };
-      }
       closeGap();
       await running;
       while (await tick(true)) {

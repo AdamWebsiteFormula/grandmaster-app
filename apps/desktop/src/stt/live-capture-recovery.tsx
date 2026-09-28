@@ -2,12 +2,26 @@ import { useCallback, useEffect, useState } from "react";
 
 import { commands as listenerCommands } from "@anlg/plugin-transcription";
 
-import { loadCaptureLifecycleMarkers } from "./capture-lifecycle-storage";
+import {
+  hasPendingZeroRetentionAudio,
+  loadCaptureLifecycleMarker,
+  loadCaptureLifecycleMarkers,
+} from "./capture-lifecycle-storage";
 import { listenCaptureRecoveryRequests } from "./capture-recovery-requests";
 import { useResumeListeningLifecycle } from "./useStartListening";
 
 const CAPTURE_RECOVERY_BASE_RETRY_MS = 2_000;
 const CAPTURE_RECOVERY_MAX_ATTEMPTS = 5;
+const PENDING_AUDIO_RETRY_MS = 5 * 60_000;
+
+async function hasPendingAudio(sessionId: string) {
+  try {
+    const marker = await loadCaptureLifecycleMarker(sessionId);
+    return Boolean(marker && hasPendingZeroRetentionAudio(marker));
+  } catch {
+    return false;
+  }
+}
 
 export function LiveCaptureRecovery() {
   const [recoveryTokens, setRecoveryTokens] = useState<Record<string, number>>(
@@ -144,6 +158,19 @@ function LiveCaptureSessionRecovery({
         return;
       }
       if (result === "error") {
+        if (
+          attempt >= CAPTURE_RECOVERY_MAX_ATTEMPTS &&
+          (await hasPendingAudio(sessionId))
+        ) {
+          if (!active) {
+            return;
+          }
+          // Zero-retention audio is kept only until transcription succeeds.
+          retryTimer = setTimeout(() => {
+            void recover(attempt + 1);
+          }, PENDING_AUDIO_RETRY_MS);
+          return;
+        }
         if (attempt >= CAPTURE_RECOVERY_MAX_ATTEMPTS) {
           console.warn("[listener] capture recovery retry budget exhausted", {
             sessionId,

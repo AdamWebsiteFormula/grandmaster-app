@@ -573,8 +573,6 @@ export function useCaptureLifecycle(sessionId: string) {
               else if (!payload.requested_live_transcription)
                 audioRecovery.batchOnly(false);
               else audioRecovery.interrupted();
-            } else if (payload.type === "finalizing" && !retainAudio) {
-              void audioRecovery.stop(false);
             }
           }),
           transcriptionEvents.captureStatusEvent.listen(({ payload }) => {
@@ -608,7 +606,12 @@ export function useCaptureLifecycle(sessionId: string) {
         clearTimeout(credentialTimer);
         recoveryUnlisten.forEach((unlisten) => unlisten());
         recoveryUnlisten = [];
-        return audioRecovery.stop(retainAudio);
+        const recovery = await audioRecovery.stop();
+        if (retainAudio || recovery.incomplete) return recovery;
+        const result =
+          await transcriptionCommands.deleteTranscribedCaptureAudio(sessionId);
+        if (result.status === "error") throw new Error(result.error);
+        return { incomplete: !result.data };
       };
       const marker = async (): Promise<CaptureLifecycleMarker> => ({
         version: 1,
@@ -913,6 +916,7 @@ export function useCaptureLifecycle(sessionId: string) {
         const emptyFreshCapture =
           !recoveredMarker &&
           !details.audioPath &&
+          !(usesChunkedAudio && details.needsBatchRepair) &&
           !transcriptTouched &&
           !transcriptWriteError;
         const transcriptIsComplete =
@@ -1105,7 +1109,14 @@ export function useCaptureLifecycle(sessionId: string) {
           await transcriptPersistence.flush();
           if (transcriptPersistence.hasPendingFailure())
             audioRecovery.persistenceFailed();
-          const recovery = await stopAudioRecovery();
+          const recovery = await stopAudioRecovery().catch((error) => {
+            console.error(
+              "[listener] failed to delete transcribed audio",
+              error,
+            );
+            details = { ...details, audioDeletionFailed: true };
+            return { incomplete: false };
+          });
           details = {
             ...details,
             needsBatchRepair: recovery.incomplete,
@@ -1116,8 +1127,9 @@ export function useCaptureLifecycle(sessionId: string) {
             await saveIncompleteCapture(
               sessionId,
               transcriptId,
-              !retainAudio && !details.audioDeletionFailed,
+              false,
               details.audioDeletionFailed ?? false,
+              !retainAudio && recovery.incomplete,
             ).catch((error) =>
               console.error(
                 "[listener] failed to save incomplete capture status",
@@ -1133,11 +1145,11 @@ export function useCaptureLifecycle(sessionId: string) {
                 "Anarlog could not remove the temporary audio. Cleanup will be retried automatically.",
             });
           } else if (!retainAudio && recovery.incomplete) {
-            toast.error("Your transcript is incomplete", {
+            toast.warning("Audio kept to finish your transcript", {
               id: `capture-incomplete-${sessionId}`,
               duration: Infinity,
               description:
-                "The meeting ended before recovery finished. Audio was deleted according to your retention setting.",
+                "Part of this meeting could not be transcribed yet, so Anarlog kept its temporary audio on purpose. It will be deleted automatically once transcription succeeds.",
             });
           }
         } else {
@@ -1178,10 +1190,17 @@ export function useCaptureLifecycle(sessionId: string) {
             ...(!retainAudio ? { audioPath: null } : {}),
           };
         }
-        if (usesChunkedAudio && !details.needsBatchRepair)
+        if (usesChunkedAudio && !details.needsBatchRepair) {
           await clearIncompleteCapture(sessionId, transcriptId);
-        else if (usesChunkedAudio)
-          await saveIncompleteCapture(sessionId, transcriptId, !retainAudio);
+          toast.dismiss(`capture-incomplete-${sessionId}`);
+        } else if (usesChunkedAudio)
+          await saveIncompleteCapture(
+            sessionId,
+            transcriptId,
+            false,
+            false,
+            !retainAudio,
+          );
         markExpectedPostStopBatch(details);
         return finalizeStopped(details, false);
       };

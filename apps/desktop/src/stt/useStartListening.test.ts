@@ -62,6 +62,7 @@ const {
   audioPathMock,
   audioSourceMetadataMock,
   toastWarningMock,
+  deleteTranscribedCaptureAudioMock,
   toastErrorMock,
   toastDismissMock,
   startMeetingChatCaptureMock,
@@ -118,6 +119,7 @@ const {
   audioPathMock: vi.fn(),
   audioSourceMetadataMock: vi.fn(),
   toastWarningMock: vi.fn(),
+  deleteTranscribedCaptureAudioMock: vi.fn(),
   toastErrorMock: vi.fn(),
   toastDismissMock: vi.fn(),
   startMeetingChatCaptureMock: vi.fn(),
@@ -153,6 +155,7 @@ vi.mock("@anlg/plugin-transcription", () => ({
       status: "ok",
       data: null,
     })),
+    deleteTranscribedCaptureAudio: deleteTranscribedCaptureAudioMock,
     updateCaptureCredentials: vi.fn(async () => ({ status: "ok", data: null })),
   },
   events: {
@@ -293,6 +296,10 @@ vi.mock("~/store/zustand/tabs", () => ({
 
 vi.mock("~/stt/capture-lifecycle-storage", () => ({
   clearCaptureLifecycleMarker: clearCaptureLifecycleMarkerMock,
+  hasPendingZeroRetentionAudio: (marker: {
+    chunkedAudio?: boolean;
+    retainAudio?: boolean;
+  }) => marker.chunkedAudio === true && marker.retainAudio === false,
   loadCaptureLifecycleMarker: loadCaptureLifecycleMarkerMock,
   saveCaptureLifecycleMarker: saveCaptureLifecycleMarkerMock,
 }));
@@ -578,13 +585,21 @@ describe("useStartListening", () => {
       },
     });
     startMeetingChatCaptureMock.mockReturnValue(stopMeetingChatCaptureMock);
+    deleteTranscribedCaptureAudioMock.mockResolvedValue({
+      status: "ok",
+      data: true,
+    });
   });
 
   afterEach(() => {
     vi.useRealTimers();
   });
 
-  test("zero retention deletes the recovery opportunity at stop even after a disconnect", async () => {
+  test("zero retention keeps untranscribed audio at stop after a disconnect", async () => {
+    deleteTranscribedCaptureAudioMock.mockResolvedValue({
+      status: "ok",
+      data: false,
+    });
     useConfigValueMock.mockImplementation((key: string) =>
       key === "audio_retention" ? "none" : undefined,
     );
@@ -613,14 +628,44 @@ describe("useStartListening", () => {
       });
     });
     expect(runBatchMock).not.toHaveBeenCalled();
+    expect(deleteTranscribedCaptureAudioMock).toHaveBeenCalledWith("session-1");
     expect(saveIncompleteCapture).toHaveBeenCalledWith(
       "session-1",
       "generated-id",
-      true,
       false,
+      false,
+      true,
     );
-    expect(toastErrorMock).toHaveBeenCalledWith(
-      "Your transcript is incomplete",
+    expect(toastWarningMock).toHaveBeenCalledWith(
+      "Audio kept to finish your transcript",
+      expect.anything(),
+    );
+    expect(clearCaptureLifecycleMarkerMock).not.toHaveBeenCalled();
+    expect(deleteProcessedAudioForRetentionMock).not.toHaveBeenCalled();
+  });
+
+  test("zero retention deletes temporary audio once transcription succeeds", async () => {
+    useConfigValueMock.mockImplementation((key: string) =>
+      key === "audio_retention" ? "none" : undefined,
+    );
+    const { result } = renderHook(() => useStartListening("session-1"));
+    await act(async () => {
+      await result.current();
+    });
+    await act(async () => {
+      await startMock.mock.calls[0]?.[1].onStopped("session-1", {
+        chunkedAudio: true,
+        durationSeconds: 60,
+        audioPath: "/tmp/session.mp3",
+        requestedLiveTranscription: true,
+        liveTranscriptionActive: true,
+        needsBatchRepair: false,
+      });
+    });
+    expect(deleteTranscribedCaptureAudioMock).toHaveBeenCalledWith("session-1");
+    expect(saveIncompleteCapture).not.toHaveBeenCalled();
+    expect(toastWarningMock).not.toHaveBeenCalledWith(
+      "Audio kept to finish your transcript",
       expect.anything(),
     );
   });
@@ -794,6 +839,7 @@ describe("useStartListening", () => {
       "generated-id",
       false,
       true,
+      false,
     );
     expect(toastErrorMock).toHaveBeenCalledWith(
       "Audio could not be deleted",
