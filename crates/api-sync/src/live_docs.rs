@@ -627,6 +627,11 @@ impl LiveDocs {
             )
             .await?;
             let count = rows.len() as i64;
+            if rows.first().is_some_and(|row| row.seq > after_seq + 1) {
+                // Another instance compacted past our cursor; the missing rows
+                // now live only in the compacted state.
+                self.merge_compacted_state(state, live).await?;
+            }
             let mut inner = live.inner.lock().await;
             for row in rows {
                 let bytes =
@@ -642,6 +647,33 @@ impl LiveDocs {
                 return Ok(());
             }
         }
+    }
+
+    async fn merge_compacted_state(&self, state: &AppState, live: &LiveDoc) -> Result<()> {
+        let mut rows: Vec<ReadDocumentRow> = rpc(
+            state,
+            "read_session_share_live_document",
+            &ReadDocumentRequest {
+                p_share_id: &live.share_id,
+            },
+        )
+        .await?;
+        let Some(row) = rows.pop() else {
+            return Err(SyncError::SnapshotServiceUnavailable);
+        };
+        let Some(state_hex) = row.state_hex.as_deref() else {
+            return Ok(());
+        };
+        let bytes = decode_hex(state_hex).ok_or(SyncError::SnapshotServiceUnavailable)?;
+        let mut inner = live.inner.lock().await;
+        let before = inner.doc.transact().state_vector();
+        if inner.apply(&bytes)? {
+            let diff = inner.doc.transact().encode_diff_v1(&before);
+            let frame = encode_frame(&Message::Sync(SyncMessage::Update(diff)));
+            inner.broadcast(None, &frame);
+        }
+        inner.polled_through = inner.polled_through.max(row.compacted_through_seq);
+        Ok(())
     }
 
     async fn maybe_compact(&self, state: &AppState, live: &LiveDoc) -> Result<()> {

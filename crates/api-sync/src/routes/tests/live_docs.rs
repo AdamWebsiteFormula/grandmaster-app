@@ -100,7 +100,7 @@ impl Respond for ReadDocument {
             "share_id": SHARE_ID,
             "state_hex": log.state.as_deref().map(encode_hex),
             "compacted_through_seq": log.compacted_through,
-            "updates": log.updates.iter().map(|(seq, update)| json!({
+            "updates": log.updates.iter().take(256).map(|(seq, update)| json!({
                 "seq": seq,
                 "update_hex": encode_hex(update)
             })).collect::<Vec<_>>()
@@ -113,11 +113,13 @@ impl Respond for ReadUpdates {
     fn respond(&self, request: &MockRequest) -> ResponseTemplate {
         let body: Value = serde_json::from_slice(&request.body).unwrap();
         let after = body["p_after_seq"].as_i64().unwrap();
+        let limit = body["p_limit"].as_u64().unwrap() as usize;
         let log = self.0.0.lock().unwrap();
         ResponseTemplate::new(200).set_body_json(
             log.updates
                 .iter()
                 .filter(|(seq, _)| *seq > after)
+                .take(limit)
                 .map(|(seq, update)| json!({ "seq": seq, "update_hex": encode_hex(update) }))
                 .collect::<Vec<_>>(),
         )
@@ -448,6 +450,82 @@ async fn viewers_receive_state_but_cannot_publish() {
     .unwrap();
     assert!(closed);
     assert_eq!(store.seq(), 1);
+}
+
+#[tokio::test]
+async fn bootstrap_pages_through_long_update_logs() {
+    let server = MockServer::start().await;
+    let store = FakeStore::default();
+    let source = Doc::new();
+    for index in 0..300 {
+        let update = text_update(&source, &format!("{index},"));
+        let seq = index + 1;
+        store.0.lock().unwrap().updates.push((seq, update));
+    }
+    store.mount(&server).await;
+    mock_access(&server, "editor-1", "editor").await;
+    let state = live_test_state(&server);
+    let base = serve(authed_router(state.clone(), "editor-1")).await;
+    let ticket = issue_ticket(authed_router(state, "editor-1")).await;
+
+    let doc = Doc::new();
+    let mut socket = connect(&base, ticket["ticket"].as_str().unwrap()).await;
+    let ready = handshake(&mut socket, &doc).await;
+    assert_eq!(ready["seedRequired"], false);
+    assert_eq!(body_text(&doc), body_text(&source));
+}
+
+#[tokio::test]
+async fn compaction_by_another_instance_does_not_lose_updates() {
+    let server = MockServer::start().await;
+    let store = FakeStore::default();
+    let source = Doc::new();
+    store
+        .0
+        .lock()
+        .unwrap()
+        .updates
+        .push((1, text_update(&source, "one ")));
+    store.mount(&server).await;
+    mock_access(&server, "editor-1", "editor").await;
+    let state = live_test_state(&server);
+    let base = serve(authed_router(state.clone(), "editor-1")).await;
+    let ticket = issue_ticket(authed_router(state, "editor-1")).await;
+
+    let doc = Doc::new();
+    let mut socket = connect(&base, ticket["ticket"].as_str().unwrap()).await;
+    handshake(&mut socket, &doc).await;
+    assert_eq!(body_text(&doc), "one ");
+
+    // Another instance appends, compacts everything so far, then appends again
+    // before this instance polls: seq 2 only survives inside the compacted state.
+    let _ = text_update(&source, "two ");
+    let three = text_update(&source, "three");
+    {
+        let mut log = store.0.lock().unwrap();
+        log.state = Some(
+            source
+                .transact()
+                .encode_state_as_update_v1(&StateVector::default()),
+        );
+        log.compacted_through = 2;
+        log.updates.clear();
+        log.updates.push((3, three));
+    }
+
+    tokio::time::timeout(std::time::Duration::from_secs(10), async {
+        while body_text(&doc) != "one two three" {
+            match Message::decode_v1(&next_binary(&mut socket).await).unwrap() {
+                Message::Sync(SyncMessage::Update(update)) => doc
+                    .transact_mut()
+                    .apply_update(Update::decode_v1(&update).unwrap())
+                    .unwrap(),
+                other => panic!("unexpected message {other:?}"),
+            }
+        }
+    })
+    .await
+    .unwrap();
 }
 
 #[tokio::test]

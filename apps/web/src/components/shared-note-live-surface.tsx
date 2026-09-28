@@ -27,6 +27,7 @@ import {
 } from "@/lib/shared-notes";
 
 const FLUSH_DEBOUNCE_MS = 2_000;
+const MAX_AUTO_RETRIES = 3;
 
 /**
  * Editable shared-note surface bound to the api-sync live document. The CRDT
@@ -53,7 +54,8 @@ export function SharedNoteLiveSurface({
   const revisionRef = useRef(snapshot.contentRevision);
   const dirtyRef = useRef(false);
   const flushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const scheduleFlushRef = useRef<() => void>(() => {});
+  const scheduleFlushRef = useRef<(delayMs?: number) => void>(() => {});
+  const failedFlushesRef = useRef(0);
   const [generation, setGeneration] = useState(0);
 
   const saveMutation = useMutation({
@@ -145,22 +147,37 @@ export function SharedNoteLiveSurface({
     dirtyRef.current = false;
     save(current.fragment, {
       onSettled: (result) => {
-        if (result?.status === "ready") return;
-        // Keep the edits marked unsaved so a later flush retries them;
-        // transient failures retry on their own, forbidden waits for a re-check.
+        if (result?.status === "ready") {
+          failedFlushesRef.current = 0;
+          return;
+        }
+        // Keep the edits marked unsaved so a later flush retries them. Only a
+        // few backed-off retries run on their own; after that (or when the
+        // server refuses the edit) the next local edit triggers the retry.
         dirtyRef.current = true;
-        if (result?.status !== "forbidden") scheduleFlushRef.current();
+        failedFlushesRef.current += 1;
+        if (
+          result?.status !== "forbidden" &&
+          failedFlushesRef.current <= MAX_AUTO_RETRIES
+        ) {
+          scheduleFlushRef.current(
+            FLUSH_DEBOUNCE_MS * 2 ** failedFlushesRef.current,
+          );
+        }
       },
     });
   }, [save]);
 
-  const scheduleFlush = useCallback(() => {
-    if (flushTimerRef.current !== null) clearTimeout(flushTimerRef.current);
-    flushTimerRef.current = setTimeout(() => {
-      flushTimerRef.current = null;
-      flushNow();
-    }, FLUSH_DEBOUNCE_MS);
-  }, [flushNow]);
+  const scheduleFlush = useCallback(
+    (delayMs: number = FLUSH_DEBOUNCE_MS) => {
+      if (flushTimerRef.current !== null) clearTimeout(flushTimerRef.current);
+      flushTimerRef.current = setTimeout(() => {
+        flushTimerRef.current = null;
+        flushNow();
+      }, delayMs);
+    },
+    [flushNow],
+  );
   scheduleFlushRef.current = scheduleFlush;
 
   useMountEffect(() => {
