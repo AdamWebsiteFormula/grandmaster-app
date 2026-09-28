@@ -345,7 +345,11 @@ pub(crate) enum Outbound {
     Control(String),
 }
 
-pub(crate) type PeerSender = mpsc::UnboundedSender<Outbound>;
+/// Frames a peer may have queued before it is considered stalled and dropped;
+/// a dropped peer reconnects and resyncs from the authoritative document.
+pub(crate) const PEER_OUTBOUND_CAPACITY: usize = 256;
+
+pub(crate) type PeerSender = mpsc::Sender<Outbound>;
 
 struct LiveDocInner {
     doc: Doc,
@@ -378,7 +382,7 @@ impl LiveDocInner {
             if Some(*peer_id) == from {
                 return true;
             }
-            sender.send(Outbound::Binary(frame.to_vec())).is_ok()
+            sender.try_send(Outbound::Binary(frame.to_vec())).is_ok()
         });
     }
 }
@@ -399,7 +403,7 @@ impl LiveDoc {
             .peers
             .get(&peer_id)
             .ok_or(())?
-            .send(frame)
+            .try_send(frame)
             .map_err(|_| ())
     }
 }

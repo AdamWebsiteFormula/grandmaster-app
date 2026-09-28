@@ -17,7 +17,7 @@ use uuid::Uuid;
 use crate::error::{Result, SyncError};
 use crate::live_docs::{
     ControlMessage, LIVE_TICKET_TTL, LiveCapability, MAX_LIVE_UPDATE_BYTES, Outbound,
-    control_frame, issue_ticket, resolve_access, verify_ticket,
+    PEER_OUTBOUND_CAPACITY, control_frame, issue_ticket, resolve_access, verify_ticket,
 };
 use crate::state::AppState;
 
@@ -144,7 +144,7 @@ async fn run_socket(
     content_revision: i64,
 ) {
     let (mut sink, mut stream) = socket.split();
-    let (sender, mut outbound) = mpsc::unbounded_channel::<Outbound>();
+    let (sender, mut outbound) = mpsc::channel::<Outbound>(PEER_OUTBOUND_CAPACITY);
     let docs = state.live_docs.clone();
     let (live, peer_id, handshake, seed_required) = match docs.join(&state, &share_id, sender).await
     {
