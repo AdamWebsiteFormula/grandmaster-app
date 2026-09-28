@@ -87,6 +87,11 @@ type ControllerTimers = {
   clearTimeout: typeof clearTimeout;
 };
 
+type SyncSettleOptions = {
+  intervalMs: number;
+  timeoutMs: number;
+};
+
 const initialSnapshot: MobileSyncSnapshot = {
   phase: "inactive",
   accountUserId: null,
@@ -136,6 +141,7 @@ export class MobileSyncController {
   private readonly pollIntervalMs: number;
   private readonly retryDelayMs: number;
   private readonly timers: ControllerTimers;
+  private readonly settle: SyncSettleOptions;
 
   constructor(
     dependencies: ControllerDependencies,
@@ -147,11 +153,13 @@ export class MobileSyncController {
       setTimeout,
       clearTimeout,
     },
+    settle: SyncSettleOptions = { intervalMs: 500, timeoutMs: 15_000 },
   ) {
     this.dependencies = dependencies;
     this.pollIntervalMs = pollIntervalMs;
     this.retryDelayMs = retryDelayMs;
     this.timers = timers;
+    this.settle = settle;
   }
 
   subscribe = (listener: () => void): (() => void) => {
@@ -169,6 +177,7 @@ export class MobileSyncController {
       this.snapshot.hasRecoveryKey;
     this.session = session;
     this.clearTimers();
+    this.activeSync = null;
     this.update({
       ...initialSnapshot,
       phase: "starting",
@@ -187,6 +196,7 @@ export class MobileSyncController {
     this.generation += 1;
     this.session = null;
     this.clearTimers();
+    this.activeSync = null;
     this.update({
       ...initialSnapshot,
       accountUserId: this.snapshot.accountUserId,
@@ -206,18 +216,20 @@ export class MobileSyncController {
   syncNow(): Promise<void> {
     if (this.activeSync) return this.activeSync;
     if (this.snapshot.phase !== "ready") return Promise.resolve();
-    this.activeSync = this.runSyncNow().finally(() => {
-      this.activeSync = null;
+    const sync = this.runSyncNow().finally(() => {
+      if (this.activeSync === sync) this.activeSync = null;
     });
-    return this.activeSync;
+    this.activeSync = sync;
+    return sync;
   }
 
   private async runSyncNow(): Promise<void> {
     const generation = this.generation;
+    const before = this.snapshot;
     this.update({ ...this.snapshot, syncingNow: true, errorMessage: null });
     try {
       await this.dependencies.syncNow();
-      await this.refreshStatus(generation);
+      await this.waitForSyncRound(generation, before);
     } catch (error) {
       this.dependencies.reportError(error, "mobile_sync_now");
       if (generation === this.generation) {
@@ -359,17 +371,48 @@ export class MobileSyncController {
     try {
       const status = await this.dependencies.getStatus();
       if (generation !== this.generation) return;
-      this.update({
-        ...this.snapshot,
-        phase: "ready",
-        running: status.running,
-        hasUnsentChanges: status.has_unsent_changes,
-        lastSyncAtMs: status.last_sync_at_ms,
-        errorMessage: status.last_error,
-        consecutiveFailures: status.consecutive_failures,
-      });
+      this.applyStatus(status);
     } catch (error) {
       this.dependencies.reportError(error, "mobile_sync_status");
+    }
+  }
+
+  private applyStatus(status: NativeSyncStatus): void {
+    this.update({
+      ...this.snapshot,
+      phase: "ready",
+      running: status.running,
+      hasUnsentChanges: status.has_unsent_changes,
+      lastSyncAtMs: status.last_sync_at_ms,
+      errorMessage: status.last_error,
+      consecutiveFailures: status.consecutive_failures,
+    });
+  }
+
+  // The native E2EE runtime only queues a replica round on sync-now, so poll
+  // status until that round records a result (or the wait times out).
+  private async waitForSyncRound(
+    generation: number,
+    before: MobileSyncSnapshot,
+  ): Promise<void> {
+    const deadline = Date.now() + this.settle.timeoutMs;
+    for (;;) {
+      let status: NativeSyncStatus;
+      try {
+        status = await this.dependencies.getStatus();
+      } catch (error) {
+        this.dependencies.reportError(error, "mobile_sync_status");
+        return;
+      }
+      if (generation !== this.generation) return;
+      this.applyStatus(status);
+      const settled =
+        status.last_sync_at_ms !== before.lastSyncAtMs ||
+        status.consecutive_failures !== before.consecutiveFailures;
+      if (settled || Date.now() >= deadline) return;
+      await new Promise<void>((resolve) =>
+        this.timers.setTimeout(resolve, this.settle.intervalMs),
+      );
     }
   }
 
