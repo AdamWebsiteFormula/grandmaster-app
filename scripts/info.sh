@@ -3,9 +3,9 @@
 stable_user_id=""
 stable_version=""
 
-if [ -d "$HOME/Library/Application Support/hyprnote" ]; then
-    if [ -f "$HOME/Library/Application Support/hyprnote/store.json" ]; then
-        stable_user_id=$(jq -r '."auth-user-id" // empty' "$HOME/Library/Application Support/hyprnote/store.json")
+if [ -d "$HOME/Library/Application Support/anarlog" ]; then
+    if [ -f "$HOME/Library/Application Support/anarlog/store.json" ]; then
+        stable_user_id=$(jq -r '."auth-user-id" // empty' "$HOME/Library/Application Support/anarlog/store.json")
     fi
 fi
 
