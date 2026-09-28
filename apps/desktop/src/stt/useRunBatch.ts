@@ -934,6 +934,7 @@ export const useRunBatch = (sessionId: string) => {
             resume_context:
               !handlePersist &&
               !options?.recovery &&
+              !options?.deferAudioFinalization &&
               options?.promotion?.scope === "whole_session"
                 ? serializeBatchResumeContext({ promotion: "whole_session" })
                 : null,

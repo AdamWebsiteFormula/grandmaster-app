@@ -1237,6 +1237,58 @@ describe("batch recovery after reload", () => {
     expect(acknowledgeCompletedTranscriptionMock).not.toHaveBeenCalled();
   });
 
+  test("waits for a running recovered batch instead of restarting it", async () => {
+    let emit!: (event: { payload: unknown }) => void;
+    listenMock.mockImplementation(async (handler) => {
+      emit = handler;
+      return vi.fn();
+    });
+    const response = { metadata: {}, results: { channels: [] } };
+    listTranscriptionSessionsMock.mockImplementation(async () => {
+      queueMicrotask(() =>
+        emit({
+          payload: { type: "completed", session_id: "session-1", response },
+        }),
+      );
+      return {
+        status: "ok",
+        data: [
+          {
+            session_id: "session-1",
+            file_path: "/tmp/session.wav",
+            provider: "soniqo",
+            model: null,
+            started_at_ms: 0,
+            resume_context: null,
+            completed: false,
+          },
+        ],
+      };
+    });
+    const store = makeStore({
+      batch: { "session-1": { percentage: 0.5, recovered: true } },
+    });
+
+    await runBatchSession(
+      () => store,
+      "session-1",
+      {
+        session_id: "session-1",
+        provider: "soniqo",
+        file_path: "/tmp/session.wav",
+        base_url: "",
+        api_key: "",
+      },
+      { notifyOnCompletion: false },
+    );
+
+    expect(startTranscriptionMock).not.toHaveBeenCalled();
+    expect(store.handleBatchResponse).toHaveBeenCalledWith(
+      "session-1",
+      response,
+    );
+  });
+
   test("does not adopt a running batch for a different file", async () => {
     listenMock.mockResolvedValue(vi.fn());
     startTranscriptionMock.mockResolvedValue({

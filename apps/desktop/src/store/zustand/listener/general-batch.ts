@@ -312,18 +312,30 @@ export const runBatchSession = async <T extends BatchStore>(
               }
             });
 
-        const start = resumeFromRecovery
-          ? takeCompletedBatchResponse(params).then((response) => {
-              if (settled) {
-                return;
-              }
-              if (response) {
-                resolveSuccess({ response }, resolve, reject);
-                return;
-              }
-              return startNative();
-            })
-          : startNative();
+        const resumeRecovered = async () => {
+          const session = await findRunningBatchSession(sessionId);
+          if (settled) {
+            return;
+          }
+          if (!session || !matchesBatchParams(session, params)) {
+            return startNative();
+          }
+          if (!session.completed) {
+            startedAt = session.started_at_ms;
+            return;
+          }
+          const response = await readCompletedBatchResponse(sessionId);
+          if (settled) {
+            return;
+          }
+          if (response) {
+            resolveSuccess({ response }, resolve, reject);
+            return;
+          }
+          return startNative();
+        };
+
+        const start = resumeFromRecovery ? resumeRecovered() : startNative();
 
         start.catch((error) => {
           console.error(error);
@@ -357,14 +369,9 @@ export async function hasConflictingBatchSession(params: TranscriptionParams) {
   return running !== undefined && !matchesBatchParams(running, params);
 }
 
-async function takeCompletedBatchResponse(params: TranscriptionParams) {
-  const session = await findRunningBatchSession(params.session_id);
-  if (!session?.completed || !matchesBatchParams(session, params)) {
-    return undefined;
-  }
-  const result = await transcriptionCommands.getCompletedTranscription(
-    params.session_id,
-  );
+async function readCompletedBatchResponse(sessionId: string) {
+  const result =
+    await transcriptionCommands.getCompletedTranscription(sessionId);
   if (result.status === "error") {
     console.error("[runBatch] failed to read completed batch", result.error);
     return undefined;
