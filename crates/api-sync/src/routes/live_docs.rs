@@ -196,10 +196,15 @@ async fn run_socket(
             .await
         {
             Ok(replies) => {
+                let mut delivered = true;
                 for reply in replies {
                     if live.send_to(peer_id, reply).await.is_err() {
+                        delivered = false;
                         break;
                     }
+                }
+                if !delivered {
+                    break;
                 }
             }
             Err(SyncError::SnapshotPublicationForbidden) => {

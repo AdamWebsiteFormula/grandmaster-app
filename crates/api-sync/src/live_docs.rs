@@ -398,13 +398,17 @@ impl LiveDoc {
         peer_id: PeerId,
         frame: Outbound,
     ) -> std::result::Result<(), ()> {
-        let inner = self.inner.lock().await;
-        inner
+        let mut inner = self.inner.lock().await;
+        let sent = inner
             .peers
             .get(&peer_id)
-            .ok_or(())?
-            .try_send(frame)
-            .map_err(|_| ())
+            .is_some_and(|sender| sender.try_send(frame).is_ok());
+        if !sent {
+            // A peer that cannot take a direct reply (stalled or gone) is
+            // dropped rather than left with a partial protocol exchange.
+            inner.peers.remove(&peer_id);
+        }
+        sent.then_some(()).ok_or(())
     }
 }
 
