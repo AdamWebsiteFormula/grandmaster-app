@@ -36,6 +36,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener2<'a, R, M> {
             .clone();
         let session_id = params.session_id.clone();
         let file_path = params.file_path.clone();
+        let provider = params.provider.clone();
+        let model = params.model.clone();
         let started_at_ms = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .map(|elapsed| elapsed.as_millis() as i64)
@@ -103,6 +105,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener2<'a, R, M> {
 
             entry.abort_handle = Some(abort_handle.clone());
             entry.file_path = file_path;
+            entry.provider = Some(provider);
+            entry.model = model;
             entry.started_at_ms = started_at_ms;
 
             match lock_terminal_state(&control) {
@@ -268,6 +272,8 @@ fn running_batch_sessions(
         .map(|(session_id, entry)| crate::TranscriptionSession {
             session_id: session_id.clone(),
             file_path: entry.file_path.clone(),
+            provider: entry.provider.clone(),
+            model: entry.model.clone(),
             started_at_ms: entry.started_at_ms,
         })
         .collect();
@@ -300,6 +306,8 @@ fn reserve_batch_session(
             abort_handle: None,
             wait_for_native_completion,
             file_path: String::new(),
+            provider: None,
+            model: None,
             started_at_ms: 0,
         },
     );
@@ -486,6 +494,8 @@ mod tests {
                     abort_handle: None,
                     wait_for_native_completion: false,
                     file_path: String::new(),
+                    provider: None,
+                    model: None,
                     started_at_ms: 0,
                 },
             )])),
@@ -773,6 +783,8 @@ mod tests {
             abort_handle: Some(task.abort_handle()),
             wait_for_native_completion: false,
             file_path: String::new(),
+            provider: None,
+            model: None,
             started_at_ms: 0,
         });
 

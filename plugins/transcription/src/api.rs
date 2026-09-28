@@ -167,6 +167,8 @@ pub struct TranscriptionParams {
 pub struct TranscriptionSession {
     pub session_id: String,
     pub file_path: String,
+    pub provider: Option<TranscriptionProvider>,
+    pub model: Option<String>,
     pub started_at_ms: i64,
 }
 

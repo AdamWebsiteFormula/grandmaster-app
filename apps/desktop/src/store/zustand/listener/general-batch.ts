@@ -5,6 +5,7 @@ import { commands as notificationCommands } from "@anlg/plugin-notification";
 import {
   type BatchErrorCode,
   type TranscriptionParams,
+  type TranscriptionSession,
   commands as transcriptionCommands,
   events as transcriptionEvents,
 } from "@anlg/plugin-transcription";
@@ -296,8 +297,7 @@ export const runBatchSession = async <T extends BatchStore>(
 
             if (result.status === "error") {
               const running = await findAdoptableBatchSession(
-                sessionId,
-                params.file_path,
+                params,
                 result.error,
               );
               if (running) {
@@ -325,33 +325,51 @@ export const runBatchSession = async <T extends BatchStore>(
 };
 
 async function findAdoptableBatchSession(
-  sessionId: string,
-  filePath: string,
+  params: TranscriptionParams,
   startError: string,
 ) {
   if (!startError.includes(SESSION_ALREADY_RUNNING_ERROR)) {
     return undefined;
   }
+  const running = await findRunningBatchSession(params.session_id);
+  return running && matchesBatchParams(running, params) ? running : undefined;
+}
+
+export async function hasConflictingBatchSession(params: TranscriptionParams) {
+  const running = await findRunningBatchSession(params.session_id);
+  return running !== undefined && !matchesBatchParams(running, params);
+}
+
+async function findRunningBatchSession(sessionId: string) {
   try {
     const result = await transcriptionCommands.listTranscriptionSessions();
     if (result.status === "error") {
       console.error("[runBatch] failed to list batch sessions", result.error);
       return undefined;
     }
-    return result.data.find(
-      (session) =>
-        session.session_id === sessionId && session.file_path === filePath,
-    );
+    return result.data.find((session) => session.session_id === sessionId);
   } catch (error) {
     console.error("[runBatch] failed to list batch sessions", error);
     return undefined;
   }
 }
 
+function matchesBatchParams(
+  session: TranscriptionSession,
+  params: TranscriptionParams,
+) {
+  return (
+    session.file_path === params.file_path &&
+    session.provider === params.provider &&
+    (session.model ?? null) === (params.model ?? null)
+  );
+}
+
 export async function recoverRunningBatchSessions<T extends BatchStore>(
   get: StoreApi<T>["getState"],
 ) {
   const pending = new Set<string>();
+  const finished = new Set<string>();
   let unlisten: (() => void) | undefined;
   const release = (sessionId: string) => {
     pending.delete(sessionId);
@@ -365,6 +383,9 @@ export async function recoverRunningBatchSessions<T extends BatchStore>(
     ({ payload }) => {
       const sessionId = payload.session_id;
       if (!pending.has(sessionId)) {
+        if (payload.type !== "started" && payload.type !== "progress") {
+          finished.add(sessionId);
+        }
         return;
       }
       if (get().batch[sessionId]?.recovered !== true) {
@@ -407,13 +428,14 @@ export async function recoverRunningBatchSessions<T extends BatchStore>(
       throw new Error(result.error);
     }
     for (const session of result.data) {
-      if (get().batch[session.session_id]) {
+      if (get().batch[session.session_id] || finished.has(session.session_id)) {
         continue;
       }
       get().handleBatchRecovered(session.session_id);
       pending.add(session.session_id);
     }
   } finally {
+    finished.clear();
     if (pending.size === 0) {
       unlisten?.();
       unlisten = undefined;

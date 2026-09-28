@@ -97,6 +97,8 @@ pub struct BatchSessionEntry {
     pub abort_handle: Option<AbortHandle>,
     pub wait_for_native_completion: bool,
     pub file_path: String,
+    pub provider: Option<crate::TranscriptionProvider>,
+    pub model: Option<String>,
     pub started_at_ms: i64,
 }
 

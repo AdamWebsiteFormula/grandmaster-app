@@ -1155,6 +1155,8 @@ describe("batch recovery after reload", () => {
           {
             session_id: "session-1",
             file_path: "/tmp/session.wav",
+            provider: "soniqo",
+            model: null,
             started_at_ms: Date.now() - 5_000,
           },
         ],
@@ -1191,6 +1193,8 @@ describe("batch recovery after reload", () => {
         {
           session_id: "session-1",
           file_path: "/tmp/other.wav",
+          provider: "soniqo",
+          model: null,
           started_at_ms: 0,
         },
       ],
@@ -1211,6 +1215,66 @@ describe("batch recovery after reload", () => {
         { notifyOnCompletion: false },
       ),
     ).rejects.toBe("batch error: session already running");
+  });
+
+  test("does not adopt a running batch started with a different provider", async () => {
+    listenMock.mockResolvedValue(vi.fn());
+    startTranscriptionMock.mockResolvedValue({
+      status: "error",
+      error: "batch error: session already running",
+    });
+    listTranscriptionSessionsMock.mockResolvedValue({
+      status: "ok",
+      data: [
+        {
+          session_id: "session-1",
+          file_path: "/tmp/session.wav",
+          provider: "deepgram",
+          model: "nova-3",
+          started_at_ms: 0,
+        },
+      ],
+    });
+    const store = makeStore();
+
+    await expect(
+      runBatchSession(
+        () => store,
+        "session-1",
+        {
+          session_id: "session-1",
+          provider: "soniqo",
+          file_path: "/tmp/session.wav",
+          base_url: "",
+          api_key: "",
+        },
+        { notifyOnCompletion: false },
+      ),
+    ).rejects.toBe("batch error: session already running");
+  });
+
+  test("does not recover a batch that finished while sessions were listed", async () => {
+    let emit!: (event: { payload: unknown }) => void;
+    const unlisten = vi.fn();
+    listenMock.mockImplementation(async (handler) => {
+      emit = handler;
+      return unlisten;
+    });
+    listTranscriptionSessionsMock.mockImplementation(async () => {
+      emit({ payload: { type: "stopped", session_id: "orphan" } });
+      return {
+        status: "ok",
+        data: [
+          { session_id: "orphan", file_path: "/tmp/b.wav", started_at_ms: 0 },
+        ],
+      };
+    });
+    const store = makeStore();
+
+    await recoverRunningBatchSessions(() => store);
+
+    expect(store.handleBatchRecovered).not.toHaveBeenCalled();
+    expect(unlisten).toHaveBeenCalledOnce();
   });
 
   test("marks running Rust batches as recovered and tracks their terminal state", async () => {
