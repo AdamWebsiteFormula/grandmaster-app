@@ -474,12 +474,16 @@ impl LiveDocs {
             inner: Mutex::new(LiveDocInner {
                 doc,
                 polled_through,
-                updates_since_compaction: 0,
+                updates_since_compaction: u32::try_from(polled_through - row.compacted_through_seq)
+                    .unwrap_or(u32::MAX),
                 peers: HashMap::new(),
                 next_peer: 1,
                 poller_running: false,
             }),
         });
+        // The bootstrap RPC returns only the first page of uncompacted updates;
+        // page through the rest so long logs never need a single oversized read.
+        self.refresh(state, &live).await?;
         let mut docs = self.docs.lock().await;
         Ok(Arc::clone(docs.entry(share_id.to_string()).or_insert(live)))
     }
@@ -545,7 +549,16 @@ impl LiveDocs {
                     SyncMessage::SyncStep2(txn.encode_diff_v1(&state_vector)),
                 )))])
             }
-            Message::Sync(SyncMessage::SyncStep2(update) | SyncMessage::Update(update)) => {
+            Message::Sync(SyncMessage::SyncStep2(update)) => {
+                if capability != LiveCapability::Editor {
+                    // Viewers answer our sync step 1 with a step 2 that carries
+                    // nothing we accept; drop it instead of treating it as an edit.
+                    return Ok(Vec::new());
+                }
+                self.apply_from_peer(state, live, peer_id, user_id, &update)
+                    .await
+            }
+            Message::Sync(SyncMessage::Update(update)) => {
                 if capability != LiveCapability::Editor {
                     return Err(SyncError::SnapshotPublicationForbidden);
                 }
@@ -591,7 +604,6 @@ impl LiveDocs {
         }
         let mut inner = live.inner.lock().await;
         let changed = inner.apply(update)?;
-        inner.updates_since_compaction += 1;
         if changed {
             let frame = encode_frame(&Message::Sync(SyncMessage::Update(update.to_vec())));
             inner.broadcast(Some(peer_id), &frame);
@@ -624,6 +636,7 @@ impl LiveDocs {
                     inner.broadcast(None, &frame);
                 }
                 inner.polled_through = inner.polled_through.max(row.seq);
+                inner.updates_since_compaction = inner.updates_since_compaction.saturating_add(1);
             }
             if count < LIVE_UPDATE_PAGE {
                 return Ok(());

@@ -237,14 +237,19 @@ BEGIN
       (
         SELECT jsonb_agg(
           jsonb_build_object(
-            'seq', live_update.seq,
-            'update_hex', encode(live_update.update, 'hex')
+            'seq', page.seq,
+            'update_hex', encode(page.update, 'hex')
           )
-          ORDER BY live_update.seq
+          ORDER BY page.seq
         )
-        FROM public.session_share_live_updates AS live_update
-        WHERE live_update.share_id = p_share_id
-          AND live_update.seq > COALESCE(v_compacted, 0)
+        FROM (
+          SELECT live_update.seq, live_update.update
+          FROM public.session_share_live_updates AS live_update
+          WHERE live_update.share_id = p_share_id
+            AND live_update.seq > COALESCE(v_compacted, 0)
+          ORDER BY live_update.seq
+          LIMIT 256
+        ) AS page
       ),
       '[]'::jsonb
     );

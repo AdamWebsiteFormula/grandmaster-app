@@ -53,6 +53,7 @@ export function SharedNoteLiveSurface({
   const revisionRef = useRef(snapshot.contentRevision);
   const dirtyRef = useRef(false);
   const flushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduleFlushRef = useRef<() => void>(() => {});
   const [generation, setGeneration] = useState(0);
 
   const saveMutation = useMutation({
@@ -142,7 +143,15 @@ export function SharedNoteLiveSurface({
       return;
     }
     dirtyRef.current = false;
-    save(current.fragment);
+    save(current.fragment, {
+      onSettled: (result) => {
+        if (result?.status === "ready") return;
+        // Keep the edits marked unsaved so a later flush retries them;
+        // transient failures retry on their own, forbidden waits for a re-check.
+        dirtyRef.current = true;
+        if (result?.status !== "forbidden") scheduleFlushRef.current();
+      },
+    });
   }, [save]);
 
   const scheduleFlush = useCallback(() => {
@@ -152,6 +161,7 @@ export function SharedNoteLiveSurface({
       flushNow();
     }, FLUSH_DEBOUNCE_MS);
   }, [flushNow]);
+  scheduleFlushRef.current = scheduleFlush;
 
   useMountEffect(() => {
     if (clientRef.current === null) {

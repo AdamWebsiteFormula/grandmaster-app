@@ -412,6 +412,26 @@ async fn viewers_receive_state_but_cannot_publish() {
     assert_eq!(ready["seedRequired"], false);
     assert_eq!(body_text(&doc), "seeded");
 
+    // Answering the relay's sync step 1 is part of the protocol, not an edit.
+    let step2 = Message::Sync(SyncMessage::SyncStep2(
+        doc.transact()
+            .encode_state_as_update_v1(&StateVector::default()),
+    ))
+    .encode_v1();
+    socket.send(WsMessage::Binary(step2.into())).await.unwrap();
+    socket
+        .send(
+            Message::Sync(SyncMessage::SyncStep1(StateVector::default()))
+                .encode_v1()
+                .into(),
+        )
+        .await
+        .unwrap();
+    match Message::decode_v1(&next_binary(&mut socket).await).unwrap() {
+        Message::Sync(SyncMessage::SyncStep2(_)) => {}
+        other => panic!("unexpected message {other:?}"),
+    }
+
     socket
         .send(update_frame(text_update(&doc, "!")))
         .await
