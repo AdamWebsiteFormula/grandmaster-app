@@ -311,7 +311,9 @@ BEGIN
   IF p_share_id IS NULL
     OR p_actor_user_id IS NULL
     OR p_update_hex IS NULL
-    OR p_update_hex !~ '^([0-9a-fA-F]{2}){1,1048576}$'
+    OR p_update_hex !~ '^[0-9a-fA-F]+$'
+    OR length(p_update_hex) % 2 <> 0
+    OR length(p_update_hex) > 2 * 1048576
     OR p_require_empty IS NULL
   THEN
     RAISE EXCEPTION 'invalid live document update'
@@ -397,7 +399,9 @@ DECLARE
 BEGIN
   IF p_share_id IS NULL
     OR p_state_hex IS NULL
-    OR p_state_hex !~ '^([0-9a-fA-F]{2}){1,8388608}$'
+    OR p_state_hex !~ '^[0-9a-fA-F]+$'
+    OR length(p_state_hex) % 2 <> 0
+    OR length(p_state_hex) > 2 * 8388608
     OR p_through_seq IS NULL
     OR p_through_seq <= 0
   THEN
