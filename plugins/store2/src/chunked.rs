@@ -1,3 +1,4 @@
+use std::sync::{Mutex, MutexGuard};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 // Windows Credential Manager caps a credential blob at 2560 bytes, i.e. 1280
@@ -112,10 +113,17 @@ fn existing_manifest<S: SecretSlot>(primary: &S) -> Option<Manifest> {
     primary.get().ok().and_then(|value| Manifest::parse(&value))
 }
 
+static LOCK: Mutex<()> = Mutex::new(());
+
+fn lock() -> MutexGuard<'static, ()> {
+    LOCK.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+}
+
 pub(crate) fn read<S: SecretSlot>(
     slot: impl Fn(&str) -> Result<S, String>,
     account: &str,
 ) -> Result<String, ChunkedError> {
+    let _guard = lock();
     let value = slot(account).map_err(ChunkedError::Slot)?.get()?;
     let Some(manifest) = Manifest::parse(&value) else {
         return Ok(value);
@@ -137,6 +145,7 @@ pub(crate) fn write<S: SecretSlot>(
     account: &str,
     value: &str,
 ) -> Result<(), ChunkedError> {
+    let _guard = lock();
     let primary = slot(account).map_err(ChunkedError::Slot)?;
     let previous = existing_manifest(&primary);
 
@@ -176,6 +185,7 @@ pub(crate) fn delete<S: SecretSlot>(
     slot: impl Fn(&str) -> Result<S, String>,
     account: &str,
 ) -> Result<(), ChunkedError> {
+    let _guard = lock();
     let primary = slot(account).map_err(ChunkedError::Slot)?;
     let manifest = existing_manifest(&primary);
     match primary.delete() {
