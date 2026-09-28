@@ -403,8 +403,16 @@ test("coalesces foreground and manual sync requests while one is active", async 
   assert.equal(syncCount, 1);
   assert.equal(controller.getSnapshot().syncingNow, true);
 
+  let manualSettled = false;
+  void manualSync.then(() => {
+    manualSettled = true;
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(manualSettled, false);
+
   finishSync();
   await Promise.all([foregroundSync, manualSync]);
+  assert.equal(manualSettled, true);
   assert.equal(controller.getSnapshot().syncingNow, false);
 });
 

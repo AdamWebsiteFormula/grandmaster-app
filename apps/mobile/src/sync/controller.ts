@@ -129,6 +129,7 @@ export class MobileSyncController {
   private generation = 0;
   private enrollmentController: AbortController | null = null;
   private operationQueue: Promise<void> = Promise.resolve();
+  private activeSync: Promise<void> | null = null;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly dependencies: ControllerDependencies;
@@ -202,10 +203,16 @@ export class MobileSyncController {
     }
   }
 
-  async syncNow(): Promise<void> {
-    if (this.snapshot.phase !== "ready" || this.snapshot.syncingNow) {
-      return;
-    }
+  syncNow(): Promise<void> {
+    if (this.activeSync) return this.activeSync;
+    if (this.snapshot.phase !== "ready") return Promise.resolve();
+    this.activeSync = this.runSyncNow().finally(() => {
+      this.activeSync = null;
+    });
+    return this.activeSync;
+  }
+
+  private async runSyncNow(): Promise<void> {
     const generation = this.generation;
     this.update({ ...this.snapshot, syncingNow: true, errorMessage: null });
     try {
