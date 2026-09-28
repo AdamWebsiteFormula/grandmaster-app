@@ -41,7 +41,7 @@ private final class BackgroundSyncService {
   private var backgroundTaskId: UIBackgroundTaskIdentifier = .invalid
   private var flushPending = false
   private var continuedTask: BGTask?
-  private var continuedTaskSubmitted = false
+  private var submittedIdentifier: String?
 
   func activate() {
     guard observers.isEmpty else { return }
@@ -76,6 +76,7 @@ private final class BackgroundSyncService {
     guard !enabled else { return }
     remaining = 0
     flushPending = false
+    cancelSubmittedRequest()
     finishContinuedTask(success: true)
     endBackgroundTime()
   }
@@ -84,6 +85,7 @@ private final class BackgroundSyncService {
     self.remaining = max(0, remaining)
     self.subtitle = subtitle
     if self.remaining == 0 {
+      cancelSubmittedRequest()
       finishContinuedTask(success: true)
       if !flushPending { endBackgroundTime() }
       return
@@ -136,7 +138,7 @@ private final class BackgroundSyncService {
   private func submitContinuedTask() {
     guard
       continuedTask == nil,
-      !continuedTaskSubmitted,
+      submittedIdentifier == nil,
       let bundleIdentifier = Bundle.main.bundleIdentifier
     else { return }
 
@@ -160,15 +162,21 @@ private final class BackgroundSyncService {
     )
     do {
       try BGTaskScheduler.shared.submit(request)
-      continuedTaskSubmitted = true
+      submittedIdentifier = identifier
     } catch {
-      continuedTaskSubmitted = false
+      submittedIdentifier = nil
     }
+  }
+
+  private func cancelSubmittedRequest() {
+    guard let identifier = submittedIdentifier else { return }
+    submittedIdentifier = nil
+    BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: identifier)
   }
 
   @available(iOS 26.0, *)
   private func startContinuedTask(_ task: BGContinuedProcessingTask) {
-    continuedTaskSubmitted = false
+    if submittedIdentifier == task.identifier { submittedIdentifier = nil }
     guard enabled, remaining > 0 else {
       task.setTaskCompleted(success: true)
       return

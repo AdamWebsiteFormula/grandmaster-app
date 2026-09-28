@@ -30,7 +30,7 @@ export function MobileSyncLifecycle({
       : { refresh: () => {}, stop: () => {} };
     const uploads = activateMobileAttachmentUploads({
       accessToken,
-      onPassSettled: background.refresh,
+      onActivity: background.refresh,
     });
     let transcriptionRetryTimer: ReturnType<typeof setInterval> | undefined;
     let syncWasReady = false;
