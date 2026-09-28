@@ -88,8 +88,16 @@ impl AudioCleanupStatus {
     }
 }
 
+#[derive(Default)]
 pub struct BatchSessionRegistry {
     pub sessions: StdMutex<HashMap<String, BatchSessionEntry>>,
+    pub completed: StdMutex<HashMap<String, CompletedBatchEntry>>,
+}
+
+pub struct CompletedBatchEntry {
+    pub session: TranscriptionSession,
+    pub response: owhisper_interface::batch::Response,
+    pub completed_at: std::time::Instant,
 }
 
 pub struct BatchSessionEntry {
@@ -100,6 +108,7 @@ pub struct BatchSessionEntry {
     pub provider: Option<crate::TranscriptionProvider>,
     pub model: Option<String>,
     pub started_at_ms: i64,
+    pub resume_context: Option<String>,
 }
 
 pub struct BatchSessionControl {
@@ -142,6 +151,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             listener2::commands::start_transcription::<tauri::Wry>,
             listener2::commands::stop_transcription::<tauri::Wry>,
             listener2::commands::list_transcription_sessions::<tauri::Wry>,
+            listener2::commands::get_completed_transcription::<tauri::Wry>,
+            listener2::commands::acknowledge_completed_transcription::<tauri::Wry>,
             listener2::commands::parse_subtitle::<tauri::Wry>,
             listener2::commands::export_to_vtt::<tauri::Wry>,
             listener2::commands::is_supported_languages_batch::<tauri::Wry>,
@@ -173,9 +184,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                 app: app_handle.clone(),
             }));
             app.manage(state);
-            app.manage(Arc::new(BatchSessionRegistry {
-                sessions: StdMutex::new(HashMap::new()),
-            }));
+            app.manage(Arc::new(BatchSessionRegistry::default()));
 
             let audio = app.state::<Arc<dyn AudioProvider>>().inner().clone();
             let session_state_cache: SessionStateCache = Arc::new(StdMutex::new(HashMap::new()));

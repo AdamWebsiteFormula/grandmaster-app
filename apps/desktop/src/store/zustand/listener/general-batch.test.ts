@@ -16,6 +16,8 @@ import { BatchResponseProcessingError } from "~/stt/batch-response-processing-er
 const {
   isFocusedMock,
   isVisibleMock,
+  acknowledgeCompletedTranscriptionMock,
+  getCompletedTranscriptionMock,
   listTranscriptionSessionsMock,
   listenMock,
   playCompletionSoundMock,
@@ -27,6 +29,8 @@ const {
 } = vi.hoisted(() => ({
   isFocusedMock: vi.fn(),
   isVisibleMock: vi.fn(),
+  acknowledgeCompletedTranscriptionMock: vi.fn(),
+  getCompletedTranscriptionMock: vi.fn(),
   listTranscriptionSessionsMock: vi.fn(),
   listenMock: vi.fn(),
   playCompletionSoundMock: vi.fn(),
@@ -72,6 +76,8 @@ vi.mock("@anlg/plugin-transcription", () => ({
     },
   },
   commands: {
+    acknowledgeCompletedTranscription: acknowledgeCompletedTranscriptionMock,
+    getCompletedTranscription: getCompletedTranscriptionMock,
     listTranscriptionSessions: listTranscriptionSessionsMock,
     startTranscription: startTranscriptionMock,
     stopTranscription: stopTranscriptionMock,
@@ -1181,6 +1187,58 @@ describe("batch recovery after reload", () => {
     expect(store.handleBatchFailed).not.toHaveBeenCalled();
   });
 
+  test("replays a result Rust kept for a recovered batch without restarting it", async () => {
+    listenMock.mockResolvedValue(vi.fn());
+    const response = { metadata: {}, results: { channels: [] } };
+    listTranscriptionSessionsMock.mockResolvedValue({
+      status: "ok",
+      data: [
+        {
+          session_id: "session-1",
+          file_path: "/tmp/session.wav",
+          provider: "soniqo",
+          model: null,
+          started_at_ms: 0,
+          resume_context: null,
+          completed: true,
+        },
+      ],
+    });
+    getCompletedTranscriptionMock.mockResolvedValue({
+      status: "ok",
+      data: { session_id: "session-1", response },
+    });
+    acknowledgeCompletedTranscriptionMock.mockResolvedValue({
+      status: "ok",
+      data: null,
+    });
+    const store = makeStore({
+      batch: { "session-1": { percentage: 1, recovered: true } },
+    });
+
+    await runBatchSession(
+      () => store,
+      "session-1",
+      {
+        session_id: "session-1",
+        provider: "soniqo",
+        file_path: "/tmp/session.wav",
+        base_url: "",
+        api_key: "",
+      },
+      { notifyOnCompletion: false },
+    );
+
+    expect(startTranscriptionMock).not.toHaveBeenCalled();
+    expect(store.handleBatchResponse).toHaveBeenCalledWith(
+      "session-1",
+      response,
+    );
+    expect(acknowledgeCompletedTranscriptionMock).toHaveBeenCalledWith(
+      "session-1",
+    );
+  });
+
   test("does not adopt a running batch for a different file", async () => {
     listenMock.mockResolvedValue(vi.fn());
     startTranscriptionMock.mockResolvedValue({
@@ -1318,6 +1376,64 @@ describe("batch recovery after reload", () => {
       "timed_out",
       "timed_out",
     );
+    expect(unlisten).toHaveBeenCalledOnce();
+  });
+
+  test("keeps resumable batches recovered through completion", async () => {
+    let emit!: (event: { payload: unknown }) => void;
+    const unlisten = vi.fn();
+    listenMock.mockImplementation(async (handler) => {
+      emit = handler;
+      return unlisten;
+    });
+    const running = {
+      session_id: "running",
+      file_path: "/tmp/a.wav",
+      started_at_ms: 0,
+      resume_context: '{"promotion":"whole_session"}',
+      completed: false,
+    };
+    const done = {
+      session_id: "done",
+      file_path: "/tmp/b.wav",
+      started_at_ms: 0,
+      resume_context: '{"promotion":"whole_session"}',
+      completed: true,
+    };
+    const unclaimed = {
+      session_id: "unclaimed",
+      file_path: "/tmp/c.wav",
+      started_at_ms: 0,
+      resume_context: null,
+      completed: true,
+    };
+    listTranscriptionSessionsMock.mockResolvedValue({
+      status: "ok",
+      data: [done, running, unclaimed],
+    });
+    const store = makeStore();
+    store.handleBatchRecovered.mockImplementation((sessionId: string) => {
+      store.batch[sessionId] = { percentage: 0, recovered: true };
+    });
+    const onResumable = vi.fn();
+
+    await recoverRunningBatchSessions(() => store, onResumable);
+
+    expect(onResumable).toHaveBeenCalledWith([done, running]);
+    expect(store.handleBatchRecovered).not.toHaveBeenCalledWith("unclaimed");
+    expect(store.handleBatchCompleted).toHaveBeenCalledWith("done");
+
+    emit({
+      payload: {
+        type: "completed",
+        session_id: "running",
+        mode: "direct",
+        response: { metadata: {}, results: { channels: [] } },
+      },
+    });
+
+    expect(store.handleBatchCompleted).toHaveBeenCalledWith("running");
+    expect(store.clearBatchSession).not.toHaveBeenCalled();
     expect(unlisten).toHaveBeenCalledOnce();
   });
 

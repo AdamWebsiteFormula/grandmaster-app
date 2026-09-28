@@ -30,6 +30,7 @@ import { useConfigValue } from "~/shared/config";
 import { id } from "~/shared/utils";
 import { notifyBatchCompleted } from "~/store/zustand/listener/general-batch";
 import type { BatchPersistCallback } from "~/store/zustand/listener/transcript";
+import { serializeBatchResumeContext } from "~/stt/batch-resume-context";
 import {
   getTranscriptionLanguages,
   isDesktopLocalSttAvailable,
@@ -915,6 +916,16 @@ export const useRunBatch = (sessionId: string) => {
             num_speakers: options?.numSpeakers ?? inferredNumSpeakers,
             min_speakers: options?.minSpeakers,
             max_speakers: options?.maxSpeakers,
+            resume_context:
+              !handlePersist &&
+              !options?.recovery &&
+              options?.promotion?.scope === "whole_session"
+                ? serializeBatchResumeContext({
+                    promotion: "whole_session",
+                    provider: selectedProviderId,
+                    model: selectedModel,
+                  })
+                : null,
           };
 
           const run = async (params: TranscriptionParams) => {

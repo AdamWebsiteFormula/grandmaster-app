@@ -22,6 +22,8 @@ permissions = [
     "allow-start-transcription",
     "allow-stop-transcription",
     "allow-list-transcription-sessions",
+    "allow-get-completed-transcription",
+    "allow-acknowledge-completed-transcription",
     "allow-extract-voiceprint-candidates",
     "allow-promote-voiceprint-candidates",
     "allow-cleanup-expired-voiceprint-candidates",

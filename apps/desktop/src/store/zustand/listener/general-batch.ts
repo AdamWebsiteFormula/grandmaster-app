@@ -101,6 +101,7 @@ export const runBatchSession = async <T extends BatchStore>(
     recovery?: boolean;
   },
 ) => {
+  const resumeFromRecovery = get().batch[sessionId]?.recovered === true;
   get().handleBatchStarted(sessionId);
 
   let unlisten: (() => void) | undefined;
@@ -164,6 +165,7 @@ export const runBatchSession = async <T extends BatchStore>(
         mode: "batch",
         provider: params.provider,
       });
+      void acknowledgeCompletedBatch(params.session_id);
       cleanup();
     } catch (error) {
       console.error("[runBatch] error handling batch response", error);
@@ -279,39 +281,54 @@ export const runBatchSession = async <T extends BatchStore>(
           return;
         }
 
-        transcriptionCommands
-          .startTranscription(params)
-          .then(async (result) => {
-            if (options?.signal?.aborted) {
-              try {
-                if (result.status === "ok")
-                  await transcriptionCommands.stopTranscription(sessionId);
-              } finally {
-                rejectStopped(reject);
-              }
-              return;
-            }
-            if (settled) {
-              return;
-            }
-
-            if (result.status === "error") {
-              const running = await findAdoptableBatchSession(
-                params,
-                result.error,
-              );
-              if (running) {
-                startedAt = running.started_at_ms;
+        const startNative = () =>
+          transcriptionCommands
+            .startTranscription(params)
+            .then(async (result) => {
+              if (options?.signal?.aborted) {
+                try {
+                  if (result.status === "ok")
+                    await transcriptionCommands.stopTranscription(sessionId);
+                } finally {
+                  rejectStopped(reject);
+                }
                 return;
               }
-              console.error(result.error);
-              rejectFailure(result.error, reject);
-            }
-          })
-          .catch((error) => {
-            console.error(error);
-            rejectFailure(error, reject);
-          });
+              if (settled) {
+                return;
+              }
+
+              if (result.status === "error") {
+                const running = await findAdoptableBatchSession(
+                  params,
+                  result.error,
+                );
+                if (running) {
+                  startedAt = running.started_at_ms;
+                  return;
+                }
+                console.error(result.error);
+                rejectFailure(result.error, reject);
+              }
+            });
+
+        const start = resumeFromRecovery
+          ? takeCompletedBatchResponse(params).then((response) => {
+              if (settled) {
+                return;
+              }
+              if (response) {
+                resolveSuccess({ response }, resolve, reject);
+                return;
+              }
+              return startNative();
+            })
+          : startNative();
+
+        start.catch((error) => {
+          console.error(error);
+          rejectFailure(error, reject);
+        });
       })
       .catch((error) => {
         console.error(error);
@@ -338,6 +355,33 @@ async function findAdoptableBatchSession(
 export async function hasConflictingBatchSession(params: TranscriptionParams) {
   const running = await findRunningBatchSession(params.session_id);
   return running !== undefined && !matchesBatchParams(running, params);
+}
+
+async function takeCompletedBatchResponse(params: TranscriptionParams) {
+  const session = await findRunningBatchSession(params.session_id);
+  if (!session?.completed || !matchesBatchParams(session, params)) {
+    return undefined;
+  }
+  const result = await transcriptionCommands.getCompletedTranscription(
+    params.session_id,
+  );
+  if (result.status === "error") {
+    console.error("[runBatch] failed to read completed batch", result.error);
+    return undefined;
+  }
+  return result.data?.response;
+}
+
+async function acknowledgeCompletedBatch(sessionId: string) {
+  try {
+    const result =
+      await transcriptionCommands.acknowledgeCompletedTranscription(sessionId);
+    if (result.status === "error") {
+      console.error("[runBatch] failed to acknowledge batch", result.error);
+    }
+  } catch (error) {
+    console.error("[runBatch] failed to acknowledge batch", error);
+  }
 }
 
 async function findRunningBatchSession(sessionId: string) {
@@ -367,8 +411,10 @@ function matchesBatchParams(
 
 export async function recoverRunningBatchSessions<T extends BatchStore>(
   get: StoreApi<T>["getState"],
+  onResumable?: (sessions: TranscriptionSession[]) => void,
 ) {
   const pending = new Set<string>();
+  const resumable = new Set<string>();
   const finished = new Set<string>();
   let unlisten: (() => void) | undefined;
   const release = (sessionId: string) => {
@@ -400,11 +446,15 @@ export async function recoverRunningBatchSessions<T extends BatchStore>(
           get().handleBatchResponseStreamed(sessionId, payload.event);
           return;
         case "completed":
-          console.warn(
-            "[runBatch] recovered batch finished without a persist target",
-            { sessionId },
-          );
-          get().clearBatchSession(sessionId);
+          if (resumable.has(sessionId)) {
+            get().handleBatchCompleted(sessionId);
+          } else {
+            console.warn(
+              "[runBatch] recovered batch finished without a persist target",
+              { sessionId },
+            );
+            get().clearBatchSession(sessionId);
+          }
           break;
         case "stopped":
           get().handleBatchStopped(sessionId);
@@ -427,12 +477,27 @@ export async function recoverRunningBatchSessions<T extends BatchStore>(
     if (result.status === "error") {
       throw new Error(result.error);
     }
+    const recovered: TranscriptionSession[] = [];
     for (const session of result.data) {
       if (get().batch[session.session_id] || finished.has(session.session_id)) {
         continue;
       }
+      if (session.completed && !session.resume_context) {
+        continue;
+      }
       get().handleBatchRecovered(session.session_id);
-      pending.add(session.session_id);
+      if (session.resume_context) {
+        resumable.add(session.session_id);
+        recovered.push(session);
+      }
+      if (session.completed) {
+        get().handleBatchCompleted(session.session_id);
+      } else {
+        pending.add(session.session_id);
+      }
+    }
+    if (recovered.length > 0) {
+      onResumable?.(recovered);
     }
   } finally {
     finished.clear();
