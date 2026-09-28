@@ -1,5 +1,5 @@
 begin;
-select plan(10);
+select plan(12);
 
 select tests.create_supabase_user(
   'creator_authority_owner',
@@ -220,6 +220,34 @@ select lives_ok(
     )
   $$,
   'A workspace admin can delete a member-created share'
+);
+
+select throws_ok(
+  $$
+    select *
+    from public.reactivate_session_share(
+      (select workspace_id from creator_authority_test_state),
+      'never-shared-session'
+    )
+  $$,
+  '22023',
+  'session share is unavailable',
+  'Reactivating a never-shared session does not create a share'
+);
+
+select tests.clear_authentication();
+select tests.authenticate_as_hyprnote_pro('creator_authority_member');
+
+select results_eq(
+  $$
+    select was_reactivated
+    from public.reactivate_session_share(
+      (select workspace_id from creator_authority_test_state),
+      'member-created-session'
+    )
+  $$,
+  $$ values (true) $$,
+  'A member can reactivate their own deleted share'
 );
 
 select * from finish();

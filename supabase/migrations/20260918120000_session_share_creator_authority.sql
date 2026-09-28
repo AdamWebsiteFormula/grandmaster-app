@@ -384,6 +384,7 @@ AS $$
 DECLARE
   v_actor_id uuid := private.require_permanent_user();
   v_session_id text := btrim(p_session_id);
+  v_share_id uuid;
   v_share public.session_shares%ROWTYPE;
 BEGIN
   IF v_session_id IS NULL OR v_session_id = ''
@@ -392,28 +393,27 @@ BEGIN
     RAISE EXCEPTION 'invalid session id' USING ERRCODE = '22023';
   END IF;
 
-  SELECT share.* INTO v_share
+  SELECT share.id INTO v_share_id
   FROM public.session_shares AS share
   JOIN public.workspaces AS workspace ON workspace.id = share.workspace_id
   WHERE share.workspace_id = p_workspace_id
     AND share.session_id = v_session_id
-    AND workspace.deleted_at IS NULL
-  FOR UPDATE OF share;
-
+    AND workspace.deleted_at IS NULL;
   IF NOT FOUND THEN
-    PERFORM private.require_workspace_or_pro_capability(
-      p_workspace_id, 'team.shared_notes'
-    );
-    RETURN QUERY
-    SELECT created.share_id, created.general_scope, created.public_slug,
-      created.access_version, created.was_created
-    FROM private.create_session_share(p_workspace_id, v_session_id) AS created;
-    RETURN;
+    RAISE EXCEPTION 'session share is unavailable' USING ERRCODE = '22023';
   END IF;
 
   PERFORM pg_catalog.pg_advisory_xact_lock(
-    pg_catalog.hashtextextended(v_share.id::text, 0)
+    pg_catalog.hashtextextended(v_share_id::text, 0)
   );
+  SELECT share.* INTO v_share
+  FROM public.session_shares AS share
+  WHERE share.id = v_share_id
+  FOR UPDATE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'session share is unavailable' USING ERRCODE = '22023';
+  END IF;
+
   PERFORM 1
   FROM public.workspace_memberships AS membership
   WHERE membership.workspace_id = p_workspace_id
