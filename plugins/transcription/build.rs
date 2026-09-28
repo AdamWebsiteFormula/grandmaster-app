@@ -19,6 +19,7 @@ const COMMANDS: &[&str] = &[
     "render_transcript_segments",
     "start_transcription",
     "stop_transcription",
+    "list_transcription_sessions",
     "extract_voiceprint_candidates",
     "promote_voiceprint_candidates",
     "cleanup_expired_voiceprint_candidates",

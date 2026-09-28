@@ -30,6 +30,7 @@ const SYNTHETIC_BATCH_PROGRESS_MAX = 0.88;
 const SYNTHETIC_BATCH_PROGRESS_INTERVAL_MS = 800;
 const SYNTHETIC_BATCH_PROGRESS_TIME_CONSTANT_MS = 32_000;
 const BATCH_COMPLETED_NOTIFICATION_TIMEOUT_SECONDS = 15;
+const SESSION_ALREADY_RUNNING_ERROR = "session already running";
 const OPENAI_PROGRESSIVE_BATCH_MODELS = new Set([
   "gpt-transcribe",
   "gpt-4o-transcribe",
@@ -127,8 +128,8 @@ export const runBatchSession = async <T extends BatchStore>(
     }
   };
 
+  let startedAt = Date.now();
   if (shouldUseSyntheticBatchProgress(params)) {
-    const startedAt = Date.now();
     get().updateBatchProgress(sessionId, SYNTHETIC_BATCH_PROGRESS_INITIAL);
     syntheticProgressTimer = setInterval(() => {
       get().updateBatchProgress(
@@ -294,6 +295,15 @@ export const runBatchSession = async <T extends BatchStore>(
             }
 
             if (result.status === "error") {
+              const running = await findAdoptableBatchSession(
+                sessionId,
+                params.file_path,
+                result.error,
+              );
+              if (running) {
+                startedAt = running.started_at_ms;
+                return;
+              }
               console.error(result.error);
               rejectFailure(result.error, reject);
             }
@@ -313,6 +323,109 @@ export const runBatchSession = async <T extends BatchStore>(
     await notifyBatchCompleted(sessionId);
   }
 };
+
+async function findAdoptableBatchSession(
+  sessionId: string,
+  filePath: string,
+  startError: string,
+) {
+  if (!startError.includes(SESSION_ALREADY_RUNNING_ERROR)) {
+    return undefined;
+  }
+  try {
+    const result = await transcriptionCommands.listTranscriptionSessions();
+    if (result.status === "error") {
+      console.error("[runBatch] failed to list batch sessions", result.error);
+      return undefined;
+    }
+    return result.data.find(
+      (session) =>
+        session.session_id === sessionId && session.file_path === filePath,
+    );
+  } catch (error) {
+    console.error("[runBatch] failed to list batch sessions", error);
+    return undefined;
+  }
+}
+
+export async function recoverRunningBatchSessions<T extends BatchStore>(
+  get: StoreApi<T>["getState"],
+) {
+  const pending = new Set<string>();
+  let unlisten: (() => void) | undefined;
+  const release = (sessionId: string) => {
+    pending.delete(sessionId);
+    if (pending.size === 0) {
+      unlisten?.();
+      unlisten = undefined;
+    }
+  };
+
+  unlisten = await transcriptionEvents.transcriptionEvent.listen(
+    ({ payload }) => {
+      const sessionId = payload.session_id;
+      if (!pending.has(sessionId)) {
+        return;
+      }
+      if (get().batch[sessionId]?.recovered !== true) {
+        release(sessionId);
+        return;
+      }
+
+      switch (payload.type) {
+        case "started":
+          return;
+        case "progress":
+          get().handleBatchResponseStreamed(sessionId, payload.event);
+          return;
+        case "completed":
+          console.warn(
+            "[runBatch] recovered batch finished without a persist target",
+            { sessionId },
+          );
+          get().clearBatchSession(sessionId);
+          break;
+        case "stopped":
+          get().handleBatchStopped(sessionId);
+          break;
+        case "failed":
+          get().handleBatchFailed(
+            sessionId,
+            payload.error,
+            payload.code === "timed_out" ? "timed_out" : "failed",
+            payload.code,
+          );
+          break;
+      }
+      release(sessionId);
+    },
+  );
+
+  try {
+    const result = await transcriptionCommands.listTranscriptionSessions();
+    if (result.status === "error") {
+      throw new Error(result.error);
+    }
+    for (const session of result.data) {
+      if (get().batch[session.session_id]) {
+        continue;
+      }
+      get().handleBatchRecovered(session.session_id);
+      pending.add(session.session_id);
+    }
+  } finally {
+    if (pending.size === 0) {
+      unlisten?.();
+      unlisten = undefined;
+    }
+  }
+
+  return () => {
+    pending.clear();
+    unlisten?.();
+    unlisten = undefined;
+  };
+}
 
 export function shouldUseSyntheticBatchProgress(params: TranscriptionParams) {
   if (params.provider === "soniqo") {

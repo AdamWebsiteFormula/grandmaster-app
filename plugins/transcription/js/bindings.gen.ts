@@ -174,6 +174,14 @@ async stopTranscription(sessionId: string) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async listTranscriptionSessions() : Promise<Result<TranscriptionSession[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:transcription|list_transcription_sessions") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async parseSubtitle(path: string) : Promise<Result<Subtitle, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:transcription|parse_subtitle", { path }) };
@@ -274,7 +282,7 @@ export type CaptureConfigUpdate = { session_id: string; languages: string[]; par
 export type CaptureDataEvent = { type: "audio_amplitude"; session_id: string; mic: number; speaker: number } | { type: "mic_muted"; session_id: string; value: boolean } | { type: "mic_isolated"; session_id: string; value: boolean } | { type: "mic_dropouts"; session_id: string; ratio: number } | { type: "transcript_delta"; session_id: string; delta: LiveTranscriptDelta } | { type: "transcript_segment_delta"; session_id: string; delta: LiveTranscriptSegmentDelta }
 export type CaptureLifecycleEvent = { type: "started"; session_id: string; requested_live_transcription: boolean; live_transcription_active: boolean; degraded: DegradedError | null } | { type: "finalizing"; session_id: string } | { type: "stopped"; session_id: string; chunked_audio?: boolean; audio_path: string | null; requested_live_transcription: boolean; live_transcription_active: boolean; error: string | null }
 export type CaptureParams = { session_id: string; retain_audio?: boolean | null; languages: string[]; onboarding: boolean; model: string; base_url: string; api_key: string; keywords: string[]; mic_device?: string | null; transcription_mode?: TranscriptionMode | null; participant_human_ids?: string[]; self_human_id?: string | null }
-export type CaptureSnapshot = { state: CaptureState; activeSessionId: string | null; finalizingSessionIds: string[]; requestedLiveTranscription: boolean | null; liveTranscriptionActive: boolean | null; liveSegmentsSessionId?: string | null; liveSegments?: LiveTranscriptSegment[] | null }
+export type CaptureSnapshot = { state: CaptureState; activeSessionId: string | null; finalizingSessionIds: string[]; requestedLiveTranscription: boolean | null; liveTranscriptionActive: boolean | null; liveSegmentsSessionId?: string | null; liveSegments?: LiveTranscriptSegment[] | null; startedAtMs?: number | null; micMuted?: boolean | null; degraded?: DegradedError | null }
 export type CaptureState = "active" | "finalizing" | "inactive"
 export type CaptureStatusEvent = { type: "audio_initializing"; session_id: string } | { type: "audio_ready"; session_id: string; device: string | null } | { type: "connecting"; session_id: string } | { type: "connected"; session_id: string; adapter: string } | { type: "audio_error"; session_id: string; error: string; device: string | null; is_fatal: boolean } | { type: "connection_error"; session_id: string; error: string }
 export type ChannelProfile = "DirectMic" | "RemoteParty" | "MixedCapture"
@@ -311,6 +319,7 @@ export type Token = { text: string; start_time: number; end_time: number; speake
 export type TranscriptionEvent = { type: "started"; session_id: string } | { type: "progress"; session_id: string; event: BatchStreamEvent } | { type: "completed"; session_id: string; response: BatchResponse; mode: BatchRunMode } | { type: "stopped"; session_id: string } | { type: "failed"; session_id: string; code: BatchErrorCode; error: string }
 export type TranscriptionMode = "live" | "batch"
 export type TranscriptionParams = { session_id: string; provider: BatchProvider; file_path: string; model?: string | null; base_url: string; api_key: string; languages?: string[]; keywords?: string[]; num_speakers?: number | null; min_speakers?: number | null; max_speakers?: number | null }
+export type TranscriptionSession = { session_id: string; file_path: string; started_at_ms: number }
 export type VttWord = { text: string; start_ms: number; end_ms: number; speaker: string | null }
 /**
  * Whether a finalized word is stable or awaiting correction.

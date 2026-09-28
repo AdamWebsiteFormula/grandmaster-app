@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { EMPTY_BATCH_TRANSCRIPT_ERROR } from "./batch";
 import {
+  recoverRunningBatchSessions,
   runBatchSession,
   showBatchCompletedNotification,
   shouldUseSyntheticBatchProgress,
@@ -15,6 +16,7 @@ import { BatchResponseProcessingError } from "~/stt/batch-response-processing-er
 const {
   isFocusedMock,
   isVisibleMock,
+  listTranscriptionSessionsMock,
   listenMock,
   playCompletionSoundMock,
   requestAppAttentionMock,
@@ -25,6 +27,7 @@ const {
 } = vi.hoisted(() => ({
   isFocusedMock: vi.fn(),
   isVisibleMock: vi.fn(),
+  listTranscriptionSessionsMock: vi.fn(),
   listenMock: vi.fn(),
   playCompletionSoundMock: vi.fn(),
   requestAppAttentionMock: vi.fn(),
@@ -69,6 +72,7 @@ vi.mock("@anlg/plugin-transcription", () => ({
     },
   },
   commands: {
+    listTranscriptionSessions: listTranscriptionSessionsMock,
     startTranscription: startTranscriptionMock,
     stopTranscription: stopTranscriptionMock,
   },
@@ -106,6 +110,7 @@ describe("runBatchSession", () => {
           batchPreview: {},
           batchPersist: {},
           handleBatchStarted: vi.fn(),
+          handleBatchRecovered: vi.fn(),
           handleBatchResponse: vi.fn(),
           handleBatchCompleted: vi.fn(),
           clearBatchPersist: vi.fn(),
@@ -254,6 +259,7 @@ describe("runBatchSession", () => {
           batchPreview: {},
           batchPersist: {},
           handleBatchStarted,
+          handleBatchRecovered: vi.fn(),
           handleBatchResponse,
           handleBatchCompleted,
           clearBatchPersist,
@@ -355,6 +361,7 @@ describe("runBatchSession", () => {
           batchPreview: {},
           batchPersist: {},
           handleBatchStarted,
+          handleBatchRecovered: vi.fn(),
           handleBatchResponse,
           handleBatchCompleted,
           clearBatchPersist,
@@ -464,6 +471,7 @@ describe("runBatchSession", () => {
         batchPreview: {},
         batchPersist: {},
         handleBatchStarted,
+        handleBatchRecovered: vi.fn(),
         handleBatchResponse,
         handleBatchCompleted,
         clearBatchPersist,
@@ -553,6 +561,7 @@ describe("runBatchSession", () => {
         batchPreview: {},
         batchPersist: {},
         handleBatchStarted,
+        handleBatchRecovered: vi.fn(),
         handleBatchResponse,
         handleBatchCompleted,
         clearBatchPersist,
@@ -655,6 +664,7 @@ describe("runBatchSession", () => {
           batchPreview: {},
           batchPersist: {},
           handleBatchStarted,
+          handleBatchRecovered: vi.fn(),
           handleBatchResponse,
           handleBatchCompleted,
           clearBatchPersist,
@@ -781,6 +791,7 @@ describe("runBatchSession", () => {
         batchPreview: {},
         batchPersist: {},
         handleBatchStarted,
+        handleBatchRecovered: vi.fn(),
         handleBatchResponse,
         handleBatchCompleted,
         clearBatchPersist,
@@ -879,6 +890,7 @@ describe("runBatchSession", () => {
             batchPreview: {},
             batchPersist: {},
             handleBatchStarted,
+            handleBatchRecovered: vi.fn(),
             handleBatchResponse,
             handleBatchCompleted,
             clearBatchPersist,
@@ -969,6 +981,7 @@ describe("runBatchSession", () => {
           batchPreview: {},
           batchPersist: {},
           handleBatchStarted,
+          handleBatchRecovered: vi.fn(),
           handleBatchResponse,
           handleBatchCompleted,
           clearBatchPersist,
@@ -1050,6 +1063,7 @@ describe("runBatchSession", () => {
             batchPreview: {},
             batchPersist: {},
             handleBatchStarted,
+            handleBatchRecovered: vi.fn(),
             handleBatchResponse,
             handleBatchCompleted,
             clearBatchPersist,
@@ -1089,4 +1103,183 @@ describe("runBatchSession", () => {
       expect(handleBatchStopped).not.toHaveBeenCalled();
     },
   );
+});
+
+describe("batch recovery after reload", () => {
+  const makeStore = (overrides: Record<string, unknown> = {}) => ({
+    batch: {} as Record<string, { percentage: number; recovered?: boolean }>,
+    batchPreview: {},
+    batchPersist: {},
+    handleBatchStarted: vi.fn(),
+    handleBatchRecovered: vi.fn(),
+    handleBatchResponse: vi.fn(() => true),
+    handleBatchCompleted: vi.fn(),
+    clearBatchPersist: vi.fn(),
+    clearBatchSession: vi.fn(),
+    handleBatchResponseStreamed: vi.fn(),
+    handleBatchFailed: vi.fn(),
+    handleBatchStopped: vi.fn(),
+    updateBatchProgress: vi.fn(),
+    setBatchPersist: vi.fn(),
+    ...overrides,
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("adopts a Rust batch that is still running for the same file", async () => {
+    let emit!: (event: { payload: unknown }) => void;
+    listenMock.mockImplementation(async (handler) => {
+      emit = handler;
+      return vi.fn();
+    });
+    startTranscriptionMock.mockResolvedValue({
+      status: "error",
+      error: "batch error: session already running",
+    });
+    listTranscriptionSessionsMock.mockImplementation(async () => {
+      queueMicrotask(() =>
+        emit({
+          payload: {
+            type: "completed",
+            session_id: "session-1",
+            mode: "direct",
+            response: { metadata: {}, results: { channels: [] } },
+          },
+        }),
+      );
+      return {
+        status: "ok",
+        data: [
+          {
+            session_id: "session-1",
+            file_path: "/tmp/session.wav",
+            started_at_ms: Date.now() - 5_000,
+          },
+        ],
+      };
+    });
+    const store = makeStore();
+
+    await runBatchSession(
+      () => store,
+      "session-1",
+      {
+        session_id: "session-1",
+        provider: "soniqo",
+        file_path: "/tmp/session.wav",
+        base_url: "",
+        api_key: "",
+      },
+      { notifyOnCompletion: false },
+    );
+
+    expect(store.handleBatchResponse).toHaveBeenCalledOnce();
+    expect(store.handleBatchFailed).not.toHaveBeenCalled();
+  });
+
+  test("does not adopt a running batch for a different file", async () => {
+    listenMock.mockResolvedValue(vi.fn());
+    startTranscriptionMock.mockResolvedValue({
+      status: "error",
+      error: "batch error: session already running",
+    });
+    listTranscriptionSessionsMock.mockResolvedValue({
+      status: "ok",
+      data: [
+        {
+          session_id: "session-1",
+          file_path: "/tmp/other.wav",
+          started_at_ms: 0,
+        },
+      ],
+    });
+    const store = makeStore();
+
+    await expect(
+      runBatchSession(
+        () => store,
+        "session-1",
+        {
+          session_id: "session-1",
+          provider: "soniqo",
+          file_path: "/tmp/session.wav",
+          base_url: "",
+          api_key: "",
+        },
+        { notifyOnCompletion: false },
+      ),
+    ).rejects.toBe("batch error: session already running");
+  });
+
+  test("marks running Rust batches as recovered and tracks their terminal state", async () => {
+    let emit!: (event: { payload: unknown }) => void;
+    const unlisten = vi.fn();
+    listenMock.mockImplementation(async (handler) => {
+      emit = handler;
+      return unlisten;
+    });
+    listTranscriptionSessionsMock.mockResolvedValue({
+      status: "ok",
+      data: [
+        { session_id: "known", file_path: "/tmp/a.wav", started_at_ms: 0 },
+        { session_id: "orphan", file_path: "/tmp/b.wav", started_at_ms: 0 },
+      ],
+    });
+    const store = makeStore({
+      batch: { known: { percentage: 0.5 } },
+    });
+    store.handleBatchRecovered.mockImplementation((sessionId: string) => {
+      store.batch[sessionId] = { percentage: 0, recovered: true };
+    });
+
+    await recoverRunningBatchSessions(() => store);
+
+    expect(store.handleBatchRecovered).toHaveBeenCalledTimes(1);
+    expect(store.handleBatchRecovered).toHaveBeenCalledWith("orphan");
+
+    emit({
+      payload: {
+        type: "failed",
+        session_id: "orphan",
+        code: "timed_out",
+        error: "timed out",
+      },
+    });
+
+    expect(store.handleBatchFailed).toHaveBeenCalledWith(
+      "orphan",
+      "timed out",
+      "timed_out",
+      "timed_out",
+    );
+    expect(unlisten).toHaveBeenCalledOnce();
+  });
+
+  test("stops tracking once a recovered batch is adopted by a new run", async () => {
+    let emit!: (event: { payload: unknown }) => void;
+    const unlisten = vi.fn();
+    listenMock.mockImplementation(async (handler) => {
+      emit = handler;
+      return unlisten;
+    });
+    listTranscriptionSessionsMock.mockResolvedValue({
+      status: "ok",
+      data: [
+        { session_id: "orphan", file_path: "/tmp/b.wav", started_at_ms: 0 },
+      ],
+    });
+    const store = makeStore();
+    store.handleBatchRecovered.mockImplementation((sessionId: string) => {
+      store.batch[sessionId] = { percentage: 0, recovered: true };
+    });
+
+    await recoverRunningBatchSessions(() => store);
+    store.batch.orphan = { percentage: 0 };
+    emit({ payload: { type: "stopped", session_id: "orphan" } });
+
+    expect(store.handleBatchStopped).not.toHaveBeenCalled();
+    expect(unlisten).toHaveBeenCalledOnce();
+  });
 });

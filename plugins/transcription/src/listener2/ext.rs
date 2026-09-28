@@ -35,6 +35,11 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener2<'a, R, M> {
             .inner()
             .clone();
         let session_id = params.session_id.clone();
+        let file_path = params.file_path.clone();
+        let started_at_ms = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|elapsed| elapsed.as_millis() as i64)
+            .unwrap_or_default();
         let idle_timeout = batch_idle_timeout(&params);
         let wait_for_native_completion = matches!(
             &params.provider,
@@ -97,6 +102,8 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener2<'a, R, M> {
             }
 
             entry.abort_handle = Some(abort_handle.clone());
+            entry.file_path = file_path;
+            entry.started_at_ms = started_at_ms;
 
             match lock_terminal_state(&control) {
                 Ok(state) => *state == BatchTerminalState::Running,
@@ -127,6 +134,14 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Listener2<'a, R, M> {
         }
 
         Ok(())
+    }
+
+    pub fn list_transcription_sessions(
+        &self,
+    ) -> Result<Vec<crate::TranscriptionSession>, core::Error> {
+        let registry = self.manager.state::<Arc<BatchSessionRegistry>>();
+        let sessions = lock_batch_sessions(&registry)?;
+        Ok(running_batch_sessions(&sessions))
     }
 
     pub async fn stop_transcription(&self, session_id: String) {
@@ -240,6 +255,26 @@ fn lock_terminal_state(
         .map_err(|_| batch_lock_poisoned("batch terminal state"))
 }
 
+fn running_batch_sessions(
+    sessions: &HashMap<String, BatchSessionEntry>,
+) -> Vec<crate::TranscriptionSession> {
+    let mut running: Vec<_> = sessions
+        .iter()
+        .filter(|(_, entry)| entry.abort_handle.is_some())
+        .filter(|(_, entry)| {
+            lock_terminal_state(&entry.control)
+                .is_ok_and(|state| *state == BatchTerminalState::Running)
+        })
+        .map(|(session_id, entry)| crate::TranscriptionSession {
+            session_id: session_id.clone(),
+            file_path: entry.file_path.clone(),
+            started_at_ms: entry.started_at_ms,
+        })
+        .collect();
+    running.sort_by(|a, b| a.session_id.cmp(&b.session_id));
+    running
+}
+
 fn reserve_batch_session(
     registry: &BatchSessionRegistry,
     session_id: &str,
@@ -264,6 +299,8 @@ fn reserve_batch_session(
             control,
             abort_handle: None,
             wait_for_native_completion,
+            file_path: String::new(),
+            started_at_ms: 0,
         },
     );
     Ok(())
@@ -448,6 +485,8 @@ mod tests {
                     control,
                     abort_handle: None,
                     wait_for_native_completion: false,
+                    file_path: String::new(),
+                    started_at_ms: 0,
                 },
             )])),
         })
@@ -733,6 +772,8 @@ mod tests {
             control: make_control(),
             abort_handle: Some(task.abort_handle()),
             wait_for_native_completion: false,
+            file_path: String::new(),
+            started_at_ms: 0,
         });
 
         assert!(

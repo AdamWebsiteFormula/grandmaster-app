@@ -213,7 +213,7 @@ export const createGeneralSlice = <
       );
     }
 
-    if (mode === "running_batch") {
+    if (mode === "running_batch" && !get().batch[sessionId]?.recovered) {
       throw new Error(
         `[listener] session ${sessionId} is already processing in batch mode`,
       );

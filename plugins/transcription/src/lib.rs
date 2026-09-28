@@ -46,6 +46,8 @@ pub struct SessionStateSnapshot {
     /// `Some(true)` only if every capture stream of this recording ran with the mic isolated
     /// (headphone output). One shared-speaker stretch pins it to `Some(false)`.
     pub mic_isolated: Option<bool>,
+    pub started_at_ms: Option<i64>,
+    pub degraded: Option<DegradedError>,
 }
 
 pub type SessionStateCache = Arc<StdMutex<HashMap<String, SessionStateSnapshot>>>;
@@ -94,6 +96,8 @@ pub struct BatchSessionEntry {
     pub control: Arc<BatchSessionControl>,
     pub abort_handle: Option<AbortHandle>,
     pub wait_for_native_completion: bool,
+    pub file_path: String,
+    pub started_at_ms: i64,
 }
 
 pub struct BatchSessionControl {
@@ -135,6 +139,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             listener::commands::render_transcript_segments,
             listener2::commands::start_transcription::<tauri::Wry>,
             listener2::commands::stop_transcription::<tauri::Wry>,
+            listener2::commands::list_transcription_sessions::<tauri::Wry>,
             listener2::commands::parse_subtitle::<tauri::Wry>,
             listener2::commands::export_to_vtt::<tauri::Wry>,
             listener2::commands::is_supported_languages_batch::<tauri::Wry>,

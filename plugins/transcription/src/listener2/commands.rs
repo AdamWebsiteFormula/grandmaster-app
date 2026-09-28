@@ -29,6 +29,16 @@ pub async fn stop_transcription<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn list_transcription_sessions<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Vec<crate::TranscriptionSession>, String> {
+    app.listener2()
+        .list_transcription_sessions()
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn parse_subtitle<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     path: String,

@@ -24,6 +24,7 @@ Default permissions for the plugin
 - `allow-render-transcript-segments`
 - `allow-start-transcription`
 - `allow-stop-transcription`
+- `allow-list-transcription-sessions`
 - `allow-extract-voiceprint-candidates`
 - `allow-promote-voiceprint-candidates`
 - `allow-cleanup-expired-voiceprint-candidates`
@@ -457,6 +458,32 @@ Enables the list_microphone_devices command without any pre-configured scope.
 <td>
 
 Denies the list_microphone_devices command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`transcription:allow-list-transcription-sessions`
+
+</td>
+<td>
+
+Enables the list_transcription_sessions command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`transcription:deny-list-transcription-sessions`
+
+</td>
+<td>
+
+Denies the list_transcription_sessions command without any pre-configured scope.
 
 </td>
 </tr>
