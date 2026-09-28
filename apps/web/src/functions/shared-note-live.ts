@@ -47,7 +47,7 @@ export const createSharedNoteLiveTicket = createServerFn({ method: "POST" })
     try {
       const response = await fetch(
         new URL(
-          `/shares/${encodeURIComponent(shareId)}/live/ticket`,
+          `/sync/shares/${encodeURIComponent(shareId)}/live/ticket`,
           apiBaseUrl(),
         ),
         {
@@ -88,7 +88,7 @@ export const saveSharedNoteWebEdit = createServerFn({ method: "POST" })
     try {
       const response = await fetch(
         new URL(
-          `/shares/${encodeURIComponent(data.shareId)}/web-edit`,
+          `/sync/shares/${encodeURIComponent(data.shareId)}/web-edit`,
           apiBaseUrl(),
         ),
         {

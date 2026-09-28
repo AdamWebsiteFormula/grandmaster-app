@@ -105,7 +105,7 @@ export function buildSharedNoteLiveSocketUrl(
   ticket: string,
 ): string {
   const url = new URL(
-    `/shares/${encodeURIComponent(shareId)}/live`,
+    `/sync/shares/${encodeURIComponent(shareId)}/live`,
     apiUrl.endsWith("/") ? apiUrl : `${apiUrl}/`,
   );
   url.protocol = url.protocol === "http:" ? "ws:" : "wss:";

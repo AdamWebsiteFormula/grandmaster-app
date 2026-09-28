@@ -106,11 +106,11 @@ const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 test("builds ws/wss urls from the API base", () => {
   assert.equal(
     buildSharedNoteLiveSocketUrl("http://localhost:3001", "abc", "t k"),
-    "ws://localhost:3001/shares/abc/live?ticket=t+k",
+    "ws://localhost:3001/sync/shares/abc/live?ticket=t+k",
   );
   assert.equal(
     buildSharedNoteLiveSocketUrl("https://api.anarlog.so/", "abc", "x"),
-    "wss://api.anarlog.so/shares/abc/live?ticket=x",
+    "wss://api.anarlog.so/sync/shares/abc/live?ticket=x",
   );
 });
 
