@@ -67,7 +67,10 @@ const _PROVIDERS = [
     displayName: "Anarlog",
     badge: "Recommended",
     icon: <AnarlogProviderIcon />,
-    baseUrl: new URL("/llm", env.VITE_API_URL).toString(),
+    baseUrl: new URL(
+      "/llm",
+      env.VITE_AI_API_URL ?? env.VITE_API_URL,
+    ).toString(),
     requirements: [
       { kind: "requires_auth" },
       { kind: "requires_entitlement", entitlement: "pro" },
@@ -231,6 +234,24 @@ const _PROVIDERS = [
       setup: {
         label: "Setup guide",
         url: "https://docs.anarlog.so/ai-setup#unsloth",
+      },
+    },
+  },
+  {
+    id: "venice",
+    displayName: "Venice",
+    badge: null,
+    icon: <ProviderBrandImage src="/assets/venice.png" alt="Venice" />,
+    baseUrl: "https://api.venice.ai/api/v1",
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
+    links: {
+      models: {
+        label: "Available models",
+        url: "https://docs.venice.ai/models/text",
+      },
+      setup: {
+        label: "API setup",
+        url: "https://venice.ai/settings/api",
       },
     },
   },
@@ -668,6 +689,7 @@ const PROVIDER_ORDER = [
   "anthropic",
   "google_generative_ai",
   "openrouter",
+  "venice",
   "moonshot",
   "zai",
   "deepseek",
