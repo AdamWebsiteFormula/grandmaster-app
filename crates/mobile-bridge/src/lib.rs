@@ -9,7 +9,7 @@ mod listener;
 mod live_transcription;
 mod transcription;
 
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::future::Future;
 use std::sync::{Arc, Mutex};
 
@@ -36,7 +36,7 @@ struct BridgeState {
     live_query_runtime: Arc<anlg_db_reactive::LiveQueryRuntime<ListenerSink>>,
     listener_delivery: ListenerDelivery,
     runtime: Arc<tokio::runtime::Runtime>,
-    subscription_ids: HashSet<String>,
+    subscriptions: HashMap<String, ListenerSink>,
     e2ee_sync_hook: Arc<anlg_db_sync::E2eeSyncHook>,
     replica_sync: anlg_db_sync::ReplicaSyncTask,
     witness_watch: anlg_db_sync::WitnessWatchTask,
@@ -92,7 +92,7 @@ impl MobileDbBridge {
                 live_query_runtime,
                 listener_delivery,
                 runtime,
-                subscription_ids: HashSet::new(),
+                subscriptions: HashMap::new(),
                 e2ee_sync_hook,
                 replica_sync,
                 witness_watch,
@@ -330,8 +330,11 @@ impl MobileDbBridge {
                 state.listener_delivery.sink(listener),
             ))
         })?;
-        let registration = block_on(&runtime, live_query_runtime.subscribe(sql, params, sink))
-            .map_err(reactive_error)?;
+        let registration = block_on(
+            &runtime,
+            live_query_runtime.subscribe(sql, params, sink.clone()),
+        )
+        .map_err(reactive_error)?;
 
         if let anlg_db_reactive::DependencyAnalysis::NonReactive { reason } = &registration.analysis
         {
@@ -344,11 +347,14 @@ impl MobileDbBridge {
         let subscription_id = registration.id.clone();
         if self
             .with_state(|state| {
-                state.subscription_ids.insert(subscription_id.clone());
+                state
+                    .subscriptions
+                    .insert(subscription_id.clone(), sink.clone());
                 Ok(())
             })
             .is_err()
         {
+            sink.retire();
             let _ = block_on(&runtime, live_query_runtime.unsubscribe(&registration.id));
             return Err(BridgeError::Closed);
         }
@@ -358,17 +364,15 @@ impl MobileDbBridge {
 
     pub fn unsubscribe(&self, subscription_id: String) -> Result<(), BridgeError> {
         let (runtime, live_query_runtime) = self.with_state(|state| {
+            if let Some(sink) = state.subscriptions.remove(&subscription_id) {
+                sink.retire();
+            }
             Ok((
                 Arc::clone(&state.runtime),
                 Arc::clone(&state.live_query_runtime),
             ))
         })?;
-        block_on(&runtime, live_query_runtime.unsubscribe(&subscription_id))
-            .map_err(reactive_error)?;
-        self.with_state(|state| {
-            state.subscription_ids.remove(&subscription_id);
-            Ok(())
-        })
+        block_on(&runtime, live_query_runtime.unsubscribe(&subscription_id)).map_err(reactive_error)
     }
 
     pub fn cloudsync_version(&self) -> Result<String, BridgeError> {
@@ -777,7 +781,14 @@ impl MobileDbBridge {
         };
         drop(guard);
 
-        let subscription_ids: Vec<String> = state.subscription_ids.drain().collect();
+        let subscription_ids: Vec<String> = state
+            .subscriptions
+            .drain()
+            .map(|(subscription_id, sink)| {
+                sink.retire();
+                subscription_id
+            })
+            .collect();
         let pool = state.live_query_runtime.db().pool().clone();
         block_on(&state.runtime, async {
             for subscription_id in subscription_ids {
