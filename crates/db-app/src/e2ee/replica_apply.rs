@@ -464,9 +464,11 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
         }
         attempted_bytes = attempted_bytes.saturating_add(row_bytes);
         let mut records_by_field = BTreeMap::<String, DecryptedRecord>::new();
+        let mut unwitnessed_records = 0_u64;
         for record in encrypted_records {
             check_e2ee_apply_cancellation(is_cancelled)?;
             if require_witness && !record.witnessed {
+                unwitnessed_records += 1;
                 continue;
             }
             let field = keyring.open_field(&record.workspace_id, &record.id, &record.payload)?;
@@ -577,6 +579,16 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
             .is_some_and(|state| state.payload_hash == manifest.payload_hash);
         let row_was_present = row_exists(&mut transaction, &table, &workspace_id, &row_id).await?;
         rollback_if_cancelled!(transaction, is_cancelled);
+        // A row that does not exist locally yet waits until every downloaded
+        // record for it is witnessed, so readers never see an identity-only
+        // row with missing fields. The witness merge re-queues the records.
+        if !row_was_present && !manifest.field.deleted && unwitnessed_records > 0 {
+            stats.deferred_unwitnessed_rows += 1;
+            remove_apply_guard(&mut transaction, &workspace_id, &table, &row_id).await?;
+            rollback_if_cancelled!(transaction, is_cancelled);
+            commit_e2ee_apply_transaction(transaction, is_cancelled).await?;
+            continue;
+        }
         let mut row_materialized = false;
 
         if !manifest_unchanged {
