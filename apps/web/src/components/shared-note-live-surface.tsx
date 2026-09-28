@@ -136,15 +136,22 @@ export function SharedNoteLiveSurface({
   if (clientRef.current === null) clientRef.current = createClient();
   const client = clientRef.current;
 
+  const flushNow = useCallback(() => {
+    const current = clientRef.current;
+    if (!current || !dirtyRef.current || current.getStatus().kind !== "live") {
+      return;
+    }
+    dirtyRef.current = false;
+    save(current.fragment);
+  }, [save]);
+
   const scheduleFlush = useCallback(() => {
     if (flushTimerRef.current !== null) clearTimeout(flushTimerRef.current);
     flushTimerRef.current = setTimeout(() => {
       flushTimerRef.current = null;
-      if (!dirtyRef.current || client.getStatus().kind !== "live") return;
-      dirtyRef.current = false;
-      save(client.fragment);
+      flushNow();
     }, FLUSH_DEBOUNCE_MS);
-  }, [client, save]);
+  }, [flushNow]);
 
   useMountEffect(() => {
     if (clientRef.current === null) {
@@ -172,11 +179,6 @@ export function SharedNoteLiveSurface({
       boundDoc = client.doc;
       boundDoc.on("update", onUpdate);
     });
-    const flushNow = () => {
-      if (!dirtyRef.current || client.getStatus().kind !== "live") return;
-      dirtyRef.current = false;
-      save(client.fragment);
-    };
     window.addEventListener("pagehide", flushNow);
     return () => {
       window.removeEventListener("pagehide", flushNow);
