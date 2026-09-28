@@ -464,11 +464,11 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
         }
         attempted_bytes = attempted_bytes.saturating_add(row_bytes);
         let mut records_by_field = BTreeMap::<String, DecryptedRecord>::new();
-        let mut unwitnessed_records = 0_u64;
+        let mut unwitnessed_records = Vec::new();
         for record in encrypted_records {
             check_e2ee_apply_cancellation(is_cancelled)?;
             if require_witness && !record.witnessed {
-                unwitnessed_records += 1;
+                unwitnessed_records.push(record);
                 continue;
             }
             let field = keyring.open_field(&record.workspace_id, &record.id, &record.payload)?;
@@ -505,7 +505,7 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
                 records_by_field.insert(field_name, candidate);
             }
         }
-        load_remaining_chunk_records(
+        let mut unwitnessed_fields = load_remaining_chunk_records(
             pool,
             keyring,
             (&workspace_id, &table, &row_id),
@@ -514,6 +514,19 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
             &mut records_by_field,
         )
         .await?;
+        for record in unwitnessed_records {
+            check_e2ee_apply_cancellation(is_cancelled)?;
+            let Ok(field) = keyring.open_field(&record.workspace_id, &record.id, &record.payload)
+            else {
+                continue;
+            };
+            if field.table == table
+                && field.row_id == row_id
+                && !records_by_field.contains_key(&field.field)
+            {
+                unwitnessed_fields += 1;
+            }
+        }
         let mut records = records_by_field.into_values().collect::<Vec<_>>();
 
         check_e2ee_apply_cancellation(is_cancelled)?;
@@ -579,12 +592,14 @@ pub(super) async fn apply_e2ee_replica_changes_inner(
             .is_some_and(|state| state.payload_hash == manifest.payload_hash);
         let row_was_present = row_exists(&mut transaction, &table, &workspace_id, &row_id).await?;
         rollback_if_cancelled!(transaction, is_cancelled);
-        // A row that does not exist locally yet waits until every downloaded
-        // record for it is witnessed, so readers never see an identity-only
-        // row with missing fields. The witness merge re-queues the records.
-        if !row_was_present && !manifest.field.deleted && unwitnessed_records > 0 {
+        // A row that does not exist locally yet waits until every field that
+        // only exists in unwitnessed form is witnessed, so readers never see
+        // an identity-only row. The witness merge re-queues the records.
+        if !row_was_present && !manifest.field.deleted && unwitnessed_fields > 0 {
             stats.deferred_unwitnessed_rows += 1;
             remove_apply_guard(&mut transaction, &workspace_id, &table, &row_id).await?;
+            rollback_if_cancelled!(transaction, is_cancelled);
+            delete_reconciled_replica_entries_in_transaction(&mut transaction, &pending).await?;
             rollback_if_cancelled!(transaction, is_cancelled);
             commit_e2ee_apply_transaction(transaction, is_cancelled).await?;
             continue;
@@ -1071,7 +1086,7 @@ async fn load_remaining_chunk_records(
     columns: &HashSet<String>,
     require_witness: bool,
     records_by_field: &mut BTreeMap<String, DecryptedRecord>,
-) -> E2eeReplicaResult<()> {
+) -> E2eeReplicaResult<u64> {
     let (workspace_id, table, row_id) = row;
     let mut missing = Vec::new();
     for column in columns
@@ -1096,12 +1111,13 @@ async fn load_remaining_chunk_records(
         }
     }
     if missing.is_empty() {
-        return Ok(());
+        return Ok(0);
     }
     missing.sort_unstable();
     missing.dedup();
+    let mut unwitnessed_fields = BTreeSet::new();
     for record in load_encrypted_records_by_id(pool, &missing).await? {
-        if record.workspace_id != workspace_id || (require_witness && !record.witnessed) {
+        if record.workspace_id != workspace_id {
             continue;
         }
         let Ok(field) = keyring.open_field(&record.workspace_id, &record.id, &record.payload)
@@ -1109,6 +1125,10 @@ async fn load_remaining_chunk_records(
             continue;
         };
         if field.table != table || field.row_id != row_id {
+            continue;
+        }
+        if require_witness && !record.witnessed {
+            unwitnessed_fields.insert(field.field);
             continue;
         }
         let payload_hash = anlg_e2ee::payload_hash(&record.payload);
@@ -1122,7 +1142,8 @@ async fn load_remaining_chunk_records(
                 field,
             });
     }
-    Ok(())
+    unwitnessed_fields.retain(|field| !records_by_field.contains_key(field));
+    Ok(unwitnessed_fields.len() as u64)
 }
 
 /// Rebuilds a chunked column from its chunk records, chunk by chunk: a chunk

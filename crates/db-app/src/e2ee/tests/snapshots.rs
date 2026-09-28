@@ -280,6 +280,11 @@ async fn fresh_device_waits_for_every_row_record_to_be_witnessed() {
             .unwrap();
     assert_eq!(materialized, 0);
     assert_eq!(stats.deferred_unwitnessed_rows, 1);
+    let pending: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM e2ee_replica_pending")
+        .fetch_one(fresh.pool())
+        .await
+        .unwrap();
+    assert_eq!(pending, 0);
 
     let title_events = title_records
         .iter()
