@@ -44,6 +44,7 @@ export function requestMobileAttachmentUploads(): void {
 
 export function activateMobileAttachmentUploads(input: {
   accessToken: string;
+  onPassSettled?: () => void;
 }): {
   resume: () => void;
   pause: () => void;
@@ -99,6 +100,7 @@ export function activateMobileAttachmentUploads(input: {
     } finally {
       controller = undefined;
       running = false;
+      input.onPassSettled?.();
     }
 
     if (enabled && !stopped && runAgain) {
