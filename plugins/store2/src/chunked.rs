@@ -1,4 +1,5 @@
-use std::sync::{Mutex, MutexGuard};
+use std::collections::HashMap;
+use std::sync::{Arc, LazyLock, Mutex, PoisonError};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 // Windows Credential Manager caps a credential blob at 2560 bytes, i.e. 1280
@@ -113,17 +114,24 @@ fn existing_manifest<S: SecretSlot>(primary: &S) -> Option<Manifest> {
     primary.get().ok().and_then(|value| Manifest::parse(&value))
 }
 
-static LOCK: Mutex<()> = Mutex::new(());
+static ACCOUNT_LOCKS: LazyLock<Mutex<HashMap<String, Arc<Mutex<()>>>>> =
+    LazyLock::new(Default::default);
 
-fn lock() -> MutexGuard<'static, ()> {
-    LOCK.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+fn account_lock(account: &str) -> Arc<Mutex<()>> {
+    ACCOUNT_LOCKS
+        .lock()
+        .unwrap_or_else(PoisonError::into_inner)
+        .entry(account.to_string())
+        .or_default()
+        .clone()
 }
 
 pub(crate) fn read<S: SecretSlot>(
     slot: impl Fn(&str) -> Result<S, String>,
     account: &str,
 ) -> Result<String, ChunkedError> {
-    let _guard = lock();
+    let lock = account_lock(account);
+    let _guard = lock.lock().unwrap_or_else(PoisonError::into_inner);
     let value = slot(account).map_err(ChunkedError::Slot)?.get()?;
     let Some(manifest) = Manifest::parse(&value) else {
         return Ok(value);
@@ -145,7 +153,8 @@ pub(crate) fn write<S: SecretSlot>(
     account: &str,
     value: &str,
 ) -> Result<(), ChunkedError> {
-    let _guard = lock();
+    let lock = account_lock(account);
+    let _guard = lock.lock().unwrap_or_else(PoisonError::into_inner);
     let primary = slot(account).map_err(ChunkedError::Slot)?;
     let previous = existing_manifest(&primary);
 
@@ -185,7 +194,8 @@ pub(crate) fn delete<S: SecretSlot>(
     slot: impl Fn(&str) -> Result<S, String>,
     account: &str,
 ) -> Result<(), ChunkedError> {
-    let _guard = lock();
+    let lock = account_lock(account);
+    let _guard = lock.lock().unwrap_or_else(PoisonError::into_inner);
     let primary = slot(account).map_err(ChunkedError::Slot)?;
     let manifest = existing_manifest(&primary);
     match primary.delete() {
