@@ -92,7 +92,8 @@ export function SharedNoteLiveSurface({
   });
   const { mutate: save, data: saveResult } = saveMutation;
 
-  const [client] = useState(() => {
+  const clientRef = useRef<SharedNoteLiveClient | null>(null);
+  const createClient = useCallback(() => {
     const connect = async (): Promise<SharedNoteLiveConnection> => {
       const result = await createSharedNoteLiveTicket({ data: shareId });
       if (result.status !== "ready") return result;
@@ -128,7 +129,12 @@ export function SharedNoteLiveSurface({
       },
     });
     return liveClient;
-  });
+  }, [shareId, snapshot]);
+
+  // The client lives for exactly one effect lifetime, so a StrictMode
+  // mount/unmount/mount cycle gets a fresh connection instead of a destroyed one.
+  if (clientRef.current === null) clientRef.current = createClient();
+  const client = clientRef.current;
 
   const scheduleFlush = useCallback(() => {
     if (flushTimerRef.current !== null) clearTimeout(flushTimerRef.current);
@@ -141,6 +147,11 @@ export function SharedNoteLiveSurface({
   }, [client, save]);
 
   useMountEffect(() => {
+    if (clientRef.current === null) {
+      clientRef.current = createClient();
+      setGeneration((value) => value + 1);
+    }
+    const client = clientRef.current;
     // Only edits authored in this tab are flushed: remote peers flush their
     // own, and the relay-applied updates carry the client as origin.
     const onUpdate = (_update: Uint8Array, origin: unknown, doc: Y.Doc) => {
@@ -173,16 +184,21 @@ export function SharedNoteLiveSurface({
       if (flushTimerRef.current !== null) clearTimeout(flushTimerRef.current);
       flushNow();
       client.destroy();
+      clientRef.current = null;
     };
   });
 
+  const subscribe = useCallback(
+    (listener: () => void) => client.subscribe(listener),
+    [client],
+  );
   const status = useSyncExternalStore(
-    client.subscribe.bind(client),
+    subscribe,
     () => client.getStatus(),
     () => client.getStatus(),
   );
   const synced = useSyncExternalStore(
-    client.subscribe.bind(client),
+    subscribe,
     () => client.isSynced(),
     () => false,
   );
