@@ -385,7 +385,7 @@ pub fn delete_capture_audio(session_dir: &Path) -> std::io::Result<()> {
 /// Deletes zero-retention audio only after every recovery chunk was acknowledged.
 /// Returns `false` while chunks still wait for transcription.
 pub fn delete_transcribed_capture_audio(session_dir: &Path) -> std::io::Result<bool> {
-    if !list_recovery_chunks(session_dir)?.is_empty() {
+    if has_partial_chunks(session_dir)? || !list_recovery_chunks(session_dir)?.is_empty() {
         return Ok(false);
     }
     delete_capture_audio(session_dir)?;
@@ -394,6 +394,29 @@ pub fn delete_transcribed_capture_audio(session_dir: &Path) -> std::io::Result<b
 
 // Call only before a writer starts or during application startup. Active .part
 // files must stay invisible to recovery workers until their writer closes them.
+fn has_partial_chunks(session_dir: &Path) -> std::io::Result<bool> {
+    let entries = match std::fs::read_dir(session_dir.join(RECOVERY_DIR)) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(false),
+        Err(error) => return Err(error),
+    };
+    for entry in entries {
+        let name = entry?.file_name();
+        let Some(stem) = name
+            .to_string_lossy()
+            .strip_suffix(".part")
+            .map(str::to_owned)
+        else {
+            continue;
+        };
+        let parts: Vec<_> = stem.split('-').collect();
+        if parts.len() == 3 && parts.iter().all(|part| part.parse::<u64>().is_ok()) {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
 fn recover_partial_chunks(session_dir: &Path) -> std::io::Result<()> {
     let dir = session_dir.join(RECOVERY_DIR);
     let entries = match std::fs::read_dir(&dir) {
@@ -623,6 +646,18 @@ mod tests {
         sink.write(&vec![0.1; SAMPLE_RATE as usize], &[]).unwrap();
         sink.finish().unwrap();
         assert!(!delete_transcribed_capture_audio(&dir).unwrap());
+        let part = dir.join(RECOVERY_DIR).join("123-60000-60000.part");
+        std::fs::write(&part, b"unpublished").unwrap();
+        let chunks = list_recovery_chunks(&dir).unwrap();
+        for chunk in &chunks {
+            acknowledge_recovery_chunk(&dir, &chunk.id).unwrap();
+        }
+        assert!(!delete_transcribed_capture_audio(&dir).unwrap());
+        assert!(part.exists());
+        std::fs::remove_file(&part).unwrap();
+        let mut sink = ChunkedSink::new(&dir, 124, 0, false).unwrap();
+        sink.write(&vec![0.1; SAMPLE_RATE as usize], &[]).unwrap();
+        sink.finish().unwrap();
         recover_interrupted_captures(root.path()).unwrap();
         let chunks = list_recovery_chunks(&dir).unwrap();
         assert_eq!(chunks.len(), 1);
