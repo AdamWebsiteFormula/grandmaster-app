@@ -678,9 +678,6 @@ function PasswordForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
-    const submittedCaptchaToken = captchaToken;
-    setCaptchaToken(undefined);
-    setCaptchaWidgetKey((key) => key + 1);
 
     if (isSignUp) {
       if (password !== confirmPassword) {
@@ -703,6 +700,13 @@ function PasswordForm({
         setErrorMessage("Password must be at least 6 characters");
         return;
       }
+    }
+
+    const submittedCaptchaToken = captchaToken;
+    setCaptchaToken(undefined);
+    setCaptchaWidgetKey((key) => key + 1);
+
+    if (isSignUp) {
       signUpMutation.mutate(submittedCaptchaToken);
     } else {
       signInMutation.mutate(submittedCaptchaToken);
@@ -839,6 +843,7 @@ function MagicLinkForm({
 }) {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [captchaToken, setCaptchaToken] = useState<string>();
   const [captchaWidgetKey, setCaptchaWidgetKey] = useState(0);
 
@@ -873,6 +878,14 @@ function MagicLinkForm({
           flow,
           failure_stage: "provider",
         });
+        setErrorMessage(
+          result &&
+            "message" in result &&
+            typeof result.message === "string" &&
+            result.message.trim()
+            ? result.message
+            : "Failed to send magic link. Please try again.",
+        );
       }
     },
     onError: () => {
@@ -881,6 +894,7 @@ function MagicLinkForm({
         flow,
         failure_stage: "request",
       });
+      setErrorMessage("Failed to send magic link. Please try again.");
     },
   });
 
@@ -900,6 +914,7 @@ function MagicLinkForm({
       onSubmit={(e) => {
         e.preventDefault();
         if (email) {
+          setErrorMessage("");
           const submittedCaptchaToken = captchaToken;
           setCaptchaToken(undefined);
           setCaptchaWidgetKey((key) => key + 1);
@@ -922,6 +937,9 @@ function MagicLinkForm({
         className={authInputClassName}
       />
       <Turnstile key={captchaWidgetKey} onToken={setCaptchaToken} />
+      {errorMessage && (
+        <p className="text-center text-sm text-red-700">{errorMessage}</p>
+      )}
       <button
         type="submit"
         disabled={
@@ -933,11 +951,6 @@ function MagicLinkForm({
       >
         {magicLinkMutation.isPending ? "Sending..." : "Send magic link"}
       </button>
-      {magicLinkMutation.isError && (
-        <p className="text-center text-sm text-red-700">
-          Failed to send magic link. Please try again.
-        </p>
-      )}
     </form>
   );
 }

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 import { env } from "@/env";
 import { useMountEffect } from "@/hooks/useMountEffect";
@@ -73,28 +73,66 @@ export function Turnstile({
   onToken: (token: string | undefined) => void;
 }) {
   const siteKey = env.VITE_TURNSTILE_SITE_KEY;
+  const [retryKey, setRetryKey] = useState(0);
+  const [hasError, setHasError] = useState(false);
   if (!siteKey) {
     return null;
   }
 
-  return <TurnstileWidget siteKey={siteKey} onToken={onToken} />;
+  if (hasError) {
+    return (
+      <div className="flex flex-col items-center gap-1 text-center">
+        <p className="text-color-muted text-sm">
+          Couldn't load the verification check.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            onToken(undefined);
+            setHasError(false);
+            setRetryKey((key) => key + 1);
+          }}
+          className="text-color-muted hover:text-color cursor-pointer text-sm underline transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <TurnstileWidget
+      key={retryKey}
+      siteKey={siteKey}
+      onToken={onToken}
+      onError={() => setHasError(true)}
+    />
+  );
 }
 
 function TurnstileWidget({
   siteKey,
   onToken,
+  onError,
 }: {
   siteKey: string;
   onToken: (token: string | undefined) => void;
+  onError: () => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const onTokenRef = useRef(onToken);
+  const onErrorRef = useRef(onError);
   onTokenRef.current = onToken;
+  onErrorRef.current = onError;
 
   useMountEffect(() => {
     let disposed = false;
     let widgetId: string | undefined;
     let turnstile: TurnstileApi | undefined;
+    const fail = () => {
+      onTokenRef.current(undefined);
+      onErrorRef.current();
+    };
 
     void loadTurnstile()
       .then((api) => {
@@ -107,12 +145,16 @@ function TurnstileWidget({
           sitekey: siteKey,
           callback: (token) => onTokenRef.current(token),
           "expired-callback": () => onTokenRef.current(undefined),
-          "error-callback": () => onTokenRef.current(undefined),
+          "error-callback": () => {
+            if (!disposed) {
+              fail();
+            }
+          },
         });
       })
       .catch(() => {
         if (!disposed) {
-          onTokenRef.current(undefined);
+          fail();
         }
       });
 
