@@ -31,18 +31,24 @@ export async function requestMainListenerControl(
   action: ListenerControlAction,
   sessionId: string,
 ) {
-  await emitTo("main", LISTENER_CONTROL_EVENT, {
+  const request = emitTo("main", LISTENER_CONTROL_EVENT, {
     action,
     requestId: crypto.randomUUID(),
     sessionId,
   } satisfies ListenerControlRequest);
 
-  if (action === "stop") {
-    await new Promise((resolve) =>
-      setTimeout(resolve, MAIN_STOP_FALLBACK_DELAY_MS),
-    );
-    await stopCaptureForSession(sessionId);
+  if (action !== "stop") {
+    await request;
+    return;
   }
+
+  await request.catch((error) => {
+    console.error("Failed to request stop from the main window:", error);
+  });
+  await new Promise((resolve) =>
+    setTimeout(resolve, MAIN_STOP_FALLBACK_DELAY_MS),
+  );
+  await stopCaptureForSession(sessionId);
 }
 
 async function stopCaptureForSession(sessionId: string) {

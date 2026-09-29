@@ -62,6 +62,20 @@ describe("requestMainListenerControl", () => {
     expect(hoisted.stopCapture).toHaveBeenCalledTimes(1);
   });
 
+  test("stops natively when the main window cannot be reached", async () => {
+    hoisted.emitTo.mockRejectedValueOnce(new Error("window not found"));
+    hoisted.getCaptureSnapshot.mockResolvedValue({
+      status: "ok",
+      data: { activeSessionId: "session-1", finalizingSessionIds: [] },
+    });
+
+    const request = requestMainListenerControl("stop", "session-1");
+    await vi.runAllTimersAsync();
+    await request;
+
+    expect(hoisted.stopCapture).toHaveBeenCalledTimes(1);
+  });
+
   test("leaves the stop to the main webview when it already stopped", async () => {
     hoisted.getCaptureSnapshot.mockResolvedValue({
       status: "ok",
