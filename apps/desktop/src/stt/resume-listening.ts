@@ -97,11 +97,9 @@ export function useResumeListeningLifecycle(sessionId: string) {
         if (clearMarker) {
           try {
             const marker = await loadCaptureLifecycleMarker(sessionId);
-            if (
-              marker &&
-              !hasPendingZeroRetentionAudio(marker) &&
-              !hasAudioAwaitingUser(marker)
-            ) {
+            if (marker && hasAudioAwaitingUser(marker)) {
+              await markCaptureAudioSaved(sessionId);
+            } else if (marker && !hasPendingZeroRetentionAudio(marker)) {
               await clearCaptureLifecycleMarker(sessionId, marker.transcriptId);
             }
           } catch (error) {

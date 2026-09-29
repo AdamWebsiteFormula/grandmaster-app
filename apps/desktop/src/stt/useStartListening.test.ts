@@ -2352,6 +2352,34 @@ describe("useStartListening", () => {
     consoleError.mockRestore();
   });
 
+  test("offers saved audio after recovery attempts are exhausted", async () => {
+    attachLiveSessionMock.mockRejectedValue(new Error("attach failed"));
+    loadCaptureLifecycleMarkerMock.mockResolvedValue({
+      version: 1,
+      chunkedAudio: true,
+      sessionId: "session-1",
+      transcriptId: "transcript-before-reload",
+      startedAt: 1_000,
+      createdAt: "2026-07-24T00:00:00.000Z",
+      audioOffsetMs: 10_000,
+      preserveExistingTranscript: true,
+      ownerUserId: "user-1",
+      memo: "Existing memo",
+    });
+    const { result } = renderHook(() =>
+      useResumeListeningLifecycle("session-1"),
+    );
+
+    await act(async () => {
+      await expect(result.current({ abandonOnFailure: true })).resolves.toBe(
+        "error",
+      );
+    });
+
+    expect(markCaptureAudioSavedMock).toHaveBeenCalledWith("session-1");
+    expect(clearCaptureLifecycleMarkerMock).not.toHaveBeenCalled();
+  });
+
   test("keeps a stopped capture's audio for the user instead of processing it", async () => {
     attachLiveSessionMock.mockResolvedValue("inactive");
     loadCaptureLifecycleMarkerMock.mockResolvedValue({
