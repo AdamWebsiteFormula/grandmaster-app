@@ -26,7 +26,8 @@ Options:
   --help               Show this help
 
 Line ratios use non-blank lines. Rust inline tests are split approximately:
-lines from the first #[cfg(test)] through EOF count as test lines.`;
+lines from the first #[cfg(test)] inline module through EOF count as test lines.
+Cases count test declarations: an it.each table counts once.`;
 
 const sourceExtensions = new Set([
   ".ts",
@@ -48,9 +49,25 @@ const jsCasePatternEnd = String.raw`(?:\([^)]*\))?\s*\(`;
 const jsCasePattern = new RegExp(jsCasePatternStart + jsCasePatternEnd);
 const rustCasePattern = /^\s*#\[(?:test|tokio::test|rstest|sqlx::test)\b/;
 const rustTestModulePattern = /^\s*#\[cfg\(test\)\]/;
+const rustAttributePattern = /^\s*#\[/;
+const rustInlineModulePattern = /^\s*(?:pub(?:\([^)]*\))?\s+)?mod\s+\w+\s*\{/;
+const rustTestFilePattern = /^(?:tests?|.+_tests?)\.rs$/;
 
-function isRustTestModule(line) {
-  return rustTestModulePattern.test(line);
+function firstRustTestModule(lines) {
+  for (let index = 0; index < lines.length; index += 1) {
+    if (!rustTestModulePattern.test(lines[index])) continue;
+    let next = index + 1;
+    while (
+      next < lines.length &&
+      (lines[next].trim() === "" || rustAttributePattern.test(lines[next]))
+    ) {
+      next += 1;
+    }
+    if (next < lines.length && rustInlineModulePattern.test(lines[next])) {
+      return index;
+    }
+  }
+  return -1;
 }
 
 function parseArguments(argv) {
@@ -116,6 +133,7 @@ function isTestFile(path) {
   return (
     file.includes(".test.") ||
     file.includes(".spec.") ||
+    rustTestFilePattern.test(file) ||
     parts.slice(0, -1).some((part) => testSegments.has(part))
   );
 }
@@ -152,9 +170,18 @@ function testSubject(path, trackedSet) {
 
   const directory = dirname(path);
   const stem = match[1];
-  for (const extension of subjectExtensions) {
-    const candidate = join(directory, `${stem}${extension}`);
-    if (trackedSet.has(candidate)) return candidate;
+  const directories = [directory];
+  const parts = directory.split("/");
+  const testsIndex = parts.lastIndexOf("tests");
+  if (testsIndex !== -1) {
+    parts[testsIndex] = "src";
+    directories.push(parts.join("/"));
+  }
+  for (const candidateDirectory of directories) {
+    for (const extension of subjectExtensions) {
+      const candidate = join(candidateDirectory, `${stem}${extension}`);
+      if (trackedSet.has(candidate)) return candidate;
+    }
   }
   return null;
 }
@@ -226,7 +253,7 @@ function run(options) {
       testCode = lines;
       testLines = nonBlankLines(lines.join("\n")).length;
     } else if (extension === ".rs") {
-      const firstTestLine = lines.findIndex(isRustTestModule);
+      const firstTestLine = firstRustTestModule(lines);
       if (firstTestLine === -1) {
         sourceLines = nonBlankLines(lines.join("\n")).length;
       } else {
@@ -330,4 +357,5 @@ try {
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
   console.error(help);
+  process.exitCode = 1;
 }
