@@ -105,6 +105,8 @@ DECLARE
   v_email text;
   v_email_hash bytea;
   v_device_hash bytea;
+  v_inserted_email boolean := false;
+  v_inserted_device boolean := false;
 BEGIN
   IF NOT EXISTS (
     SELECT 1
@@ -303,6 +305,7 @@ BEGIN
     )
     VALUES ('email', v_email_hash, v_user_id)
     ON CONFLICT (kind, identity_hash) DO NOTHING;
+    v_inserted_email := FOUND;
   END IF;
 
   IF v_device_hash IS NOT NULL THEN
@@ -313,6 +316,7 @@ BEGIN
     )
     VALUES ('device', v_device_hash, v_user_id)
     ON CONFLICT (kind, identity_hash) DO NOTHING;
+    v_inserted_device := FOUND;
   END IF;
 
   IF (
@@ -334,6 +338,20 @@ BEGIN
         AND claim.user_id <> v_user_id
     )
   ) THEN
+    IF v_inserted_email THEN
+      DELETE FROM private.pro_trial_identity_claims
+      WHERE kind = 'email'
+        AND identity_hash = v_email_hash
+        AND user_id = v_user_id;
+    END IF;
+
+    IF v_inserted_device THEN
+      DELETE FROM private.pro_trial_identity_claims
+      WHERE kind = 'device'
+        AND identity_hash = v_device_hash
+        AND user_id = v_user_id;
+    END IF;
+
     RETURN;
   END IF;
 
