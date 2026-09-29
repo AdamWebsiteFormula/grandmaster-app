@@ -8,11 +8,6 @@ import {
 
 import { saveIncompleteCapture } from "./capture-result";
 import {
-  MAX_SENT_MEETING_DISCLOSURE_SESSIONS,
-  startMeetingRecordingDisclosure,
-} from "./meeting-disclosure";
-import { getSessionKeywords } from "./useKeywords";
-import {
   CLOUDSYNC_CAPTURE_LEASE_ATTEMPTS,
   getPostCaptureAction,
   getPostCaptureRepairReasons,
@@ -389,8 +384,6 @@ describe("getPostCaptureAction", () => {
     expect(getPostCaptureRepairReasons(input)).toEqual(expected);
   });
 
-
-
   test.each([
     {
       name: "runs batch then enhance after record-only capture finishes when audio is available",
@@ -478,13 +471,6 @@ describe("getPostCaptureAction", () => {
   ])("$name", ({ input, canBatch, expected }) => {
     expect(getPostCaptureAction(input, canBatch)).toBe(expected);
   });
-
-
-
-
-
-
-
 });
 
 describe("useStartListening", () => {
@@ -853,8 +839,6 @@ describe("useStartListening", () => {
     consoleWarn.mockRestore();
   });
 
-
-
   test("never claims that zero-retention audio was deleted when native cleanup failed", async () => {
     useConfigValueMock.mockImplementation((key: string) =>
       key === "audio_retention" ? "none" : undefined,
@@ -892,9 +876,6 @@ describe("useStartListening", () => {
     expect(runBatchMock).not.toHaveBeenCalled();
   });
 
-
-
-
   test("records without STT while offering an actionable transcription setup", async () => {
     useSTTConnectionMock.mockReturnValue({ conn: null });
     const { result } = renderHook(() => useStartListening("session-1"));
@@ -928,7 +909,6 @@ describe("useStartListening", () => {
       state: { tab: "transcription" },
     });
   });
-
 
   test("does not replace a capture marker while recovery blocks starting", async () => {
     canStartLiveSessionMock.mockReturnValue(false);
@@ -1138,8 +1118,6 @@ describe("useStartListening", () => {
     expect(setLeftSidebarExpandedMock).not.toHaveBeenCalled();
     consoleError.mockRestore();
   });
-
-
 
   test("manual recording stays manual while a scheduled start is waiting for the same note", async () => {
     renderHook(() => useStartListeningState("session-1", { automatic: true }));
@@ -1431,8 +1409,6 @@ describe("useStartListening", () => {
     expect(settled).toBe(true);
   });
 
-
-
   test("retains the marker and capture lease until a failed editor flush recovers", async () => {
     flushCanonicalSessionEditorChangesMock.mockRejectedValueOnce(
       new Error("database is locked"),
@@ -1502,7 +1478,6 @@ describe("useStartListening", () => {
     consoleError.mockRestore();
   });
 
-
   test("keeps a completed capture successful while lease release retries in the background", async () => {
     vi.useFakeTimers();
     endCloudsyncActivityMock
@@ -1550,7 +1525,6 @@ describe("useStartListening", () => {
     expect(clearCaptureLifecycleMarkerMock).toHaveBeenCalledOnce();
     consoleError.mockRestore();
   });
-
 
   test("preserves audio when durable capture cleanup cannot commit", async () => {
     clearCaptureLifecycleMarkerMock.mockRejectedValueOnce(
@@ -2822,7 +2796,6 @@ describe("useStartListening", () => {
     expect(finishCaptureRecoveryFinalizationMock).not.toHaveBeenCalled();
   });
 
-
   test("repairs from finalized audio when live transcript persistence fails", async () => {
     createLiveTranscriptMock.mockRejectedValueOnce(new Error("write failed"));
     const consoleError = vi
@@ -3053,7 +3026,6 @@ describe("useStartListening", () => {
       consoleWarn.mockRestore();
     });
 
-
     test("refreshes the early summary after repair recovers across a reload", async () => {
       attachLiveSessionMock.mockResolvedValue("inactive");
       transcriptExistsMock.mockResolvedValue(true);
@@ -3261,7 +3233,6 @@ describe("useStartListening", () => {
     consoleError.mockRestore();
   });
 
-
   test("stops automatic recovery for a terminal batch repair failure", async () => {
     useSessionHasTranscriptMock.mockReturnValue(true);
     runBatchMock.mockRejectedValueOnce(
@@ -3302,8 +3273,6 @@ describe("useStartListening", () => {
     );
     consoleError.mockRestore();
   });
-
-
 
   test("ends automatic recovery after the user cancels the batch repair", async () => {
     useSessionHasTranscriptMock.mockReturnValue(true);
@@ -3401,7 +3370,6 @@ describe("useStartListening", () => {
     expect(deleteProcessedAudioForRetentionMock).not.toHaveBeenCalled();
     expect(softDeleteTranscriptMock).not.toHaveBeenCalled();
   });
-
 
   test("catalogs finalized audio through the session audio queue", async () => {
     let releaseBlocker: (() => void) | undefined;
@@ -3522,8 +3490,6 @@ describe("useStartListening", () => {
     expect(queueAutoEnhanceIfSummaryEmptyMock).not.toHaveBeenCalled();
   });
 
-
-
   test("requests recovery when the deleted session is restored during finalization", async () => {
     useSessionHasTranscriptMock.mockReturnValue(true);
     isSessionDeletedMock
@@ -3559,7 +3525,6 @@ describe("useStartListening", () => {
     expect(requestCaptureRecoveryMock).toHaveBeenCalledWith("session-1");
     consoleError.mockRestore();
   });
-
 
   test("replaces only the current live transcript when resumed capture needs batch repair", async () => {
     useSessionHasTranscriptMock.mockReturnValue(true);
@@ -3633,7 +3598,6 @@ describe("useStartListening", () => {
     });
   });
 
-
   test("starts capture with the selected microphone", async () => {
     useConfigValueMock.mockImplementation((key) =>
       key === "ai_language"
@@ -3655,8 +3619,6 @@ describe("useStartListening", () => {
       mic_device: "External Microphone",
     });
   });
-
-
 
   test("uses the main language for Deepgram live capture when extras are unsupported", async () => {
     useConfigValueMock.mockImplementation((key) =>
@@ -3721,11 +3683,6 @@ describe("useStartListening", () => {
     expect(listMicUsingApplicationsMock).not.toHaveBeenCalled();
   });
 
-
-
-
-
-
   test("retries until a conferencing app is mic-active without reporting intermediate failures", async () => {
     listMicUsingApplicationsMock
       .mockResolvedValueOnce({
@@ -3773,8 +3730,6 @@ describe("useStartListening", () => {
     );
     expect(toastWarningMock).not.toHaveBeenCalled();
   });
-
-
 
   test("reports one terminal failure after the bounded retry window", async () => {
     listMicUsingApplicationsMock.mockResolvedValue({
@@ -3902,7 +3857,6 @@ describe("useStartListening", () => {
     });
     expect(sendMeetingChatMessageMock).toHaveBeenCalledOnce();
   });
-
 
   test("starts meeting chat capture with the disclosure text excluded", async () => {
     useConfigValueMock.mockImplementation((key: string) =>
