@@ -63,4 +63,19 @@ describe("configureCenteredPlayback", () => {
     ).toBeNull();
     expect(context.close).toHaveBeenCalledTimes(1);
   });
+
+  it("does not reroute the element when gain setup fails", () => {
+    const { context } = createFakeContext();
+    context.createGain.mockImplementation(() => {
+      throw new Error("unsupported");
+    });
+
+    expect(
+      configureCenteredPlayback(
+        {} as HTMLMediaElement,
+        () => context as unknown as AudioContext,
+      ),
+    ).toBeNull();
+    expect(context.createMediaElementSource).not.toHaveBeenCalled();
+  });
 });
