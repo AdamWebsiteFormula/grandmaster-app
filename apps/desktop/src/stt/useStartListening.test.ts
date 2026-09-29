@@ -51,6 +51,8 @@ const {
   softDeleteTranscriptMock,
   saveCaptureLifecycleMarkerMock,
   loadCaptureLifecycleMarkerMock,
+  markCaptureAudioSavedMock,
+  clearCaptureAudioSavedMock,
   clearCaptureLifecycleMarkerMock,
   requestCaptureRecoveryMock,
   waitForSessionSearchIndexMock,
@@ -108,6 +110,8 @@ const {
   softDeleteTranscriptMock: vi.fn(),
   saveCaptureLifecycleMarkerMock: vi.fn(),
   loadCaptureLifecycleMarkerMock: vi.fn(),
+  markCaptureAudioSavedMock: vi.fn(() => Promise.resolve()),
+  clearCaptureAudioSavedMock: vi.fn(() => Promise.resolve()),
   clearCaptureLifecycleMarkerMock: vi.fn(),
   requestCaptureRecoveryMock: vi.fn(),
   waitForSessionSearchIndexMock: vi.fn(),
@@ -305,6 +309,8 @@ vi.mock("~/stt/capture-lifecycle-storage", () => ({
   }) => marker.chunkedAudio === true && marker.retainAudio === false,
   loadCaptureLifecycleMarker: loadCaptureLifecycleMarkerMock,
   saveCaptureLifecycleMarker: saveCaptureLifecycleMarkerMock,
+  markCaptureAudioSaved: markCaptureAudioSavedMock,
+  clearCaptureAudioSaved: clearCaptureAudioSavedMock,
 }));
 
 vi.mock("~/stt/capture-recovery-requests", () => ({
@@ -1761,7 +1767,9 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await expect(recoveryResult.result.current()).resolves.toBe("inactive");
+      await expect(
+        recoveryResult.result.current({ processStopped: true }),
+      ).resolves.toBe("inactive");
     });
 
     expect(flushCanonicalSessionEditorChangesMock).toHaveBeenCalledTimes(2);
@@ -2062,7 +2070,7 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await result.current();
+      await result.current({ processStopped: true });
     });
 
     expect(beginCloudsyncActivityMock).toHaveBeenCalledWith(
@@ -2141,7 +2149,9 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await expect(result.current()).resolves.toBe("attached");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "attached",
+      );
     });
 
     const onStopped = attachLiveSessionMock.mock.calls[0]?.[1]?.onStopped;
@@ -2171,7 +2181,9 @@ describe("useStartListening", () => {
     const retry = renderHook(() => useResumeListeningLifecycle("session-1"));
 
     await act(async () => {
-      await expect(retry.result.current()).resolves.toBe("inactive");
+      await expect(
+        retry.result.current({ processStopped: true }),
+      ).resolves.toBe("inactive");
     });
 
     expect(endCloudsyncActivityMock).toHaveBeenCalledWith(
@@ -2222,10 +2234,10 @@ describe("useStartListening", () => {
     const { result } = renderHook(() =>
       useResumeListeningLifecycle("session-1"),
     );
-    let resuming: Promise<"attached" | "inactive" | "error">;
+    let resuming: Promise<"attached" | "inactive" | "error" | "awaiting_user">;
 
     act(() => {
-      resuming = result.current();
+      resuming = result.current({ processStopped: true });
     });
     await waitFor(() =>
       expect(beginCloudsyncActivityMock).toHaveBeenCalledOnce(),
@@ -2258,7 +2270,7 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await result.current();
+      await result.current({ processStopped: true });
     });
 
     expect(beginCloudsyncActivityMock).toHaveBeenCalledBefore(
@@ -2293,10 +2305,14 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await expect(result.current()).resolves.toBe("error");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "error",
+      );
     });
     await act(async () => {
-      await expect(result.current()).resolves.toBe("attached");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "attached",
+      );
     });
 
     expect(beginCloudsyncActivityMock).toHaveBeenCalledTimes(2);
@@ -2316,9 +2332,9 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await expect(result.current({ abandonOnFailure: true })).resolves.toBe(
-        "attached",
-      );
+      await expect(
+        result.current({ abandonOnFailure: true, processStopped: true }),
+      ).resolves.toBe("attached");
     });
 
     expect(attachLiveSessionMock).toHaveBeenCalledOnce();
@@ -2326,6 +2342,34 @@ describe("useStartListening", () => {
     expect(beginCloudsyncActivityMock).toHaveBeenCalledOnce();
     expect(endCloudsyncActivityMock).not.toHaveBeenCalled();
     consoleError.mockRestore();
+  });
+
+  test("keeps a stopped capture's audio for the user instead of processing it", async () => {
+    attachLiveSessionMock.mockResolvedValue("inactive");
+    loadCaptureLifecycleMarkerMock.mockResolvedValue({
+      version: 1,
+      sessionId: "session-1",
+      transcriptId: "transcript-before-reload",
+      startedAt: 1_000,
+      createdAt: "2026-07-24T00:00:00.000Z",
+      audioOffsetMs: 10_000,
+      preserveExistingTranscript: true,
+      ownerUserId: "user-1",
+      memo: "Existing memo",
+    });
+    const { result } = renderHook(() =>
+      useResumeListeningLifecycle("session-1"),
+    );
+
+    await act(async () => {
+      await expect(result.current()).resolves.toBe("awaiting_user");
+    });
+
+    expect(markCaptureAudioSavedMock).toHaveBeenCalledWith("session-1");
+    expect(runBatchMock).not.toHaveBeenCalled();
+    expect(queueAutoEnhanceMock).not.toHaveBeenCalled();
+    expect(beginCaptureRecoveryFinalizationMock).not.toHaveBeenCalled();
+    expect(clearCaptureLifecycleMarkerMock).not.toHaveBeenCalled();
   });
 
   test("finalizes a durable capture when stop happens before listeners reattach", async () => {
@@ -2359,7 +2403,9 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await expect(result.current()).resolves.toBe("inactive");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "inactive",
+      );
     });
 
     expect(runBatchMock).toHaveBeenCalledWith("/tmp/existing-session.mp3", {
@@ -2419,7 +2465,9 @@ describe("useStartListening", () => {
       );
 
       await act(async () => {
-        await expect(result.current()).resolves.toBe("inactive");
+        await expect(result.current({ processStopped: true })).resolves.toBe(
+          "inactive",
+        );
       });
 
       expect(runBatchMock).toHaveBeenCalledWith("/tmp/existing-session.mp3", {
@@ -2462,7 +2510,9 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await expect(result.current()).resolves.toBe("inactive");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "inactive",
+      );
     });
 
     expect(runBatchMock).not.toHaveBeenCalled();
@@ -2513,12 +2563,16 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await expect(result.current()).resolves.toBe("error");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "error",
+      );
     });
     expect(toastErrorMock).not.toHaveBeenCalled();
 
     await act(async () => {
-      await expect(result.current()).resolves.toBe("inactive");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "inactive",
+      );
     });
 
     expect(runBatchMock).toHaveBeenCalledTimes(2);
@@ -2555,14 +2609,16 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await expect(result.current({ abandonOnFailure: true })).resolves.toBe(
-        "error",
-      );
+      await expect(
+        result.current({ abandonOnFailure: true, processStopped: true }),
+      ).resolves.toBe("error");
     });
     expect(clearCaptureLifecycleMarkerMock).not.toHaveBeenCalled();
 
     await act(async () => {
-      await expect(result.current()).resolves.toBe("inactive");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "inactive",
+      );
     });
 
     expect(runBatchMock).toHaveBeenCalledOnce();
@@ -2596,9 +2652,9 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await expect(result.current({ abandonOnFailure: true })).resolves.toBe(
-        "error",
-      );
+      await expect(
+        result.current({ abandonOnFailure: true, processStopped: true }),
+      ).resolves.toBe("error");
     });
 
     expect(clearCaptureLifecycleMarkerMock).toHaveBeenCalledWith(
@@ -2661,7 +2717,9 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await expect(recoveryResult.result.current()).resolves.toBe("inactive");
+      await expect(
+        recoveryResult.result.current({ processStopped: true }),
+      ).resolves.toBe("inactive");
     });
 
     expect(beginCloudsyncActivityMock.mock.calls).toEqual([
@@ -2703,12 +2761,16 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await expect(result.current()).resolves.toBe("error");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "error",
+      );
     });
     expect(endCloudsyncActivityMock).not.toHaveBeenCalled();
 
     await act(async () => {
-      await expect(result.current()).resolves.toBe("inactive");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "inactive",
+      );
     });
 
     expect(beginCloudsyncActivityMock).toHaveBeenCalledOnce();
@@ -2739,10 +2801,14 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await expect(result.current()).rejects.toThrow("database is locked");
+      await expect(result.current({ processStopped: true })).rejects.toThrow(
+        "database is locked",
+      );
     });
     await act(async () => {
-      await expect(result.current()).resolves.toBe("inactive");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "inactive",
+      );
     });
 
     expect(runBatchMock).toHaveBeenCalledOnce();
@@ -2787,13 +2853,17 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await expect(result.current()).resolves.toBe("error");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "error",
+      );
     });
     expect(clearCaptureLifecycleMarkerMock).not.toHaveBeenCalled();
     expect(runBatchMock).not.toHaveBeenCalled();
 
     await act(async () => {
-      await expect(result.current()).resolves.toBe("inactive");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "inactive",
+      );
     });
 
     expect(runBatchMock).toHaveBeenCalledOnce();
@@ -2812,7 +2882,9 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await expect(result.current()).resolves.toBe("inactive");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "inactive",
+      );
     });
 
     expect(beginCloudsyncActivityMock).toHaveBeenCalledBefore(
@@ -2843,7 +2915,9 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await expect(result.current()).resolves.toBe("error");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "error",
+      );
     });
 
     expect(runBatchMock).not.toHaveBeenCalled();
@@ -2885,13 +2959,17 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await expect(result.current()).resolves.toBe("error");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "error",
+      );
     });
     expect(beginCloudsyncActivityMock).toHaveBeenCalledOnce();
     expect(endCloudsyncActivityMock).not.toHaveBeenCalled();
 
     await act(async () => {
-      await expect(result.current()).resolves.toBe("inactive");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "inactive",
+      );
     });
     expect(beginCloudsyncActivityMock).toHaveBeenCalledOnce();
     expect(endCloudsyncActivityMock).toHaveBeenCalledOnce();
@@ -2923,14 +3001,18 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await expect(result.current()).resolves.toBe("error");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "error",
+      );
     });
 
     expect(runBatchMock).not.toHaveBeenCalled();
     expect(finishCaptureRecoveryFinalizationMock).not.toHaveBeenCalled();
 
     await act(async () => {
-      await expect(result.current()).resolves.toBe("inactive");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "inactive",
+      );
     });
 
     expect(beginCaptureRecoveryFinalizationMock).toHaveBeenCalledTimes(2);
@@ -2958,9 +3040,9 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await expect(result.current({ abandonOnFailure: true })).resolves.toBe(
-        "error",
-      );
+      await expect(
+        result.current({ abandonOnFailure: true, processStopped: true }),
+      ).resolves.toBe("error");
     });
 
     expect(clearCaptureLifecycleMarkerMock).not.toHaveBeenCalled();
@@ -3008,7 +3090,9 @@ describe("useStartListening", () => {
     );
 
     await act(async () => {
-      await expect(result.current()).resolves.toBe("error");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "error",
+      );
     });
     await act(async () => {
       await callbacks?.onStopped?.("session-1", {
@@ -3020,7 +3104,9 @@ describe("useStartListening", () => {
       });
     });
     await act(async () => {
-      await expect(result.current()).resolves.toBe("inactive");
+      await expect(result.current({ processStopped: true })).resolves.toBe(
+        "inactive",
+      );
     });
 
     expect(saveCaptureLifecycleMarkerMock).toHaveBeenCalledWith(
@@ -3324,7 +3410,9 @@ describe("useStartListening", () => {
       );
 
       await act(async () => {
-        await expect(result.current()).resolves.toBe("inactive");
+        await expect(result.current({ processStopped: true })).resolves.toBe(
+          "inactive",
+        );
       });
 
       expect(runBatchMock).toHaveBeenCalledOnce();
@@ -3716,13 +3804,19 @@ describe("useStartListening", () => {
     const recovery = renderHook(() => useResumeListeningLifecycle("session-1"));
 
     await act(async () => {
-      await expect(recovery.result.current()).resolves.toBe("inactive");
-      await expect(recovery.result.current()).resolves.toBe("inactive");
+      await expect(
+        recovery.result.current({ processStopped: true }),
+      ).resolves.toBe("inactive");
+      await expect(
+        recovery.result.current({ processStopped: true }),
+      ).resolves.toBe("inactive");
     });
     recovery.unmount();
     const reloaded = renderHook(() => useResumeListeningLifecycle("session-1"));
     await act(async () => {
-      await expect(reloaded.result.current()).resolves.toBe("inactive");
+      await expect(
+        reloaded.result.current({ processStopped: true }),
+      ).resolves.toBe("inactive");
     });
 
     expect(runBatchMock).toHaveBeenCalledOnce();

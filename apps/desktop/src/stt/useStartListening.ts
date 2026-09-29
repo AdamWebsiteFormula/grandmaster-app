@@ -5,6 +5,7 @@ import { toast } from "@anlg/ui/components/ui/toast";
 
 import { useCaptureLifecycle } from "./capture-lifecycle";
 import {
+  clearCaptureAudioSaved,
   hasPendingZeroRetentionAudio,
   loadCaptureLifecycleMarker,
 } from "./capture-lifecycle-storage";
@@ -92,7 +93,9 @@ export function useStartListeningState(
     const lifecycle = createCaptureLifecycle(
       undefined,
       automatic,
-      previousMarker && hasPendingZeroRetentionAudio(previousMarker)
+      previousMarker &&
+        (previousMarker.chunkedAudio === true ||
+          hasPendingZeroRetentionAudio(previousMarker))
         ? previousMarker
         : undefined,
     );
@@ -221,6 +224,12 @@ export function useStartListeningState(
         await releaseCloudsyncDeferral();
       }
       return;
+    }
+
+    if (previousMarker) {
+      void clearCaptureAudioSaved(sessionId).catch((error) => {
+        console.error("[listener] failed to clear capture audio state", error);
+      });
     }
 
     const openTranscriptionSettings = () => {

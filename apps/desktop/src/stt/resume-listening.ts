@@ -6,9 +6,11 @@ import { getAudioDurationMs, useCaptureLifecycle } from "./capture-lifecycle";
 import { useListener } from "./contexts";
 
 import {
+  clearCaptureAudioSaved,
   clearCaptureLifecycleMarker,
   hasPendingZeroRetentionAudio,
   loadCaptureLifecycleMarker,
+  markCaptureAudioSaved,
 } from "~/stt/capture-lifecycle-storage";
 
 export function useResumeListeningLifecycle(sessionId: string) {
@@ -34,7 +36,11 @@ export function useResumeListeningLifecycle(sessionId: string) {
   const ownsRecoveryFinalizationRef = useRef(false);
 
   return useCallback(
-    async (options?: { abandonOnFailure?: boolean }) => {
+    async (options?: {
+      abandonOnFailure?: boolean;
+      // Stopped captures wait for the user unless they asked to process them.
+      processStopped?: boolean;
+    }) => {
       let attempt = recoveryAttemptRef.current;
       if (!attempt || attempt.sessionId !== sessionId) {
         const stoppedProcessingRef = {
@@ -232,6 +238,27 @@ export function useResumeListeningLifecycle(sessionId: string) {
         await state.lifecycle.releaseCloudsyncLease();
         return "inactive" as const;
       }
+
+      if (!options?.processStopped) {
+        try {
+          await markCaptureAudioSaved(sessionId);
+        } catch (error) {
+          console.error("[listener] failed to save capture audio state", error);
+          return failRecovery({ clearMarker: false });
+        }
+        try {
+          await state.lifecycle.releaseCloudsyncLease();
+        } catch (error) {
+          console.error("[listener] failed to release capture recovery", error);
+        }
+        if (recoveryAttemptRef.current === attempt) {
+          recoveryAttemptRef.current = null;
+        }
+        return "awaiting_user" as const;
+      }
+      await clearCaptureAudioSaved(sessionId).catch((error) => {
+        console.error("[listener] failed to clear capture audio state", error);
+      });
 
       if (!ownsRecoveryFinalizationRef.current) {
         if (!beginCaptureRecoveryFinalization(sessionId)) {

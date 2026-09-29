@@ -39,13 +39,13 @@ async function hasPendingAudio(sessionId: string) {
 }
 
 export function LiveCaptureRecovery() {
-  const [recoveryTokens, setRecoveryTokens] = useState<Record<string, number>>(
-    {},
-  );
+  const [recoveryTokens, setRecoveryTokens] = useState<
+    Record<string, { token: number; processStopped: boolean }>
+  >({});
   const completeRecovery = useCallback(
     (sessionId: string, recoveryToken: number) => {
       setRecoveryTokens((current) => {
-        if (current[sessionId] !== recoveryToken) {
+        if (current[sessionId]?.token !== recoveryToken) {
           return current;
         }
         const next = { ...current };
@@ -60,10 +60,9 @@ export function LiveCaptureRecovery() {
     let active = true;
     let unlisten: (() => void) | undefined;
 
-    const addSessionIds = (
-      ids: Array<string | null>,
-      restartExisting = false,
-    ) => {
+    // Only explicit requests process stopped captures; ones found at launch
+    // or after a renderer reload wait for the user.
+    const addSessionIds = (ids: Array<string | null>, requested = false) => {
       if (!active) {
         return;
       }
@@ -73,8 +72,11 @@ export function LiveCaptureRecovery() {
           if (!sessionId) {
             continue;
           }
-          if (restartExisting || !(sessionId in next)) {
-            next[sessionId] = (next[sessionId] ?? 0) + 1;
+          if (requested || !(sessionId in next)) {
+            next[sessionId] = {
+              token: (next[sessionId]?.token ?? 0) + 1,
+              processStopped: requested,
+            };
           }
         }
         return next;
@@ -134,23 +136,28 @@ export function LiveCaptureRecovery() {
     };
   });
 
-  return Object.entries(recoveryTokens).map(([sessionId, recoveryToken]) => (
-    <LiveCaptureSessionRecovery
-      key={`${sessionId}:${recoveryToken}`}
-      sessionId={sessionId}
-      recoveryToken={recoveryToken}
-      onComplete={completeRecovery}
-    />
-  ));
+  return Object.entries(recoveryTokens).map(
+    ([sessionId, { token, processStopped }]) => (
+      <LiveCaptureSessionRecovery
+        key={`${sessionId}:${token}`}
+        sessionId={sessionId}
+        recoveryToken={token}
+        processStopped={processStopped}
+        onComplete={completeRecovery}
+      />
+    ),
+  );
 }
 
 function LiveCaptureSessionRecovery({
   sessionId,
   recoveryToken,
+  processStopped,
   onComplete,
 }: {
   sessionId: string;
   recoveryToken: number;
+  processStopped: boolean;
   onComplete: (sessionId: string, recoveryToken: number) => void;
 }) {
   const resumeListeningLifecycle = useResumeListeningLifecycle(sessionId);
@@ -160,10 +167,11 @@ function LiveCaptureSessionRecovery({
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
     const recover = async (attempt: number) => {
-      let result: "attached" | "inactive" | "error";
+      let result: Awaited<ReturnType<typeof resumeListeningLifecycle>>;
       try {
         result = await resumeListeningLifecycle({
           abandonOnFailure: attempt >= CAPTURE_RECOVERY_MAX_ATTEMPTS,
+          processStopped,
         });
       } catch (error) {
         console.error("[listener] capture recovery attempt failed", error);
@@ -220,7 +228,13 @@ function LiveCaptureSessionRecovery({
         clearTimeout(retryTimer);
       }
     };
-  }, [onComplete, recoveryToken, resumeListeningLifecycle, sessionId]);
+  }, [
+    onComplete,
+    processStopped,
+    recoveryToken,
+    resumeListeningLifecycle,
+    sessionId,
+  ]);
 
   return null;
 }
