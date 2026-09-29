@@ -135,6 +135,8 @@ export function startPrimaryDeviceCoordination({
     window.removeEventListener("keydown", onInteraction, true);
   };
 
+  let inflight: Promise<unknown> = Promise.resolve();
+
   const finish = () => {
     if (stopped) return;
     stopped = true;
@@ -143,8 +145,12 @@ export function startPrimaryDeviceCoordination({
     unsubscribe();
     toast.dismiss(toastId);
     coordinatedSessionIds.delete(sessionId);
-    if (meetingKey) {
-      void sendHeartbeat(meetingKey, "release").catch(() => {});
+    const key = meetingKey;
+    if (key) {
+      void inflight
+        .catch(() => {})
+        .then(() => sendHeartbeat(key, "release"))
+        .catch(() => {});
     }
   };
 
@@ -169,7 +175,9 @@ export function startPrimaryDeviceCoordination({
     const sentIntent = intent;
     let result: Awaited<ReturnType<typeof sendHeartbeat>>;
     try {
-      result = await sendHeartbeat(meetingKey, sentIntent);
+      const request = sendHeartbeat(meetingKey, sentIntent);
+      inflight = request;
+      result = await request;
     } catch (error) {
       console.warn("[listener] meeting device heartbeat failed", error);
       if (!stopped) timer = setTimeout(beat, PRIMARY_DEVICE_HEARTBEAT_MS);
@@ -181,7 +189,11 @@ export function startPrimaryDeviceCoordination({
       finish();
       return;
     }
-    if (sentIntent === "claim" && intent === "claim") {
+    if (intent === "claim" && sentIntent !== "claim") {
+      void beat();
+      return;
+    }
+    if (sentIntent === "claim") {
       intent = "present";
     }
     const { devices, fingerprint } = result;

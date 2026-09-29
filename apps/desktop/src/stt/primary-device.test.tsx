@@ -235,3 +235,37 @@ test("retries after a network failure and releases when recording stops", async 
   await vi.advanceTimersByTimeAsync(PRIMARY_DEVICE_HEARTBEAT_MS * 2);
   expect(mocks.requestMeetingDevices).toHaveBeenCalledTimes(3);
 });
+
+test("a claim made during an in-flight heartbeat is sent before yielding", async () => {
+  let respond: (devices: unknown) => void = () => {};
+  mocks.requestMeetingDevices
+    .mockResolvedValueOnce([
+      { ...self, primary: false },
+      { ...other, primary: false },
+    ])
+    .mockImplementationOnce(() => new Promise((resolve) => (respond = resolve)))
+    .mockResolvedValue([
+      { ...self, primary: true },
+      { ...other, primary: false },
+    ]);
+  startPrimaryDeviceCoordination({
+    sessionId: "session-1",
+    event,
+    automatic: true,
+  });
+  await flush();
+  await vi.advanceTimersByTimeAsync(PRIMARY_DEVICE_HEARTBEAT_MS);
+  expect(mocks.requestMeetingDevices).toHaveBeenCalledTimes(2);
+
+  window.dispatchEvent(new KeyboardEvent("keydown", { key: "a" }));
+  respond([
+    { ...self, primary: false },
+    { ...other, primary: true },
+  ]);
+  await flush(3);
+
+  expect(mocks.requestMeetingDevices).toHaveBeenLastCalledWith(
+    expect.objectContaining({ intent: "claim" }),
+  );
+  expect(mocks.stop).not.toHaveBeenCalled();
+});

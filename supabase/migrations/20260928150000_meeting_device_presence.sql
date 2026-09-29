@@ -51,6 +51,7 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
+#variable_conflict use_column
 BEGIN
   IF p_actor_user_id IS NULL
     OR p_meeting_key IS NULL
@@ -111,7 +112,7 @@ BEGIN
       p_intent = 'claim',
       now()
     )
-    ON CONFLICT (user_id, meeting_key, device_fingerprint) DO UPDATE
+    ON CONFLICT ON CONSTRAINT meeting_device_presence_pkey DO UPDATE
     SET
       seen_at = now(),
       is_primary = presence.is_primary OR EXCLUDED.is_primary;

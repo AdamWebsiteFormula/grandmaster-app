@@ -801,13 +801,18 @@ export function useCaptureLifecycle(sessionId: string) {
         if (
           consumePrimaryDeviceYield(sessionId) &&
           !preserveExistingTranscript &&
+          inheritedCaptures.length === 0 &&
           !(await existingAudioPromise)
         ) {
           try {
             if (details.audioPath) {
-              await enqueueSessionAudioOperation(sessionId, () =>
-                fsSyncCommands.audioDelete(sessionId),
+              const deleted = await enqueueSessionAudioOperation(
+                sessionId,
+                () => fsSyncCommands.audioDelete(sessionId),
               );
+              if (deleted.status !== "ok") {
+                throw new Error(deleted.error);
+              }
             }
             if (await transcriptExists(transcriptId)) {
               await softDeleteTranscript(transcriptId);
