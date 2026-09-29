@@ -141,17 +141,18 @@ pub async fn start_capture<R: tauri::Runtime>(
 
     let session_id = params.session_id.clone();
     let live_transcript = params.live_transcript.clone();
-    app.listener()
-        .start_capture(params)
-        .await
-        .map_err(|e| e.to_string())?;
-
     let registry = app.state::<LiveJournalRegistry>();
     if let Some(target) = live_transcript {
-        register_app_journal(&registry, app.clone(), session_id, target)?;
+        register_app_journal(&registry, app.clone(), session_id.clone(), target)?;
     } else {
         registry.release_session(&session_id)?;
     }
+
+    if let Err(error) = app.listener().start_capture(params).await {
+        registry.release_session(&session_id)?;
+        return Err(error.to_string());
+    }
+
     Ok(())
 }
 
