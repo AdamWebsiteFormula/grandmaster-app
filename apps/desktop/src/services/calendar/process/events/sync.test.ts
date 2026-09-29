@@ -301,4 +301,25 @@ describe("syncEvents", () => {
       ["incoming-2", []],
     ]);
   });
+
+  test("matches participants by tracking_id_event for recurring events", () => {
+    const ctx = createMockCtx();
+    const participants = [{ email: "alice@example.com", name: "Alice" }];
+    const result = syncEvents(
+      ctx,
+      syncInput({
+        incoming: [
+          createIncomingEvent({
+            tracking_id_event: "recurring-1",
+            has_recurrence_rules: true,
+            started_at: "2024-01-15T10:00:00Z",
+          }),
+        ],
+        incomingParticipants: new Map([["recurring-1", participants]]),
+      }),
+    );
+
+    expect(result.toAdd).toHaveLength(1);
+    expect(result.toAdd[0].participants).toEqual(participants);
+  });
 });
