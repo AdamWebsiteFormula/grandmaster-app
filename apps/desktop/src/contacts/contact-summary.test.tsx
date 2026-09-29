@@ -136,6 +136,83 @@ describe("contact summary", () => {
     );
   });
 
+  it("includes the user context and addresses them in the second person", async () => {
+    const user = makeUser();
+
+    await generateAndSaveContactSummary({
+      human: makeHuman(),
+      user,
+      organizationName: "Fastrepl",
+      sessions: makeSessions(),
+      sourceHash: "source-1",
+      model: { id: "model-1" } as never,
+    });
+
+    const call = mocks.generateText.mock.calls[0]?.[0];
+    expect(call.system).toContain("second person");
+    const prompt = JSON.parse(call.prompt);
+    expect(prompt.user).toEqual({
+      name: "John",
+      email: "john@example.com",
+    });
+    expect(prompt.target_is_user).toBe(false);
+  });
+
+  it("marks the brief as about the user when target and user match", async () => {
+    const user = makeUser();
+
+    await generateAndSaveContactSummary({
+      human: user,
+      user,
+      organizationName: "Fastrepl",
+      sessions: makeSessions(),
+      sourceHash: "source-1",
+      model: { id: "model-1" } as never,
+    });
+
+    const prompt = JSON.parse(mocks.generateText.mock.calls[0]?.[0].prompt);
+    expect(prompt.target_is_user).toBe(true);
+  });
+
+  it("sends a null user when no user contact is known", async () => {
+    await generateAndSaveContactSummary({
+      human: makeHuman(),
+      organizationName: "Fastrepl",
+      sessions: makeSessions(),
+      sourceHash: "source-1",
+      model: { id: "model-1" } as never,
+    });
+
+    const prompt = JSON.parse(mocks.generateText.mock.calls[0]?.[0].prompt);
+    expect(prompt.user).toBeNull();
+    expect(prompt.target_is_user).toBe(false);
+  });
+
+  it("rebuilds in full when only the prompt version changed the hash", async () => {
+    const sessions = makeSessions();
+    const human = {
+      ...makeHuman(),
+      summary: {
+        facts: ["Fact one.", "Fact two.", "Fact three."],
+        sourceHash: "source-old-version",
+        generatedAt: "2026-08-11T12:00:00.000Z",
+        sources: [{ id: "session-1", updatedAt: "2026-08-11T12:00:00.000Z" }],
+      },
+    };
+
+    await generateAndSaveContactSummary({
+      human,
+      organizationName: "Fastrepl",
+      sessions,
+      sourceHash: "source-2",
+      model: { id: "model-1" } as never,
+    });
+
+    expect(mocks.loadSessionContentSnapshot).toHaveBeenCalledTimes(1);
+    const prompt = JSON.parse(mocks.generateText.mock.calls[0]?.[0].prompt);
+    expect(prompt.existing_facts).toBeUndefined();
+  });
+
   it("extends an existing summary with only the new meetings", async () => {
     const human = {
       ...makeHuman(),
@@ -253,6 +330,7 @@ describe("contact summary", () => {
 
     const props = {
       human: makeHuman(),
+      user: makeUser(),
       organizationName: "Fastrepl",
       sessions: [] as HumanSessionRecord[],
       settleMs: 200,
@@ -291,6 +369,7 @@ describe("contact summary", () => {
 
     const props = {
       human: makeHuman(),
+      user: makeUser(),
       organizationName: "Fastrepl",
       sessions: makeSessions(),
       settleMs: 200,
@@ -380,6 +459,7 @@ describe("contact summary", () => {
       () =>
         useContactSummary({
           human: makeHuman(),
+          user: makeUser(),
           organizationName: "Fastrepl",
           sessions: makeSessions(),
         }),
@@ -410,6 +490,15 @@ function makeHuman(): HumanRecord {
     pinOrder: null,
     avatarDataUrl: null,
     summary: null,
+  };
+}
+
+function makeUser(): HumanRecord {
+  return {
+    ...makeHuman(),
+    id: "user-1",
+    name: "John",
+    email: "john@example.com",
   };
 }
 

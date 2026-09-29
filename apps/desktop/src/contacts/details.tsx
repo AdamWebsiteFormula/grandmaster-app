@@ -59,6 +59,7 @@ export function DetailsColumn({
   const auth = useOptionalAuth();
   const ownerUserId = auth?.session?.user.id ?? localOwnerUserId;
   const readOnly = human?.id === ownerUserId;
+  const user = humans.find((candidate) => candidate.id === ownerUserId) ?? null;
   const { t } = useLingui();
   const [showCompactIdentity, setShowCompactIdentity] = useState(false);
   const personSessions = useHumanSessions(human?.id ?? "");
@@ -68,6 +69,7 @@ export function DetailsColumn({
     )?.name ?? null;
   const contactSummary = useContactSummary({
     human,
+    user,
     organizationName,
     sessions: personSessions,
   });
