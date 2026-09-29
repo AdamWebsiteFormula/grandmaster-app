@@ -186,12 +186,14 @@ function LiveCaptureSessionRecovery({
           attempt >= CAPTURE_RECOVERY_MAX_ATTEMPTS &&
           (await isCapturing(sessionId))
         ) {
-          // Recover once the recording that could not be reattached stops.
+          // Saved audio is offered only after the recording ends, and no
+          // stop handler is attached to this capture.
           const waitForStop = async () => {
             if (!active) return;
-            if (await isCapturing(sessionId)) {
-              if (active)
-                retryTimer = setTimeout(waitForStop, NATIVE_STOP_POLL_MS);
+            const capturing = await isCapturing(sessionId);
+            if (!active) return;
+            if (capturing) {
+              retryTimer = setTimeout(waitForStop, NATIVE_STOP_POLL_MS);
               return;
             }
             void recover(attempt + 1);
