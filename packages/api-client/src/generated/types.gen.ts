@@ -1169,6 +1169,10 @@ export type Meeting = {
     action_items: Array<ActionItem>;
     created_at: string;
     ended_at: string;
+    /**
+     * Folder path such as `Projects/Launch`; null when the meeting is not in a folder.
+     */
+    folder_path?: string | null;
     id: string;
     kind: string;
     language: string;
@@ -1190,6 +1194,10 @@ export type MeetingExport = Meeting & {
 export type MeetingListItem = {
     created_at: string;
     ended_at: string;
+    /**
+     * Folder path such as `Projects/Launch`; null when the meeting is not in a folder.
+     */
+    folder_path?: string | null;
     id: string;
     kind: string;
     series_id: string;

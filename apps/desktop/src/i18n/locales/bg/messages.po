@@ -1798,11 +1798,6 @@ msgstr ""
 msgid "Could not send the meeting notes to Slack."
 msgstr ""
 
-#. placeholder {0}: error.message
-#: src/auth/start-fresh-dialog.tsx
-msgid "Could not start fresh: {0}"
-msgstr ""
-
 #: src/session-sharing/index.tsx
 msgid "Could not start sign-in."
 msgstr ""
@@ -4149,14 +4144,6 @@ msgstr ""
 msgid "Pause alerts while Do Not Disturb is on."
 msgstr ""
 
-#: src/settings/general/meeting-settings.tsx
-msgid "Pause music and other media when listening starts."
-msgstr ""
-
-#: src/settings/general/meeting-settings.tsx
-msgid "Pause other media"
-msgstr ""
-
 #: src/settings/developers/webhooks.tsx
 msgid "Paused"
 msgstr ""
@@ -4688,10 +4675,6 @@ msgstr ""
 
 #: src/shared/control.tsx
 msgid "Restart App"
-msgstr ""
-
-#: src/auth/start-fresh-dialog.tsx
-msgid "Restarting…"
 msgstr ""
 
 #: src/main/windows-window-controls.tsx
@@ -5487,14 +5470,6 @@ msgstr "Стартирайте Anarlog при влизане"
 msgid "Start free trial"
 msgstr ""
 
-#: src/auth/start-fresh-dialog.tsx
-msgid "Start fresh"
-msgstr ""
-
-#: src/auth/start-fresh-dialog.tsx
-msgid "Start fresh on this device?"
-msgstr ""
-
 #: src/settings/general/meeting-settings.tsx
 msgid "Start listening when a scheduled meeting begins."
 msgstr ""
@@ -5847,10 +5822,6 @@ msgstr ""
 
 #: src/shared-notes/index.tsx
 msgid "The note may have been unshared or moved out of a workspace you can access."
-msgstr ""
-
-#: src/auth/start-fresh-dialog.tsx
-msgid "The notes on this device belong to another Anarlog account. Starting fresh sets them aside as a backup file and restarts Anarlog with an empty workspace for the account you signed in with. Nothing from the old notes is uploaded."
 msgstr ""
 
 #: src/shared/control.tsx

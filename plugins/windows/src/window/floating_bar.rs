@@ -71,10 +71,13 @@ pub struct FloatingBarState {
     pub transcript_bubbles: Option<Vec<FloatingTranscriptBubble>>,
     #[serde(default)]
     pub layout: Option<FloatingBarOverlayLayout>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub session_id: Option<String>,
 }
 
 pub const WINDOW_LABEL: &str = "floating-bar";
 
+#[cfg(any(test, not(target_os = "macos")))]
 pub(crate) mod layout {
     use super::FloatingBarState;
 
@@ -110,7 +113,6 @@ pub(crate) mod layout {
         compact_controls_width(shows_expand) + COMPACT_HORIZONTAL_PADDING * 2.0
     }
 
-    #[cfg(any(not(target_os = "macos"), test))]
     pub fn dictation_container_size(expanded: bool) -> (f64, f64) {
         container_size(expanded, true)
     }
@@ -129,7 +131,6 @@ pub(crate) mod layout {
         }
     }
 
-    #[cfg(any(test, not(target_os = "macos")))]
     pub fn controls_center_y(height: f64, expands_upward: bool) -> f64 {
         if expands_upward {
             height - INSET - COMPACT_HEIGHT / 2.0
@@ -138,7 +139,6 @@ pub(crate) mod layout {
         }
     }
 
-    #[cfg(any(test, not(target_os = "macos")))]
     pub fn frame_at_controls(
         anchor: (f64, f64),
         size: (f64, f64),
@@ -568,12 +568,30 @@ pub fn show() -> Result<(), Error> {
     platform::show()
 }
 
+static SESSION_ID: std::sync::Mutex<Option<String>> = std::sync::Mutex::new(None);
+
+pub fn session_id() -> Option<String> {
+    SESSION_ID.lock().ok().and_then(|guard| guard.clone())
+}
+
 pub fn hide() -> Result<(), Error> {
-    platform::hide()
+    let hidden_session_id = session_id();
+    platform::hide()?;
+    if let Ok(mut session_id) = SESSION_ID.lock()
+        && *session_id == hidden_session_id
+    {
+        *session_id = None;
+    }
+    Ok(())
 }
 
 pub fn update(state: FloatingBarState) -> Result<(), Error> {
-    platform::update(state)
+    let next_session_id = state.session_id.clone();
+    platform::update(state)?;
+    if let Ok(mut session_id) = SESSION_ID.lock() {
+        *session_id = next_session_id;
+    }
+    Ok(())
 }
 
 pub fn update_amplitude(amplitude: f64) -> Result<(), Error> {
