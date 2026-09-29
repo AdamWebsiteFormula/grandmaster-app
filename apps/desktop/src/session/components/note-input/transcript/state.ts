@@ -70,7 +70,8 @@ export function useTranscriptScreen({
     sessionMode === "active" || sessionMode === "finalizing";
   const { transcriptIds, liveSegments, hasTranscriptWords } =
     useTranscriptContent(sessionId, !currentActive);
-  const isRecordOnlyMode = sessionMode === "active" && captureMode !== "live";
+  const isRecordOnlyMode =
+    sessionMode === "active" && captureMode === "record_only";
   const hasVisibleTranscriptState =
     hasTranscriptWords || liveSegments.length > 0 || !!batchError;
 
@@ -83,9 +84,8 @@ export function useTranscriptScreen({
   }
 
   if (
-    (isRecordOnlyMode || liveTranscriptInterrupted) &&
-    currentActive &&
-    !hasVisibleTranscriptState
+    isRecordOnlyMode ||
+    (liveTranscriptInterrupted && currentActive && !hasVisibleTranscriptState)
   ) {
     return {
       kind: "batch_fallback",

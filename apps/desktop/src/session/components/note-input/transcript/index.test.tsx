@@ -230,6 +230,22 @@ describe("Transcript", () => {
     expect(screen.queryByTestId("batch-state")).toBeNull();
   });
 
+  it("keeps batch status for record-only capture with an earlier transcript", () => {
+    listenerState = {
+      ...listenerState,
+      live: {
+        ...listenerState.live,
+        requestedLiveTranscription: false,
+        liveTranscriptionActive: false,
+      },
+    };
+    transcripts = [{ id: transcriptId, hasWords: true }];
+
+    render(<Transcript sessionId={sessionId} scrollRef={createRef()} />);
+
+    expect(screen.getByTestId("batch-state")).not.toBeNull();
+  });
+
   it("renders finalized transcripts in the requested edit mode", () => {
     listenerState = {
       ...listenerState,
