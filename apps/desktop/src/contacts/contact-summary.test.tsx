@@ -29,6 +29,7 @@ vi.mock("./queries", () => ({
 
 import {
   buildContactSummarySource,
+  createContactSummaryPromptKey,
   createContactSummarySourceHash,
   generateAndSaveContactSummary,
   useContactSummary,
@@ -59,14 +60,44 @@ beforeEach(() => {
 describe("contact summary", () => {
   it("changes the source fingerprint when related meeting content changes", () => {
     const sessions = makeSessions();
-    const first = createContactSummarySourceHash(sessions);
+    const promptKey = createContactSummaryPromptKey(null);
+    const first = createContactSummarySourceHash(sessions, promptKey);
 
-    expect(first).toBe(createContactSummarySourceHash(sessions));
+    expect(first).toBe(createContactSummarySourceHash(sessions, promptKey));
     expect(
-      createContactSummarySourceHash([
-        { ...sessions[0]!, sourceUpdatedAt: "2026-08-12T13:00:00.000Z" },
-      ]),
+      createContactSummarySourceHash(
+        [{ ...sessions[0]!, sourceUpdatedAt: "2026-08-12T13:00:00.000Z" }],
+        promptKey,
+      ),
     ).not.toBe(first);
+  });
+
+  it("changes the source fingerprint when the user identity changes", () => {
+    const sessions = makeSessions();
+    const user = makeUser();
+    const withUser = createContactSummarySourceHash(
+      sessions,
+      createContactSummaryPromptKey(user),
+    );
+
+    expect(
+      createContactSummarySourceHash(
+        sessions,
+        createContactSummaryPromptKey(null),
+      ),
+    ).not.toBe(withUser);
+    for (const changed of [
+      { ...user, id: "user-2" },
+      { ...user, name: "Johnny" },
+      { ...user, email: "john@other.com" },
+    ]) {
+      expect(
+        createContactSummarySourceHash(
+          sessions,
+          createContactSummaryPromptKey(changed),
+        ),
+      ).not.toBe(withUser);
+    }
   });
 
   it("uses generated meeting summaries and transcript fallbacks", () => {
@@ -131,6 +162,7 @@ describe("contact summary", () => {
       "human-1",
       expect.objectContaining({
         sourceHash: "source-1",
+        promptKey: createContactSummaryPromptKey(null),
         sources: [{ id: "session-1", updatedAt: "2026-08-11T12:00:00.000Z" }],
       }),
     );
@@ -195,6 +227,7 @@ describe("contact summary", () => {
       summary: {
         facts: ["Fact one.", "Fact two.", "Fact three."],
         sourceHash: "source-old-version",
+        promptKey: "",
         generatedAt: "2026-08-11T12:00:00.000Z",
         sources: [{ id: "session-1", updatedAt: "2026-08-11T12:00:00.000Z" }],
       },
@@ -213,12 +246,47 @@ describe("contact summary", () => {
     expect(prompt.existing_facts).toBeUndefined();
   });
 
+  it("rebuilds a legacy brief in full even when a new meeting arrives", async () => {
+    const human = {
+      ...makeHuman(),
+      summary: {
+        facts: ["Fact one.", "Fact two.", "Fact three."],
+        sourceHash: "source-old",
+        promptKey: "",
+        generatedAt: "2026-08-11T12:00:00.000Z",
+        sources: [{ id: "session-1", updatedAt: "2026-08-11T12:00:00.000Z" }],
+      },
+    };
+    const sessions: HumanSessionRecord[] = [
+      {
+        id: "session-2",
+        title: "Follow-up",
+        createdAt: "2026-08-15T12:00:00.000Z",
+        sourceUpdatedAt: "2026-08-15T13:00:00.000Z",
+      },
+      ...makeSessions(),
+    ];
+
+    await generateAndSaveContactSummary({
+      human,
+      organizationName: "Fastrepl",
+      sessions,
+      sourceHash: "source-2",
+      model: { id: "model-1" } as never,
+    });
+
+    expect(mocks.loadSessionContentSnapshot).toHaveBeenCalledTimes(2);
+    const prompt = JSON.parse(mocks.generateText.mock.calls[0]?.[0].prompt);
+    expect(prompt.existing_facts).toBeUndefined();
+  });
+
   it("extends an existing summary with only the new meetings", async () => {
     const human = {
       ...makeHuman(),
       summary: {
         facts: ["Fact one.", "Fact two.", "Fact three."],
         sourceHash: "source-old",
+        promptKey: createContactSummaryPromptKey(null),
         generatedAt: "2026-08-11T12:00:00.000Z",
         sources: [{ id: "session-1", updatedAt: "2026-08-11T12:00:00.000Z" }],
       },
@@ -257,6 +325,7 @@ describe("contact summary", () => {
       summary: {
         facts: ["Fact one.", "Fact two.", "Fact three."],
         sourceHash: "source-old",
+        promptKey: createContactSummaryPromptKey(null),
         generatedAt: "2026-08-11T12:00:00.000Z",
         sources: [
           { id: "session-0", updatedAt: "2026-08-05T12:00:00.000Z" },
@@ -293,6 +362,7 @@ describe("contact summary", () => {
       summary: {
         facts: ["Fact one.", "Fact two.", "Fact three."],
         sourceHash: "source-old",
+        promptKey: createContactSummaryPromptKey(null),
         generatedAt: "2026-08-11T12:00:00.000Z",
         sources: [{ id: "session-1", updatedAt: "2026-08-01T12:00:00.000Z" }],
       },
@@ -442,6 +512,7 @@ describe("contact summary", () => {
             ...session,
             sourceUpdatedAt: "2026-08-11T12:00:04.000Z",
           })),
+          createContactSummaryPromptKey(makeUser()),
         ),
       }),
     );

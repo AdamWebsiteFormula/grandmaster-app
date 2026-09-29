@@ -83,7 +83,8 @@ export function useContactSummary({
     settleMs,
     DEBOUNCE_OPTIONS,
   );
-  const sourceHash = createContactSummarySourceHash(settledSessions);
+  const promptKey = createContactSummaryPromptKey(user);
+  const sourceHash = createContactSummarySourceHash(settledSessions, promptKey);
   const savedSummary = human?.summary ?? null;
   const needsGeneration = Boolean(
     human &&
@@ -107,6 +108,7 @@ export function useContactSummary({
           generateAndSaveContactSummary({
             human,
             user,
+            promptKey,
             organizationName,
             sessions: settledSessions,
             sourceHash,
@@ -139,14 +141,27 @@ export function useContactSummary({
   };
 }
 
+export function createContactSummaryPromptKey(
+  user: HumanRecord | null | undefined,
+): string {
+  const context = buildUserContext(user);
+  return createSourceHash(
+    JSON.stringify({
+      version: CONTACT_SUMMARY_VERSION,
+      user: context && user ? [user.id, context.name, context.email] : null,
+    }),
+  );
+}
+
 export function createContactSummarySourceHash(
   sessions: HumanSessionRecord[],
+  promptKey: string,
 ): string {
   if (sessions.length === 0) return "";
 
   return createSourceHash(
     JSON.stringify({
-      version: CONTACT_SUMMARY_VERSION,
+      promptKey,
       sessions: sessions
         .slice(0, MAX_MEETINGS)
         .map((session) => [
@@ -190,8 +205,13 @@ export function buildContactSummarySource(
 function getIncrementalUpdate(
   saved: ContactSummaryRecord | null,
   sessions: HumanSessionRecord[],
+  promptKey: string,
 ): { facts: string[]; newSessions: HumanSessionRecord[] } | null {
-  if (!saved || saved.sources.length === 0) return null;
+  // A brief built by another prompt version or for another user can carry
+  // stale point-of-view facts, so it always rebuilds in full.
+  if (!saved || saved.promptKey !== promptKey || saved.sources.length === 0) {
+    return null;
+  }
 
   // A summarized meeting that was edited or removed may invalidate old
   // facts, so check saved sources against the full session list.
@@ -214,6 +234,7 @@ export async function generateAndSaveContactSummary({
   organizationName,
   sessions,
   sourceHash,
+  promptKey = createContactSummaryPromptKey(user),
   model,
   signal,
 }: {
@@ -222,11 +243,12 @@ export async function generateAndSaveContactSummary({
   organizationName: string | null;
   sessions: HumanSessionRecord[];
   sourceHash: string;
+  promptKey?: string;
   model: LanguageModel;
   signal?: AbortSignal;
 }): Promise<ContactSummaryRecord | null> {
   const recentSessions = sessions.slice(0, MAX_MEETINGS);
-  const incremental = getIncrementalUpdate(human.summary, sessions);
+  const incremental = getIncrementalUpdate(human.summary, sessions, promptKey);
   const snapshots = (
     await Promise.all(
       (incremental?.newSessions ?? recentSessions).map((session) =>
@@ -267,6 +289,7 @@ export async function generateAndSaveContactSummary({
   const summary = {
     facts,
     sourceHash,
+    promptKey,
     generatedAt: new Date().toISOString(),
     sources: recentSessions.map((session) => ({
       id: session.id,
