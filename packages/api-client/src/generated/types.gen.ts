@@ -508,11 +508,14 @@ export type DriveExportFile = {
     url: string;
 };
 
+export type DriveExportFormat = 'markdown' | 'google_docs';
+
 export type DriveExportRequest = {
     connection_id: string;
     file_id: string;
     filename: string;
     folder_id: string;
+    format?: DriveExportFormat;
     markdown: string;
     meeting_id: string;
 };
@@ -531,6 +534,7 @@ export type DriveFolderRequest = {
 export type DrivePrepareExportRequest = {
     connection_id: string;
     folder_id: string;
+    format?: DriveExportFormat;
     meeting_id: string;
 };
 
@@ -1165,6 +1169,10 @@ export type Meeting = {
     action_items: Array<ActionItem>;
     created_at: string;
     ended_at: string;
+    /**
+     * Folder path such as `Projects/Launch`; null when the meeting is not in a folder.
+     */
+    folder_path?: string | null;
     id: string;
     kind: string;
     language: string;
@@ -1186,6 +1194,10 @@ export type MeetingExport = Meeting & {
 export type MeetingListItem = {
     created_at: string;
     ended_at: string;
+    /**
+     * Folder path such as `Projects/Launch`; null when the meeting is not in a folder.
+     */
+    folder_path?: string | null;
     id: string;
     kind: string;
     series_id: string;

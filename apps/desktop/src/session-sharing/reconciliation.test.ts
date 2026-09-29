@@ -562,6 +562,33 @@ describe("session share reconciliation", () => {
     );
   });
 
+  it("bootstraps a pending web edit with a preserved attachment manifest", async () => {
+    mocks.loadSource.mockResolvedValue(
+      source("Base title", localAttachedBaseBody),
+    );
+    mocks.loadAttachments.mockResolvedValue([localAttachment]);
+
+    await expect(
+      reconcileManagedSessionShareSnapshot({
+        viewerUserId: VIEWER_ID,
+        snapshot: snapshot({
+          contentRevision: 2,
+          title: "Remote title",
+          body: attachedRemoteBody,
+          attachments: [sharedAttachment],
+          webEditBase: {
+            contentRevision: 1,
+            title: "Base title",
+            body: attachedBaseBody,
+          },
+        }),
+      }),
+    ).resolves.toBe("imported");
+
+    const nextBody = mocks.executeTransaction.mock.calls[0]![0][1].params[0];
+    expect(JSON.parse(nextBody)).toEqual(localAttachedRemoteBody);
+  });
+
   it("records a bootstrap conflict when an attachment disappears before import", async () => {
     const baseHash = await hashSessionShareProjection({
       title: "Base title",
@@ -736,5 +763,34 @@ describe("session share reconciliation", () => {
     expect(mocks.executeTransaction.mock.calls[0]![0][0].sql).toContain(
       "UPDATE sessions",
     );
+  });
+
+  it("recovers an attachment-bearing edit after local content returns to baseline", async () => {
+    const baseline = await hashSessionShareProjection({
+      title: "Base title",
+      body: attachedBaseBody,
+    });
+    mocks.loadSource.mockResolvedValue(
+      source("Base title", localAttachedBaseBody),
+    );
+    mocks.loadAttachments.mockResolvedValue([localAttachment]);
+    mocks.liveQueryExecute.mockResolvedValue([
+      stateRow({ revision: 1, hash: baseline, status: "conflict" }),
+    ]);
+
+    await expect(
+      reconcileManagedSessionShareSnapshot({
+        viewerUserId: VIEWER_ID,
+        snapshot: snapshot({
+          contentRevision: 2,
+          title: "Remote title",
+          body: attachedRemoteBody,
+          attachments: [sharedAttachment],
+        }),
+      }),
+    ).resolves.toBe("imported");
+
+    const nextBody = mocks.executeTransaction.mock.calls[0]![0][1].params[0];
+    expect(JSON.parse(nextBody)).toEqual(localAttachedRemoteBody);
   });
 });

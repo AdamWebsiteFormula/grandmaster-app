@@ -1007,6 +1007,37 @@ describe("useStartListening", () => {
     consoleError.mockRestore();
   });
 
+  test("releases sync when failed marker cleanup also fails", async () => {
+    saveCaptureLifecycleMarkerMock.mockRejectedValueOnce(
+      new Error("marker write failed"),
+    );
+    clearCaptureLifecycleMarkerMock.mockRejectedValueOnce(
+      new Error("marker cleanup failed"),
+    );
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    const { result } = renderHook(() => useStartListening("session-1"));
+
+    await act(async () => {
+      await result.current();
+    });
+
+    expect(startMock).not.toHaveBeenCalled();
+    expect(clearCaptureLifecycleMarkerMock).toHaveBeenCalledWith(
+      "session-1",
+      "generated-id",
+    );
+    expect(endCloudsyncActivityMock).toHaveBeenCalledWith(
+      "capture",
+      "session-1:generated-id",
+    );
+    expect(clearCaptureLifecycleMarkerMock).toHaveBeenCalledBefore(
+      endCloudsyncActivityMock,
+    );
+    consoleError.mockRestore();
+  });
+
   test("keeps recording when capture sync deferral cannot be acquired", async () => {
     beginCloudsyncActivityMock.mockRejectedValue(new Error("cloudsync busy"));
     const consoleError = vi
