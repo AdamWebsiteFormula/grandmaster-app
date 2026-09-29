@@ -473,15 +473,10 @@ mod test {
 
     #[cfg(target_os = "macos")]
     #[test]
-    fn terminated_webview_reloads_only_for_visible_main_window() {
-        assert!(crate::ext::should_reload_terminated_webview("main", true));
-        assert!(!crate::ext::should_reload_terminated_webview("main", false));
-        assert!(!crate::ext::should_reload_terminated_webview(
-            "composer", true
-        ));
-        assert!(!crate::ext::should_reload_terminated_webview(
-            "note-1", true
-        ));
+    fn terminated_webview_reloads_only_for_main_window() {
+        assert!(crate::ext::should_reload_terminated_webview("main"));
+        assert!(!crate::ext::should_reload_terminated_webview("composer"));
+        assert!(!crate::ext::should_reload_terminated_webview("note-1"));
     }
 
     #[test]

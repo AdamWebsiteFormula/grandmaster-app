@@ -70,8 +70,8 @@ fn webview_is_visible(app: &AppHandle<tauri::Wry>, label: &str) -> bool {
 }
 
 #[cfg(target_os = "macos")]
-pub(crate) fn should_reload_terminated_webview(label: &str, is_visible: bool) -> bool {
-    is_visible && matches!(label.parse::<AppWindow>(), Ok(AppWindow::Main))
+pub(crate) fn should_reload_terminated_webview(label: &str) -> bool {
+    matches!(label.parse::<AppWindow>(), Ok(AppWindow::Main))
 }
 
 pub(crate) fn run_on_main_thread<R: Send + 'static>(
@@ -155,6 +155,7 @@ impl AppWindow {
     #[cfg(target_os = "macos")]
     fn rebuild_main_window(app: &AppHandle<tauri::Wry>) {
         let label = Self::Main.label();
+        let visible = webview_is_visible(app, &label);
         if let Some(expansions) = app.try_state::<crate::WindowExpansions>() {
             for entry in expansions.take(&label).into_iter().rev() {
                 if let Err(error) = crate::commands::restore_expanded_width(app, &label, entry) {
@@ -176,7 +177,7 @@ impl AppWindow {
         crate::set_main_window_rebuilding(true);
         let app = app.clone();
         tauri::async_runtime::spawn(async move {
-            let result = Self::replace_main_window(&app).await;
+            let result = Self::replace_main_window(&app, visible).await;
             crate::set_main_window_rebuilding(false);
             if let Err(error) = result {
                 tracing::error!(%error, "failed to rebuild main window");
@@ -192,7 +193,10 @@ impl AppWindow {
     }
 
     #[cfg(target_os = "macos")]
-    async fn replace_main_window(app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
+    async fn replace_main_window(
+        app: &AppHandle<tauri::Wry>,
+        visible: bool,
+    ) -> Result<(), crate::Error> {
         Self::Main.destroy(app)?;
         let deadline = tokio::time::Instant::now() + MAIN_WINDOW_DESTROY_TIMEOUT;
         while Self::Main.get(app).is_some() {
@@ -201,7 +205,17 @@ impl AppWindow {
             }
             tokio::time::sleep(std::time::Duration::from_millis(50)).await;
         }
-        Self::Main.show(app)?;
+        if visible {
+            Self::Main.show(app)?;
+            return Ok(());
+        }
+
+        // A hidden main window still has to run the frontend (auto-start,
+        // listener recovery), but must not pop up on its own.
+        use tauri_plugin_window_state::WindowExt;
+        let window = Self::Main.build_window(app)?;
+        let _ = window.restore_state(crate::persisted_window_state_flags());
+        Self::Main.position_new_window(app, &window)?;
         Ok(())
     }
 
@@ -209,11 +223,9 @@ impl AppWindow {
     pub fn recover_terminated_webview(webview: &tauri::Webview<tauri::Wry>) {
         let app = webview.app_handle();
         let label = webview.label();
-        let is_visible = webview_is_visible(app, label);
-        if !should_reload_terminated_webview(label, is_visible) {
+        if !should_reload_terminated_webview(label) {
             tracing::warn!(
                 webview = %label,
-                is_visible,
                 "web content process terminated without requiring immediate app recovery"
             );
             return;
@@ -223,7 +235,8 @@ impl AppWindow {
             return;
         };
         let attempt = state.retry_recovery(label);
-        tracing::error!(webview = %label, attempt, "reloading webview after web content process termination");
+        let is_visible = webview_is_visible(app, label);
+        tracing::error!(webview = %label, attempt, is_visible, "reloading webview after web content process termination");
         Self::recover_main_webview(app, attempt);
     }
 
