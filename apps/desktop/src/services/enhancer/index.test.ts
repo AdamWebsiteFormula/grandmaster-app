@@ -720,6 +720,22 @@ describe("EnhancerService", () => {
     expect(mocks.ensurePendingAutoEnhanceDocument).toHaveBeenCalledOnce();
   });
 
+  it("restarts an in-flight summary when refreshing", async () => {
+    snapshot = createSnapshot({
+      notes: [createNote({ id: "one" })],
+      wordCount: 40,
+    });
+    const ai = createMockAITaskStore((taskId) =>
+      taskId === "one-enhance" ? { status: "generating" } : undefined,
+    );
+    const service = new EnhancerService(createDeps({ aiTaskStore: ai.store }));
+
+    await service.requestAutoEnhance("session-1", "refresh");
+
+    expect(ai.reset).toHaveBeenCalledWith("one-enhance");
+    expect(mocks.ensurePendingAutoEnhanceDocument).toHaveBeenCalledOnce();
+  });
+
   it("generates a missing summary once when refreshing", async () => {
     snapshot = createSnapshot({ wordCount: 40 });
     const ai = createMockAITaskStore();

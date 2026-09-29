@@ -229,7 +229,7 @@ export class EnhancerService {
   }
 
   async requestAutoEnhance(sessionId: string, mode: AutoEnhanceMode) {
-    if (mode === "refresh") {
+    if (mode === "refresh" && !(await this.hasGeneratingSummary(sessionId))) {
       const result = await this.queueAutoEnhanceIfSummaryEmpty(sessionId);
       if (result.type !== "summary_exists") return;
     }
@@ -436,6 +436,18 @@ export class EnhancerService {
       clearTimeout(timer);
       this.pendingRetries.delete(sessionId);
     }
+  }
+
+  private async hasGeneratingSummary(sessionId: string): Promise<boolean> {
+    return retryDatabaseLock(async () => {
+      const snapshot = await this.loadSession(sessionId);
+      const { aiTaskStore } = this.deps;
+      return snapshot.enhancedNotes.some(
+        (note) =>
+          aiTaskStore.getState().getState(createTaskId(note.id, "enhance"))
+            ?.status === "generating",
+      );
+    });
   }
 
   async resetEnhanceTasks(sessionId: string): Promise<void> {
