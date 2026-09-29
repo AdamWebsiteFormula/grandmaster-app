@@ -7,7 +7,7 @@ use std::{
 use anlg_db_app::{AppendOutcome, LiveTranscriptInsert, append_live_transcript_deltas};
 use anlg_transcript::WordState;
 use anlg_transcription_core::listener::LiveTranscriptDelta;
-use sqlx::SqlitePool;
+use futures_util::future::BoxFuture;
 use tauri::Manager;
 use tauri_specta::Event;
 use tokio::{
@@ -28,8 +28,16 @@ const MAX_BACKLOG_REPLACED_IDS: usize = 10_000;
 const BACKLOG_OVERFLOW_ERROR: &str = "transcript persistence backlog overflowed";
 const FLUSH_TIMEOUT_ERROR: &str = "transcript persistence flush timed out";
 
-type PoolProvider = Arc<dyn Fn() -> Result<SqlitePool, String> + Send + Sync>;
+type JournalStoreHandle = Arc<dyn JournalStore>;
 type EventSink = Arc<dyn Fn(LiveTranscriptPersistence) + Send + Sync>;
+
+trait JournalStore: Send + Sync {
+    fn append(
+        &self,
+        target: LiveTranscriptInsert,
+        delta_jsons: Vec<String>,
+    ) -> BoxFuture<'static, Result<AppendOutcome, String>>;
+}
 
 #[derive(Default)]
 pub(crate) struct LiveJournalRegistry {
@@ -41,20 +49,45 @@ impl LiveJournalRegistry {
         &self,
         session_id: String,
         target: LiveTranscriptTarget,
-        pool_provider: PoolProvider,
+        store: JournalStoreHandle,
         event_sink: EventSink,
-    ) -> Result<(), String> {
-        let journal =
-            LiveTranscriptJournal::spawn(session_id.clone(), target, pool_provider, event_sink);
+    ) -> Result<(LiveTranscriptJournal, Option<LiveTranscriptJournal>), String> {
+        let journal = LiveTranscriptJournal::spawn(session_id.clone(), target, store, event_sink);
         let previous = self
             .sessions
             .lock()
             .map_err(|error| error.to_string())?
-            .insert(session_id, journal);
-        if let Some(previous) = previous {
-            previous.release();
-        }
-        Ok(())
+            .insert(session_id, journal.clone());
+        Ok((journal, previous))
+    }
+
+    pub(crate) fn rollback_registration(
+        &self,
+        session_id: &str,
+        registered: &LiveTranscriptJournal,
+        previous: Option<LiveTranscriptJournal>,
+    ) -> Result<(), String> {
+        let result = self
+            .sessions
+            .lock()
+            .map_err(|error| error.to_string())
+            .map(|mut sessions| {
+                if sessions
+                    .get(session_id)
+                    .is_some_and(|journal| journal.is_same_instance(registered))
+                {
+                    match previous {
+                        Some(previous) => {
+                            sessions.insert(session_id.to_string(), previous);
+                        }
+                        None => {
+                            sessions.remove(session_id);
+                        }
+                    }
+                }
+            });
+        registered.release();
+        result
     }
 
     pub(crate) fn append(&self, session_id: &str, delta: LiveTranscriptDelta) {
@@ -119,7 +152,7 @@ impl LiveTranscriptJournal {
     fn spawn(
         session_id: String,
         target: LiveTranscriptTarget,
-        pool_provider: PoolProvider,
+        store: JournalStoreHandle,
         event_sink: EventSink,
     ) -> Self {
         let transcript_id = target.transcript_id.clone();
@@ -134,7 +167,7 @@ impl LiveTranscriptJournal {
         let (sender, receiver) = mpsc::unbounded_channel();
         tokio::spawn(run_writer(
             target,
-            pool_provider,
+            store,
             event_sink.clone(),
             status.clone(),
             backlog.clone(),
@@ -203,7 +236,11 @@ impl LiveTranscriptJournal {
         }
     }
 
-    fn release(&self) {
+    fn is_same_instance(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.status, &other.status)
+    }
+
+    pub(crate) fn release(&self) {
         let _ = self.sender.send(WriterMessage::Release);
     }
 }
@@ -213,21 +250,37 @@ pub(crate) fn register_app_journal<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     session_id: String,
     target: LiveTranscriptTarget,
-) -> Result<(), String> {
-    let pool_app = app.clone();
-    let pool_provider: PoolProvider = Arc::new(move || {
-        pool_app
-            .try_state::<tauri_plugin_db::ManagedState>()
-            .map(|state| state.pool().clone())
-            .ok_or_else(|| "database is not ready yet".to_string())
-    });
+) -> Result<(LiveTranscriptJournal, Option<LiveTranscriptJournal>), String> {
+    let store: JournalStoreHandle = Arc::new(AppJournalStore(app.clone()));
     let event_app = app;
     let event_sink: EventSink = Arc::new(move |status| {
         if let Err(error) = (LiveTranscriptPersistenceEvent { status }).emit(&event_app) {
             tracing::error!(?error, "failed_to_emit_live_transcript_persistence_event");
         }
     });
-    registry.register(session_id, target, pool_provider, event_sink)
+    registry.register(session_id, target, store, event_sink)
+}
+
+struct AppJournalStore<R: tauri::Runtime>(tauri::AppHandle<R>);
+
+impl<R: tauri::Runtime> JournalStore for AppJournalStore<R> {
+    fn append(
+        &self,
+        target: LiveTranscriptInsert,
+        delta_jsons: Vec<String>,
+    ) -> BoxFuture<'static, Result<AppendOutcome, String>> {
+        let app = self.0.clone();
+        Box::pin(async move {
+            let runtime = app
+                .try_state::<tauri_plugin_db::ManagedState>()
+                .map(|state| state.inner().clone())
+                .ok_or_else(|| "database is not ready yet".to_string())?;
+            let _guard = runtime.synced_write_guard().await;
+            append_live_transcript_deltas(runtime.pool(), &target, &delta_jsons)
+                .await
+                .map_err(|error| error.to_string())
+        })
+    }
 }
 
 enum WriterMessage {
@@ -322,7 +375,7 @@ async fn publish_status(
 
 async fn run_writer(
     target: LiveTranscriptTarget,
-    pool_provider: PoolProvider,
+    store: JournalStoreHandle,
     event_sink: EventSink,
     shared_status: Arc<Mutex<LiveTranscriptPersistence>>,
     backlog: Arc<StdMutex<BacklogTracker>>,
@@ -434,12 +487,7 @@ async fn run_writer(
                     .iter()
                     .map(|entry| entry.delta_json.clone())
                     .collect::<Vec<_>>();
-                let result = match pool_provider() {
-                    Ok(pool) => append_live_transcript_deltas(&pool, &db_target, &delta_jsons)
-                        .await
-                        .map_err(|error| error.to_string()),
-                    Err(error) => Err(error),
-                };
+                let result = store.append(db_target.clone(), delta_jsons).await;
 
                 match result {
                     Ok(AppendOutcome { transcript_exists }) => {
@@ -534,6 +582,24 @@ mod tests {
     use super::*;
     use anlg_db_core::Db;
     use anlg_transcript::{FinalizedWord, PartialWord, WordState};
+    use sqlx::SqlitePool;
+
+    struct PoolJournalStore(SqlitePool);
+
+    impl JournalStore for PoolJournalStore {
+        fn append(
+            &self,
+            target: LiveTranscriptInsert,
+            delta_jsons: Vec<String>,
+        ) -> BoxFuture<'static, Result<AppendOutcome, String>> {
+            let pool = self.0.clone();
+            Box::pin(async move {
+                append_live_transcript_deltas(&pool, &target, &delta_jsons)
+                    .await
+                    .map_err(|error| error.to_string())
+            })
+        }
+    }
 
     fn target() -> LiveTranscriptTarget {
         LiveTranscriptTarget {
@@ -593,7 +659,7 @@ mod tests {
             .register(
                 "session-1".to_string(),
                 target(),
-                Arc::new(move || Ok(pool.clone())),
+                Arc::new(PoolJournalStore(pool.clone())),
                 Arc::new(move |status| {
                     event_sink_events.lock().unwrap().push(status);
                 }),
@@ -635,5 +701,58 @@ mod tests {
                     && status.persisted_through_ms == Some(800)
                     && status.error.is_none())
         );
+    }
+
+    #[tokio::test]
+    async fn rejected_registration_restores_previous_journal() {
+        let db = Db::connect_memory_plain().await.unwrap();
+        anlg_db_app::prepare_schema(&db).await.unwrap();
+        sqlx::query(
+            "INSERT INTO sessions (id, workspace_id, owner_user_id)
+             VALUES ('session-1', 'workspace-1', 'owner-1')",
+        )
+        .execute(db.pool())
+        .await
+        .unwrap();
+
+        let registry = LiveJournalRegistry::default();
+        let store = || Arc::new(PoolJournalStore(db.pool().clone())) as JournalStoreHandle;
+        let event_sink: EventSink = Arc::new(|_| {});
+        let mut target_a = target();
+        target_a.transcript_id = "transcript-A".to_string();
+        let (_, previous) = registry
+            .register(
+                "session-1".to_string(),
+                target_a,
+                store(),
+                event_sink.clone(),
+            )
+            .unwrap();
+        assert!(previous.is_none());
+
+        let mut target_b = target();
+        target_b.transcript_id = "transcript-B".to_string();
+        let (registered_b, previous_a) = registry
+            .register("session-1".to_string(), target_b, store(), event_sink)
+            .unwrap();
+        registry
+            .rollback_registration("session-1", &registered_b, previous_a)
+            .unwrap();
+
+        let journal_a = registry.get("session-1").unwrap().unwrap();
+        assert_eq!(journal_a.transcript_id, "transcript-A");
+        journal_a.append(delta(vec![word("restored-word", 500, WordState::Final)]));
+        assert!(journal_a.flush().await.unwrap().transcript_created);
+
+        let journaled_deltas: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM transcript_live_deltas
+             WHERE transcript_id = 'transcript-A'",
+        )
+        .fetch_one(db.pool())
+        .await
+        .unwrap();
+        assert_eq!(journaled_deltas, 1);
+
+        registry.release_session("session-1").unwrap();
     }
 }

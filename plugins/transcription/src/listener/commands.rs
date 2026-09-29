@@ -142,15 +142,19 @@ pub async fn start_capture<R: tauri::Runtime>(
     let session_id = params.session_id.clone();
     let live_transcript = params.live_transcript.clone();
     let registry = app.state::<LiveJournalRegistry>();
-    if let Some(target) = live_transcript {
-        register_app_journal(&registry, app.clone(), session_id.clone(), target)?;
-    } else {
-        registry.release_session(&session_id)?;
-    }
+    let registration = live_transcript
+        .map(|target| register_app_journal(&registry, app.clone(), session_id.clone(), target))
+        .transpose()?;
 
-    if let Err(error) = app.listener().start_capture(params).await {
-        registry.release_session(&session_id)?;
-        return Err(error.to_string());
+    match (app.listener().start_capture(params).await, registration) {
+        (Ok(()), Some((_, Some(previous)))) => previous.release(),
+        (Ok(()), Some((_, None))) => {}
+        (Ok(()), None) => registry.release_session(&session_id)?,
+        (Err(error), Some((registered, previous))) => {
+            let _ = registry.rollback_registration(&session_id, &registered, previous);
+            return Err(error.to_string());
+        }
+        (Err(error), None) => return Err(error.to_string()),
     }
 
     Ok(())

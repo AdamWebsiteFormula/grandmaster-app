@@ -1249,6 +1249,49 @@ describe("useStartListening", () => {
     },
   );
 
+  test("does not treat a capture with a committed native transcript as empty", async () => {
+    useSessionMock.mockReturnValue({
+      id: "session-1",
+      user_id: "user-1",
+      raw_md: "",
+      title: "Standup",
+    });
+    const { result } = renderHook(
+      () =>
+        useStartListeningState("session-1", { automatic: true }).startListening,
+    );
+    await act(async () => {
+      await result.current();
+    });
+
+    const onPersisted =
+      createNativeTranscriptPersistenceMock.mock.calls[0]?.[0]?.onPersisted;
+    act(() => {
+      onPersisted?.({
+        session_id: "session-1",
+        transcript_id: "generated-id",
+        transcript_created: true,
+        persisted_through_ms: 500,
+        error: null,
+      });
+    });
+
+    const onStopped = startMock.mock.calls[0]?.[1]?.onStopped;
+    await act(async () => {
+      await onStopped?.("session-1", {
+        durationSeconds: 42,
+        audioPath: "/tmp/session.wav",
+        requestedLiveTranscription: true,
+        liveTranscriptionActive: true,
+        needsBatchRepair: false,
+      });
+    });
+
+    expect(emptyCaptureMock).toHaveBeenCalledWith(
+      expect.objectContaining({ transcriptTouched: true }),
+    );
+  });
+
   test("runs batch transcription after record-only capture stops", async () => {
     const { result } = renderHook(() => useStartListening("session-1"));
 

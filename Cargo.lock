@@ -17946,6 +17946,7 @@ dependencies = [
  "db-app",
  "db-core",
  "embedding",
+ "futures-util",
  "language",
  "owhisper-client",
  "owhisper-interface",

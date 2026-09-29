@@ -443,6 +443,7 @@ export function useCaptureLifecycle(sessionId: string) {
         transcriptId,
         onPersisted: (status) => {
           if (status.transcript_created) transcriptCreated = true;
+          if (status.transcript_created) transcriptTouched = true;
           if (status.persisted_through_ms != null)
             audioRecovery.persistedThrough(status.persisted_through_ms);
           if (!transcriptPersistence.hasPendingFailure())

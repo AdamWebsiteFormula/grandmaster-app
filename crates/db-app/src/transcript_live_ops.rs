@@ -31,7 +31,7 @@ pub async fn append_live_transcript_deltas(
     target: &LiveTranscriptInsert,
     delta_jsons: &[String],
 ) -> Result<AppendOutcome, LiveTranscriptOpsError> {
-    let mut transaction = pool.begin().await?;
+    let mut transaction = pool.begin_with("BEGIN IMMEDIATE").await?;
 
     sqlx::query(
         "INSERT OR IGNORE INTO transcripts (
