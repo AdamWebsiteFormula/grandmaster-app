@@ -530,3 +530,7 @@ mod test {
         println!("version: {}", version);
     }
 }
+
+pub fn hide_floating_bar() -> Result<(), Error> {
+    window::floating_bar::hide()
+}

@@ -419,7 +419,11 @@ pub fn main() {
                         // Give the main webview the first chance to stop so its
                         // post-stop work runs; this only stops if it didn't.
                         tokio::time::sleep(std::time::Duration::from_millis(1_500)).await;
-                        tauri_plugin_transcription::stop_active_capture(&app).await;
+                        if tauri_plugin_transcription::stop_active_capture(&app).await
+                            && let Err(error) = tauri_plugin_windows::hide_floating_bar()
+                        {
+                            tracing::warn!(%error, "failed to hide floating bar after native stop");
+                        }
                     });
                 });
             }
