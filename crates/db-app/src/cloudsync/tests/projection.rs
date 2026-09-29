@@ -420,6 +420,71 @@ async fn cancelled_workspace_reconciliation_rolls_back_the_first_eviction_batch(
 }
 
 #[tokio::test]
+async fn cancelled_reconciliation_rolls_back_a_large_legacy_membership_scan() {
+    let db = test_db().await;
+    claim_cloudsync_workspace(db.pool(), "user-a")
+        .await
+        .unwrap();
+    let personal = projection(
+        "user-a",
+        vec![projected_workspace(
+            "user-a",
+            "user-a",
+            "personal",
+            "membership-personal",
+            "owner",
+            "Personal",
+        )],
+    );
+    replace_cloudsync_workspace_projection(db.pool(), &personal)
+        .await
+        .unwrap();
+    seed_legacy_workspace_projection_rows(db.pool(), 511).await;
+
+    let cancellation_checks = std::sync::atomic::AtomicUsize::new(0);
+    let error = tokio::time::timeout(
+        std::time::Duration::from_secs(1),
+        stage_cloudsync_workspace_reconciliation_cancellable(db.pool(), &personal, || {
+            cancellation_checks.fetch_add(1, std::sync::atomic::Ordering::SeqCst) + 1 >= 6
+        }),
+    )
+    .await
+    .expect("legacy membership reconciliation did not drain after cancellation")
+    .unwrap_err();
+    assert!(matches!(
+        error,
+        CloudsyncWorkspaceError::ProjectionCancelled
+    ));
+    assert_eq!(
+        cancellation_checks.load(std::sync::atomic::Ordering::SeqCst),
+        6
+    );
+
+    let workspace_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM workspaces")
+        .fetch_one(db.pool())
+        .await
+        .unwrap();
+    let membership_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM workspace_memberships")
+        .fetch_one(db.pool())
+        .await
+        .unwrap();
+    assert_eq!(workspace_count, 513);
+    assert_eq!(membership_count, 513);
+
+    tokio::time::timeout(
+        std::time::Duration::from_millis(250),
+        sqlx::query(
+            "INSERT INTO sessions (id, workspace_id, owner_user_id, title)
+             VALUES ('after-legacy-scan-cancel', 'user-a', 'user-a', 'Local write')",
+        )
+        .execute(db.pool()),
+    )
+    .await
+    .expect("cancelled legacy membership scan kept the database busy")
+    .unwrap();
+}
+
+#[tokio::test]
 async fn cancelled_projection_commit_rolls_back_projection_and_eviction_cleanup() {
     let db = test_db().await;
     claim_cloudsync_workspace(db.pool(), "user-a")
