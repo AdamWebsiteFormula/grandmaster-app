@@ -139,6 +139,20 @@ struct WebviewHealthState {
     next_registration_id: AtomicU64,
     pending: Mutex<HashMap<String, (u64, String, oneshot::Sender<()>)>>,
     recovering: Mutex<HashMap<String, u8>>,
+    rebuilt: Mutex<std::collections::HashSet<String>>,
+}
+
+static MAIN_WINDOW_REBUILDING: AtomicBool = AtomicBool::new(false);
+
+/// True while the main window is destroyed and rebuilt in-process, so the
+/// transient "no windows left" exit request must not quit the app.
+pub fn main_window_rebuilding() -> bool {
+    MAIN_WINDOW_REBUILDING.load(Ordering::SeqCst)
+}
+
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+fn set_main_window_rebuilding(value: bool) {
+    MAIN_WINDOW_REBUILDING.store(value, Ordering::SeqCst);
 }
 
 impl WebviewHealthState {
@@ -204,8 +218,15 @@ impl WebviewHealthState {
         attempt
     }
 
+    // One rebuild per failure episode; a webview that reports ready resets it.
+    #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+    fn begin_rebuild(&self, label: &str) -> bool {
+        self.rebuilt.lock().unwrap().insert(label.to_string())
+    }
+
     fn ready(&self, label: &str) {
         self.recovering.lock().unwrap().remove(label);
+        self.rebuilt.lock().unwrap().remove(label);
     }
 
     fn remove(&self, label: &str) {
@@ -438,6 +459,16 @@ mod test {
         state.ready("main");
         assert_eq!(state.resume_recovery("main"), 0);
         assert_eq!(state.retry_recovery("main"), 1);
+    }
+
+    #[test]
+    fn webview_rebuild_runs_once_until_ready_and_survives_window_removal() {
+        let state = WebviewHealthState::default();
+        assert!(state.begin_rebuild("main"));
+        state.remove("main");
+        assert!(!state.begin_rebuild("main"));
+        state.ready("main");
+        assert!(state.begin_rebuild("main"));
     }
 
     #[cfg(target_os = "macos")]

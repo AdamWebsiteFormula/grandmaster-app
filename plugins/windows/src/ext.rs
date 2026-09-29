@@ -13,6 +13,8 @@ const WEBVIEW_HEALTH_CHECK_RETRY_DELAY: std::time::Duration = std::time::Duratio
 const WEBVIEW_HEALTH_CHECK_ATTEMPTS: u8 = 2;
 #[cfg(target_os = "macos")]
 const WEBVIEW_RELOAD_ATTEMPTS: u8 = 3;
+#[cfg(target_os = "macos")]
+const MAIN_WINDOW_DESTROY_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(2);
 
 #[cfg(target_os = "macos")]
 enum WebviewHealthCheckResult {
@@ -138,12 +140,69 @@ impl AppWindow {
             );
         }
 
-        use tauri_plugin_window_state::AppHandleExt;
-        if let Err(error) = app.save_window_state(crate::persisted_window_state_flags()) {
-            tracing::warn!(%error, "failed to save window state before app restart");
+        let Some(state) = app.try_state::<WebviewHealthState>() else {
+            return;
+        };
+        if !state.begin_rebuild(&Self::Main.label()) {
+            // Restarting the app would end an active native recording.
+            tracing::error!("main webview could not be recovered; leaving the app running");
+            return;
         }
-        tracing::error!("restarting app to recover main webview");
-        app.request_restart();
+        Self::rebuild_main_window(app);
+    }
+
+    // Recreates the main window in-process so native capture keeps running.
+    #[cfg(target_os = "macos")]
+    fn rebuild_main_window(app: &AppHandle<tauri::Wry>) {
+        let label = Self::Main.label();
+        if let Some(expansions) = app.try_state::<crate::WindowExpansions>() {
+            for entry in expansions.take(&label).into_iter().rev() {
+                if let Err(error) = crate::commands::restore_expanded_width(app, &label, entry) {
+                    tracing::warn!(%error, "failed to restore main window width before rebuild");
+                }
+            }
+        }
+        let saved = app
+            .try_state::<crate::SavedFrames>()
+            .and_then(|frames| frames.take(&label));
+        {
+            use tauri_plugin_window_state::AppHandleExt;
+            if let Err(error) = app.save_window_state(crate::persisted_window_state_flags()) {
+                tracing::warn!(%error, "failed to save window state before main window rebuild");
+            }
+        }
+
+        tracing::error!("rebuilding main window to recover main webview");
+        crate::set_main_window_rebuilding(true);
+        let app = app.clone();
+        tauri::async_runtime::spawn(async move {
+            let result = Self::replace_main_window(&app).await;
+            crate::set_main_window_rebuilding(false);
+            if let Err(error) = result {
+                tracing::error!(%error, "failed to rebuild main window");
+                return;
+            }
+            if saved.is_some()
+                && let Err(error) =
+                    crate::commands::restore_saved_frame(&app, AppWindow::Main, saved).await
+            {
+                tracing::warn!(%error, "failed to restore main window frame after rebuild");
+            }
+        });
+    }
+
+    #[cfg(target_os = "macos")]
+    async fn replace_main_window(app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
+        Self::Main.destroy(app)?;
+        let deadline = tokio::time::Instant::now() + MAIN_WINDOW_DESTROY_TIMEOUT;
+        while Self::Main.get(app).is_some() {
+            if tokio::time::Instant::now() >= deadline {
+                return Err(tauri::Error::WindowLabelAlreadyExists(Self::Main.label()).into());
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+        }
+        Self::Main.show(app)?;
+        Ok(())
     }
 
     #[cfg(target_os = "macos")]
