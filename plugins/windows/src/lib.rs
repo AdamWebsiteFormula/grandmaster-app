@@ -534,3 +534,7 @@ mod test {
 pub fn hide_floating_bar() -> Result<(), Error> {
     window::floating_bar::hide()
 }
+
+pub fn floating_bar_session_id() -> Option<String> {
+    window::floating_bar::session_id()
+}

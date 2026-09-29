@@ -52,12 +52,9 @@ export async function requestMainListenerControl(
 }
 
 async function stopCaptureForSession(sessionId: string) {
-  const snapshot = await listenerCommands.getCaptureSnapshot();
-  if (snapshot.status === "ok" && snapshot.data.activeSessionId === sessionId) {
-    const result = await listenerCommands.stopCapture();
-    if (result.status === "error") {
-      console.error("Failed to stop capture:", result.error);
-    }
+  const result = await listenerCommands.stopCaptureForSession(sessionId);
+  if (result.status === "error") {
+    console.error("Failed to stop capture:", result.error);
   }
 }
 

@@ -143,8 +143,25 @@ pub async fn start_capture<R: tauri::Runtime>(
 #[tauri::command]
 #[specta::specta]
 pub async fn stop_capture<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
-    crate::stop_active_capture(&app).await;
+    use crate::Listener2PluginExt;
+    if let Ok(snapshot) = app.listener().get_capture_snapshot().await
+        && let Some(session_id) = snapshot.active_session_id
+    {
+        app.listener2()
+            .stop_transcription(format!("{session_id}:recovery"))
+            .await;
+    }
+    app.listener().stop_capture().await;
     Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn stop_capture_for_session<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    session_id: String,
+) -> Result<bool, String> {
+    Ok(crate::stop_capture_for_session(&app, &session_id).await)
 }
 
 #[tauri::command]

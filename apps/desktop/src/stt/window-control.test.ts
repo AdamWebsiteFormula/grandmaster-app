@@ -2,8 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const hoisted = vi.hoisted(() => ({
   emitTo: vi.fn(async () => {}),
-  getCaptureSnapshot: vi.fn(),
-  stopCapture: vi.fn(async () => ({ status: "ok", data: null })),
+  stopCaptureForSession: vi.fn(async () => ({ status: "ok", data: true })),
 }));
 
 vi.mock("@tauri-apps/api/event", () => ({
@@ -13,8 +12,7 @@ vi.mock("@tauri-apps/api/event", () => ({
 
 vi.mock("@anlg/plugin-transcription", () => ({
   commands: {
-    getCaptureSnapshot: hoisted.getCaptureSnapshot,
-    stopCapture: hoisted.stopCapture,
+    stopCaptureForSession: hoisted.stopCaptureForSession,
   },
 }));
 
@@ -40,66 +38,34 @@ describe("requestMainListenerControl", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     hoisted.emitTo.mockClear();
-    hoisted.getCaptureSnapshot.mockReset();
-    hoisted.stopCapture.mockClear();
+    hoisted.stopCaptureForSession.mockClear();
   });
 
-  test("stops the native capture when the main webview does not", async () => {
-    hoisted.getCaptureSnapshot.mockResolvedValue({
-      status: "ok",
-      data: { activeSessionId: "session-1", finalizingSessionIds: [] },
-    });
-
+  test("asks the main webview first, then stops that session natively", async () => {
     const request = requestMainListenerControl("stop", "session-1");
-    await vi.runAllTimersAsync();
-    await request;
 
     expect(hoisted.emitTo).toHaveBeenCalledWith(
       "main",
       "anlg:listener-control",
       expect.objectContaining({ action: "stop", sessionId: "session-1" }),
     );
-    expect(hoisted.stopCapture).toHaveBeenCalledTimes(1);
+    expect(hoisted.stopCaptureForSession).not.toHaveBeenCalled();
+
+    await vi.runAllTimersAsync();
+    await request;
+
+    expect(hoisted.stopCaptureForSession).toHaveBeenCalledTimes(1);
+    expect(hoisted.stopCaptureForSession).toHaveBeenCalledWith("session-1");
   });
 
   test("stops natively when the main window cannot be reached", async () => {
     hoisted.emitTo.mockRejectedValueOnce(new Error("window not found"));
-    hoisted.getCaptureSnapshot.mockResolvedValue({
-      status: "ok",
-      data: { activeSessionId: "session-1", finalizingSessionIds: [] },
-    });
 
     const request = requestMainListenerControl("stop", "session-1");
     await vi.runAllTimersAsync();
     await request;
 
-    expect(hoisted.stopCapture).toHaveBeenCalledTimes(1);
-  });
-
-  test("leaves the stop to the main webview when it already stopped", async () => {
-    hoisted.getCaptureSnapshot.mockResolvedValue({
-      status: "ok",
-      data: { activeSessionId: null, finalizingSessionIds: ["session-1"] },
-    });
-
-    const request = requestMainListenerControl("stop", "session-1");
-    await vi.runAllTimersAsync();
-    await request;
-
-    expect(hoisted.stopCapture).not.toHaveBeenCalled();
-  });
-
-  test("does not stop a different active capture", async () => {
-    hoisted.getCaptureSnapshot.mockResolvedValue({
-      status: "ok",
-      data: { activeSessionId: "session-2", finalizingSessionIds: [] },
-    });
-
-    const request = requestMainListenerControl("stop", "session-1");
-    await vi.runAllTimersAsync();
-    await request;
-
-    expect(hoisted.stopCapture).not.toHaveBeenCalled();
+    expect(hoisted.stopCaptureForSession).toHaveBeenCalledWith("session-1");
   });
 
   test("still routes start requests to the main webview", async () => {
@@ -110,6 +76,6 @@ describe("requestMainListenerControl", () => {
       "anlg:listener-control",
       expect.objectContaining({ action: "start", sessionId: "session-1" }),
     );
-    expect(hoisted.getCaptureSnapshot).not.toHaveBeenCalled();
+    expect(hoisted.stopCaptureForSession).not.toHaveBeenCalled();
   });
 });

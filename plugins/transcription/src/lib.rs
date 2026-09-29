@@ -32,22 +32,20 @@ use anlg_transcription_core::listener::actors::{RootActor, RootArgs};
 
 const PLUGIN_NAME: &str = "transcription";
 
-pub async fn stop_active_capture<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> bool {
-    let snapshot = app.listener().get_capture_snapshot().await;
-    if let Ok(snapshot) = &snapshot
-        && let Some(session_id) = &snapshot.active_session_id
-    {
+pub async fn stop_capture_for_session<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    session_id: &str,
+) -> bool {
+    let stopped = app
+        .listener()
+        .stop_capture_for_session(session_id.to_string())
+        .await;
+    if stopped {
         app.listener2()
             .stop_transcription(format!("{session_id}:recovery"))
             .await;
     }
-    let was_idle = matches!(&snapshot, Ok(snapshot) if snapshot.active_session_id.is_none());
-    app.listener().stop_capture().await;
-    !was_idle
-        && matches!(
-            app.listener().get_capture_snapshot().await,
-            Ok(snapshot) if snapshot.active_session_id.is_none()
-        )
+    stopped
 }
 
 pub type SharedState = Arc<Mutex<PluginState>>;
@@ -137,6 +135,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             listener::commands::set_mic_muted::<tauri::Wry>,
             listener::commands::start_capture::<tauri::Wry>,
             listener::commands::stop_capture::<tauri::Wry>,
+            listener::commands::stop_capture_for_session::<tauri::Wry>,
             listener::commands::update_capture_config::<tauri::Wry>,
             listener::commands::get_capture_state::<tauri::Wry>,
             listener::commands::get_capture_snapshot::<tauri::Wry>,
