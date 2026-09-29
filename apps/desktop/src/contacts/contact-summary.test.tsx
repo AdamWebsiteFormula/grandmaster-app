@@ -80,16 +80,23 @@ describe("contact summary", () => {
       createContactSummaryPromptKey(user),
     );
 
+    const withoutUser = createContactSummarySourceHash(
+      sessions,
+      createContactSummaryPromptKey(null),
+    );
+    expect(withoutUser).not.toBe(withUser);
+    // A self contact with blank name and email is still a known user.
     expect(
       createContactSummarySourceHash(
         sessions,
-        createContactSummaryPromptKey(null),
+        createContactSummaryPromptKey({ ...user, name: "", email: "" }),
       ),
-    ).not.toBe(withUser);
+    ).not.toBe(withoutUser);
     for (const changed of [
       { ...user, id: "user-2" },
       { ...user, name: "Johnny" },
       { ...user, email: "john@other.com" },
+      { ...user, name: "", email: "" },
     ]) {
       expect(
         createContactSummarySourceHash(

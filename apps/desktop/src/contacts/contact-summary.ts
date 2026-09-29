@@ -144,11 +144,12 @@ export function useContactSummary({
 export function createContactSummaryPromptKey(
   user: HumanRecord | null | undefined,
 ): string {
-  const context = buildUserContext(user);
   return createSourceHash(
     JSON.stringify({
       version: CONTACT_SUMMARY_VERSION,
-      user: context && user ? [user.id, context.name, context.email] : null,
+      user: user
+        ? [user.id, user.name.trim() || null, user.email.trim() || null]
+        : null,
     }),
   );
 }
