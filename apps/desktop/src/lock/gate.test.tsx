@@ -139,6 +139,47 @@ describe("AppLockGate", () => {
     });
   });
 
+  it("does not prompt when the main window closes before visibility resolves", async () => {
+    let resolveVisible!: (value: boolean) => void;
+    mocks.isVisible.mockReturnValue(
+      new Promise<boolean>((resolve) => {
+        resolveVisible = resolve;
+      }),
+    );
+    render(
+      <AppLockGate>
+        <div>app content</div>
+      </AppLockGate>,
+    );
+    await waitFor(() => {
+      expect(mocks.visibilityListen).toHaveBeenCalled();
+    });
+    const emit = getVisibilityHandler();
+    await act(async () => {
+      emit({ payload: { window: { type: "main" }, visible: false } });
+    });
+    await act(async () => {
+      resolveVisible(true);
+    });
+
+    expect(mocks.authenticateDevice).not.toHaveBeenCalled();
+    expect(useAppLock.getState().appUnlocked).toBe(false);
+  });
+
+  it("prompts in a note window without checking main visibility", async () => {
+    mocks.getCurrentWebviewWindowLabel.mockReturnValue("note-1");
+    mocks.isVisible.mockResolvedValue(false);
+    render(
+      <AppLockGate>
+        <div>app content</div>
+      </AppLockGate>,
+    );
+
+    await waitFor(() => {
+      expect(mocks.authenticateDevice).toHaveBeenCalledWith("open");
+    });
+  });
+
   it("locks on main window close without prompting", async () => {
     await renderLockedGate();
     const emit = getVisibilityHandler();

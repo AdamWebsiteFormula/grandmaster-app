@@ -208,6 +208,7 @@ impl AppWindow {
         }
         if visible || crate::take_main_window_show_requested() {
             Self::Main.show(app)?;
+            crate::take_main_window_show_requested();
             return Ok(());
         }
 
@@ -219,6 +220,7 @@ impl AppWindow {
         Self::Main.position_new_window(app, &window)?;
         if crate::take_main_window_show_requested() {
             Self::Main.show(app)?;
+            crate::take_main_window_show_requested();
         }
         Ok(())
     }
