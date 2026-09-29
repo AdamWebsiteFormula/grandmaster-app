@@ -53,6 +53,7 @@ const {
   loadCaptureLifecycleMarkerMock,
   markCaptureAudioSavedMock,
   clearCaptureAudioSavedMock,
+  getCaptureSnapshotMock,
   clearCaptureLifecycleMarkerMock,
   requestCaptureRecoveryMock,
   waitForSessionSearchIndexMock,
@@ -112,6 +113,7 @@ const {
   loadCaptureLifecycleMarkerMock: vi.fn(),
   markCaptureAudioSavedMock: vi.fn(() => Promise.resolve()),
   clearCaptureAudioSavedMock: vi.fn(() => Promise.resolve()),
+  getCaptureSnapshotMock: vi.fn(),
   clearCaptureLifecycleMarkerMock: vi.fn(),
   requestCaptureRecoveryMock: vi.fn(),
   waitForSessionSearchIndexMock: vi.fn(),
@@ -164,6 +166,7 @@ vi.mock("@anlg/plugin-transcription", () => ({
     })),
     deleteTranscribedCaptureAudio: deleteTranscribedCaptureAudioMock,
     updateCaptureCredentials: vi.fn(async () => ({ status: "ok", data: null })),
+    getCaptureSnapshot: getCaptureSnapshotMock,
   },
   events: {
     captureLifecycleEvent: { listen: vi.fn(async () => () => {}) },
@@ -495,6 +498,10 @@ describe("getPostCaptureAction", () => {
 describe("useStartListening", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getCaptureSnapshotMock.mockResolvedValue({
+      status: "ok",
+      data: { activeSessionId: null, finalizingSessionIds: [] },
+    });
     emptyCaptureMock.mockResolvedValue(false);
     idMock.mockReturnValue("generated-id");
 
@@ -2377,6 +2384,38 @@ describe("useStartListening", () => {
     });
 
     expect(markCaptureAudioSavedMock).toHaveBeenCalledWith("session-1");
+    expect(clearCaptureLifecycleMarkerMock).not.toHaveBeenCalled();
+  });
+
+  test("does not offer saved audio while native capture is still running", async () => {
+    attachLiveSessionMock.mockRejectedValue(new Error("attach failed"));
+    getCaptureSnapshotMock.mockResolvedValue({
+      status: "ok",
+      data: { activeSessionId: "session-1", finalizingSessionIds: [] },
+    });
+    loadCaptureLifecycleMarkerMock.mockResolvedValue({
+      version: 1,
+      chunkedAudio: true,
+      sessionId: "session-1",
+      transcriptId: "transcript-before-reload",
+      startedAt: 1_000,
+      createdAt: "2026-07-24T00:00:00.000Z",
+      audioOffsetMs: 10_000,
+      preserveExistingTranscript: true,
+      ownerUserId: "user-1",
+      memo: "Existing memo",
+    });
+    const { result } = renderHook(() =>
+      useResumeListeningLifecycle("session-1"),
+    );
+
+    await act(async () => {
+      await expect(result.current({ abandonOnFailure: true })).resolves.toBe(
+        "error",
+      );
+    });
+
+    expect(markCaptureAudioSavedMock).not.toHaveBeenCalled();
     expect(clearCaptureLifecycleMarkerMock).not.toHaveBeenCalled();
   });
 

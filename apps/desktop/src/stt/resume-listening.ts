@@ -1,6 +1,7 @@
 import { useCallback, useRef } from "react";
 
 import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
+import { commands as listenerCommands } from "@anlg/plugin-transcription";
 
 import { getAudioDurationMs, useCaptureLifecycle } from "./capture-lifecycle";
 import { useListener } from "./contexts";
@@ -13,6 +14,19 @@ import {
   loadCaptureLifecycleMarker,
   markCaptureAudioSaved,
 } from "~/stt/capture-lifecycle-storage";
+
+async function isNativelyCapturing(sessionId: string) {
+  try {
+    const result = await listenerCommands.getCaptureSnapshot();
+    return (
+      result.status === "ok" &&
+      (result.data.activeSessionId === sessionId ||
+        result.data.finalizingSessionIds.includes(sessionId))
+    );
+  } catch {
+    return false;
+  }
+}
 
 export function useResumeListeningLifecycle(sessionId: string) {
   const attachLiveSession = useListener((state) => state.attachLiveSession);
@@ -98,7 +112,9 @@ export function useResumeListeningLifecycle(sessionId: string) {
           try {
             const marker = await loadCaptureLifecycleMarker(sessionId);
             if (marker && hasAudioAwaitingUser(marker)) {
-              await markCaptureAudioSaved(sessionId);
+              if (!(await isNativelyCapturing(sessionId))) {
+                await markCaptureAudioSaved(sessionId);
+              }
             } else if (marker && !hasPendingZeroRetentionAudio(marker)) {
               await clearCaptureLifecycleMarker(sessionId, marker.transcriptId);
             }
