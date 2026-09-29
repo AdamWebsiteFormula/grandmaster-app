@@ -777,6 +777,45 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn pending_payload_batch_counts_distinct_local_versions_in_one_table() {
+        let options = SqliteConnectOptions::from_str("sqlite::memory:").unwrap();
+        let (options, _) = apply(options).unwrap();
+        let pool = SqlitePoolOptions::new()
+            .max_connections(1)
+            .connect_with(options)
+            .await
+            .unwrap();
+        let mut connection = pool.acquire().await.unwrap();
+
+        sqlx::query(
+            "CREATE TABLE items (id TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL DEFAULT '')",
+        )
+        .execute(&mut *connection)
+        .await
+        .unwrap();
+        init(&mut *connection, "items", None, None).await.unwrap();
+        // One statement: several rows share a single db_version.
+        sqlx::query("INSERT INTO items (id, value) VALUES ('a', '1'), ('b', '2'), ('c', '3')")
+            .execute(&mut *connection)
+            .await
+            .unwrap();
+        sqlx::query("INSERT INTO items (id, value) VALUES ('d', '4')")
+            .execute(&mut *connection)
+            .await
+            .unwrap();
+        let last_version = db_version(&mut *connection).await.unwrap();
+
+        let batch = pending_payload_batch(&mut connection, 8, u64::MAX, 32 * 1024 * 1024)
+            .await
+            .unwrap();
+
+        assert_eq!(batch.local_db_versions, 2);
+        assert_eq!(batch.watermark_db_version, Some(last_version));
+        drop(connection);
+        pool.close().await;
+    }
+
+    #[tokio::test]
     async fn pending_payload_batch_stops_after_the_first_chunk_over_the_limit() {
         let options = SqliteConnectOptions::from_str("sqlite::memory:").unwrap();
         let (options, _) = apply(options).unwrap();

@@ -278,7 +278,9 @@ async fn local_send_window(
     let Some(unions) = unions else {
         return Ok((0, None));
     };
-    let sql = format!("WITH v(db_version) AS ({unions}) SELECT count(*), max(db_version) FROM v");
+    let sql = format!(
+        "WITH v(db_version) AS ({unions}) SELECT count(DISTINCT db_version), max(db_version) FROM v"
+    );
     let (count, max): (i64, Option<i64>) = sqlx::query_as(sqlx::AssertSqlSafe(sql.as_str()))
         .bind(since)
         .bind(until)
