@@ -273,8 +273,6 @@ async fn local_send_window(
         "SELECT group_concat('SELECT db_version FROM \"' || format('%w', tbl_name) || '\" WHERE site_id = 0 AND db_version > ?1 AND db_version <= ?2', ' UNION ')
          FROM sqlite_master WHERE type = 'table' AND tbl_name LIKE '%_cloudsync'",
     )
-    .bind(since)
-    .bind(until)
     .fetch_one(&mut *connection)
     .await?;
     let Some(unions) = unions else {
