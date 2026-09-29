@@ -267,5 +267,6 @@ test("a claim made during an in-flight heartbeat is sent before yielding", async
   expect(mocks.requestMeetingDevices).toHaveBeenLastCalledWith(
     expect.objectContaining({ intent: "claim" }),
   );
+  await vi.advanceTimersByTimeAsync(PRIMARY_DEVICE_HEARTBEAT_MS);
   expect(mocks.stop).not.toHaveBeenCalled();
 });

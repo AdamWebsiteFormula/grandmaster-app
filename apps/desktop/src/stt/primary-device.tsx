@@ -52,6 +52,7 @@ function otherDeviceName(devices: MeetingDevice[], fingerprint: string) {
 
 const yieldedSessionIds = new Set<string>();
 const coordinatedSessionIds = new Set<string>();
+const pendingReleases = new Map<string, Promise<unknown>>();
 
 // True once for a capture that stopped because another device is recording
 // the same meeting; its local copy should be discarded.
@@ -147,10 +148,16 @@ export function startPrimaryDeviceCoordination({
     coordinatedSessionIds.delete(sessionId);
     const key = meetingKey;
     if (key) {
-      void inflight
+      const release = inflight
         .catch(() => {})
         .then(() => sendHeartbeat(key, "release"))
         .catch(() => {});
+      pendingReleases.set(sessionId, release);
+      void release.then(() => {
+        if (pendingReleases.get(sessionId) === release) {
+          pendingReleases.delete(sessionId);
+        }
+      });
     }
   };
 
@@ -264,8 +271,9 @@ export function startPrimaryDeviceCoordination({
     if (!isRecording(sessionId)) finish();
   });
 
-  void meetingKeyForEvent(event).then(
-    (key) => {
+  const previousRelease = pendingReleases.get(sessionId) ?? Promise.resolve();
+  void Promise.all([meetingKeyForEvent(event), previousRelease]).then(
+    ([key]) => {
       if (stopped) return;
       if (!key) {
         finish();
