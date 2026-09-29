@@ -19,6 +19,7 @@ vi.mock("@anlg/plugin-permissions", () => ({
 
 describe("getMicrophonePermission", () => {
   beforeEach(() => {
+    mocks.checkPermission.mockReset();
     mocks.checkPermission.mockResolvedValue({ status: "ok", data: "denied" });
   });
 
