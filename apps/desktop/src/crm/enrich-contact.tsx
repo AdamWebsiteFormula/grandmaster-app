@@ -126,7 +126,7 @@ export function EnrichContactButton({
         />
         <span className="relative block font-medium">{t`Connect a CRM`}</span>
         <span className="text-muted-foreground relative mt-0.5 block leading-snug">
-          {t`Connect HubSpot, Attio, Salesforce, Pipedrive, or Close in Settings › CRM to enrich contacts.`}
+          {t`Connect a CRM in Settings › CRM to enrich contacts.`}
         </span>
       </PopoverContent>
     </Popover>

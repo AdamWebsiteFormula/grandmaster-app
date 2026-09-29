@@ -1489,6 +1489,10 @@ msgstr "Connect {0} Calendar"
 msgid "Connect a CRM"
 msgstr "Connect a CRM"
 
+#: src/crm/enrich-contact.tsx
+msgid "Connect a CRM in Settings › CRM to enrich contacts."
+msgstr "Connect a CRM in Settings › CRM to enrich contacts."
+
 #: src/settings/crm/index.tsx
 msgid "Connect a CRM to look up your contacts from Anarlog. Connections are managed through your Anarlog account."
 msgstr "Connect a CRM to look up your contacts from Anarlog. Connections are managed through your Anarlog account."
@@ -1509,10 +1513,6 @@ msgstr "Connect Google Calendar"
 #: src/settings/automations/google-drive-config.tsx
 msgid "Connect Google Drive"
 msgstr "Connect Google Drive"
-
-#: src/crm/enrich-contact.tsx
-msgid "Connect HubSpot, Attio, Salesforce, Pipedrive, or Close in Settings › CRM to enrich contacts."
-msgstr "Connect HubSpot, Attio, Salesforce, Pipedrive, or Close in Settings › CRM to enrich contacts."
 
 #: src/auth/connect-local-library-dialog.tsx
 #: src/auth/context.tsx

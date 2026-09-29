@@ -96,7 +96,7 @@ describe("EnrichContactButton", () => {
 
     fireEvent.pointerEnter(button.parentElement!);
     expect(await screen.findByText("Connect a CRM")).not.toBeNull();
-    expect(screen.getByText(/Connect HubSpot/)).not.toBeNull();
+    expect(screen.getByText(/in Settings › CRM/)).not.toBeNull();
 
     fireEvent.pointerLeave(button.parentElement!);
   });
