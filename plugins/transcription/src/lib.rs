@@ -41,8 +41,13 @@ pub async fn stop_active_capture<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -
             .stop_transcription(format!("{session_id}:recovery"))
             .await;
     }
+    let was_idle = matches!(&snapshot, Ok(snapshot) if snapshot.active_session_id.is_none());
     app.listener().stop_capture().await;
-    !matches!(snapshot, Ok(snapshot) if snapshot.active_session_id.is_none())
+    !was_idle
+        && matches!(
+            app.listener().get_capture_snapshot().await,
+            Ok(snapshot) if snapshot.active_session_id.is_none()
+        )
 }
 
 pub type SharedState = Arc<Mutex<PluginState>>;
