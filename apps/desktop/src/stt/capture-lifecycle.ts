@@ -673,7 +673,10 @@ export function useCaptureLifecycle(sessionId: string) {
         clearTimeout(credentialTimer);
         recoveryUnlisten.forEach((unlisten) => unlisten());
         recoveryUnlisten = [];
-        const recovery = await audioRecovery.stop();
+        const recovery = await audioRecovery.stop().catch((error) => {
+          console.error("[listener] audio recovery did not finish", error);
+          return { incomplete: true };
+        });
         if (retainAudio || recovery.incomplete) return recovery;
         const result =
           await transcriptionCommands.deleteTranscribedCaptureAudio(sessionId);
