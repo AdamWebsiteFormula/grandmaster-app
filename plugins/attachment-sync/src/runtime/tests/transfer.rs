@@ -202,6 +202,20 @@ fn shared_cache_removes_plaintext_when_sidecar_commit_fails() {
 }
 
 #[test]
+fn startup_cleanup_removes_an_entire_cache_root() {
+    let directory = tempfile::tempdir().unwrap();
+    let root = directory.path().join("shared");
+    let orphan = root.join("orphaned-viewer");
+    std::fs::create_dir_all(&orphan).unwrap();
+    std::fs::write(orphan.join("attachment.bin"), b"plaintext").unwrap();
+
+    clear_attachment_cache_directory(&root).unwrap();
+
+    assert!(!root.exists());
+    clear_attachment_cache_directory(&root).unwrap();
+}
+
+#[test]
 fn cache_file_guard_removes_abandoned_files_only() {
     let directory = tempfile::tempdir().unwrap();
     let abandoned = directory.path().join("abandoned.anb1");

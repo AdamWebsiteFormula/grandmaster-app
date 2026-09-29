@@ -193,6 +193,46 @@ fn delete_guard_restores_canonical_bytes_and_preserves_a_conflict() {
 }
 
 #[test]
+fn delete_guard_restores_a_missing_destination() {
+    let directory = tempfile::tempdir().unwrap();
+    let destination_path = directory.path().join("missing.bin");
+    let canonical = b"attachment recovered after remote delete";
+    let inputs = delete_guard_test_inputs(directory.path(), canonical);
+    let guard_path = directory.path().join(format!("{}.anb1", Uuid::new_v4()));
+    let (metadata, guard) = seal_delete_guard(
+        &inputs.key,
+        &inputs.context,
+        &inputs.source_path,
+        &guard_path,
+        &inputs.expected,
+        &tokio_util::sync::CancellationToken::new(),
+    )
+    .unwrap();
+    guard.disarm();
+    let staged = stage_delete_guard_restore(
+        &inputs.key,
+        &inputs.context,
+        &guard_path,
+        directory.path(),
+        &metadata,
+        &tokio_util::sync::CancellationToken::new(),
+    )
+    .unwrap();
+
+    assert!(
+        reconcile_staged_delete_guard(
+            staged,
+            &destination_path,
+            canonical.len() as u64,
+            &inputs.expected.sha256_hex(),
+        )
+        .unwrap()
+        .is_empty()
+    );
+    assert_eq!(std::fs::read(destination_path).unwrap(), canonical);
+}
+
+#[test]
 fn delete_guard_retry_keeps_the_plaintext_stage() {
     let directory = tempfile::tempdir().unwrap();
     let blocked_parent = directory.path().join("blocked-parent");

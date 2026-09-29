@@ -471,6 +471,21 @@ mod tests {
     }
 
     #[test]
+    fn writer_handles_interleaved_writes() {
+        let mut output = Vec::new();
+        {
+            let mut writer = RedactingWriter::new(&mut output);
+            writer.write_all(b"line1 ").unwrap();
+            writer.write_all(b"user@test.com").unwrap();
+            writer.write_all(b" end\n").unwrap();
+            writer.write_all(b"line2\n").unwrap();
+            writer.flush().unwrap();
+        }
+        let result = String::from_utf8(output).unwrap();
+        assert_eq!(result, "line1 [EMAIL_REDACTED] end\nline2\n");
+    }
+
+    #[test]
     fn writer_passes_through_empty_and_blank_input() {
         for input in ["", "\n\n\n"] {
             let mut output = Vec::new();
