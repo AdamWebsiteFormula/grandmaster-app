@@ -1,6 +1,38 @@
-import { describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { classifyStartFailure, describeStartFailure } from "./start-failure";
+import {
+  classifyStartFailure,
+  describeStartFailure,
+  getMicrophonePermission,
+} from "./start-failure";
+
+const mocks = vi.hoisted(() => ({
+  platform: vi.fn(() => "macos"),
+  checkPermission: vi.fn(),
+}));
+
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: mocks.platform }));
+
+vi.mock("@anlg/plugin-permissions", () => ({
+  commands: { checkPermission: mocks.checkPermission },
+}));
+
+describe("getMicrophonePermission", () => {
+  beforeEach(() => {
+    mocks.checkPermission.mockResolvedValue({ status: "ok", data: "denied" });
+  });
+
+  test("reports the macOS permission status", async () => {
+    mocks.platform.mockReturnValue("macos");
+    await expect(getMicrophonePermission()).resolves.toBe("denied");
+  });
+
+  test("ignores the input probe outside macOS", async () => {
+    mocks.platform.mockReturnValue("linux");
+    await expect(getMicrophonePermission()).resolves.toBeNull();
+    expect(mocks.checkPermission).not.toHaveBeenCalled();
+  });
+});
 
 describe("classifyStartFailure", () => {
   test("treats a recovery-marker failure as storage", () => {
