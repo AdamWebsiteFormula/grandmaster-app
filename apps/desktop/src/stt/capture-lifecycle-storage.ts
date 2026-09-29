@@ -36,6 +36,8 @@ export type CaptureLifecycleMarker = {
   refreshSummaryAfterRepair?: boolean;
   // Earlier captures whose recovery audio still waits for transcription.
   inheritedCaptures?: InheritedCapture[];
+  // The current capture finished; only inherited audio still needs repair.
+  inheritedOnly?: boolean;
 };
 
 export function saveCaptureLifecycleMarker(
@@ -205,6 +207,7 @@ function parseCaptureLifecycleMarker(
       ...(parsed.refreshSummaryAfterRepair === true
         ? { refreshSummaryAfterRepair: true }
         : {}),
+      ...(parsed.inheritedOnly === true ? { inheritedOnly: true } : {}),
       ...(Array.isArray(parsed.inheritedCaptures)
         ? {
             inheritedCaptures: parsed.inheritedCaptures.flatMap(

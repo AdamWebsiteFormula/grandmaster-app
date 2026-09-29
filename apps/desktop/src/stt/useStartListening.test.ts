@@ -1,7 +1,10 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { events as transcriptionEvents } from "@anlg/plugin-transcription";
+import {
+  commands as transcriptionCommands,
+  events as transcriptionEvents,
+} from "@anlg/plugin-transcription";
 
 import { saveIncompleteCapture } from "./capture-result";
 import {
@@ -316,6 +319,7 @@ vi.mock("~/stt/queries", () => ({
   applyLiveTranscriptDeltaToDatabase: applyLiveTranscriptDeltaToDatabaseMock,
   createLiveTranscript: createLiveTranscriptMock,
   flushLiveTranscriptDeltasToDatabase: flushLiveTranscriptDeltasToDatabaseMock,
+  getTranscriptRecord: vi.fn(async () => null),
   softDeleteTranscript: softDeleteTranscriptMock,
   transcriptExists: transcriptExistsMock,
   useSessionParticipantHumanIds: useSessionParticipantHumanIdsMock,
@@ -757,6 +761,83 @@ describe("useStartListening", () => {
       }),
       "crashed-transcript",
     );
+  });
+
+  test("hands earlier untranscribed audio to recovery after a retained batch completes", async () => {
+    useSTTConnectionMock.mockReturnValue({
+      conn: {
+        provider: "elevenlabs",
+        model: "scribe_v2",
+        baseUrl: "https://api.elevenlabs.io/v1",
+        apiKey: "token",
+      },
+    });
+    loadCaptureLifecycleMarkerMock.mockResolvedValueOnce({
+      version: 1,
+      chunkedAudio: true,
+      retainAudio: false,
+      sessionId: "session-1",
+      transcriptId: "crashed-transcript",
+      startedAt: 1_000,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      audioOffsetMs: 0,
+      preserveExistingTranscript: false,
+      ownerUserId: "user-1",
+      memo: "",
+    });
+    vi.mocked(transcriptionCommands.listCaptureAudioChunks).mockResolvedValue({
+      status: "ok",
+      data: [
+        {
+          id: "1000-0-60000-0.mp3",
+          path: "/earlier.mp3",
+          capture_started_at: 1_000,
+          start_ms: 0,
+          audio_start_ms: 0,
+          end_ms: 60_000,
+        },
+      ],
+    });
+    runBatchMock.mockRejectedValueOnce(new Error("offline"));
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    const consoleWarn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { result } = renderHook(() => useStartListening("session-1"));
+    await act(async () => {
+      await result.current();
+      await startMock.mock.calls[0]?.[1].onStopped("session-1", {
+        chunkedAudio: true,
+        durationSeconds: 60,
+        audioPath: "/tmp/session.mp3",
+        requestedLiveTranscription: false,
+        liveTranscriptionActive: false,
+        needsBatchRepair: false,
+      });
+    });
+
+    expect(runBatchMock).toHaveBeenCalledWith(
+      "/tmp/session.mp3",
+      expect.objectContaining({ promotion: { scope: "whole_session" } }),
+    );
+    expect(clearCaptureLifecycleMarkerMock).not.toHaveBeenCalled();
+    expect(saveCaptureLifecycleMarkerMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        transcriptId: "generated-id",
+        phase: "finalizing",
+        inheritedOnly: true,
+        inheritedCaptures: [
+          expect.objectContaining({ transcriptId: "crashed-transcript" }),
+        ],
+      }),
+    );
+    expect(requestCaptureRecoveryMock).toHaveBeenCalledWith("session-1");
+    vi.mocked(transcriptionCommands.listCaptureAudioChunks).mockResolvedValue({
+      status: "ok",
+      data: [],
+    });
+    consoleError.mockRestore();
+    consoleWarn.mockRestore();
   });
 
   test("keeps zero-retention Scribe V2 audio until batch transcription finishes", async () => {

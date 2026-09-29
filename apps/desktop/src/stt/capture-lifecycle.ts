@@ -263,6 +263,7 @@ export function useCaptureLifecycle(sessionId: string) {
         for (const capture of inheritedCaptures)
           await clearIncompleteCapture(sessionId, capture.transcriptId);
       };
+      let inheritedOnly = recoveredMarker?.inheritedOnly === true;
       let usesChunkedAudio =
         !recoveredMarker || recoveredMarker.chunkedAudio === true;
       const automatic = recoveredMarker
@@ -500,16 +501,17 @@ export function useCaptureLifecycle(sessionId: string) {
             undefined,
           );
       };
+      const listRecoveryChunks = async () => {
+        const result =
+          await transcriptionCommands.listCaptureAudioChunks(sessionId);
+        if (result.status === "error") throw new Error(result.error);
+        return result.data.filter(
+          (chunk) => chunk.capture_started_at >= earliestStartedAt - 5_000,
+        );
+      };
       const audioRecovery = createCaptureAudioRecovery({
         startedAt,
-        list: async () => {
-          const result =
-            await transcriptionCommands.listCaptureAudioChunks(sessionId);
-          if (result.status === "error") throw new Error(result.error);
-          return result.data.filter(
-            (chunk) => chunk.capture_started_at >= earliestStartedAt - 5_000,
-          );
-        },
+        list: listRecoveryChunks,
         inherited: (chunk) => inheritedCaptureFor(chunk) !== undefined,
         acknowledge: async (chunk) => {
           const result =
@@ -656,9 +658,10 @@ export function useCaptureLifecycle(sessionId: string) {
         ]).then((unlisten) => {
           recoveryUnlisten = unlisten;
           audioRecovery.start();
-          if (recoveredMarker && !batchFromRetainedAudio)
+          if (recoveredMarker && !batchFromRetainedAudio && !inheritedOnly)
             audioRecovery.recoverPending();
-          if (batchFromRetainedAudio) audioRecovery.batchOnly(true);
+          if (batchFromRetainedAudio || inheritedOnly)
+            audioRecovery.batchOnly(true);
           if (provider === "anarlog" && model === "cloud") {
             refreshCredentialsActive = true;
             credentialTimer = setTimeout(
@@ -706,7 +709,25 @@ export function useCaptureLifecycle(sessionId: string) {
           ? { refreshSummaryAfterRepair: true }
           : {}),
         ...(inheritedCaptures.length > 0 ? { inheritedCaptures } : {}),
+        ...(inheritedOnly ? { inheritedOnly: true } : {}),
       });
+      const releaseMarker = async () => {
+        const inheritedAudioRemains =
+          inheritedCaptures.length > 0 &&
+          (await listRecoveryChunks().then(
+            (chunks) =>
+              chunks.some((chunk) => inheritedCaptureFor(chunk) !== undefined),
+            () => true,
+          ));
+        if (!inheritedAudioRemains) {
+          await clearCaptureLifecycleMarker(sessionId, transcriptId);
+          return;
+        }
+        inheritedOnly = true;
+        capturePhase = "finalizing";
+        await saveCaptureLifecycleMarker(await marker());
+        await requestCaptureRecoverySafely(sessionId);
+      };
       const finalizeStoppedInner = async (
         details: Parameters<OnStoppedCallback>[1],
         requestRecoveryOnFailure: boolean,
@@ -792,7 +813,7 @@ export function useCaptureLifecycle(sessionId: string) {
               !transcriptWriteError,
           }))
         ) {
-          await clearCaptureLifecycleMarker(sessionId, transcriptId);
+          await releaseMarker();
           recoveryPending = false;
           recoveryStateCleared = true;
           return;
@@ -1108,7 +1129,7 @@ export function useCaptureLifecycle(sessionId: string) {
               markSessionAudioTranscriptionComplete(sessionId),
             );
           }
-          await clearCaptureLifecycleMarker(sessionId, transcriptId);
+          await releaseMarker();
           recoveryPending = false;
           recoveryStateCleared = true;
           if (hasTranscriptEvidence && !batchCompleted) {
@@ -1259,6 +1280,17 @@ export function useCaptureLifecycle(sessionId: string) {
         }
       };
       const recoverStopped: OnStoppedCallback = async (_sessionId, details) => {
+        if (inheritedOnly) {
+          audioRecovery.batchOnly(true);
+          const recovery = await stopAudioRecovery();
+          if (recovery.incomplete)
+            throw new Error("earlier capture audio is still pending");
+          await clearIncompleteCapture(sessionId, transcriptId);
+          await clearInheritedIncomplete();
+          toast.dismiss(`capture-incomplete-${sessionId}`);
+          await clearCaptureLifecycleMarker(sessionId, transcriptId);
+          return;
+        }
         if (usesChunkedAudio) {
           if (!batchFromRetainedAudio) audioRecovery.recoverPending();
           const recovery = await stopAudioRecovery();
