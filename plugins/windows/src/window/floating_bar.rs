@@ -575,8 +575,11 @@ pub fn session_id() -> Option<String> {
 }
 
 pub fn hide() -> Result<(), Error> {
+    let hidden_session_id = session_id();
     platform::hide()?;
-    if let Ok(mut session_id) = SESSION_ID.lock() {
+    if let Ok(mut session_id) = SESSION_ID.lock()
+        && *session_id == hidden_session_id
+    {
         *session_id = None;
     }
     Ok(())
