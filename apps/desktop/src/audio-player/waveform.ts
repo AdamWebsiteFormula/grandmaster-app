@@ -44,9 +44,8 @@ export function isUsablePeaks(
   );
 }
 
-// The recording becomes playable as soon as it is fetched; the waveform is
-// drawn from natively computed peaks once they arrive, and wavesurfer only
-// decodes the audio itself when no peaks are available.
+// Playback must not wait for native peaks, which can take seconds on long
+// uncached recordings; `load` with the same src only renders the waveform.
 export async function loadWaveform(
   ws: Pick<WaveSurfer, "load" | "getMediaElement">,
   {

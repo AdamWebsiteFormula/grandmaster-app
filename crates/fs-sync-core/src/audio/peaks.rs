@@ -44,6 +44,10 @@ pub fn cached_peaks(audio_path: &Path, cache_path: &Path) -> io::Result<AudioPea
     }
 
     let peaks = compute_peaks(audio_path, PEAKS_PER_CHANNEL)?;
+    // The recording may have been deleted or replaced while decoding.
+    if source_stamp(audio_path).ok().as_ref() != Some(&source) {
+        return Ok(peaks);
+    }
     if let Err(error) = write_cache(cache_path, source, &peaks) {
         tracing::warn!(?error, "audio_peaks_cache_write_failed");
     }
