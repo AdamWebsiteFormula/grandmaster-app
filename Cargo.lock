@@ -17944,6 +17944,7 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "db-app",
+ "db-core",
  "embedding",
  "language",
  "owhisper-client",
