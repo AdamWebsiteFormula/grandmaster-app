@@ -177,6 +177,12 @@ vi.mock("./contexts", () => ({
   useListener: useListenerMock,
 }));
 
+vi.mock("@anlg/plugin-permissions", () => ({
+  commands: {
+    checkPermission: vi.fn(async () => ({ status: "ok", data: "authorized" })),
+  },
+}));
+
 vi.mock("@anlg/plugin-detect", () => ({
   commands: {
     listMicUsingApplications: listMicUsingApplicationsMock,
@@ -507,6 +513,7 @@ describe("useStartListening", () => {
           finishCaptureRecoveryFinalizationMock,
         canStartLiveSession: canStartLiveSessionMock,
         getSessionMode: getSessionModeMock,
+        getLiveStartError: () => null,
         setBatchTranscriptionPending: setBatchTranscriptionPendingMock,
         start: startMock,
         stop: stopMock,
