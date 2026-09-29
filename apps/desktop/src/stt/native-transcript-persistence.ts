@@ -64,15 +64,15 @@ export function createNativeTranscriptPersistence({
     let timedOut = false;
     const operation = (async () => {
       const result = await transcriptionCommands.flushLiveTranscript(sessionId);
+      if (timedOut || disposed) return;
+
       if (result.status === "error") {
         throw new Error(result.error);
       }
 
       const status = result.data;
       if (status) applyStatus(status);
-      if (!disposed && !timedOut && !status?.error) {
-        await afterFlush();
-      }
+      if (!status?.error) await afterFlush();
     })();
     const timeout = new Promise<never>((_resolve, reject) => {
       timeoutId = setTimeout(() => {

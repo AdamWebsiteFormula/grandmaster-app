@@ -134,4 +134,48 @@ describe("createNativeTranscriptPersistence", () => {
     expect(persistence.hasPendingFailure()).toBe(true);
     persistence.dispose();
   });
+
+  it("keeps the timeout failure when native flush resolves late", async () => {
+    vi.useFakeTimers();
+    let persistence:
+      | ReturnType<typeof createNativeTranscriptPersistence>
+      | undefined;
+    try {
+      let resolveNativeFlush:
+        | ((result: { status: "ok"; data: LiveTranscriptPersistence }) => void)
+        | undefined;
+      mocks.flushLiveTranscript.mockImplementationOnce(
+        () =>
+          new Promise<{ status: "ok"; data: LiveTranscriptPersistence }>(
+            (resolve) => {
+              resolveNativeFlush = resolve;
+            },
+          ),
+      );
+      const onPersisted = vi.fn();
+      const afterFlush = vi.fn(async () => undefined);
+      persistence = createNativeTranscriptPersistence({
+        sessionId: "session-1",
+        transcriptId: "transcript-1",
+        onPersisted,
+        onError: vi.fn(),
+        afterFlush,
+      });
+
+      const flush = persistence.flush();
+      await vi.advanceTimersByTimeAsync(20_000);
+      await flush;
+
+      expect(persistence.hasPendingFailure()).toBe(true);
+      resolveNativeFlush?.({ status: "ok", data: status });
+      await Promise.resolve();
+
+      expect(persistence.hasPendingFailure()).toBe(true);
+      expect(onPersisted).not.toHaveBeenCalled();
+      expect(afterFlush).not.toHaveBeenCalled();
+    } finally {
+      persistence?.dispose();
+      vi.useRealTimers();
+    }
+  });
 });
