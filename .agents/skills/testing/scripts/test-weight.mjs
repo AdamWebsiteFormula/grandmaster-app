@@ -40,23 +40,18 @@ const sourceExtensions = new Set([
   ".rs",
 ]);
 const subjectExtensions = [".ts", ".tsx", ".mts", ".js", ".jsx", ".mjs"];
-const excludedSegments = new Set([
-  "node_modules",
-  "generated",
-  "dist",
-  "vendor",
-]);
-const testSegments = new Set([
-  "tests",
-  "__tests__",
-  "e2e",
-  "__fixtures__",
-  "fixtures",
-]);
-const jsCasePattern =
-  /^\s*(?:it|test|effectIt)(?:\.[A-Za-z]+)*(?:\([^)]*\))?\s*\(/;
+const setOfSegments = (segments) => new Set(segments.split(" "));
+const excludedSegments = setOfSegments("node_modules generated dist vendor");
+const testSegments = setOfSegments("tests __tests__ e2e __fixtures__ fixtures");
+const jsCasePatternStart = String.raw`^\s*(?:it|test|effectIt)(?:\.[A-Za-z]+)*`;
+const jsCasePatternEnd = String.raw`(?:\([^)]*\))?\s*\(`;
+const jsCasePattern = new RegExp(jsCasePatternStart + jsCasePatternEnd);
 const rustCasePattern = /^\s*#\[(?:test|tokio::test|rstest|sqlx::test)\b/;
 const rustTestModulePattern = /^\s*#\[cfg\(test\)\]/;
+
+function isRustTestModule(line) {
+  return rustTestModulePattern.test(line);
+}
 
 function parseArguments(argv) {
   const options = { ...defaults, json: false, help: false };
@@ -84,8 +79,9 @@ function parseArguments(argv) {
     const key = numericOptions.get(flag);
     if (!key) throw new Error(`Unknown option: ${argument}`);
 
-    const value =
-      separator === -1 ? argv[++index] : argument.slice(separator + 1);
+    let value;
+    if (separator === -1) value = argv[++index];
+    else value = argument.slice(separator + 1);
     const number = Number(value);
     if (value === undefined || !Number.isFinite(number) || number < 0) {
       throw new Error(`Expected a non-negative number for ${flag}`);
@@ -164,11 +160,19 @@ function testSubject(path, trackedSet) {
 }
 
 function sortByTestLines(rows, nameKey) {
-  return rows.sort(
-    (left, right) =>
-      right.testLines - left.testLines ||
-      left[nameKey].localeCompare(right[nameKey]),
-  );
+  return rows.sort((left, right) => {
+    const lineDifference = right.testLines - left.testLines;
+    if (lineDifference !== 0) return lineDifference;
+    return left[nameKey].localeCompare(right[nameKey]);
+  });
+}
+
+function formatCells(cells, widths) {
+  const paddedCells = cells.map((cell, index) => {
+    const value = String(cell);
+    return value.padEnd(widths[index]);
+  });
+  return paddedCells.join("  ");
 }
 
 function renderTable(title, headers, rows) {
@@ -181,15 +185,15 @@ function renderTable(title, headers, rows) {
   const widths = headers.map((header, index) =>
     Math.max(header.length, ...rows.map((row) => String(row[index]).length)),
   );
-  console.log(
-    headers.map((header, index) => header.padEnd(widths[index])).join("  "),
-  );
+  console.log(formatCells(headers, widths));
   console.log(widths.map((width) => "-".repeat(width)).join("  "));
   for (const row of rows) {
-    console.log(
-      row.map((cell, index) => String(cell).padEnd(widths[index])).join("  "),
-    );
+    console.log(formatCells(row, widths));
   }
+}
+
+function meetsPackageThresholds(row, options) {
+  return row.ratio >= options.minRatio && row.testLines >= options.minTestLines;
 }
 
 function run(options) {
@@ -222,15 +226,12 @@ function run(options) {
       testCode = lines;
       testLines = nonBlankLines(lines.join("\n")).length;
     } else if (extension === ".rs") {
-      const firstTestLine = lines.findIndex((line) =>
-        rustTestModulePattern.test(line),
-      );
+      const firstTestLine = lines.findIndex(isRustTestModule);
       if (firstTestLine === -1) {
         sourceLines = nonBlankLines(lines.join("\n")).length;
       } else {
-        sourceLines = nonBlankLines(
-          lines.slice(0, firstTestLine).join("\n"),
-        ).length;
+        const sourceCode = lines.slice(0, firstTestLine).join("\n");
+        sourceLines = nonBlankLines(sourceCode).length;
         testCode = lines.slice(firstTestLine);
         testLines = nonBlankLines(testCode.join("\n")).length;
       }
@@ -279,11 +280,7 @@ function run(options) {
         ...row,
         ratio: row.testLines / Math.max(row.sourceLines, 1),
       }))
-      .filter(
-        (row) =>
-          row.ratio >= options.minRatio &&
-          row.testLines >= options.minTestLines,
-      ),
+      .filter((row) => meetsPackageThresholds(row, options)),
     "package",
   ).slice(0, options.top);
   const files = sortByTestLines(fileRows, "testFile").slice(0, options.top);
