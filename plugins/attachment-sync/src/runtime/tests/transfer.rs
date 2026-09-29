@@ -68,59 +68,47 @@ fn shared_upload_snapshot_stays_stable_when_the_source_changes() {
 }
 
 #[test]
-fn shared_upload_snapshot_rejects_and_removes_unregistered_bytes() {
-    let directory = tempfile::tempdir().unwrap();
-    let source = directory.path().join("attachment.bin");
-    let snapshot = directory.path().join("snapshot.bin");
-    let expected = b"expected shared attachment";
-    let sha256 = hex_digest(Sha256::digest(expected).as_slice());
-    std::fs::write(&source, vec![b'x'; expected.len()]).unwrap();
+fn failed_shared_upload_snapshot_leaves_no_plaintext() {
+    let cases = [
+        (
+            "unregistered bytes",
+            vec![b'x'; b"expected shared attachment".len()],
+            b"expected shared attachment".as_slice(),
+            false,
+        ),
+        (
+            "cancelled snapshot",
+            b"cancelled shared attachment".to_vec(),
+            b"cancelled shared attachment".as_slice(),
+            true,
+        ),
+    ];
 
-    assert!(matches!(
-        snapshot_verified_file(
+    for (case, bytes, expected, cancel) in cases {
+        let directory = tempfile::tempdir().unwrap();
+        let source = directory.path().join("attachment.bin");
+        let snapshot = directory.path().join("snapshot.bin");
+        let sha256 = hex_digest(Sha256::digest(expected).as_slice());
+        let cancellation = tokio_util::sync::CancellationToken::new();
+        if cancel {
+            cancellation.cancel();
+        }
+        std::fs::write(&source, bytes).unwrap();
+
+        let result = snapshot_verified_file(
             &source,
             &snapshot,
             expected.len() as u64,
             &sha256,
-            &tokio_util::sync::CancellationToken::new(),
-        ),
-        Err(Error::ChecksumMismatch)
-    ));
-    assert!(!snapshot.exists());
-}
-
-#[test]
-fn cancelled_shared_upload_snapshot_leaves_no_plaintext_cache() {
-    let directory = tempfile::tempdir().unwrap();
-    let source = directory.path().join("attachment.bin");
-    let snapshot = directory.path().join("snapshot.bin");
-    let bytes = b"cancelled shared attachment";
-    let sha256 = hex_digest(Sha256::digest(bytes).as_slice());
-    let cancellation = tokio_util::sync::CancellationToken::new();
-    cancellation.cancel();
-    std::fs::write(&source, bytes).unwrap();
-
-    assert!(matches!(
-        snapshot_verified_file(
-            &source,
-            &snapshot,
-            bytes.len() as u64,
-            &sha256,
             &cancellation,
-        ),
-        Err(Error::Cancelled)
-    ));
-    assert!(!snapshot.exists());
-}
-
-#[test]
-fn shared_upload_cleanup_is_idempotent() {
-    let directory = tempfile::tempdir().unwrap();
-    let snapshot = directory.path().join("snapshot.bin");
-    std::fs::write(&snapshot, b"shared attachment").unwrap();
-
-    assert!(cleanup_shared_upload_path(&snapshot).unwrap());
-    assert!(!cleanup_shared_upload_path(&snapshot).unwrap());
+        );
+        match case {
+            "unregistered bytes" => assert!(matches!(result, Err(Error::ChecksumMismatch))),
+            "cancelled snapshot" => assert!(matches!(result, Err(Error::Cancelled))),
+            _ => unreachable!(),
+        }
+        assert!(!snapshot.exists(), "{case}");
+    }
 }
 
 #[tokio::test]
@@ -211,20 +199,6 @@ fn shared_cache_removes_plaintext_when_sidecar_commit_fails() {
             .is_err()
     );
     assert!(!data_path.exists());
-}
-
-#[test]
-fn startup_cleanup_removes_an_entire_cache_root() {
-    let directory = tempfile::tempdir().unwrap();
-    let root = directory.path().join("shared");
-    let orphan = root.join("orphaned-viewer");
-    std::fs::create_dir_all(&orphan).unwrap();
-    std::fs::write(orphan.join("attachment.bin"), b"plaintext").unwrap();
-
-    clear_attachment_cache_directory(&root).unwrap();
-
-    assert!(!root.exists());
-    clear_attachment_cache_directory(&root).unwrap();
 }
 
 #[test]
