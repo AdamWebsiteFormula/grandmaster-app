@@ -169,72 +169,62 @@ describe("getFloatingRouteState", () => {
     ).toBe(true);
   });
 
-  it("shows reconnecting only during a connection attempt", () => {
-    expect(
-      getFloatingRouteState(
-        createListenerState({
-          status: "active",
-          sessionId: "session-1",
-          loadingPhase: "connecting",
-        }),
-      )?.status,
-    ).toBe("reconnecting");
-    expect(
-      getFloatingRouteState(
-        createListenerState({
-          status: "active",
-          sessionId: "session-1",
-          loadingPhase: "connecting",
-          lastError: "microphone unavailable",
-          lastErrorIsAudioRelated: true,
-        }),
-      )?.status,
-    ).toBe("error");
-  });
-
-  it("keeps recording status while a retryable degradation reconnects on its own", () => {
-    expect(
-      getFloatingRouteState(
-        createListenerState({
-          status: "active",
-          sessionId: "session-1",
-          degraded: { type: "connection_timeout" },
-        }),
-      )?.status,
-    ).toBe("recording");
-  });
-
-  it("returns error status when live transcription needs the user", () => {
-    for (const degraded of [
-      { type: "authentication_failed" as const, provider: "deepgram" },
-      {
-        type: "provider_configuration" as const,
-        provider: "deepgram",
-        message: "invalid model",
-      },
+  it("keeps recording status while connecting or after a capture error", () => {
+    for (const live of [
+      { loadingPhase: "connecting" as const },
+      { lastError: "microphone unavailable", lastErrorIsAudioRelated: true },
     ]) {
       expect(
         getFloatingRouteState(
           createListenerState({
             status: "active",
             sessionId: "session-1",
-            degraded,
+            requestedLiveTranscription: true,
+            liveTranscriptionActive: true,
+            ...live,
+          }),
+        )?.status,
+      ).toBe("recording");
+    }
+  });
+
+  it("returns error status whenever live transcription is interrupted", () => {
+    for (const live of [
+      { degraded: { type: "connection_timeout" as const } },
+      {
+        degraded: {
+          type: "authentication_failed" as const,
+          provider: "deepgram",
+        },
+      },
+      { liveTranscriptionActive: false },
+      { transcriptionStalled: true },
+    ]) {
+      expect(
+        getFloatingRouteState(
+          createListenerState({
+            status: "active",
+            sessionId: "session-1",
+            requestedLiveTranscription: true,
+            liveTranscriptionActive: true,
+            ...live,
           }),
         )?.status,
       ).toBe("error");
     }
   });
 
-  it("returns error status when the active listener reports an error", () => {
+  it("does not report an interruption for batch-only sessions", () => {
     expect(
       getFloatingRouteState(
         createListenerState({
           status: "active",
           sessionId: "session-1",
-          lastError: "microphone unavailable",
+          requestedLiveTranscription: false,
+          liveTranscriptionActive: false,
         }),
       )?.status,
-    ).toBe("error");
+    ).toBe("recording");
   });
 
   it("hides the floating route while the session is finalizing", () => {

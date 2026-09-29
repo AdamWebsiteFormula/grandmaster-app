@@ -1,7 +1,8 @@
-import type { DegradedError } from "@anlg/plugin-transcription";
-
 import { useAudioPlayer } from "~/audio-player";
-import { getLiveCaptureUiMode } from "~/store/zustand/listener/general-shared";
+import {
+  getLiveCaptureUiMode,
+  isLiveTranscriptInterrupted,
+} from "~/store/zustand/listener/general-shared";
 import { useListener } from "~/stt/contexts";
 import type { Segment } from "~/stt/live-segment";
 import { useSessionTranscriptMetadata } from "~/stt/queries";
@@ -19,7 +20,6 @@ export type TranscriptScreen =
   | {
       kind: "batch_fallback";
       requestedLiveTranscription: RequestedLiveTranscription;
-      error: DegradedError | null;
     }
   | {
       kind: "listening";
@@ -36,6 +36,7 @@ export type TranscriptScreen =
       liveSegments: Segment[];
       currentActive: boolean;
       captureGeneration: number;
+      liveTranscriptInterrupted: boolean;
     };
 
 export function useTranscriptScreen({
@@ -49,7 +50,7 @@ export function useTranscriptScreen({
     batchPhase,
     captureGeneration,
     captureMode,
-    degraded,
+    liveTranscriptInterrupted,
     requestedLiveTranscription,
     sessionMode,
   } = useListener((state) => ({
@@ -58,7 +59,9 @@ export function useTranscriptScreen({
     batchPhase: state.batch[sessionId]?.phase,
     captureGeneration: state.live.captureGenerationBySession[sessionId] ?? 0,
     captureMode: getLiveCaptureUiMode(state.live),
-    degraded: state.live.degraded,
+    liveTranscriptInterrupted:
+      state.live.sessionId === sessionId &&
+      isLiveTranscriptInterrupted(state.live),
     requestedLiveTranscription: state.live.requestedLiveTranscription,
     sessionMode: state.getSessionMode(sessionId),
   }));
@@ -83,7 +86,6 @@ export function useTranscriptScreen({
     return {
       kind: "batch_fallback",
       requestedLiveTranscription,
-      error: degraded,
     };
   }
 
@@ -108,6 +110,7 @@ export function useTranscriptScreen({
     liveSegments,
     currentActive,
     captureGeneration,
+    liveTranscriptInterrupted,
   };
 }
 

@@ -8,9 +8,7 @@ import {
   ArrowsInSimple,
   ArrowsOutSimple,
   CaretDown,
-  CircleNotch,
   Square,
-  WarningCircle,
 } from "@anlg/ui/components/icons";
 import { DancingSticks } from "@anlg/ui/components/ui/dancing-sticks";
 import { cn } from "@anlg/utils";
@@ -32,6 +30,11 @@ import {
   FLOATING_BAR_INSET,
   compactControlsWidth,
 } from "./layout";
+
+import {
+  LIVE_TRANSCRIPT_INTERRUPTED_MESSAGE,
+  LIVE_TRANSCRIPT_INTERRUPTED_TITLE,
+} from "~/stt/live-transcript-interrupted";
 
 export function FloatingBarOverlay({
   state,
@@ -105,6 +108,7 @@ export function FloatingBarOverlay({
                 dictation={state.dictation}
                 bubbles={state.transcriptBubbles ?? []}
                 colorScheme={state.colorScheme}
+                interrupted={state.status === "error"}
               />
             </div>
           )}
@@ -198,15 +202,7 @@ function StopControl({
     <button
       type="button"
       data-tauri-drag-region="false"
-      aria-label={
-        state.dictation
-          ? "Finish dictation"
-          : state.status === "reconnecting"
-            ? "Reconnecting live transcription; stop listening"
-            : state.status === "error"
-              ? "Transcription unavailable; stop listening"
-              : "Stop listening"
-      }
+      aria-label={state.dictation ? "Finish dictation" : "Stop listening"}
       disabled={state.dictation?.phase === "transcribing"}
       onClick={onStop}
       onMouseEnter={() => setHovered(true)}
@@ -229,10 +225,6 @@ function StopControl({
           <Square size={9} />
           {state.dictation ? "Done" : "Stop"}
         </span>
-      ) : state.status === "reconnecting" ? (
-        <CircleNotch size={20} className="animate-spin" aria-hidden="true" />
-      ) : state.status === "error" ? (
-        <WarningCircle size={20} aria-hidden="true" />
       ) : (
         <DancingSticks
           color={colors.accent}
@@ -251,10 +243,12 @@ function TranscriptList({
   bubbles,
   colorScheme,
   dictation,
+  interrupted,
 }: {
   dictation: FloatingBarState["dictation"];
   bubbles: FloatingTranscriptBubble[];
   colorScheme: FloatingBarState["colorScheme"];
+  interrupted: boolean;
 }) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const [pinned, setPinned] = useState(true);
@@ -263,7 +257,7 @@ function TranscriptList({
     if (pinned) {
       bottomRef.current?.scrollIntoView?.({ block: "end" });
     }
-  }, [bubbles, pinned, dictation?.text, dictation?.partial]);
+  }, [bubbles, pinned, interrupted, dictation?.text, dictation?.partial]);
 
   return (
     <div className="relative h-full p-3">
@@ -301,6 +295,24 @@ function TranscriptList({
               />
             ))
           )}
+          {!dictation && interrupted ? (
+            <div
+              role="status"
+              className="flex flex-col items-center gap-1 rounded-[11px] px-3 py-2.5 text-center text-[12px] leading-4"
+              style={{
+                background: "rgba(255, 51, 77, 0.16)",
+                color:
+                  colorScheme === "dark"
+                    ? "rgb(255, 138, 150)"
+                    : "rgb(200, 20, 45)",
+              }}
+            >
+              <p className="font-semibold">
+                {LIVE_TRANSCRIPT_INTERRUPTED_TITLE}
+              </p>
+              <p>{LIVE_TRANSCRIPT_INTERRUPTED_MESSAGE}</p>
+            </div>
+          ) : null}
           <div ref={bottomRef} />
         </div>
       </div>
@@ -422,6 +434,6 @@ function barColors(state: FloatingBarState): BarColors {
     handle: dark ? "rgba(255, 255, 255, 0.48)" : "rgba(31, 28, 26, 0.36)",
     outerStroke: dark ? "rgba(255, 255, 255, 0.14)" : "rgba(31, 28, 26, 0.12)",
     controlFill: dark ? "rgba(255, 255, 255, 0.08)" : "rgba(31, 28, 26, 0.07)",
-    accent: state.status === "error" ? "rgb(255, 64, 61)" : "rgb(255, 51, 77)",
+    accent: "rgb(255, 51, 77)",
   };
 }

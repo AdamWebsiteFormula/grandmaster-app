@@ -16,7 +16,7 @@ describe("BatchState", () => {
   afterEach(cleanup);
 
   it("identifies intentional batch transcription", () => {
-    render(<BatchState requestedLiveTranscription={false} error={null} />);
+    render(<BatchState requestedLiveTranscription={false} />);
 
     expect(screen.getByText("Batch transcription mode")).not.toBeNull();
     expect(
@@ -26,46 +26,10 @@ describe("BatchState", () => {
     ).not.toBeNull();
   });
 
-  it("explains transient fallback and reconnection", () => {
-    render(
-      <BatchState
-        requestedLiveTranscription
-        error={{ type: "connection_timeout" }}
-      />,
-    );
+  it("reassures that audio is saved when live transcription fails", () => {
+    render(<BatchState requestedLiveTranscription />);
 
-    expect(screen.getByText("Reconnecting live transcription")).not.toBeNull();
-    expect(screen.getByText(/while we reconnect/)).not.toBeNull();
-    expect(screen.getByText(/complete transcript/)).not.toBeNull();
-  });
-
-  it("does not promise reconnection after an authentication failure", () => {
-    render(
-      <BatchState
-        requestedLiveTranscription
-        error={{ type: "authentication_failed", provider: "Deepgram" }}
-      />,
-    );
-
-    expect(screen.getByText("Live transcription stopped")).not.toBeNull();
-    expect(screen.queryByText(/while we reconnect/)).toBeNull();
-    expect(screen.getByText(/complete transcript/)).not.toBeNull();
-  });
-
-  it("does not retry a malformed provider endpoint", () => {
-    render(
-      <BatchState
-        requestedLiveTranscription
-        error={{
-          type: "provider_configuration",
-          provider: "Deepgram",
-          message: "invalid endpoint",
-        }}
-      />,
-    );
-
-    expect(screen.getByText("Live transcription stopped")).not.toBeNull();
-    expect(screen.queryByText(/while we reconnect/)).toBeNull();
-    expect(screen.getByText(/provider is misconfigured/)).not.toBeNull();
+    expect(screen.getByText("Live transcript failed")).not.toBeNull();
+    expect(screen.getByText(/audio is still being saved/)).not.toBeNull();
   });
 });

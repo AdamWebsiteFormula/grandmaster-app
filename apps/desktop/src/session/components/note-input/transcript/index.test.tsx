@@ -87,7 +87,10 @@ describe("Transcript", () => {
     live: {
       captureGenerationCounter: number;
       captureGenerationBySession: Record<string, number>;
-      degraded: null;
+      status: "active" | "inactive";
+      sessionId: string | null;
+      degraded: { type: "connection_timeout" } | null;
+      transcriptionStalled: boolean;
       requestedLiveTranscription: boolean;
       liveTranscriptionActive: boolean;
     };
@@ -114,7 +117,10 @@ describe("Transcript", () => {
           [sessionId]: 1,
           "session-2": 2,
         },
+        status: "active",
+        sessionId,
         degraded: null,
+        transcriptionStalled: false,
         requestedLiveTranscription: true,
         liveTranscriptionActive: true,
       },
@@ -145,6 +151,29 @@ describe("Transcript", () => {
         .getByTestId("transcript-viewer")
         .getAttribute("data-capture-generation"),
     ).toBe("1");
+  });
+
+  it("marks the live transcript gap while live transcription is interrupted", () => {
+    transcripts = [{ id: transcriptId, hasWords: true }];
+    listenerState = {
+      ...listenerState,
+      live: { ...listenerState.live, degraded: { type: "connection_timeout" } },
+    };
+
+    const view = render(
+      <Transcript sessionId={sessionId} scrollRef={createRef()} />,
+    );
+
+    expect(screen.getByTestId("transcript-viewer")).not.toBeNull();
+    expect(screen.getByText("Live transcript failed")).not.toBeNull();
+
+    listenerState = {
+      ...listenerState,
+      live: { ...listenerState.live, degraded: null },
+    };
+    view.rerender(<Transcript sessionId={sessionId} scrollRef={createRef()} />);
+
+    expect(screen.queryByText("Live transcript failed")).toBeNull();
   });
 
   it("keeps existing transcript content unobstructed while finalizing", () => {
