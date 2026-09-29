@@ -1,27 +1,26 @@
 import { cn } from "@anlg/utils";
 
-import {
-  LIVE_TRANSCRIPT_INTERRUPTED_MESSAGE,
-  LIVE_TRANSCRIPT_INTERRUPTED_TITLE,
-} from "~/stt/live-transcript-interrupted";
+import { useStoredSettingValue } from "~/settings/queries";
+import { useListener } from "~/stt/contexts";
+import { getLiveTranscriptPausedMessage } from "~/stt/live-transcript-interrupted";
 
 export function LiveTranscriptInterruptedNotice({
   className,
 }: {
   className?: string;
 }) {
+  const degraded = useListener((state) => state.live.degraded);
+  const sttProvider = useStoredSettingValue("current_stt_provider").value;
+
   return (
-    <div
+    <p
       role="status"
       className={cn([
-        "flex flex-col items-center justify-center gap-1 px-6 text-center text-red-500 dark:text-red-400",
+        "text-muted-foreground mx-auto max-w-md px-6 text-center text-sm leading-relaxed",
         className,
       ])}
     >
-      <p className="text-sm font-medium">{LIVE_TRANSCRIPT_INTERRUPTED_TITLE}</p>
-      <p className="max-w-md text-sm leading-relaxed">
-        {LIVE_TRANSCRIPT_INTERRUPTED_MESSAGE}
-      </p>
-    </div>
+      {getLiveTranscriptPausedMessage({ degraded, sttProvider })}
+    </p>
   );
 }

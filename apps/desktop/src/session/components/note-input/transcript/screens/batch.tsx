@@ -12,7 +12,11 @@ export function BatchState({
   const amplitude = useListener((state) => state.live.amplitude);
 
   if (requestedLiveTranscription === true) {
-    return <LiveTranscriptInterruptedNotice className="h-full min-h-[400px]" />;
+    return (
+      <div className="flex h-full min-h-[400px] items-center justify-center">
+        <LiveTranscriptInterruptedNotice />
+      </div>
+    );
   }
 
   return (

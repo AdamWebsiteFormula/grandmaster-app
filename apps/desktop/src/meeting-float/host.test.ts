@@ -88,6 +88,7 @@ describe("getFloatingRouteState", () => {
       liveCaptionMinimized: true,
       liveCaptionToggleVisible: false,
       transcriptBubbles: [],
+      transcriptNotice: null,
     });
   });
 
@@ -189,7 +190,7 @@ describe("getFloatingRouteState", () => {
     }
   });
 
-  it("returns error status whenever live transcription is interrupted", () => {
+  it("keeps recording status and adds a quiet notice when live transcription is interrupted", () => {
     for (const live of [
       { degraded: { type: "connection_timeout" as const } },
       {
@@ -210,8 +211,11 @@ describe("getFloatingRouteState", () => {
             liveTranscriptionActive: true,
             ...live,
           }),
-        )?.status,
-      ).toBe("error");
+        ),
+      ).toMatchObject({
+        status: "recording",
+        transcriptNotice: expect.stringMatching(/^Live transcript paused/),
+      });
     }
   });
 

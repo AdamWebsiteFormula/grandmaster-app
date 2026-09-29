@@ -9,7 +9,16 @@ vi.mock("@anlg/ui/components/ui/dancing-sticks", () => ({
 
 vi.mock("~/stt/contexts", () => ({
   useListener: (selector: (state: unknown) => unknown) =>
-    selector({ live: { amplitude: { mic: 0, speaker: 0 } } }),
+    selector({
+      live: {
+        amplitude: { mic: 0, speaker: 0 },
+        degraded: { type: "stream_error", message: "deepgram: overloaded" },
+      },
+    }),
+}));
+
+vi.mock("~/settings/queries", () => ({
+  useStoredSettingValue: () => ({ value: "deepgram", hasValue: true }),
 }));
 
 describe("BatchState", () => {
@@ -29,7 +38,8 @@ describe("BatchState", () => {
   it("reassures that audio is saved when live transcription fails", () => {
     render(<BatchState requestedLiveTranscription />);
 
-    expect(screen.getByText("Live transcript failed")).not.toBeNull();
-    expect(screen.getByText(/audio is still being saved/)).not.toBeNull();
+    expect(screen.getByRole("status").textContent).toMatch(
+      /^Live transcript paused because Deepgram is having an outage\./,
+    );
   });
 });

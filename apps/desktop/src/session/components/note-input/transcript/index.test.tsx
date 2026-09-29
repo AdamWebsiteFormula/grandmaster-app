@@ -1,5 +1,5 @@
 import { cleanup, render, screen } from "@testing-library/react";
-import { createRef } from "react";
+import { createRef, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Transcript } from "./index";
@@ -57,15 +57,26 @@ vi.mock("./renderer", () => ({
   TranscriptViewer: ({
     captureGeneration,
     editMode,
+    footer,
   }: {
     captureGeneration: number;
     editMode?: boolean;
+    footer?: ReactNode;
   }) => (
     <div
       data-testid="transcript-viewer"
       data-capture-generation={captureGeneration}
       data-edit-mode={String(editMode ?? false)}
-    />
+    >
+      <div data-testid="latest-transcript-line" />
+      {footer}
+    </div>
+  ),
+}));
+
+vi.mock("./screens/interrupted", () => ({
+  LiveTranscriptInterruptedNotice: () => (
+    <p data-testid="live-transcript-paused" />
   ),
 }));
 
@@ -164,8 +175,11 @@ describe("Transcript", () => {
       <Transcript sessionId={sessionId} scrollRef={createRef()} />,
     );
 
-    expect(screen.getByTestId("transcript-viewer")).not.toBeNull();
-    expect(screen.getByText("Live transcript failed")).not.toBeNull();
+    const notice = screen.getByTestId("live-transcript-paused");
+    expect(notice.parentElement).toBe(screen.getByTestId("transcript-viewer"));
+    expect(notice.previousElementSibling).toBe(
+      screen.getByTestId("latest-transcript-line"),
+    );
 
     listenerState = {
       ...listenerState,
@@ -173,7 +187,7 @@ describe("Transcript", () => {
     };
     view.rerender(<Transcript sessionId={sessionId} scrollRef={createRef()} />);
 
-    expect(screen.queryByText("Live transcript failed")).toBeNull();
+    expect(screen.queryByTestId("live-transcript-paused")).toBeNull();
   });
 
   it("shows the interruption before any live transcript arrives", () => {

@@ -11,6 +11,7 @@ import type { ListenerStore } from "~/store/zustand/listener";
 import { isLiveTranscriptInterrupted } from "~/store/zustand/listener/general-shared";
 import { LIVE_TRANSCRIPT_PREVIEW_SEGMENT_LIMIT } from "~/store/zustand/listener/transcript";
 import { SegmentKeyUtils, type RenderLabelContext } from "~/stt/live-segment";
+import { getLiveTranscriptPausedMessage } from "~/stt/live-transcript-interrupted";
 
 export type ListenerState = ReturnType<ListenerStore["getState"]>;
 type FloatingBarStatus = "recording" | "reconnecting" | "error";
@@ -43,6 +44,7 @@ export type FloatingRouteState = {
   liveCaptionMinimized: boolean;
   liveCaptionToggleVisible: boolean;
   transcriptBubbles: FloatingTranscriptBubble[];
+  transcriptNotice?: string | null;
 };
 const FLOATING_TRANSCRIPT_OVERLAP_THRESHOLD_MS = 300;
 
@@ -57,7 +59,9 @@ export function getFloatingRouteState(
     speakerLabelContext,
     speakerLabels,
     transcriptBubbles,
+    sttProvider,
   }: {
+    sttProvider?: string | null;
     sessionId?: string;
     colorScheme?: FloatingBarColorScheme;
     settings?: FloatingOverlaySettings;
@@ -87,7 +91,7 @@ export function getFloatingRouteState(
       Math.hypot(state.live.amplitude.mic, state.live.amplitude.speaker),
       1,
     ),
-    status: isLiveTranscriptInterrupted(state.live) ? "error" : "recording",
+    status: "recording",
     colorScheme,
     opacity: settings.floatingBarOpacity,
     liveCaptionOpacity: settings.liveCaptionOpacity,
@@ -103,6 +107,12 @@ export function getFloatingRouteState(
         speakerLabelContext,
         speakerLabels,
       ),
+    transcriptNotice: isLiveTranscriptInterrupted(state.live)
+      ? getLiveTranscriptPausedMessage({
+          degraded: state.live.degraded,
+          sttProvider,
+        })
+      : null,
   };
 }
 
@@ -330,6 +340,7 @@ export function isSameFloatingRouteState(
     left?.liveCaptionMinimized === right?.liveCaptionMinimized &&
     left?.liveCaptionToggleVisible === right?.liveCaptionToggleVisible &&
     left?.title === right?.title &&
+    (left?.transcriptNotice ?? null) === (right?.transcriptNotice ?? null) &&
     left?.dictation?.sessionId === right?.dictation?.sessionId &&
     left?.dictation?.phase === right?.dictation?.phase &&
     left?.dictation?.microphone === right?.dictation?.microphone &&

@@ -183,6 +183,7 @@ export async function showFloatingMeetingWindow(
         transcriptBubbles: shouldSendTranscript
           ? routeState.transcriptBubbles
           : null,
+        transcriptNotice: routeState.transcriptNotice ?? null,
       });
   if (!shouldContinue()) {
     await hideFloatingMeetingPanel();

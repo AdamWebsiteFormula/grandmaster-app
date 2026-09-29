@@ -113,10 +113,12 @@ function TranscriptContent({
           scrollRef={scrollRef}
           editMode={editMode && !screen.currentActive}
           onEditModeChange={screen.currentActive ? undefined : onEditModeChange}
+          footer={
+            screen.liveTranscriptInterrupted ? (
+              <LiveTranscriptInterruptedNotice />
+            ) : null
+          }
         />
-      )}
-      {screen.kind === "ready" && screen.liveTranscriptInterrupted && (
-        <LiveTranscriptInterruptedNotice className="shrink-0 border-t border-red-200 bg-red-50 py-4 dark:border-red-900/60 dark:bg-red-950/40" />
       )}
     </div>
   );

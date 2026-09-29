@@ -69,6 +69,8 @@ pub struct FloatingBarState {
     pub live_caption_toggle_visible: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transcript_bubbles: Option<Vec<FloatingTranscriptBubble>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transcript_notice: Option<String>,
     #[serde(default)]
     pub layout: Option<FloatingBarOverlayLayout>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

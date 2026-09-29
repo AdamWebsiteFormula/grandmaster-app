@@ -31,11 +31,6 @@ import {
   compactControlsWidth,
 } from "./layout";
 
-import {
-  LIVE_TRANSCRIPT_INTERRUPTED_MESSAGE,
-  LIVE_TRANSCRIPT_INTERRUPTED_TITLE,
-} from "~/stt/live-transcript-interrupted";
-
 export function FloatingBarOverlay({
   state,
   onStop,
@@ -108,7 +103,7 @@ export function FloatingBarOverlay({
                 dictation={state.dictation}
                 bubbles={state.transcriptBubbles ?? []}
                 colorScheme={state.colorScheme}
-                interrupted={state.status === "error"}
+                notice={state.transcriptNotice ?? null}
               />
             </div>
           )}
@@ -243,12 +238,12 @@ function TranscriptList({
   bubbles,
   colorScheme,
   dictation,
-  interrupted,
+  notice,
 }: {
   dictation: FloatingBarState["dictation"];
   bubbles: FloatingTranscriptBubble[];
   colorScheme: FloatingBarState["colorScheme"];
-  interrupted: boolean;
+  notice: string | null;
 }) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const [pinned, setPinned] = useState(true);
@@ -257,7 +252,7 @@ function TranscriptList({
     if (pinned) {
       bottomRef.current?.scrollIntoView?.({ block: "end" });
     }
-  }, [bubbles, pinned, interrupted, dictation?.text, dictation?.partial]);
+  }, [bubbles, pinned, notice, dictation?.text, dictation?.partial]);
 
   return (
     <div className="relative h-full p-3">
@@ -295,23 +290,19 @@ function TranscriptList({
               />
             ))
           )}
-          {!dictation && interrupted ? (
-            <div
+          {!dictation && notice ? (
+            <p
               role="status"
-              className="flex flex-col items-center gap-1 rounded-[11px] px-3 py-2.5 text-center text-[12px] leading-4"
+              className="px-3 py-1.5 text-center text-[12px] leading-4"
               style={{
-                background: "rgba(255, 51, 77, 0.16)",
                 color:
                   colorScheme === "dark"
-                    ? "rgb(255, 138, 150)"
-                    : "rgb(200, 20, 45)",
+                    ? "rgba(255, 255, 255, 0.5)"
+                    : "rgba(0, 0, 0, 0.45)",
               }}
             >
-              <p className="font-semibold">
-                {LIVE_TRANSCRIPT_INTERRUPTED_TITLE}
-              </p>
-              <p>{LIVE_TRANSCRIPT_INTERRUPTED_MESSAGE}</p>
-            </div>
+              {notice}
+            </p>
           ) : null}
           <div ref={bottomRef} />
         </div>
