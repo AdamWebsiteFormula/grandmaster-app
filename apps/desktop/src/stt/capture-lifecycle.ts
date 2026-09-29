@@ -1288,13 +1288,9 @@ export function useCaptureLifecycle(sessionId: string) {
           await clearIncompleteCapture(sessionId, transcriptId);
           await clearInheritedIncomplete();
           toast.dismiss(`capture-incomplete-${sessionId}`);
-          try {
-            const service = getEnhancerService();
-            if (!service) await requestMainAutoEnhance(sessionId, "regenerate");
-            else await service.requestAutoEnhance(sessionId, "regenerate");
-          } catch (error) {
-            console.error("[listener] failed to refresh summary", error);
-          }
+          const service = getEnhancerService();
+          if (!service) await requestMainAutoEnhance(sessionId, "regenerate");
+          else await service.requestAutoEnhance(sessionId, "regenerate");
           await clearCaptureLifecycleMarker(sessionId, transcriptId);
           await releaseCloudsyncLease();
           return;
