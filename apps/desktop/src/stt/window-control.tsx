@@ -1,6 +1,7 @@
 import { emitTo, listen } from "@tauri-apps/api/event";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { commands as listenerCommands } from "@anlg/plugin-transcription";
 import { getCurrentWebviewWindowLabel } from "@anlg/plugin-windows";
 
 import { useListener } from "./contexts";
@@ -27,11 +28,26 @@ export async function requestMainListenerControl(
   action: ListenerControlAction,
   sessionId: string,
 ) {
+  if (action === "stop") {
+    await stopCaptureForSession(sessionId);
+    return;
+  }
+
   await emitTo("main", LISTENER_CONTROL_EVENT, {
     action,
     requestId: crypto.randomUUID(),
     sessionId,
   } satisfies ListenerControlRequest);
+}
+
+async function stopCaptureForSession(sessionId: string) {
+  const snapshot = await listenerCommands.getCaptureSnapshot();
+  if (snapshot.status === "ok" && snapshot.data.activeSessionId === sessionId) {
+    const result = await listenerCommands.stopCapture();
+    if (result.status === "error") {
+      console.error("Failed to stop capture:", result.error);
+    }
+  }
 }
 
 export function MainListenerControlBridge() {

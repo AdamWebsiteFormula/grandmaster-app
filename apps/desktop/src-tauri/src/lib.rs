@@ -410,6 +410,17 @@ pub fn main() {
 
             specta_builder.mount_events(&app_handle);
 
+            {
+                use tauri_specta::Event;
+                let stop_handle = app_handle.clone();
+                tauri_plugin_windows::FloatingBarStop::listen(&app_handle, move |_| {
+                    let app = stop_handle.clone();
+                    tauri::async_runtime::spawn(async move {
+                        tauri_plugin_transcription::stop_active_capture(&app).await;
+                    });
+                });
+            }
+
             #[cfg(any(windows, target_os = "linux"))]
             {
                 // https://v2.tauri.app/ko/plugin/deep-linking/#desktop-1

@@ -32,6 +32,17 @@ use anlg_transcription_core::listener::actors::{RootActor, RootArgs};
 
 const PLUGIN_NAME: &str = "transcription";
 
+pub async fn stop_active_capture<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
+    if let Ok(snapshot) = app.listener().get_capture_snapshot().await
+        && let Some(session_id) = snapshot.active_session_id
+    {
+        app.listener2()
+            .stop_transcription(format!("{session_id}:recovery"))
+            .await;
+    }
+    app.listener().stop_capture().await;
+}
+
 pub type SharedState = Arc<Mutex<PluginState>>;
 
 pub struct PluginState {
