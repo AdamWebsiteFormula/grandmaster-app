@@ -54,4 +54,14 @@ describe("getLiveTranscriptPausedMessage", () => {
       }),
     ).toMatch(/Anarlog can't reach Deepgram/);
   });
+
+  it("does not blame the network for on-device models", () => {
+    expect(
+      getLiveTranscriptPausedMessage({
+        degraded: { type: "connection_timeout" },
+        sttProvider: "soniqo",
+        online: false,
+      }),
+    ).toMatch(/the local transcription model stopped responding/);
+  });
 });

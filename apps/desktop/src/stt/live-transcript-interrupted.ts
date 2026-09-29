@@ -37,7 +37,9 @@ function getPauseCause({
     ? null
     : (providerDisplayName(sttProvider) ?? "the transcription service");
 
-  if (!online) {
+  const isLocal = !!sttProvider && LOCAL_PROVIDER_IDS.has(sttProvider);
+
+  if (!online && !isLocal) {
     return "you're offline";
   }
 

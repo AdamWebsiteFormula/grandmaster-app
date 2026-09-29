@@ -238,7 +238,8 @@ function isAmplitudeOnlyFloatingRouteUpdate(
     previousState.liveCaptionMinimized === nextState.liveCaptionMinimized &&
     previousState.liveCaptionToggleVisible ===
       nextState.liveCaptionToggleVisible &&
-    previousState.transcriptBubbles === nextState.transcriptBubbles
+    previousState.transcriptBubbles === nextState.transcriptBubbles &&
+    previousState.transcriptNotice === nextState.transcriptNotice
   );
 }
 
