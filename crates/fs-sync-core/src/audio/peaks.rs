@@ -1,5 +1,7 @@
+use std::collections::HashMap;
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, LazyLock, Mutex};
 use std::time::UNIX_EPOCH;
 
 use anlg_audio_utils::Source;
@@ -20,7 +22,7 @@ pub struct AudioPeaks {
 struct SourceStamp {
     filename: String,
     size_bytes: u64,
-    modified_ms: u128,
+    modified_ns: u128,
 }
 
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -33,6 +35,9 @@ struct CachedPeaks {
 /// Returns the waveform peaks for `audio_path`, reusing `cache_path` while the
 /// audio file is unchanged.
 pub fn cached_peaks(audio_path: &Path, cache_path: &Path) -> io::Result<AudioPeaks> {
+    let lock = cache_lock(cache_path);
+    let _guard = lock.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+
     let source = source_stamp(audio_path)?;
     if let Some(peaks) = read_cache(cache_path, &source) {
         return Ok(peaks);
@@ -43,6 +48,18 @@ pub fn cached_peaks(audio_path: &Path, cache_path: &Path) -> io::Result<AudioPea
         tracing::warn!(?error, "audio_peaks_cache_write_failed");
     }
     Ok(peaks)
+}
+
+// Concurrent requests for the same recording wait for the first computation
+// and then read its cache instead of decoding the audio again.
+fn cache_lock(cache_path: &Path) -> Arc<Mutex<()>> {
+    static LOCKS: LazyLock<Mutex<HashMap<PathBuf, Arc<Mutex<()>>>>> =
+        LazyLock::new(Default::default);
+    let mut locks = LOCKS
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    locks.retain(|_, lock| Arc::strong_count(lock) > 1);
+    locks.entry(cache_path.to_path_buf()).or_default().clone()
 }
 
 pub fn compute_peaks(audio_path: &Path, peaks_per_channel: usize) -> io::Result<AudioPeaks> {
@@ -154,10 +171,10 @@ fn source_stamp(audio_path: &Path) -> io::Result<SourceStamp> {
             .unwrap_or_default()
             .to_string(),
         size_bytes: metadata.len(),
-        modified_ms: metadata
+        modified_ns: metadata
             .modified()?
             .duration_since(UNIX_EPOCH)
-            .map(|duration| duration.as_millis())
+            .map(|duration| duration.as_nanos())
             .unwrap_or_default(),
     })
 }

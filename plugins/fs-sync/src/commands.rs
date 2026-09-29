@@ -272,9 +272,7 @@ pub(crate) async fn audio_delete<R: tauri::Runtime>(
 ) -> Result<bool, String> {
     let session_dir = resolve_session_dir(&app, &session_id)?;
     let deleted = crate::audio::delete(&session_dir).map_err(|e| e.to_string())?;
-    if let Ok(cache_path) = audio_peaks_cache_path(&app, &session_id) {
-        let _ = std::fs::remove_file(cache_path);
-    }
+    remove_audio_peaks_cache(&app, &session_id);
     Ok(deleted)
 }
 
@@ -298,7 +296,7 @@ pub(crate) async fn audio_delete_orphaned_expired<R: tauri::Runtime>(
 ) -> Result<Vec<String>, String> {
     let base = app.settings().vault_base().map_err(|e| e.to_string())?;
     let sessions_dir = base.join("sessions").into_std_path_buf();
-    spawn_blocking!({
+    let deleted = spawn_blocking!({
         crate::audio::delete_orphaned_expired(
             &sessions_dir,
             &known_session_ids,
@@ -306,7 +304,11 @@ pub(crate) async fn audio_delete_orphaned_expired<R: tauri::Runtime>(
             now_ms,
         )
         .map_err(|e| e.to_string())
-    })
+    })?;
+    for session_id in &deleted {
+        remove_audio_peaks_cache(&app, session_id);
+    }
+    Ok(deleted)
 }
 
 #[tauri::command]
@@ -471,6 +473,12 @@ pub(crate) async fn audio_peaks<R: tauri::Runtime>(
     })
 }
 
+fn remove_audio_peaks_cache<R: tauri::Runtime>(app: &tauri::AppHandle<R>, session_id: &str) {
+    if let Ok(cache_path) = audio_peaks_cache_path(app, session_id) {
+        let _ = std::fs::remove_file(cache_path);
+    }
+}
+
 fn audio_peaks_cache_path<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     session_id: &str,
@@ -526,7 +534,9 @@ pub(crate) async fn delete_session_folder<R: tauri::Runtime>(
     session_id: String,
 ) -> Result<(), String> {
     let session_dir = resolve_session_dir(&app, &session_id)?;
-    crate::session::delete_session_dir(&session_dir).map_err(|e| e.to_string())
+    crate::session::delete_session_dir(&session_dir).map_err(|e| e.to_string())?;
+    remove_audio_peaks_cache(&app, &session_id);
+    Ok(())
 }
 
 #[tauri::command]

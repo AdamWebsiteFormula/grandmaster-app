@@ -7,15 +7,9 @@ export interface WaveformPeaks {
   channels: number[][];
 }
 
-interface LoadWaveformOptions {
-  url: string;
-  sessionId: string;
-  signal: AbortSignal;
-  fetchAudio?: typeof fetch;
-  loadPeaks?: (sessionId: string) => Promise<WaveformPeaks | null>;
-}
+const pendingPeaks = new Map<string, Promise<WaveformPeaks | null>>();
 
-export async function loadSessionPeaks(
+async function requestSessionPeaks(
   sessionId: string,
 ): Promise<WaveformPeaks | null> {
   try {
@@ -23,7 +17,20 @@ export async function loadSessionPeaks(
     return result.status === "ok" ? result.data : null;
   } catch {
     return null;
+  } finally {
+    pendingPeaks.delete(sessionId);
   }
+}
+
+export function loadSessionPeaks(
+  sessionId: string,
+): Promise<WaveformPeaks | null> {
+  let request = pendingPeaks.get(sessionId);
+  if (!request) {
+    request = requestSessionPeaks(sessionId);
+    pendingPeaks.set(sessionId, request);
+  }
+  return request;
 }
 
 export function isUsablePeaks(
@@ -37,37 +44,49 @@ export function isUsablePeaks(
   );
 }
 
-// Plays the recording from a blob like wavesurfer's own `load(url)`, but draws
-// the waveform from peaks computed natively so the webview never decodes it.
-// Without usable peaks, wavesurfer decodes the blob itself as before.
+// The recording becomes playable as soon as it is fetched; the waveform is
+// drawn from natively computed peaks once they arrive, and wavesurfer only
+// decodes the audio itself when no peaks are available.
 export async function loadWaveform(
-  ws: Pick<WaveSurfer, "loadBlob">,
+  ws: Pick<WaveSurfer, "load" | "getMediaElement">,
   {
     url,
     sessionId,
     signal,
     fetchAudio = fetch,
     loadPeaks = loadSessionPeaks,
-  }: LoadWaveformOptions,
+  }: {
+    url: string;
+    sessionId: string;
+    signal: AbortSignal;
+    fetchAudio?: typeof fetch;
+    loadPeaks?: (sessionId: string) => Promise<WaveformPeaks | null>;
+  },
 ): Promise<void> {
-  const [peaks, blob] = await Promise.all([
-    loadPeaks(sessionId),
-    fetchAudio(url, { signal }).then((response) => {
-      if (response.status >= 400) {
-        throw new Error(`Failed to fetch ${url}: ${response.status}`);
-      }
-      return response.blob();
-    }),
-  ]);
+  const peaksRequest = loadPeaks(sessionId);
 
+  const response = await fetchAudio(url, { signal });
+  if (response.status >= 400) {
+    throw new Error(`Failed to fetch ${url}: ${response.status}`);
+  }
+  const blob = await response.blob();
+  if (signal.aborted) {
+    return;
+  }
+
+  const media = ws.getMediaElement();
+  const src = media.canPlayType(blob.type) ? URL.createObjectURL(blob) : url;
+  media.src = src;
+
+  const peaks = await peaksRequest;
   if (signal.aborted) {
     return;
   }
 
   if (isUsablePeaks(peaks)) {
-    await ws.loadBlob(blob, peaks.channels, peaks.duration);
+    await ws.load(src, peaks.channels, peaks.duration);
     return;
   }
 
-  await ws.loadBlob(blob);
+  await ws.load(src);
 }

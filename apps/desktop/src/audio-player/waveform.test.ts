@@ -1,10 +1,17 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { audioPeaks } = vi.hoisted(() => ({ audioPeaks: vi.fn() }));
 
 vi.mock("@anlg/plugin-fs-sync", () => ({
-  commands: { audioPeaks: vi.fn() },
+  commands: { audioPeaks },
 }));
 
-import { isUsablePeaks, loadWaveform, type WaveformPeaks } from "./waveform";
+import {
+  isUsablePeaks,
+  loadSessionPeaks,
+  loadWaveform,
+  type WaveformPeaks,
+} from "./waveform";
 
 const peaks: WaveformPeaks = {
   duration: 12.5,
@@ -14,21 +21,37 @@ const peaks: WaveformPeaks = {
   ],
 };
 
-function setup(loadedPeaks: WaveformPeaks | null, status = 200) {
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((r) => {
+    resolve = r;
+  });
+  return { promise, resolve };
+}
+
+function setup(status = 200) {
   const blob = new Blob(["audio"], { type: "audio/mpeg" });
-  const ws = { loadBlob: vi.fn().mockResolvedValue(undefined) };
+  const media = { src: "", canPlayType: vi.fn().mockReturnValue("maybe") };
+  const ws = {
+    load: vi.fn().mockResolvedValue(undefined),
+    getMediaElement: vi.fn().mockReturnValue(media),
+  };
   const fetchAudio = vi.fn().mockResolvedValue({
     status,
     blob: () => Promise.resolve(blob),
   });
-  const loadPeaks = vi.fn().mockResolvedValue(loadedPeaks);
-  return { blob, ws, fetchAudio, loadPeaks };
+  return { blob, media, ws, fetchAudio };
 }
 
+beforeEach(() => {
+  vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:recording");
+});
+
 describe("loadWaveform", () => {
-  it("draws native peaks without letting wavesurfer decode the audio", async () => {
-    const { blob, ws, fetchAudio, loadPeaks } = setup(peaks);
+  it("draws native peaks on the fetched recording without decoding it", async () => {
+    const { media, ws, fetchAudio } = setup();
     const controller = new AbortController();
+    const loadPeaks = vi.fn().mockResolvedValue(peaks);
 
     await loadWaveform(ws, {
       url: "asset://audio.mp3",
@@ -42,41 +65,91 @@ describe("loadWaveform", () => {
     expect(fetchAudio).toHaveBeenCalledWith("asset://audio.mp3", {
       signal: controller.signal,
     });
-    expect(ws.loadBlob).toHaveBeenCalledWith(blob, peaks.channels, 12.5);
+    expect(media.src).toBe("blob:recording");
+    expect(ws.load).toHaveBeenCalledWith(
+      "blob:recording",
+      peaks.channels,
+      12.5,
+    );
   });
 
-  it("falls back to wavesurfer decoding when peaks are unavailable", async () => {
-    const { blob, ws, fetchAudio, loadPeaks } = setup(null);
+  it("makes the recording playable before peaks are ready", async () => {
+    const { media, ws, fetchAudio } = setup();
+    const pending = deferred<WaveformPeaks | null>();
+
+    const loading = loadWaveform(ws, {
+      url: "asset://audio.mp3",
+      sessionId: "session",
+      signal: new AbortController().signal,
+      fetchAudio,
+      loadPeaks: () => pending.promise,
+    });
+
+    await vi.waitFor(() => expect(media.src).toBe("blob:recording"));
+    expect(ws.load).not.toHaveBeenCalled();
+
+    pending.resolve(peaks);
+    await loading;
+    expect(ws.load).toHaveBeenCalledWith(
+      "blob:recording",
+      peaks.channels,
+      12.5,
+    );
+  });
+
+  it("streams from the url when the blob type is not playable", async () => {
+    const { media, ws, fetchAudio } = setup();
+    media.canPlayType.mockReturnValue("");
 
     await loadWaveform(ws, {
       url: "asset://audio.mp3",
       sessionId: "session",
       signal: new AbortController().signal,
       fetchAudio,
-      loadPeaks,
+      loadPeaks: vi.fn().mockResolvedValue(peaks),
     });
 
-    expect(ws.loadBlob).toHaveBeenCalledWith(blob);
+    expect(media.src).toBe("asset://audio.mp3");
+    expect(ws.load).toHaveBeenCalledWith(
+      "asset://audio.mp3",
+      peaks.channels,
+      12.5,
+    );
+  });
+
+  it("falls back to wavesurfer decoding when peaks are unavailable", async () => {
+    const { ws, fetchAudio } = setup();
+
+    await loadWaveform(ws, {
+      url: "asset://audio.mp3",
+      sessionId: "session",
+      signal: new AbortController().signal,
+      fetchAudio,
+      loadPeaks: vi.fn().mockResolvedValue(null),
+    });
+
+    expect(ws.load).toHaveBeenCalledWith("blob:recording");
   });
 
   it("does not load after the player was torn down", async () => {
-    const { ws, fetchAudio, loadPeaks } = setup(peaks);
+    const { media, ws, fetchAudio } = setup();
     const controller = new AbortController();
     const loading = loadWaveform(ws, {
       url: "asset://audio.mp3",
       sessionId: "session",
       signal: controller.signal,
       fetchAudio,
-      loadPeaks,
+      loadPeaks: vi.fn().mockResolvedValue(peaks),
     });
     controller.abort();
     await loading;
 
-    expect(ws.loadBlob).not.toHaveBeenCalled();
+    expect(media.src).toBe("");
+    expect(ws.load).not.toHaveBeenCalled();
   });
 
   it("rejects when the recording cannot be fetched", async () => {
-    const { ws, fetchAudio, loadPeaks } = setup(peaks, 404);
+    const { ws, fetchAudio } = setup(404);
 
     await expect(
       loadWaveform(ws, {
@@ -84,10 +157,34 @@ describe("loadWaveform", () => {
         sessionId: "session",
         signal: new AbortController().signal,
         fetchAudio,
-        loadPeaks,
+        loadPeaks: vi.fn().mockResolvedValue(peaks),
       }),
     ).rejects.toThrow("404");
-    expect(ws.loadBlob).not.toHaveBeenCalled();
+    expect(ws.load).not.toHaveBeenCalled();
+  });
+});
+
+describe("loadSessionPeaks", () => {
+  it("shares one native request per recording while it is in flight", async () => {
+    const pending = deferred<{ status: "ok"; data: WaveformPeaks }>();
+    audioPeaks.mockReset().mockReturnValue(pending.promise);
+
+    const first = loadSessionPeaks("session");
+    const second = loadSessionPeaks("session");
+    pending.resolve({ status: "ok", data: peaks });
+
+    await expect(first).resolves.toEqual(peaks);
+    await expect(second).resolves.toEqual(peaks);
+    expect(audioPeaks).toHaveBeenCalledTimes(1);
+
+    audioPeaks.mockResolvedValue({ status: "error", error: "failed" });
+    await expect(loadSessionPeaks("session")).resolves.toBeNull();
+    expect(audioPeaks).toHaveBeenCalledTimes(2);
+  });
+
+  it("treats command failures as missing peaks", async () => {
+    audioPeaks.mockReset().mockRejectedValue(new Error("ipc"));
+    await expect(loadSessionPeaks("other")).resolves.toBeNull();
   });
 });
 
