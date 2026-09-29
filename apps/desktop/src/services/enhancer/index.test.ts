@@ -725,15 +725,21 @@ describe("EnhancerService", () => {
       notes: [createNote({ id: "one" })],
       wordCount: 40,
     });
+    let status = "generating";
     const ai = createMockAITaskStore((taskId) =>
-      taskId === "one-enhance" ? { status: "generating" } : undefined,
+      taskId === "one-enhance" ? { status } : undefined,
     );
+    ai.reset.mockImplementation(() => {
+      status = "idle";
+    });
     const service = new EnhancerService(createDeps({ aiTaskStore: ai.store }));
 
     await service.requestAutoEnhance("session-1", "refresh");
+    await vi.waitFor(() => expect(ai.generate).toHaveBeenCalledOnce());
 
     expect(ai.reset).toHaveBeenCalledWith("one-enhance");
-    expect(mocks.ensurePendingAutoEnhanceDocument).toHaveBeenCalledOnce();
+    expect(ai.reset).toHaveBeenCalledBefore(ai.generate);
+    expect(ai.generate).toHaveBeenCalledWith("one-enhance", expect.anything());
   });
 
   it("generates a missing summary once when refreshing", async () => {
