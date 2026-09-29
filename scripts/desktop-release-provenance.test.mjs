@@ -217,11 +217,17 @@ test("repository release workflows match the authored release plan", async () =>
   verifyWorkflowPlatformCoverage({ publishWorkflow, cdWorkflow });
 });
 
-test("stable desktop releases forward only the declared store secrets", async () => {
+test("stable desktop releases submit only the Microsoft Store package", async () => {
   const [publishWorkflow, storeWorkflow] = await Promise.all([
     readFile(".github/workflows/desktop_publish.yaml", "utf8"),
     readFile(".github/workflows/desktop_store_publish.yaml", "utf8"),
   ]);
+
+  assert.match(storeWorkflow, /\n  workflow_call:\n/);
+  assert.match(
+    publishWorkflow,
+    /Stable releases must include Windows for automatic Microsoft Store submission/,
+  );
 
   const jobStart = publishWorkflow.indexOf("\n  store-publish:\n");
   assert.notEqual(jobStart, -1, "missing store-publish job");
@@ -232,7 +238,18 @@ test("stable desktop releases forward only the declared store secrets", async ()
       ? remainingWorkflow
       : remainingWorkflow.slice(0, nextJob + 1);
 
+  assert.match(storePublishJob, /needs: \[parse, gh-release\]/);
+  assert.match(
+    storePublishJob,
+    /uses: \.\/\.github\/workflows\/desktop_store_publish\.yaml/,
+  );
+  assert.doesNotMatch(storePublishJob, /include_macos/);
+  assert.match(storePublishJob, /include_windows: true/);
+  assert.match(storePublishJob, /submit_to_stores: true/);
   assert.doesNotMatch(storePublishJob, /secrets: inherit/);
+  assert.doesNotMatch(storeWorkflow, /\n  mac-app-store:\n/);
+  assert.doesNotMatch(storeWorkflow, /app-store-connect-submit/);
+  assert.doesNotMatch(storeWorkflow, /Submitted to App Review/);
   const declaredSecrets = [
     ...storeWorkflow.matchAll(
       /^      ([A-Z0-9_]+):\n        required: false$/gm,
@@ -253,6 +270,22 @@ test("stable desktop releases forward only the declared store secrets", async ()
     "SELLER_ID",
   ]);
   assert.deepEqual(forwardedSecrets, declaredSecrets);
+});
+
+test("desktop release workflows do not submit to the Mac App Store", async () => {
+  const [desktopCi, storeWorkflow] = await Promise.all([
+    readFile(".github/workflows/desktop_ci.yaml", "utf8"),
+    readFile(".github/workflows/desktop_store_publish.yaml", "utf8"),
+  ]);
+
+  assert.doesNotMatch(desktopCi, /Build unsigned Mac App Store candidate/);
+  assert.doesNotMatch(desktopCi, /tauri.conf.app-store.json/);
+  assert.doesNotMatch(desktopCi, /anarlog-mac-app-store-unsigned/);
+  assert.doesNotMatch(storeWorkflow, /\n  mac-app-store:\n/);
+  assert.doesNotMatch(storeWorkflow, /include_macos/);
+  assert.doesNotMatch(storeWorkflow, /app-store-connect-submit/);
+  assert.doesNotMatch(storeWorkflow, /MAC_APP_STORE_/);
+  assert.doesNotMatch(storeWorkflow, /APPSTORE_/);
 });
 
 const provenance = {
