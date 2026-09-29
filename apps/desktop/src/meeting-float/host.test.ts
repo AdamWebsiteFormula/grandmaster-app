@@ -547,6 +547,18 @@ describe("getFloatingTranscriptBubbles", () => {
 });
 
 describe("floating route refresh", () => {
+  it("refreshes when the transcription stall watchdog trips", () => {
+    const previous = createListenerState({
+      status: "active",
+      sessionId: "session-1",
+    });
+    const stalled = {
+      ...previous,
+      live: { ...previous.live, transcriptionStalled: true },
+    };
+    expect(haveFloatingRouteInputsChanged(stalled, previous)).toBe(true);
+  });
+
   it("refreshes when retry state changes without new audio", () => {
     const previous = createListenerState({
       status: "active",

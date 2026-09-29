@@ -82,7 +82,10 @@ export function useTranscriptScreen({
     };
   }
 
-  if (isRecordOnlyMode) {
+  if (
+    isRecordOnlyMode ||
+    (liveTranscriptInterrupted && currentActive && !hasVisibleTranscriptState)
+  ) {
     return {
       kind: "batch_fallback",
       requestedLiveTranscription,

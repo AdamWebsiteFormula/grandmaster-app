@@ -176,6 +176,18 @@ describe("Transcript", () => {
     expect(screen.queryByText("Live transcript failed")).toBeNull();
   });
 
+  it("shows the interruption before any live transcript arrives", () => {
+    listenerState = {
+      ...listenerState,
+      live: { ...listenerState.live, transcriptionStalled: true },
+    };
+
+    render(<Transcript sessionId={sessionId} scrollRef={createRef()} />);
+
+    expect(screen.queryByTestId("listening-state")).toBeNull();
+    expect(screen.getByTestId("batch-state")).not.toBeNull();
+  });
+
   it("keeps existing transcript content unobstructed while finalizing", () => {
     listenerState = {
       ...listenerState,

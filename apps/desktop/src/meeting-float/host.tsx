@@ -409,6 +409,10 @@ export function haveFloatingRouteInputsChanged(
     Boolean(state.live.lastError) !== Boolean(previousState.live.lastError) ||
     state.live.liveTranscriptionActive !==
       previousState.live.liveTranscriptionActive ||
+    state.live.requestedLiveTranscription !==
+      previousState.live.requestedLiveTranscription ||
+    state.live.transcriptionStalled !==
+      previousState.live.transcriptionStalled ||
     state.liveSegments !== previousState.liveSegments
   );
 }
