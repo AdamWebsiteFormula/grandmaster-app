@@ -217,6 +217,19 @@ describe("Transcript", () => {
     expect(screen.getByTestId("batch-state")).not.toBeNull();
   });
 
+  it("keeps the transcript visible when the live provider disconnects", () => {
+    listenerState = {
+      ...listenerState,
+      live: { ...listenerState.live, liveTranscriptionActive: false },
+    };
+    transcripts = [{ id: transcriptId, hasWords: true }];
+
+    render(<Transcript sessionId={sessionId} scrollRef={createRef()} />);
+
+    expect(screen.getByTestId("transcript-viewer")).not.toBeNull();
+    expect(screen.queryByTestId("batch-state")).toBeNull();
+  });
+
   it("renders finalized transcripts in the requested edit mode", () => {
     listenerState = {
       ...listenerState,

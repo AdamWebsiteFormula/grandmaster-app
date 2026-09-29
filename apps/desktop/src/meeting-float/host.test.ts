@@ -7,6 +7,7 @@ import {
   getFloatingTranscriptBubbles,
   haveFloatingRouteInputsChanged,
 } from "./host";
+import { getFloatingLiveCaptionToggleVisible } from "./route-state";
 
 import { createListenerStore } from "~/store/zustand/listener";
 import { LIVE_TRANSCRIPT_PREVIEW_SEGMENT_LIMIT } from "~/store/zustand/listener/transcript";
@@ -547,6 +548,23 @@ describe("getFloatingTranscriptBubbles", () => {
 });
 
 describe("floating route refresh", () => {
+  it("keeps the caption toggle while live transcription is interrupted", () => {
+    const state = createListenerState({
+      status: "active",
+      sessionId: "session-1",
+    });
+    expect(
+      getFloatingLiveCaptionToggleVisible({
+        ...state,
+        live: {
+          ...state.live,
+          requestedLiveTranscription: true,
+          liveTranscriptionActive: false,
+        },
+      }),
+    ).toBe(true);
+  });
+
   it("refreshes when the transcription stall watchdog trips", () => {
     const previous = createListenerState({
       status: "active",

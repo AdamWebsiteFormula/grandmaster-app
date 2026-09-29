@@ -299,7 +299,9 @@ export function shouldShowFloatingLiveCaptionToggle({
 
 export function getFloatingLiveCaptionToggleVisible(state: ListenerState) {
   return shouldShowFloatingLiveCaptionToggle({
-    liveTranscriptionActive: state.live.liveTranscriptionActive === true,
+    liveTranscriptionActive:
+      state.live.liveTranscriptionActive === true ||
+      isLiveTranscriptInterrupted(state.live),
   });
 }
 

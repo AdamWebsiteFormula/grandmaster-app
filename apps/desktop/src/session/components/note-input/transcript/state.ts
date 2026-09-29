@@ -83,8 +83,9 @@ export function useTranscriptScreen({
   }
 
   if (
-    isRecordOnlyMode ||
-    (liveTranscriptInterrupted && currentActive && !hasVisibleTranscriptState)
+    (isRecordOnlyMode || liveTranscriptInterrupted) &&
+    currentActive &&
+    !hasVisibleTranscriptState
   ) {
     return {
       kind: "batch_fallback",
