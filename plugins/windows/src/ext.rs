@@ -174,6 +174,7 @@ impl AppWindow {
         }
 
         tracing::error!("rebuilding main window to recover main webview");
+        crate::take_main_window_show_requested();
         crate::set_main_window_rebuilding(true);
         let app = app.clone();
         tauri::async_runtime::spawn(async move {
@@ -205,7 +206,7 @@ impl AppWindow {
             }
             tokio::time::sleep(std::time::Duration::from_millis(50)).await;
         }
-        if visible {
+        if visible || crate::take_main_window_show_requested() {
             Self::Main.show(app)?;
             return Ok(());
         }
@@ -216,6 +217,9 @@ impl AppWindow {
         let window = Self::Main.build_window(app)?;
         let _ = window.restore_state(crate::persisted_window_state_flags());
         Self::Main.position_new_window(app, &window)?;
+        if crate::take_main_window_show_requested() {
+            Self::Main.show(app)?;
+        }
         Ok(())
     }
 
@@ -657,6 +661,9 @@ impl AppWindow {
     where
         Self: WindowImpl,
     {
+        if matches!(self, Self::Main) {
+            crate::note_main_window_show_requested();
+        }
         self.prepare_show(app);
 
         if matches!(self, Self::Composer) {
@@ -696,6 +703,9 @@ impl AppWindow {
     where
         Self: WindowImpl,
     {
+        if matches!(self, Self::Main) {
+            crate::note_main_window_show_requested();
+        }
         self.prepare_show(app);
 
         if matches!(self, Self::Composer) {

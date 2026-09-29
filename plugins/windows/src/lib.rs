@@ -155,6 +155,21 @@ fn set_main_window_rebuilding(value: bool) {
     MAIN_WINDOW_REBUILDING.store(value, Ordering::SeqCst);
 }
 
+static MAIN_WINDOW_SHOW_REQUESTED: AtomicBool = AtomicBool::new(false);
+
+/// Records that the main window was asked to show while it was being rebuilt,
+/// so a rebuild that started hidden still ends visible.
+fn note_main_window_show_requested() {
+    if main_window_rebuilding() {
+        MAIN_WINDOW_SHOW_REQUESTED.store(true, Ordering::SeqCst);
+    }
+}
+
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+fn take_main_window_show_requested() -> bool {
+    MAIN_WINDOW_SHOW_REQUESTED.swap(false, Ordering::SeqCst)
+}
+
 impl WebviewHealthState {
     fn register(&self, label: String) -> Option<(u64, String, oneshot::Receiver<()>)> {
         let mut pending = self.pending.lock().unwrap();

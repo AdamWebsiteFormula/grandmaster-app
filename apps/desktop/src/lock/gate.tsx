@@ -1,4 +1,5 @@
 import { useLingui } from "@lingui/react/macro";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import {
@@ -46,7 +47,16 @@ export function AppLockGate({ children }: { children: ReactNode }) {
       return;
     }
     promptedRef.current = true;
-    void unlockApp(DEVICE_AUTH_REASON.openApp);
+    // A main window rebuilt in the background must not prompt until the
+    // user opens it; the visibility listener prompts then.
+    void getCurrentWebviewWindow()
+      .isVisible()
+      .catch(() => true)
+      .then((visible) => {
+        if (visible) {
+          void unlockApp(DEVICE_AUTH_REASON.openApp);
+        }
+      });
   }, [unlockApp, appUnlocked, authenticating, shouldLock]);
 
   useEffect(() => {
