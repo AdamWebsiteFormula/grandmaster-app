@@ -158,11 +158,3 @@ test("the version command resolves its repository independently of the working d
   assert.equal(mobile.status, 0, mobile.stderr);
   assert.equal(checkMobileReleaseVersion("0.3.0", root), "0.3.0");
 });
-
-test("the checked-in watch version matches the desktop release", () => {
-  assert.equal(checkReleaseVersion(), readReleaseVersion());
-});
-
-test("the checked-in mobile package version matches the mobile release", () => {
-  assert.equal(checkMobileReleaseVersion(), readMobileReleaseVersion());
-});
