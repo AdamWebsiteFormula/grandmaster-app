@@ -705,6 +705,32 @@ describe("EnhancerService", () => {
     expect(ai.generate).toHaveBeenCalledOnce();
   });
 
+  it("refreshes an existing summary", async () => {
+    snapshot = createSnapshot({
+      notes: [createNote({ id: "one", content: "Summary from partial audio" })],
+      wordCount: 40,
+    });
+    const ai = createMockAITaskStore();
+    const service = new EnhancerService(createDeps({ aiTaskStore: ai.store }));
+
+    await service.requestAutoEnhance("session-1", "refresh");
+    await vi.waitFor(() => expect(ai.generate).toHaveBeenCalledOnce());
+
+    expect(ai.reset).toHaveBeenCalledWith("one-enhance");
+    expect(mocks.ensurePendingAutoEnhanceDocument).toHaveBeenCalledOnce();
+  });
+
+  it("generates a missing summary once when refreshing", async () => {
+    snapshot = createSnapshot({ wordCount: 40 });
+    const ai = createMockAITaskStore();
+    const service = new EnhancerService(createDeps({ aiTaskStore: ai.store }));
+
+    await service.requestAutoEnhance("session-1", "refresh");
+    await vi.waitFor(() => expect(ai.generate).toHaveBeenCalledOnce());
+
+    expect(ai.reset).not.toHaveBeenCalled();
+  });
+
   it("retries a startup recovery scan after database contention", async () => {
     vi.useFakeTimers();
     const consoleError = vi
