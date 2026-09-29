@@ -11,6 +11,9 @@ import { useMountEffect } from "~/shared/hooks/useMountEffect";
 import { listenerStore } from "~/store/zustand/listener/instance";
 
 const LISTENER_CONTROL_EVENT = "anlg:listener-control";
+// The main webview may be dead or reloading; if it hasn't stopped the
+// capture by then, stop it natively.
+const MAIN_STOP_FALLBACK_DELAY_MS = 1_500;
 
 type ListenerControlAction = "start" | "stop";
 
@@ -28,16 +31,18 @@ export async function requestMainListenerControl(
   action: ListenerControlAction,
   sessionId: string,
 ) {
-  if (action === "stop") {
-    await stopCaptureForSession(sessionId);
-    return;
-  }
-
   await emitTo("main", LISTENER_CONTROL_EVENT, {
     action,
     requestId: crypto.randomUUID(),
     sessionId,
   } satisfies ListenerControlRequest);
+
+  if (action === "stop") {
+    await new Promise((resolve) =>
+      setTimeout(resolve, MAIN_STOP_FALLBACK_DELAY_MS),
+    );
+    await stopCaptureForSession(sessionId);
+  }
 }
 
 async function stopCaptureForSession(sessionId: string) {

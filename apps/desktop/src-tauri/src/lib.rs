@@ -416,6 +416,9 @@ pub fn main() {
                 tauri_plugin_windows::FloatingBarStop::listen(&app_handle, move |_| {
                     let app = stop_handle.clone();
                     tauri::async_runtime::spawn(async move {
+                        // Give the main webview the first chance to stop so its
+                        // post-stop work runs; this only stops if it didn't.
+                        tokio::time::sleep(std::time::Duration::from_millis(1_500)).await;
                         tauri_plugin_transcription::stop_active_capture(&app).await;
                     });
                 });

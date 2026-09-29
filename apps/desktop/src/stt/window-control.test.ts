@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const hoisted = vi.hoisted(() => ({
   emitTo: vi.fn(async () => {}),
@@ -33,22 +33,46 @@ vi.mock("~/store/zustand/listener/instance", () => ({
 import { requestMainListenerControl } from "./window-control";
 
 describe("requestMainListenerControl", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   beforeEach(() => {
+    vi.useFakeTimers();
     hoisted.emitTo.mockClear();
     hoisted.getCaptureSnapshot.mockReset();
     hoisted.stopCapture.mockClear();
   });
 
-  test("stops the native capture without going through the main webview", async () => {
+  test("stops the native capture when the main webview does not", async () => {
     hoisted.getCaptureSnapshot.mockResolvedValue({
       status: "ok",
       data: { activeSessionId: "session-1", finalizingSessionIds: [] },
     });
 
-    await requestMainListenerControl("stop", "session-1");
+    const request = requestMainListenerControl("stop", "session-1");
+    await vi.runAllTimersAsync();
+    await request;
 
+    expect(hoisted.emitTo).toHaveBeenCalledWith(
+      "main",
+      "anlg:listener-control",
+      expect.objectContaining({ action: "stop", sessionId: "session-1" }),
+    );
     expect(hoisted.stopCapture).toHaveBeenCalledTimes(1);
-    expect(hoisted.emitTo).not.toHaveBeenCalled();
+  });
+
+  test("leaves the stop to the main webview when it already stopped", async () => {
+    hoisted.getCaptureSnapshot.mockResolvedValue({
+      status: "ok",
+      data: { activeSessionId: null, finalizingSessionIds: ["session-1"] },
+    });
+
+    const request = requestMainListenerControl("stop", "session-1");
+    await vi.runAllTimersAsync();
+    await request;
+
+    expect(hoisted.stopCapture).not.toHaveBeenCalled();
   });
 
   test("does not stop a different active capture", async () => {
@@ -57,7 +81,9 @@ describe("requestMainListenerControl", () => {
       data: { activeSessionId: "session-2", finalizingSessionIds: [] },
     });
 
-    await requestMainListenerControl("stop", "session-1");
+    const request = requestMainListenerControl("stop", "session-1");
+    await vi.runAllTimersAsync();
+    await request;
 
     expect(hoisted.stopCapture).not.toHaveBeenCalled();
   });
