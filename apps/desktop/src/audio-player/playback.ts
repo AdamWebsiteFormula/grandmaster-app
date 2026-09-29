@@ -1,20 +1,26 @@
 export function configureCenteredPlayback(
   media: HTMLMediaElement,
+  createContext: () => AudioContext = () => new AudioContext(),
 ): AudioContext | null {
-  const gainNode = (
-    media as HTMLMediaElement & { getGainNode?: () => GainNode }
-  ).getGainNode?.();
-
-  if (!gainNode) {
+  let context: AudioContext;
+  try {
+    context = createContext();
+  } catch {
     return null;
   }
 
-  gainNode.channelCount = 1;
-  gainNode.channelCountMode = "explicit";
-  gainNode.channelInterpretation = "speakers";
+  try {
+    const source = context.createMediaElementSource(media);
+    const gainNode = context.createGain();
+    gainNode.channelCount = 1;
+    gainNode.channelCountMode = "explicit";
+    gainNode.channelInterpretation = "speakers";
+    source.connect(gainNode);
+    gainNode.connect(context.destination);
+  } catch {
+    void context.close().catch(() => {});
+    return null;
+  }
 
-  const context = gainNode.context;
-  return "resume" in context && "close" in context
-    ? (context as AudioContext)
-    : null;
+  return context;
 }
