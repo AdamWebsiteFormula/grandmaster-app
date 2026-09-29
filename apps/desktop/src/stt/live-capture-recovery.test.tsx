@@ -315,3 +315,50 @@ test("leaves captures found after a reload for the user to process", async () =>
     });
   });
 });
+
+test("recovers a capture that could not be reattached once it stops", async () => {
+  vi.useFakeTimers();
+  const consoleWarn = vi.spyOn(console, "warn").mockImplementation(() => {});
+  const snapshot = (activeSessionId: string | null) => ({
+    status: "ok",
+    data: {
+      activeSessionId,
+      finalizingSessionIds: [],
+      liveTranscriptionActive: null,
+      requestedLiveTranscription: null,
+      state: activeSessionId ? "active" : "inactive",
+    },
+  });
+  mocks.getCaptureSnapshot.mockResolvedValue(snapshot("session-live"));
+  const resume = vi.fn().mockResolvedValue("error");
+  mocks.resumeBySession.set("session-live", resume);
+
+  render(<LiveCaptureRecovery />);
+  await act(async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(60_000);
+  });
+  expect(resume).toHaveBeenCalledTimes(5);
+
+  resume.mockResolvedValue("awaiting_user");
+  mocks.getCaptureSnapshot.mockResolvedValue(snapshot(null));
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(5_000);
+  });
+  expect(resume).toHaveBeenCalledTimes(6);
+  expect(resume).toHaveBeenLastCalledWith({
+    abandonOnFailure: true,
+    processStopped: false,
+  });
+
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(60_000);
+  });
+  expect(resume).toHaveBeenCalledTimes(6);
+  consoleWarn.mockRestore();
+  vi.useRealTimers();
+});

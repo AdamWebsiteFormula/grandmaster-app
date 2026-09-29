@@ -15,6 +15,7 @@ import { useMountEffect } from "~/shared/hooks/useMountEffect";
 const CAPTURE_RECOVERY_BASE_RETRY_MS = 2_000;
 const CAPTURE_RECOVERY_MAX_ATTEMPTS = 5;
 const PENDING_AUDIO_RETRY_MS = 5 * 60_000;
+const NATIVE_STOP_POLL_MS = 5_000;
 
 async function isCapturing(sessionId: string) {
   try {
@@ -181,6 +182,23 @@ function LiveCaptureSessionRecovery({
         return;
       }
       if (result === "error") {
+        if (
+          attempt >= CAPTURE_RECOVERY_MAX_ATTEMPTS &&
+          (await isCapturing(sessionId))
+        ) {
+          // Recover once the recording that could not be reattached stops.
+          const waitForStop = async () => {
+            if (!active) return;
+            if (await isCapturing(sessionId)) {
+              if (active)
+                retryTimer = setTimeout(waitForStop, NATIVE_STOP_POLL_MS);
+              return;
+            }
+            void recover(attempt + 1);
+          };
+          if (active) retryTimer = setTimeout(waitForStop, NATIVE_STOP_POLL_MS);
+          return;
+        }
         if (
           attempt >= CAPTURE_RECOVERY_MAX_ATTEMPTS &&
           (await hasPendingAudio(sessionId))
