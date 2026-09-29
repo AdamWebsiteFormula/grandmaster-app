@@ -105,8 +105,6 @@ DECLARE
   v_email text;
   v_email_hash bytea;
   v_device_hash bytea;
-  v_inserted_email boolean := false;
-  v_inserted_device boolean := false;
 BEGIN
   IF NOT EXISTS (
     SELECT 1
@@ -204,6 +202,8 @@ DECLARE
   v_email text;
   v_email_hash bytea;
   v_device_hash bytea;
+  v_inserted_email boolean := false;
+  v_inserted_device boolean := false;
 BEGIN
   IF v_user_id IS NULL
     OR p_channel IS NULL
