@@ -303,6 +303,14 @@ vi.mock("~/store/zustand/tabs", () => ({
 
 vi.mock("~/stt/capture-lifecycle-storage", () => ({
   clearCaptureLifecycleMarker: clearCaptureLifecycleMarkerMock,
+  hasAudioAwaitingUser: (marker: {
+    chunkedAudio?: boolean;
+    summaryMode?: string;
+    inheritedCaptures?: unknown[];
+  }) =>
+    !marker.summaryMode &&
+    (marker.chunkedAudio === true ||
+      (marker.inheritedCaptures ?? []).length > 0),
   hasPendingZeroRetentionAudio: (marker: {
     chunkedAudio?: boolean;
     retainAudio?: boolean;
@@ -2348,6 +2356,7 @@ describe("useStartListening", () => {
     attachLiveSessionMock.mockResolvedValue("inactive");
     loadCaptureLifecycleMarkerMock.mockResolvedValue({
       version: 1,
+      chunkedAudio: true,
       sessionId: "session-1",
       transcriptId: "transcript-before-reload",
       startedAt: 1_000,

@@ -6,6 +6,7 @@ import { toast } from "@anlg/ui/components/ui/toast";
 import { useCaptureLifecycle } from "./capture-lifecycle";
 import {
   clearCaptureAudioSaved,
+  hasAudioAwaitingUser,
   hasPendingZeroRetentionAudio,
   loadCaptureLifecycleMarker,
 } from "./capture-lifecycle-storage";
@@ -90,14 +91,16 @@ export function useStartListeningState(
         return null;
       },
     );
+    const pendingMarker =
+      previousMarker &&
+      (hasAudioAwaitingUser(previousMarker) ||
+        hasPendingZeroRetentionAudio(previousMarker))
+        ? previousMarker
+        : undefined;
     const lifecycle = createCaptureLifecycle(
       undefined,
       automatic,
-      previousMarker &&
-        (previousMarker.chunkedAudio === true ||
-          hasPendingZeroRetentionAudio(previousMarker))
-        ? previousMarker
-        : undefined,
+      pendingMarker,
     );
     // A fresh note or a just-focused window starts listening right as a sync
     // round begins; waiting for that round to yield made the start feel slow
@@ -226,7 +229,7 @@ export function useStartListeningState(
       return;
     }
 
-    if (previousMarker) {
+    if (pendingMarker) {
       void clearCaptureAudioSaved(sessionId).catch((error) => {
         console.error("[listener] failed to clear capture audio state", error);
       });

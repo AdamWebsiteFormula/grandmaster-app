@@ -41,7 +41,6 @@ export function SavedCaptureAudioPrompt({ sessionId }: { sessionId: string }) {
     if (!saved || !inactive) return;
     const id = `capture-audio-saved-${sessionId}`;
     const resumeListening = () => {
-      toast.dismiss(id);
       const start = isMainWebviewWindow()
         ? startListening()
         : requestMainListenerControl("start", sessionId);

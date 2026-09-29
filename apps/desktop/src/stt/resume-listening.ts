@@ -8,6 +8,7 @@ import { useListener } from "./contexts";
 import {
   clearCaptureAudioSaved,
   clearCaptureLifecycleMarker,
+  hasAudioAwaitingUser,
   hasPendingZeroRetentionAudio,
   loadCaptureLifecycleMarker,
   markCaptureAudioSaved,
@@ -96,7 +97,11 @@ export function useResumeListeningLifecycle(sessionId: string) {
         if (clearMarker) {
           try {
             const marker = await loadCaptureLifecycleMarker(sessionId);
-            if (marker && !hasPendingZeroRetentionAudio(marker)) {
+            if (
+              marker &&
+              !hasPendingZeroRetentionAudio(marker) &&
+              !hasAudioAwaitingUser(marker)
+            ) {
               await clearCaptureLifecycleMarker(sessionId, marker.transcriptId);
             }
           } catch (error) {
@@ -227,10 +232,10 @@ export function useResumeListeningLifecycle(sessionId: string) {
         }
       }
 
-      if (
-        !state.hasMarker() ||
-        !(await loadCaptureLifecycleMarker(sessionId))
-      ) {
+      const pendingMarker = state.hasMarker()
+        ? await loadCaptureLifecycleMarker(sessionId)
+        : null;
+      if (!pendingMarker) {
         if (ownsRecoveryFinalizationRef.current) {
           finishCaptureRecoveryFinalization(sessionId);
           ownsRecoveryFinalizationRef.current = false;
@@ -239,7 +244,7 @@ export function useResumeListeningLifecycle(sessionId: string) {
         return "inactive" as const;
       }
 
-      if (!options?.processStopped) {
+      if (!options?.processStopped && hasAudioAwaitingUser(pendingMarker)) {
         try {
           await markCaptureAudioSaved(sessionId);
         } catch (error) {
@@ -256,10 +261,6 @@ export function useResumeListeningLifecycle(sessionId: string) {
         }
         return "awaiting_user" as const;
       }
-      await clearCaptureAudioSaved(sessionId).catch((error) => {
-        console.error("[listener] failed to clear capture audio state", error);
-      });
-
       if (!ownsRecoveryFinalizationRef.current) {
         if (!beginCaptureRecoveryFinalization(sessionId)) {
           return failRecovery({ clearMarker: false });
@@ -293,6 +294,9 @@ export function useResumeListeningLifecycle(sessionId: string) {
       if (await loadCaptureLifecycleMarker(sessionId)) {
         return failRecovery();
       }
+      await clearCaptureAudioSaved(sessionId).catch((error) => {
+        console.error("[listener] failed to clear capture audio state", error);
+      });
       finishCaptureRecoveryFinalization(sessionId);
       ownsRecoveryFinalizationRef.current = false;
       return "inactive" as const;

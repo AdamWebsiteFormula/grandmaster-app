@@ -285,6 +285,14 @@ function parseInheritedCapture(value: unknown): InheritedCapture[] {
   ];
 }
 
+export function hasAudioAwaitingUser(marker: CaptureLifecycleMarker) {
+  return (
+    !marker.summaryMode &&
+    (marker.chunkedAudio === true ||
+      (marker.inheritedCaptures ?? []).length > 0)
+  );
+}
+
 export function hasPendingZeroRetentionAudio(marker: CaptureLifecycleMarker) {
   return (
     (marker.chunkedAudio === true && marker.retainAudio === false) ||

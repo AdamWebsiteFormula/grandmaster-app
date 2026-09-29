@@ -73,9 +73,7 @@ test("resumes listening in the same note", () => {
 
   expect(mocks.startListening).toHaveBeenCalledOnce();
   expect(mocks.requestCaptureRecovery).not.toHaveBeenCalled();
-  expect(mocks.toastDismiss).toHaveBeenCalledWith(
-    "capture-audio-saved-session-1",
-  );
+  expect(mocks.toastDismiss).not.toHaveBeenCalled();
 });
 
 test("routes resume listening to the main window from note windows", () => {
