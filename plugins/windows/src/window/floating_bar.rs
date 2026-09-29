@@ -575,17 +575,20 @@ pub fn session_id() -> Option<String> {
 }
 
 pub fn hide() -> Result<(), Error> {
+    platform::hide()?;
     if let Ok(mut session_id) = SESSION_ID.lock() {
         *session_id = None;
     }
-    platform::hide()
+    Ok(())
 }
 
 pub fn update(state: FloatingBarState) -> Result<(), Error> {
+    let next_session_id = state.session_id.clone();
+    platform::update(state)?;
     if let Ok(mut session_id) = SESSION_ID.lock() {
-        session_id.clone_from(&state.session_id);
+        *session_id = next_session_id;
     }
-    platform::update(state)
+    Ok(())
 }
 
 pub fn update_amplitude(amplitude: f64) -> Result<(), Error> {
