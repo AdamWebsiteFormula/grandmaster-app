@@ -406,7 +406,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn whole_session_replacement_keeps_assignment_without_hint_id() {
+    async fn current_capture_replacement_keeps_assignment_without_hint_id() {
         let db = test_db().await;
         let mut source_word = stored_word("source-word", "hello".to_string(), 100.0, 200.0);
         source_word.channel = Some(1.0);
@@ -432,10 +432,22 @@ mod tests {
             .await
             .unwrap();
 
-        let mut request = request(BatchTranscriptPromotion::WholeSession);
         let mut batch_word = stored_word("new-word", "hello".to_string(), 100.0, 200.0);
         batch_word.channel = Some(1.0);
+        let mut request = request(BatchTranscriptPromotion::CurrentCapture {
+            audio_offset_ms: 0.0,
+            replace_transcript_id: Some("source".to_string()),
+            started_at: 1000.0,
+        });
+        request.started_at = 1000.0;
         request.words = vec![batch_word];
+        request.hints = vec![StoredSpeakerHint {
+            id: "new-word:provider_speaker_index".to_string(),
+            word_id: Some("new-word".to_string()),
+            hint_type: "provider_speaker_index".to_string(),
+            value: Value::String(r#"{"channel":1,"speaker_index":7}"#.to_string()),
+        }];
+        request.mark_audio_complete = false;
 
         assert_eq!(
             save_batch_transcript(db.pool(), request).await.unwrap(),
