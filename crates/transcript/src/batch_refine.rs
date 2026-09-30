@@ -3,7 +3,7 @@ use std::{cmp::Ordering, collections::HashMap, hash::Hash, sync::LazyLock};
 use regex::Regex;
 use serde_json::{Number, Value};
 
-use crate::ChannelProfile;
+use crate::{ChannelProfile, IdentityScope, RenderTranscriptInput, RenderTranscriptWordInput};
 
 static NON_LETTER_OR_NUMBER: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"[^\p{L}\p{N}]").expect("valid Unicode character regex"));
@@ -213,6 +213,7 @@ struct TargetWord {
 #[derive(Clone)]
 struct RenderWord {
     id: String,
+    text: String,
     start_ms: f64,
     end_ms: f64,
     channel: f64,
@@ -221,7 +222,7 @@ struct RenderWord {
 
 #[derive(Clone)]
 enum AssignmentScope {
-    Channel,
+    Channel(ChannelProfile),
     ChannelSpeaker {
         channel: ChannelProfile,
         speaker_index: f64,
@@ -811,13 +812,14 @@ fn build_render_transcript(
     let mut words = Vec::new();
     let mut word_index_by_id: OrderedMap<String, usize> = OrderedMap::default();
     for word in source_words {
-        let (Some(_text), Some(start_ms), Some(end_ms)) = (&word.text, word.start_ms, word.end_ms)
+        let (Some(text), Some(start_ms), Some(end_ms)) = (&word.text, word.start_ms, word.end_ms)
         else {
             continue;
         };
         word_index_by_id.set(word.id.clone(), words.len());
         words.push(RenderWord {
             id: word.id.clone(),
+            text: text.clone(),
             start_ms,
             end_ms,
             channel: word.channel.unwrap_or(0.0),
@@ -843,6 +845,48 @@ fn build_render_transcript(
         }
     }
     Some(RenderTranscript { words, assignments })
+}
+
+pub fn render_input_from_stored(
+    started_at: Option<i64>,
+    words: &[StoredTranscriptWord],
+    hints: &[StoredSpeakerHint],
+) -> Option<RenderTranscriptInput> {
+    let transcript = build_render_transcript(words, hints)?;
+
+    Some(RenderTranscriptInput {
+        started_at,
+        words: transcript
+            .words
+            .into_iter()
+            .map(|word| RenderTranscriptWordInput {
+                id: word.id,
+                text: word.text,
+                start_ms: word.start_ms.round() as i64,
+                end_ms: word.end_ms.round() as i64,
+                channel: word.channel.round() as i32,
+                speaker_index: word.speaker_index.map(|index| index.round() as i32),
+            })
+            .collect(),
+        assignments: transcript
+            .assignments
+            .into_iter()
+            .map(|assignment| crate::IdentityAssignment {
+                human_id: assignment.human_id,
+                scope: match assignment.scope {
+                    AssignmentScope::Channel(channel) => IdentityScope::Channel { channel },
+                    AssignmentScope::ChannelSpeaker {
+                        channel,
+                        speaker_index,
+                    } => IdentityScope::ChannelSpeaker {
+                        channel,
+                        speaker_index: speaker_index.round() as i32,
+                    },
+                    AssignmentScope::Words(word_ids) => IdentityScope::Words { word_ids },
+                },
+            })
+            .collect(),
+    })
 }
 
 fn normalize_speaker_hint(
@@ -904,7 +948,7 @@ fn normalize_speaker_hint(
     let channel = channel_profile(word.channel);
     let scope = word
         .speaker_index
-        .map_or(AssignmentScope::Channel, |speaker_index| {
+        .map_or(AssignmentScope::Channel(channel), |speaker_index| {
             AssignmentScope::ChannelSpeaker {
                 channel,
                 speaker_index,
@@ -929,7 +973,7 @@ fn explicit_speaker_scope(value: &Value) -> Option<AssignmentScope> {
             channel: channel_profile,
             speaker_index: speaker_index.as_f64()?,
         }),
-        Some(Value::Null) => Some(AssignmentScope::Channel),
+        Some(Value::Null) => Some(AssignmentScope::Channel(channel_profile)),
         _ => None,
     }
 }
@@ -960,7 +1004,7 @@ fn resolve_scoped_word_human_ids(transcript: &RenderTranscript) -> OrderedMap<St
                     assignment.human_id.clone(),
                 );
             }
-            AssignmentScope::Channel => {}
+            AssignmentScope::Channel(_) => {}
         }
     }
 
@@ -1187,6 +1231,52 @@ mod tests {
             "channel": 1,
             "speaker_index": 0,
         }))
+    }
+
+    #[test]
+    fn render_input_from_stored_applies_provider_and_user_speaker_hints() {
+        let mut stored_word = word("word-1", 10.4, 20.6, 0.0);
+        stored_word.text = Some("hello".to_string());
+        let mut untimed_word = word("untimed", 30.0, 40.0, 0.0);
+        untimed_word.start_ms = None;
+        let rendered = render_input_from_stored(
+            Some(123),
+            &[stored_word, untimed_word],
+            &[
+                hint(
+                    "word-1:provider_speaker_index",
+                    Some("word-1"),
+                    "provider_speaker_index",
+                    serde_json::json!({"channel": 1, "speaker_index": 2.6}),
+                ),
+                hint(
+                    "word-1:user_speaker_assignment",
+                    Some("word-1"),
+                    "user_speaker_assignment",
+                    serde_json::json!({"human_id": "alice"}),
+                ),
+            ],
+        )
+        .unwrap();
+
+        assert_eq!(rendered.started_at, Some(123));
+        assert_eq!(rendered.words.len(), 1);
+        assert_eq!(rendered.words[0].id, "word-1");
+        assert_eq!(rendered.words[0].text, "hello");
+        assert_eq!(rendered.words[0].start_ms, 10);
+        assert_eq!(rendered.words[0].end_ms, 21);
+        assert_eq!(rendered.words[0].channel, 1);
+        assert_eq!(rendered.words[0].speaker_index, Some(3));
+        assert_eq!(
+            rendered.assignments,
+            vec![crate::IdentityAssignment {
+                human_id: "alice".to_string(),
+                scope: IdentityScope::ChannelSpeaker {
+                    channel: ChannelProfile::RemoteParty,
+                    speaker_index: 3,
+                },
+            }]
+        );
     }
 
     fn current_request(
