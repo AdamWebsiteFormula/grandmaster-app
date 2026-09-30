@@ -5,10 +5,10 @@ use anlg_db_app::{
 };
 use anlg_transcript::{
     RenderTranscriptHuman, RenderTranscriptRequest, RenderedTranscriptSegment,
-    StoredLiveTranscriptDelta, StoredSpeakerHint, StoredTranscriptWord,
-    materialize_live_transcript, render_input_from_stored, render_transcript_segments,
+    StoredLiveTranscriptDelta, StoredSpeakerHint, materialize_live_transcript,
+    parse_stored_speaker_hints, parse_stored_transcript_words, render_input_from_stored,
+    render_transcript_segments,
 };
-use serde::de::DeserializeOwned;
 use serde_json::Value;
 use sqlx::SqlitePool;
 
@@ -62,8 +62,8 @@ pub async fn render_session_transcript(
 
     let mut transcripts = Vec::new();
     for row in rows {
-        let words = parse_json_array::<StoredTranscriptWord>(&row.words_json);
-        let hints = parse_json_array::<StoredSpeakerHint>(&row.speaker_hints_json);
+        let words = parse_stored_transcript_words(&row.words_json);
+        let hints = parse_stored_speaker_hints(&row.speaker_hints_json);
         let deltas = row
             .pending_delta_jsons
             .iter()
@@ -116,14 +116,6 @@ pub async fn render_session_transcript(
     }))
 }
 
-fn parse_json_array<T: DeserializeOwned>(json: &str) -> Vec<T> {
-    serde_json::from_str::<Vec<Value>>(json)
-        .unwrap_or_default()
-        .into_iter()
-        .filter_map(|value| serde_json::from_value(value).ok())
-        .collect()
-}
-
 fn assigned_human_id(hint: &StoredSpeakerHint) -> Option<String> {
     if hint.hint_type != "automatic_speaker_assignment"
         && hint.hint_type != "user_speaker_assignment"
@@ -152,7 +144,6 @@ fn insert_human_id(
 mod tests {
     use anlg_db_app::prepare_schema;
     use anlg_db_core::Db;
-    use anlg_transcript::StoredSpeakerHint;
 
     use super::*;
 
@@ -201,29 +192,25 @@ mod tests {
         .await
         .unwrap();
 
-        let hints = vec![
-            StoredSpeakerHint {
-                id: "pending-word:provider_speaker_index".to_string(),
-                word_id: Some("pending-word".to_string()),
-                hint_type: "provider_speaker_index".to_string(),
-                value: Value::String(r#"{"channel":1,"speaker_index":7}"#.to_string()),
+        let hints = serde_json::json!([
+            {
+                "id": "pending-word:provider_speaker_index",
+                "word_id": "pending-word",
+                "type": "provider_speaker_index",
+                "value": r#"{"channel":1,"speaker_index":7}"#
             },
-            StoredSpeakerHint {
-                id: "pending-word:user_speaker_assignment".to_string(),
-                word_id: Some("pending-word".to_string()),
-                hint_type: "user_speaker_assignment".to_string(),
-                value: Value::String(
-                    r#"{"human_id":"speaker-human","scope":"speaker","channel":1,"speaker_index":7}"#
-                        .to_string(),
-                ),
+            {
+                "word_id": "pending-word",
+                "type": "user_speaker_assignment",
+                "value": r#"{"human_id":"speaker-human","scope":"speaker","channel":1,"speaker_index":7}"#
             },
-        ];
+        ]);
         sqlx::query(
             "INSERT INTO transcripts
                 (id, session_id, started_at_ms, ended_at_ms, words_json, speaker_hints_json)
              VALUES ('transcript-2', 'session-1', 500, 4000, '[]', ?)",
         )
-        .bind(serde_json::to_string(&hints).unwrap())
+        .bind(hints.to_string())
         .execute(db.pool())
         .await
         .unwrap();
