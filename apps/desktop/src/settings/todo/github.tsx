@@ -1,8 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { fetch } from "@tauri-apps/plugin-http";
-import { useMemo, useState } from "react";
-import { useDebounceValue } from "usehooks-ts";
+import { useEffect, useMemo, useState } from "react";
 
 import { commands as openerCommands } from "@anlg/plugin-opener2";
 import {
@@ -52,6 +51,7 @@ export function GitHubTodoProviderContent({
   const { openIntegration, openingAction } = useOpenIntegrationUrl();
   const [showAddInput, setShowAddInput] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [debouncedInput, setDebouncedInput] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const providerConnections = useMemo(
@@ -68,7 +68,10 @@ export function GitHubTodoProviderContent({
 
   const setRepository = useSetSettingValue("todo_github_repository");
 
-  const [debouncedInput] = useDebounceValue(inputValue, 300);
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedInput(inputValue), 300);
+    return () => clearTimeout(id);
+  }, [inputValue]);
 
   const { data: suggestions = [] } = useQuery({
     queryKey: ["github-repo-search", debouncedInput],
@@ -81,6 +84,7 @@ export function GitHubTodoProviderContent({
     setRepository(repo);
     setShowAddInput(false);
     setInputValue("");
+    setDebouncedInput("");
     setShowSuggestions(false);
   }
 
@@ -216,6 +220,7 @@ export function GitHubTodoProviderContent({
                 onClick={() => {
                   setShowAddInput(false);
                   setInputValue("");
+                  setDebouncedInput("");
                 }}
                 className="text-muted-foreground hover:text-muted-foreground text-xs underline transition-colors"
               >
