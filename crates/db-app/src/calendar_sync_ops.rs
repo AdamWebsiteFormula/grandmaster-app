@@ -1,5 +1,7 @@
 use sqlx::{QueryBuilder, Sqlite, SqliteConnection};
 
+use crate::session_participant_ops::HUMAN_NAME_IS_PLACEHOLDER_SQL;
+
 pub const DEFAULT_USER_ID: &str = "00000000-0000-0000-0000-000000000000";
 
 pub const WORKSPACE_ID_SQL: &str = "NULLIF((
@@ -15,9 +17,6 @@ pub const ORGANIZATION_ID_BY_NAME_SQL: &str = "IFNULL((
   ORDER BY created_at, id
   LIMIT 1
 ), '')";
-
-pub const HUMAN_NAME_IS_PLACEHOLDER_SQL: &str =
-    "(trim(name) = '' OR (name LIKE '%@%.%' AND instr(trim(name), ' ') = 0))";
 
 pub const OWNER_USER_ID_SQL: &str = "COALESCE(\n    NULLIF(NULLIF(?, ''), '00000000-0000-0000-0000-000000000000'),\n    NULLIF((\n  SELECT json_extract(value_json, '$.workspace_id')\n  FROM app_settings\n  WHERE id = 'cloudsync_workspace_binding'\n), ''),\n    '00000000-0000-0000-0000-000000000000'\n  )";
 
