@@ -120,6 +120,25 @@ export function LiveCaptureRecovery() {
         console.error("[listener] failed to recover active capture:", error);
       });
 
+    void listenerCommands
+      .listStoppedCaptures()
+      .then((result) => {
+        if (result.status === "error") {
+          console.error(
+            "[listener] failed to list stopped captures",
+            result.error,
+          );
+          return;
+        }
+        addSessionIds(
+          result.data.map((capture) => capture.session_id),
+          true,
+        );
+      })
+      .catch((error) => {
+        console.error("[listener] failed to list stopped captures", error);
+      });
+
     void loadCaptureLifecycleMarkers()
       .then((markers) => {
         addSessionIds(markers.map((marker) => marker.sessionId));

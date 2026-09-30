@@ -1,7 +1,10 @@
 import { useCallback, useRef } from "react";
 
 import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
-import { commands as listenerCommands } from "@anlg/plugin-transcription";
+import {
+  commands as listenerCommands,
+  type StoppedCapture,
+} from "@anlg/plugin-transcription";
 
 import { getAudioDurationMs, useCaptureLifecycle } from "./capture-lifecycle";
 import { useListener } from "./contexts";
@@ -101,6 +104,28 @@ export function useResumeListeningLifecycle(sessionId: string) {
 
       const { lifecycleState, stoppedProcessingRef } = attempt;
       let state: Awaited<typeof lifecycleState> | undefined;
+      let stoppedCapture: StoppedCapture | null = null;
+      const acknowledgeStoppedOutcome = async () => {
+        if (!stoppedCapture) return;
+        const stoppedAtMs = stoppedCapture.stopped_at_ms;
+        try {
+          const result = await listenerCommands.acknowledgeStoppedCapture(
+            sessionId,
+            stoppedAtMs,
+          );
+          if (result.status === "error") {
+            console.error(
+              "[listener] failed to acknowledge stopped capture",
+              result.error,
+            );
+          }
+        } catch (error) {
+          console.error(
+            "[listener] failed to acknowledge stopped capture",
+            error,
+          );
+        }
+      };
       const failRecovery = async ({
         clearMarker = true,
       }: { clearMarker?: boolean } = {}) => {
@@ -140,10 +165,24 @@ export function useResumeListeningLifecycle(sessionId: string) {
           ownsRecoveryFinalizationRef.current = false;
         }
         recoveryAttemptRef.current = null;
+        await acknowledgeStoppedOutcome();
         return "error" as const;
       };
       try {
         state = await lifecycleState;
+        try {
+          const result = await listenerCommands.getStoppedCapture(sessionId);
+          if (result.status === "error") {
+            console.error(
+              "[listener] failed to get stopped capture",
+              result.error,
+            );
+          } else {
+            stoppedCapture = result.data;
+          }
+        } catch (error) {
+          console.error("[listener] failed to get stopped capture", error);
+        }
         await state.lifecycle.acquireCloudsyncLease();
       } catch (error) {
         console.error(
@@ -160,6 +199,7 @@ export function useResumeListeningLifecycle(sessionId: string) {
         return failRecovery({ clearMarker: !lifecycleStateUnavailable });
       }
 
+      const processStopped = options?.processStopped || stoppedCapture !== null;
       let result: Awaited<ReturnType<typeof attachLiveSession>>;
       try {
         result = await attachLiveSession(sessionId, {
@@ -238,6 +278,7 @@ export function useResumeListeningLifecycle(sessionId: string) {
             stoppedProcessingRef.current = null;
           }
         } else {
+          await acknowledgeStoppedOutcome();
           if (ownsRecoveryFinalizationRef.current) {
             finishCaptureRecoveryFinalization(sessionId);
             ownsRecoveryFinalizationRef.current = false;
@@ -255,10 +296,11 @@ export function useResumeListeningLifecycle(sessionId: string) {
           ownsRecoveryFinalizationRef.current = false;
         }
         await state.lifecycle.releaseCloudsyncLease();
+        await acknowledgeStoppedOutcome();
         return "inactive" as const;
       }
 
-      if (!options?.processStopped && hasAudioAwaitingUser(pendingMarker)) {
+      if (!processStopped && hasAudioAwaitingUser(pendingMarker)) {
         try {
           await markCaptureAudioSaved(sessionId);
         } catch (error) {
@@ -296,8 +338,11 @@ export function useResumeListeningLifecycle(sessionId: string) {
         await state.lifecycle.recoverStopped(sessionId, {
           durationSeconds,
           audioPath,
-          requestedLiveTranscription: true,
-          liveTranscriptionActive: false,
+          requestedLiveTranscription:
+            stoppedCapture?.requested_live_transcription ?? true,
+          liveTranscriptionActive:
+            stoppedCapture?.live_transcription_active ?? false,
+          chunkedAudio: stoppedCapture?.chunked_audio,
           needsBatchRepair: true,
         });
       } catch (error) {
@@ -313,6 +358,7 @@ export function useResumeListeningLifecycle(sessionId: string) {
       });
       finishCaptureRecoveryFinalization(sessionId);
       ownsRecoveryFinalizationRef.current = false;
+      await acknowledgeStoppedOutcome();
       return "inactive" as const;
     },
     [
