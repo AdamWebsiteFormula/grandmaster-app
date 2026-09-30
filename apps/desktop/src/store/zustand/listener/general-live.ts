@@ -320,6 +320,7 @@ const createSessionEventHandlers = <T extends LiveStore>(
           false);
 
     clearLiveEventUnlisteners(unlisteners);
+    toast.dismiss(`audio-saving-delayed-${targetSessionId}`);
 
     setLiveState(set, (live) => {
       delete live.eventUnlistenersBySession[targetSessionId];
