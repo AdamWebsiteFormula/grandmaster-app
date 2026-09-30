@@ -37,6 +37,12 @@ Default permissions for the plugin
 - `allow-get-cloudsync-status`
 - `allow-get-startup-status`
 - `allow-wait-until-ready`
+- `allow-create-session`
+- `allow-create-session-for-event`
+- `allow-soft-delete-session`
+- `allow-restore-deleted-session`
+- `allow-add-session-participant`
+- `allow-remove-session-participant`
 
 ## Permission Table
 
@@ -46,6 +52,32 @@ Default permissions for the plugin
 <th>Description</th>
 </tr>
 
+
+<tr>
+<td>
+
+`db:allow-add-session-participant`
+
+</td>
+<td>
+
+Enables the add_session_participant command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-add-session-participant`
+
+</td>
+<td>
+
+Denies the add_session_participant command without any pre-configured scope.
+
+</td>
+</tr>
 
 <tr>
 <td>
@@ -277,6 +309,58 @@ Enables the create_e2ee_identity command without any pre-configured scope.
 <td>
 
 Denies the create_e2ee_identity command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:allow-create-session`
+
+</td>
+<td>
+
+Enables the create_session command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-create-session`
+
+</td>
+<td>
+
+Denies the create_session command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:allow-create-session-for-event`
+
+</td>
+<td>
+
+Enables the create_session_for_event command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-create-session-for-event`
+
+</td>
+<td>
+
+Denies the create_session_for_event command without any pre-configured scope.
 
 </td>
 </tr>
@@ -726,6 +810,58 @@ Denies the list_meetings command without any pre-configured scope.
 <tr>
 <td>
 
+`db:allow-remove-session-participant`
+
+</td>
+<td>
+
+Enables the remove_session_participant command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-remove-session-participant`
+
+</td>
+<td>
+
+Denies the remove_session_participant command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:allow-restore-deleted-session`
+
+</td>
+<td>
+
+Enables the restore_deleted_session command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-restore-deleted-session`
+
+</td>
+<td>
+
+Denies the restore_deleted_session command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `db:allow-run-legacy-import`
 
 </td>
@@ -797,6 +933,32 @@ Enables the seal_workspace_e2ee_key_for_recipients command without any pre-confi
 <td>
 
 Denies the seal_workspace_e2ee_key_for_recipients command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:allow-soft-delete-session`
+
+</td>
+<td>
+
+Enables the soft_delete_session command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-soft-delete-session`
+
+</td>
+<td>
+
+Denies the soft_delete_session command without any pre-configured scope.
 
 </td>
 </tr>

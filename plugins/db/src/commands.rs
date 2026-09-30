@@ -467,7 +467,7 @@ fn seal_workspace_e2ee_key(
             let grant = anlg_e2ee::seal_workspace_key_for_member(
                 &key,
                 &recipient.public_key,
-                &workspace_id,
+                workspace_id,
                 &user_id,
             )
             .map_err(|error| error.to_string())?;
@@ -562,6 +562,7 @@ pub(crate) async fn configure_cloudsync(
     result
 }
 
+#[allow(clippy::too_many_arguments)]
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn configure_cloudsync_token<R: tauri::Runtime>(

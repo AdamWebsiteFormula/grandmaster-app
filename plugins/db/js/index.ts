@@ -26,6 +26,8 @@ import type {
   WorkspaceE2eeKeyRecipient,
 } from "./bindings.gen";
 
+export { commands } from "./bindings.gen";
+
 export type {
   CloudsyncE2eeWitness,
   CloudsyncTokenConfigurationResult,
