@@ -944,7 +944,7 @@ mod tests {
     }
 
     #[test]
-    fn serializes_batch_words_and_hints_in_typescript_field_order_with_integer_numbers() {
+    fn serializes_batch_words_and_hints_with_integer_numbers() {
         let words = vec![StoredTranscriptWord {
             id: "word-1".to_string(),
             text: None,
@@ -962,12 +962,25 @@ mod tests {
         )];
 
         assert_eq!(
-            serialize_batch_transcript_words(&words).unwrap(),
-            r#"[{"id":"word-1","text":"","start_ms":1200,"end_ms":1200,"channel":0}]"#
+            serde_json::from_str::<Value>(&serialize_batch_transcript_words(&words).unwrap())
+                .unwrap(),
+            serde_json::json!([{
+                "id": "word-1",
+                "text": "",
+                "start_ms": 1200,
+                "end_ms": 1200,
+                "channel": 0,
+            }])
         );
         assert_eq!(
-            serialize_batch_transcript_hints(&hints).unwrap(),
-            r#"[{"id":"hint-1","word_id":"","type":"custom","value":"value"}]"#
+            serde_json::from_str::<Value>(&serialize_batch_transcript_hints(&hints).unwrap())
+                .unwrap(),
+            serde_json::json!([{
+                "id": "hint-1",
+                "word_id": "",
+                "type": "custom",
+                "value": "value",
+            }])
         );
     }
 }

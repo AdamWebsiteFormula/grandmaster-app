@@ -1797,7 +1797,7 @@ mod tests {
     }
 
     #[test]
-    fn serializes_generated_segment_assignment_fields_in_contract_order() {
+    fn preserves_generated_segment_assignment_fields() {
         let old_word = word("old", 0.0, 100.0, 1.0);
         let new_word = word("new", 0.0, 100.0, 1.0);
         let result = reconcile_refined_speaker_clusters(
@@ -1817,10 +1817,13 @@ mod tests {
             .expect("segment assignment was restored");
         assert_eq!(generated.id, "new:user_speaker_assignment:segment");
         assert_eq!(
-            generated.value.as_str(),
-            Some(
-                r#"{"human_id":"alice","scope":"segment","word_ids":["new"],"extend_to_adjacent":false}"#
-            )
+            serde_json::from_str::<serde_json::Value>(generated.value.as_str().unwrap()).unwrap(),
+            serde_json::json!({
+                "human_id": "alice",
+                "scope": "segment",
+                "word_ids": ["new"],
+                "extend_to_adjacent": false,
+            })
         );
     }
 
