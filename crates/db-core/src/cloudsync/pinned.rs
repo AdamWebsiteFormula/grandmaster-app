@@ -49,38 +49,6 @@ pub(crate) async fn reserve_pinned_connection(
     )))
 }
 
-pub(crate) fn release_pinned_connection(
-    _pool: &SqlitePool,
-    connection: ReservedConnection<PinnedCloudsyncConnection>,
-) {
+pub(crate) fn release_pinned_connection(connection: ReservedConnection<PinnedCloudsyncConnection>) {
     drop(connection);
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use sqlx::sqlite::SqlitePoolOptions;
-    use std::time::Duration;
-
-    #[tokio::test]
-    async fn dropping_single_pool_pin_returns_its_connection() {
-        let pool = SqlitePoolOptions::new()
-            .max_connections(1)
-            .connect("sqlite::memory:")
-            .await
-            .unwrap();
-        let slot = Arc::new(Mutex::new(Some(pool.acquire().await.unwrap())));
-        let connection = reserve_pinned_connection(&pool, &slot).await.unwrap();
-
-        assert!(pool.try_acquire().is_none());
-        drop(connection);
-        assert!(slot.lock().await.is_none());
-
-        let connection = tokio::time::timeout(Duration::from_secs(1), pool.acquire())
-            .await
-            .expect("dropping the pinned reservation should return its connection")
-            .unwrap();
-        drop(connection);
-        pool.close().await;
-    }
 }

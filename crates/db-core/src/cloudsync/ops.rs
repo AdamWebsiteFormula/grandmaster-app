@@ -48,7 +48,7 @@ impl Db {
         &self,
         connection: ReservedConnection<PinnedCloudsyncConnection>,
     ) {
-        release_pinned_connection(&self.pool, connection);
+        release_pinned_connection(connection);
     }
 
     async fn lock_cloudsync_connection(

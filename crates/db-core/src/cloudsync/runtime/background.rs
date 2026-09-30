@@ -490,7 +490,7 @@ pub(super) async fn sync_cloudsync_connection(
         let mut reserved =
             super::super::pinned::reserve_pinned_connection(pool, connection).await?;
         let result = pending_cloudsync_payload_exists(&mut reserved, interrupt).await;
-        super::super::pinned::release_pinned_connection(pool, reserved);
+        super::super::pinned::release_pinned_connection(reserved);
         result
     };
     let pending_batch_exists = match pending_batch_exists {
@@ -516,7 +516,7 @@ pub(super) async fn sync_cloudsync_connection(
             let result = pending_cloudsync_payload_exists(&mut connection, interrupt).await;
             match result {
                 Err(_) if cloudsync_activity_paused(sync_hook) => {
-                    super::super::pinned::release_pinned_connection(pool, connection);
+                    super::super::pinned::release_pinned_connection(connection);
                     return Ok(CloudsyncStepOutcome::Deferred);
                 }
                 result => result?,
@@ -530,7 +530,7 @@ pub(super) async fn sync_cloudsync_connection(
     };
     runtime_state.lock().unwrap().outbound_work_state = Some(has_outbound_work);
     if cloudsync_activity_paused(sync_hook) {
-        super::super::pinned::release_pinned_connection(pool, connection);
+        super::super::pinned::release_pinned_connection(connection);
         return Ok(CloudsyncStepOutcome::Deferred);
     }
     let send = match (directive, has_outbound_work) {
@@ -556,7 +556,7 @@ pub(super) async fn sync_cloudsync_connection(
     };
     let send = match send {
         Err(_) if cloudsync_activity_paused(sync_hook) => {
-            super::super::pinned::release_pinned_connection(pool, connection);
+            super::super::pinned::release_pinned_connection(connection);
             return Ok(CloudsyncStepOutcome::Deferred);
         }
         result => result?,
@@ -565,20 +565,20 @@ pub(super) async fn sync_cloudsync_connection(
         runtime_state.lock().unwrap().outbound_work_state = Some(false);
     }
     if cloudsync_activity_paused(sync_hook) {
-        super::super::pinned::release_pinned_connection(pool, connection);
+        super::super::pinned::release_pinned_connection(connection);
         return Ok(CloudsyncStepOutcome::Deferred);
     }
     let receive =
         super::super::ops::interruptible_network_receive_changes(&mut connection, interrupt).await;
     let receive = match receive {
         Err(_) if cloudsync_activity_paused(sync_hook) => {
-            super::super::pinned::release_pinned_connection(pool, connection);
+            super::super::pinned::release_pinned_connection(connection);
             return Ok(CloudsyncStepOutcome::Deferred);
         }
         result => result?,
     };
     let result = merge_bounded_sync_results(send, receive);
-    super::super::pinned::release_pinned_connection(pool, connection);
+    super::super::pinned::release_pinned_connection(connection);
     let outcome = run_after_sync_hook(sync_hook, pool, &result).await?;
     if outcome.deferred || cloudsync_activity_paused(sync_hook) {
         return Ok(CloudsyncStepOutcome::Deferred);
