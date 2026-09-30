@@ -39,7 +39,7 @@ const COMMANDS: &[&str] = &[
     "acknowledge_completed_transcription",
     "extract_voiceprint_candidates",
     "promote_voiceprint_candidates",
-    "cleanup_expired_voiceprint_candidates",
+    "delete_processed_session_audio",
     "parse_subtitle",
     "export_to_vtt",
     "is_supported_languages_batch",
@@ -50,7 +50,6 @@ const COMMANDS: &[&str] = &[
     "reconcile_refined_speaker_clusters",
     "extract_voiceprint_candidates",
     "promote_voiceprint_candidates",
-    "cleanup_expired_voiceprint_candidates",
 ];
 
 fn main() {
