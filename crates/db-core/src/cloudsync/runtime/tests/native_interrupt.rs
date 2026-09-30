@@ -79,16 +79,17 @@ async fn assert_interrupts_stalled_native_request_once() {
     .await
     .expect("sync operation released before its SQLite worker became idle");
 
-    {
-        let mut connection = db.cloudsync_connection.lock().await;
-        let value: i64 = sqlx::query_scalar("SELECT 1")
-            .fetch_one(&mut **connection.as_mut().unwrap())
-            .await
-            .unwrap();
-        assert_eq!(value, 1);
-        let worker_idle = connection.as_mut().unwrap().lock_handle().await.unwrap();
-        drop(worker_idle);
-    }
+    let mut connection = tokio::time::timeout(Duration::from_secs(2), db.pool().acquire())
+        .await
+        .expect("single-pool reservation did not return its connection")
+        .unwrap();
+    let value: i64 = sqlx::query_scalar("SELECT 1")
+        .fetch_one(&mut *connection)
+        .await
+        .unwrap();
+    assert_eq!(value, 1);
+    let worker_idle = connection.lock_handle().await.unwrap();
+    drop(worker_idle);
 
     let _ = release_tx.send(());
     server.join().unwrap();

@@ -147,7 +147,8 @@ impl Db {
                     .map_err(anlg_cloudsync::Error::from)?,
             );
         }
-        let mut pinned = ReservedConnection::new(PinnedCloudsyncConnection(pinned));
+        let mut pinned =
+            ReservedConnection::new(PinnedCloudsyncConnection::new(pinned, &self.pool));
 
         let mut connections = Vec::new();
         for _ in 1..self.pool.options().get_max_connections() {

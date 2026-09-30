@@ -269,7 +269,7 @@ mod tests {
     }
 
     #[test]
-    fn cancelling_raw_sqlite_before_worker_start_interrupts_the_worker() {
+    fn cancelling_raw_sqlite_before_worker_start_skips_the_worker() {
         let runtime = tokio::runtime::Builder::new_current_thread()
             .max_blocking_threads(1)
             .enable_time()
@@ -304,16 +304,13 @@ mod tests {
                 "WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM c) SELECT count(*) FROM c",
                 vec![],
             ));
-            for _ in 0..4 {
-                futures_util::future::poll_fn(|cx| match operation.as_mut().poll(cx) {
+            futures_util::future::poll_fn(|cx| match operation.as_mut().poll(cx) {
                     std::task::Poll::Pending => std::task::Poll::Ready(()),
                     std::task::Poll::Ready(result) => {
                         panic!("raw SQLite query completed before cancellation: {result:?}")
                     }
                 })
                 .await;
-                tokio::task::yield_now().await;
-            }
 
             let releaser = std::thread::spawn(move || {
                 std::thread::sleep(Duration::from_millis(500));
@@ -331,7 +328,22 @@ mod tests {
                 "cancelled SQLite connection was returned before its worker started"
             );
 
-            drop(connection);
+            let result: i64 = {
+                let connection = tokio::time::timeout(
+                    Duration::from_millis(100),
+                    connection.connection(),
+                )
+                .await
+                .expect("cancelled owner waited for an unstarted native worker")
+                .unwrap();
+                sqlx::query_scalar("SELECT 1")
+                    .fetch_one(connection)
+                    .await
+                    .unwrap()
+            };
+            assert_eq!(result, 1);
+
+            drop(connection.into_inner().unwrap());
             let mut connection = pool.acquire().await.unwrap();
             let result: i64 = sqlx::query_scalar("SELECT 1")
                 .fetch_one(&mut *connection)

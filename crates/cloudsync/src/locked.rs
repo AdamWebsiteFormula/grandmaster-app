@@ -182,6 +182,13 @@ async fn execute_on_locked_handle_inner(
         Ok(handle) => handle,
         Err(error) => return Ok(Err(error.into())),
     };
+    if !matches!(
+        cancel_rx.try_recv(),
+        Err(oneshot::error::TryRecvError::Empty)
+    ) {
+        drop(handle);
+        return Ok(Err(interrupted_error()));
+    }
     let db = SendDb(handle.as_raw_handle());
     let worker_db = SendDb(handle.as_raw_handle());
     let cancelled = Arc::new(AtomicBool::new(false));
