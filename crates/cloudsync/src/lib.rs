@@ -70,6 +70,7 @@ pub fn apply_with_initializer(
 ))]
 mod tests {
     use super::*;
+    use std::future::Future;
     use std::str::FromStr;
     use std::time::{Duration, Instant};
 
@@ -160,6 +161,78 @@ mod tests {
 
         drop(connection);
         pool.close().await;
+    }
+
+    #[test]
+    fn cancelling_raw_sqlite_before_worker_start_interrupts_the_worker() {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .max_blocking_threads(1)
+            .enable_time()
+            .build()
+            .unwrap();
+
+        runtime.block_on(async {
+            let options = SqliteConnectOptions::from_str("sqlite::memory:").unwrap();
+            let (options, _) = apply(options).unwrap();
+            let pool = SqlitePoolOptions::new()
+                .max_connections(1)
+                .connect_with(options)
+                .await
+                .unwrap();
+            let mut connection = pool.acquire().await.unwrap();
+            let result: i64 = sqlx::query_scalar("SELECT 1")
+                .fetch_one(&mut *connection)
+                .await
+                .unwrap();
+            assert_eq!(result, 1);
+
+            let (started_tx, started_rx) = tokio::sync::oneshot::channel();
+            let (release_tx, release_rx) = std::sync::mpsc::channel();
+            let blocker = tokio::task::spawn_blocking(move || {
+                let _ = started_tx.send(());
+                release_rx.recv().unwrap();
+            });
+            started_rx.await.unwrap();
+
+            let mut operation = Box::pin(locked::execute_on_locked_handle(
+                &mut connection,
+                "WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM c) SELECT count(*) FROM c",
+                vec![],
+            ));
+            for _ in 0..4 {
+                futures_util::future::poll_fn(|cx| match operation.as_mut().poll(cx) {
+                    std::task::Poll::Pending => std::task::Poll::Ready(()),
+                    std::task::Poll::Ready(result) => {
+                        panic!("raw SQLite query completed before cancellation: {result:?}")
+                    }
+                })
+                .await;
+                tokio::task::yield_now().await;
+            }
+
+            let started = Instant::now();
+            let releaser = std::thread::spawn(move || {
+                std::thread::sleep(Duration::from_millis(50));
+                release_tx.send(()).unwrap();
+            });
+            drop(operation);
+            let elapsed = started.elapsed();
+            assert!(
+                elapsed < Duration::from_secs(2),
+                "pre-step cancellation took {elapsed:?}"
+            );
+
+            let result: i64 = sqlx::query_scalar("SELECT 1")
+                .fetch_one(&mut *connection)
+                .await
+                .unwrap();
+            assert_eq!(result, 1);
+
+            blocker.await.unwrap();
+            releaser.join().unwrap();
+            drop(connection);
+            pool.close().await;
+        });
     }
 
     #[tokio::test]
