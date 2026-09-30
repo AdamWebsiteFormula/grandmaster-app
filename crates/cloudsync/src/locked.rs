@@ -20,6 +20,8 @@ use tokio::task::{JoinError, JoinHandle};
 
 use crate::error::Error;
 
+type OwnerResult = Result<Result<Option<String>, Error>, JoinError>;
+
 pub trait OwnedSqliteConnection: Send + 'static {
     fn sqlite_connection(&mut self) -> &mut SqliteConnection;
 }
@@ -38,7 +40,7 @@ pub struct ReservedConnection<C> {
 
 enum ReservedState<C> {
     Idle(C),
-    InFlight(JoinHandle<(C, Result<Option<String>, Error>)>),
+    InFlight(JoinHandle<(C, OwnerResult)>),
     Lost,
 }
 
@@ -141,9 +143,13 @@ pub(crate) async fn execute_on_locked_handle<C: OwnedSqliteConnection>(
         ReservedState::Idle(_) | ReservedState::Lost => unreachable!(),
     };
     match joined {
-        Ok((connection_owner, result)) => {
+        Ok((connection_owner, worker_result)) => {
             connection.state = ReservedState::Idle(connection_owner);
-            result
+            match worker_result {
+                Ok(result) => result,
+                Err(error) if error.is_panic() => std::panic::resume_unwind(error.into_panic()),
+                Err(error) => Err(Error::Io(std::io::Error::other(error))),
+            }
         }
         Err(error) => {
             connection.state = ReservedState::Lost;
@@ -159,12 +165,10 @@ async fn run_owned<C: OwnedSqliteConnection>(
     sql: &'static str,
     args: Vec<RawArg>,
     cancel_rx: oneshot::Receiver<()>,
-) -> (C, Result<Option<String>, Error>) {
+) -> (C, OwnerResult) {
     let mut connection = ManuallyDrop::new(connection);
-    let connection_ref = unsafe {
-        (&mut *(&mut connection as *mut ManuallyDrop<C>).cast::<C>()).sqlite_connection()
-    };
-    let result = execute_on_locked_handle_inner(connection_ref, sql, args, cancel_rx).await;
+    let result =
+        execute_on_locked_handle_inner(connection.sqlite_connection(), sql, args, cancel_rx).await;
     (ManuallyDrop::into_inner(connection), result)
 }
 
@@ -173,8 +177,11 @@ async fn execute_on_locked_handle_inner(
     sql: &'static str,
     args: Vec<RawArg>,
     mut cancel_rx: oneshot::Receiver<()>,
-) -> Result<Option<String>, Error> {
-    let mut handle = connection.lock_handle().await?;
+) -> Result<Result<Option<String>, Error>, JoinError> {
+    let mut handle = match connection.lock_handle().await {
+        Ok(handle) => handle,
+        Err(error) => return Ok(Err(error.into())),
+    };
     let db = SendDb(handle.as_raw_handle());
     let worker_db = SendDb(handle.as_raw_handle());
     let cancelled = Arc::new(AtomicBool::new(false));
@@ -207,13 +214,8 @@ async fn execute_on_locked_handle_inner(
             }
         }
     };
-    let result = match joined {
-        Ok(result) => result,
-        Err(error) if error.is_panic() => std::panic::resume_unwind(error.into_panic()),
-        Err(error) => Err(Error::Io(std::io::Error::other(error))),
-    };
     drop(handle);
-    result
+    joined
 }
 
 fn owner_join_error(error: JoinError) -> Error {
