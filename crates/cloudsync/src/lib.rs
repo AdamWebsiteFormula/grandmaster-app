@@ -71,6 +71,7 @@ pub fn apply_with_initializer(
 mod tests {
     use super::*;
     use std::str::FromStr;
+    use std::time::{Duration, Instant};
 
     use sqlx::sqlite::SqlitePoolOptions;
 
@@ -111,6 +112,44 @@ mod tests {
         assert!(
             matches!(&error, Error::Sqlite { code: 21, .. }),
             "unexpected error: {error}"
+        );
+
+        let result: i64 = sqlx::query_scalar("SELECT 1")
+            .fetch_one(&mut *connection)
+            .await
+            .unwrap();
+        assert_eq!(result, 1);
+
+        drop(connection);
+        pool.close().await;
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn cancelling_raw_sqlite_interrupts_the_worker_and_releases_the_connection() {
+        let options = SqliteConnectOptions::from_str("sqlite::memory:").unwrap();
+        let (options, _) = apply(options).unwrap();
+        let pool = SqlitePoolOptions::new()
+            .max_connections(1)
+            .connect_with(options)
+            .await
+            .unwrap();
+        let mut connection = pool.acquire().await.unwrap();
+
+        let started = Instant::now();
+        let result = tokio::time::timeout(
+            Duration::from_millis(100),
+            locked::execute_on_locked_handle(
+                &mut connection,
+                "WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM c) SELECT count(*) FROM c",
+                vec![],
+            ),
+        )
+        .await;
+        assert!(result.is_err(), "raw SQLite query did not time out");
+        let elapsed = started.elapsed();
+        assert!(
+            elapsed < Duration::from_secs(2),
+            "cancelled SQLite query took {elapsed:?}"
         );
 
         let result: i64 = sqlx::query_scalar("SELECT 1")

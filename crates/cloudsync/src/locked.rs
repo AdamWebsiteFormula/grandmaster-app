@@ -2,13 +2,13 @@
 
 use std::ffi::{CStr, CString, c_char};
 use std::ptr::{self, NonNull};
-use std::sync::mpsc::{Receiver, sync_channel};
+use std::sync::mpsc::{Receiver, TryRecvError, sync_channel};
 
 use libsqlite3_sys::{
     SQLITE_DONE, SQLITE_NULL, SQLITE_OK, SQLITE_ROW, SQLITE_TRANSIENT, sqlite3, sqlite3_bind_int64,
     sqlite3_bind_text, sqlite3_column_bytes, sqlite3_column_text, sqlite3_column_type,
-    sqlite3_errmsg, sqlite3_extended_errcode, sqlite3_finalize, sqlite3_prepare_v2, sqlite3_step,
-    sqlite3_stmt,
+    sqlite3_errmsg, sqlite3_extended_errcode, sqlite3_finalize, sqlite3_interrupt,
+    sqlite3_prepare_v2, sqlite3_step, sqlite3_stmt,
 };
 use sqlx::SqliteConnection;
 
@@ -19,15 +19,25 @@ pub(crate) enum RawArg {
     Int(i64),
 }
 
+#[derive(Clone, Copy)]
 struct SendDb(NonNull<sqlite3>);
 
 unsafe impl Send for SendDb {}
 
-struct WorkerFence(Receiver<()>);
+struct WorkerFence {
+    rx: Receiver<()>,
+    db: SendDb,
+}
 
 impl Drop for WorkerFence {
     fn drop(&mut self) {
-        let _ = self.0.recv();
+        match self.rx.try_recv() {
+            Err(TryRecvError::Empty) => {
+                unsafe { sqlite3_interrupt(self.db.0.as_ptr()) };
+                let _ = self.rx.recv();
+            }
+            Ok(()) | Err(TryRecvError::Disconnected) => {}
+        }
     }
 }
 
@@ -39,7 +49,7 @@ pub(crate) async fn execute_on_locked_handle(
     let mut handle = connection.lock_handle().await?;
     let db = SendDb(handle.as_raw_handle());
     let (done_tx, done_rx) = sync_channel::<()>(1);
-    let fence = WorkerFence(done_rx);
+    let fence = WorkerFence { rx: done_rx, db };
 
     let worker = tokio::task::spawn_blocking(move || {
         let _done = done_tx;
