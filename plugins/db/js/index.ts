@@ -295,7 +295,7 @@ export async function importE2eeDeviceEnrollment(
   return invoke("plugin:db|import_e2ee_device_enrollment", {
     accountUserId,
     requestId,
-    package: packageValue,
+    packageValue,
   });
 }
 

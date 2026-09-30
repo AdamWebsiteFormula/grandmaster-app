@@ -158,9 +158,9 @@ async sealWorkspaceE2eeKeyForRecipients(accountUserId: string, workspaceId: stri
     else return { status: "error", error: e  as any };
 }
 },
-async importE2eeDeviceEnrollment(accountUserId: string, requestId: string, package: E2eeDeviceEnrollmentPackage) : Promise<Result<E2eeRecoveryKeyIdentity, string>> {
+async importE2eeDeviceEnrollment(accountUserId: string, requestId: string, packageValue: E2eeDeviceEnrollmentPackage) : Promise<Result<E2eeRecoveryKeyIdentity, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|import_e2ee_device_enrollment", { accountUserId, requestId, package }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:db|import_e2ee_device_enrollment", { accountUserId, requestId, packageValue }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
