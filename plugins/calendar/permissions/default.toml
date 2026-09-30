@@ -8,4 +8,9 @@ permissions = [
     "allow-list-events",
     "allow-open-calendar",
     "allow-create-event",
+    "allow-apply-calendar-inventory",
+    "allow-tombstone-calendar-connection",
+    "allow-set-calendar-enabled",
+    "allow-sync-calendar-connection-events",
+    "allow-update-ignored-calendar-item",
 ]
