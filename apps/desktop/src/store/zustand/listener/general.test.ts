@@ -2302,7 +2302,7 @@ describe("General Listener Slice", () => {
       expect(stopCaptureMock).not.toHaveBeenCalled();
     });
 
-    test("keeps delayed audio saving out of shared live errors", async () => {
+    test("keeps storage warnings out of shared live errors", async () => {
       await store.getState().start({
         session_id: "session-a",
         languages: [],
@@ -2321,6 +2321,15 @@ describe("General Listener Slice", () => {
           type: "audio_error",
           session_id: "session-a",
           error: "audio_saving_delayed: low disk",
+          is_fatal: false,
+          device: null,
+        },
+      });
+      handler?.({
+        payload: {
+          type: "audio_error",
+          session_id: "session-a",
+          error: "audio_disk_low",
           is_fatal: false,
           device: null,
         },

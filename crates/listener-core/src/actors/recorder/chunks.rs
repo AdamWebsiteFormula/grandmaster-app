@@ -3,6 +3,7 @@ use std::fs::{File, OpenOptions};
 use std::io::{Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use std::sync::OnceLock;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::mpsc::{Receiver, RecvTimeoutError, Sender};
 use std::time::{Duration, Instant};
@@ -22,6 +23,7 @@ const WRITE_INTERVAL: Duration = Duration::from_secs(1);
 const RETRY_INTERVAL: Duration = Duration::from_secs(5);
 const FINISH_DEADLINE: Duration = Duration::from_secs(10);
 const BUFFER_FULL_ERROR: &str = "Audio buffer is full while storage is unavailable";
+const DISK_FULL_ERROR: &str = "Disk is full: audio saving stopped";
 const UNSAVED_AUDIO_ERROR: &str = "Buffered audio could not be saved before recording stopped";
 const PERSISTENCE_STOPPED_ERROR: &str = "Audio persistence stopped unexpectedly";
 const RECOVERY_DIR: &str = "audio-recovery";
@@ -67,10 +69,18 @@ impl Encoder {
 pub(super) enum StorageHealth {
     Delayed(String),
     Resumed,
+    DiskLow,
+    DiskOk,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum DiskSpace {
+    Ample,
+    Low,
 }
 
 pub(super) struct PersistConfig {
-    pub check: fn(&Path) -> std::io::Result<()>,
+    pub check: fn(&Path) -> std::io::Result<DiskSpace>,
     pub sync: fn(&File) -> std::io::Result<()>,
     pub retry_interval: Duration,
     pub finish_deadline: Duration,
@@ -223,9 +233,11 @@ struct Persister {
     session_dir: PathBuf,
     config: PersistConfig,
     buffered: Arc<AtomicUsize>,
+    aborted: Arc<OnceLock<String>>,
     archive: Option<TargetState>,
     chunks: VecDeque<PendingChunk>,
     healthy: bool,
+    disk_space: DiskSpace,
     finishing: bool,
     last_check: Option<Instant>,
     last_write: Instant,
@@ -238,15 +250,18 @@ impl Persister {
         retain_audio: bool,
         config: PersistConfig,
         buffered: Arc<AtomicUsize>,
+        aborted: Arc<OnceLock<String>>,
     ) -> Self {
         let archive = retain_audio.then(|| TargetState::new(session_dir.join("audio.mp3"), true));
         Self {
             session_dir,
             config,
             buffered,
+            aborted,
             archive,
             chunks: VecDeque::new(),
             healthy: true,
+            disk_space: DiskSpace::Ample,
             finishing: false,
             last_check: None,
             last_write: Instant::now() - WRITE_INTERVAL,
@@ -256,6 +271,23 @@ impl Persister {
 
     fn run(mut self, ops: Receiver<PersistOp>) -> Result<(), String> {
         loop {
+            if let Some(error) = self.abort_message().map(str::to_owned) {
+                match ops.recv_timeout(self.config.retry_interval) {
+                    Ok(PersistOp::Append { bytes, .. }) => {
+                        self.buffered.fetch_sub(bytes.len(), Ordering::Relaxed);
+                    }
+                    #[cfg(test)]
+                    Ok(PersistOp::Barrier(reply)) => {
+                        let _ = reply.send(());
+                    }
+                    Ok(PersistOp::Finish) | Err(RecvTimeoutError::Disconnected) => {
+                        return Err(error);
+                    }
+                    Ok(PersistOp::OpenChunk { .. } | PersistOp::CloseChunk { .. })
+                    | Err(RecvTimeoutError::Timeout) => {}
+                }
+                continue;
+            }
             let timeout = if self.healthy {
                 WRITE_INTERVAL
             } else {
@@ -286,13 +318,17 @@ impl Persister {
                 }
                 #[cfg(test)]
                 Ok(PersistOp::Barrier(reply)) => loop {
+                    if self.abort_message().is_some() {
+                        let _ = reply.send(());
+                        break;
+                    }
                     if self.pump(true) {
                         match self.sync_barrier() {
                             Ok(()) => {
                                 let _ = reply.send(());
                                 break;
                             }
-                            Err(error) => self.mark_unhealthy(&error),
+                            Err(error) => self.handle_error(&error),
                         }
                     }
                     std::thread::sleep(self.config.retry_interval);
@@ -322,6 +358,9 @@ impl Persister {
     /// Writes and publishes what it can, and returns whether everything
     /// received so far is on disk.
     fn pump(&mut self, force: bool) -> bool {
+        if self.abort_message().is_some() {
+            return false;
+        }
         if !self.healthy {
             if !force && self.last_retry.elapsed() < self.config.retry_interval {
                 return false;
@@ -340,9 +379,37 @@ impl Persister {
                 self.persisted()
             }
             Err(error) => {
-                self.mark_unhealthy(&error);
+                self.handle_error(&error);
                 false
             }
+        }
+    }
+
+    fn abort_message(&self) -> Option<&str> {
+        self.aborted.get().map(String::as_str)
+    }
+
+    fn handle_error(&mut self, error: &std::io::Error) {
+        if matches!(
+            error.kind(),
+            std::io::ErrorKind::StorageFull | std::io::ErrorKind::QuotaExceeded
+        ) {
+            self.aborted.get_or_init(|| DISK_FULL_ERROR.to_owned());
+            let mut released = self
+                .chunks
+                .iter()
+                .map(|chunk| chunk.state.unsynced.len())
+                .sum::<usize>();
+            self.chunks.clear();
+            if let Some(archive) = self.archive.take() {
+                released += archive.unsynced.len();
+            }
+            if released > 0 {
+                self.buffered.fetch_sub(released, Ordering::Relaxed);
+            }
+            self.healthy = false;
+        } else {
+            self.mark_unhealthy(error);
         }
     }
 
@@ -398,17 +465,25 @@ impl Persister {
         Ok(())
     }
 
-    fn check(&mut self) -> std::io::Result<()> {
+    fn check(&mut self) -> std::io::Result<DiskSpace> {
         if self.healthy
             && self
                 .last_check
                 .is_some_and(|checked| checked.elapsed() < STORAGE_CHECK_INTERVAL)
         {
-            return Ok(());
+            return Ok(self.disk_space);
         }
-        (self.config.check)(&self.session_dir)?;
+        let disk_space = (self.config.check)(&self.session_dir)?;
         self.last_check = Some(Instant::now());
-        Ok(())
+        if disk_space != self.disk_space {
+            let event = match disk_space {
+                DiskSpace::Ample => StorageHealth::DiskOk,
+                DiskSpace::Low => StorageHealth::DiskLow,
+            };
+            (self.config.on_health)(event);
+            self.disk_space = disk_space;
+        }
+        Ok(disk_space)
     }
 
     /// The archive is durable before the chunk that covers the same audio, so a
@@ -464,10 +539,16 @@ impl Persister {
     }
 
     fn finish(mut self) -> Result<(), String> {
+        if let Some(error) = self.abort_message() {
+            return Err(error.to_owned());
+        }
         self.finishing = true;
         let deadline = Instant::now() + self.config.finish_deadline;
         loop {
             self.pump(true);
+            if let Some(error) = self.abort_message() {
+                return Err(error.to_owned());
+            }
             if self.saved() {
                 return Ok(());
             }
@@ -492,6 +573,7 @@ pub(super) struct ChunkedSink {
     ops: Option<Sender<PersistOp>>,
     persistence: Option<std::thread::JoinHandle<Result<(), String>>>,
     buffered: Arc<AtomicUsize>,
+    aborted: Arc<OnceLock<String>>,
     buffer_limit_bytes: usize,
     pub recovered_audio: bool,
 }
@@ -531,6 +613,7 @@ impl ChunkedSink {
         std::fs::create_dir_all(&dir)?;
         let archive = retain_audio.then(Encoder::new).transpose()?;
         let buffered = Arc::new(AtomicUsize::new(0));
+        let aborted = Arc::new(OnceLock::new());
         let buffer_limit_bytes = config.buffer_limit_bytes;
         let (ops, receiver) = std::sync::mpsc::channel();
         let persister = Persister::new(
@@ -538,6 +621,7 @@ impl ChunkedSink {
             retain_audio,
             config,
             buffered.clone(),
+            aborted.clone(),
         );
         let persistence = std::thread::spawn(move || persister.run(receiver));
         Ok(Self {
@@ -553,6 +637,7 @@ impl ChunkedSink {
             ops: Some(ops),
             persistence: Some(persistence),
             buffered,
+            aborted,
             buffer_limit_bytes,
             recovered_audio,
         })
@@ -566,6 +651,9 @@ impl ChunkedSink {
     }
 
     fn send(&self, op: PersistOp) -> Result<(), ActorProcessingErr> {
+        if let Some(error) = self.aborted.get() {
+            return Err(std::io::Error::other(error.clone()).into());
+        }
         self.ops
             .as_ref()
             .ok_or_else(|| std::io::Error::other(PERSISTENCE_STOPPED_ERROR))?
@@ -582,6 +670,9 @@ impl ChunkedSink {
         bytes: Vec<u8>,
         bounded: bool,
     ) -> Result<(), ActorProcessingErr> {
+        if let Some(error) = self.aborted.get() {
+            return Err(std::io::Error::other(error.clone()).into());
+        }
         if bytes.is_empty() {
             return Ok(());
         }
@@ -589,8 +680,13 @@ impl ChunkedSink {
         {
             return Err(std::io::Error::other(BUFFER_FULL_ERROR).into());
         }
-        self.buffered.fetch_add(bytes.len(), Ordering::Relaxed);
-        self.send(PersistOp::Append { target, bytes })
+        let len = bytes.len();
+        self.buffered.fetch_add(len, Ordering::Relaxed);
+        if let Err(error) = self.send(PersistOp::Append { target, bytes }) {
+            self.buffered.fetch_sub(len, Ordering::Relaxed);
+            return Err(error);
+        }
+        Ok(())
     }
 
     #[cfg(test)]
@@ -690,7 +786,7 @@ impl ChunkedSink {
     }
 }
 
-fn check_storage(session_dir: &Path) -> std::io::Result<()> {
+fn check_storage(session_dir: &Path) -> std::io::Result<DiskSpace> {
     let canonical = session_dir.canonicalize()?;
     let disks = sysinfo::Disks::new_with_refreshed_list();
     let available = disks
@@ -710,22 +806,22 @@ fn check_storage(session_dir: &Path) -> std::io::Result<()> {
         .filter_map(|entry| entry.metadata().ok())
         .map(|meta| meta.len())
         .sum::<u64>();
-    storage_budget(available, used)?;
-    Ok(())
+    storage_budget(available, used)
 }
 
-fn storage_budget(available: Option<u64>, used: u64) -> std::io::Result<()> {
-    if available.is_some_and(|bytes| bytes < DISK_RESERVE_BYTES) {
-        return Err(std::io::Error::other(
-            "Low disk space: audio saving paused to leave room for your transcript",
-        ));
-    }
+fn storage_budget(available: Option<u64>, used: u64) -> std::io::Result<DiskSpace> {
     if used >= RECOVERY_BUDGET_BYTES {
         return Err(std::io::Error::other(
             "Audio recovery storage is full; unresolved audio has been preserved",
         ));
     }
-    Ok(())
+    Ok(
+        if available.is_some_and(|bytes| bytes < DISK_RESERVE_BYTES) {
+            DiskSpace::Low
+        } else {
+            DiskSpace::Ample
+        },
+    )
 }
 
 pub fn list_recovery_chunks(session_dir: &Path) -> std::io::Result<Vec<RecoveryAudioChunk>> {
@@ -966,20 +1062,24 @@ mod tests {
     static OUTAGE: AtomicBool = AtomicBool::new(false);
     static FAILED_SYNCS: AtomicUsize = AtomicUsize::new(0);
 
-    fn check_ok(_: &Path) -> std::io::Result<()> {
-        Ok(())
+    fn check_ok(_: &Path) -> std::io::Result<DiskSpace> {
+        Ok(DiskSpace::Ample)
     }
 
-    fn check_outage(_: &Path) -> std::io::Result<()> {
+    fn check_outage(_: &Path) -> std::io::Result<DiskSpace> {
         if OUTAGE.load(Ordering::SeqCst) {
             Err(std::io::Error::other("storage unavailable"))
         } else {
-            Ok(())
+            Ok(DiskSpace::Ample)
         }
     }
 
-    fn check_overflow_outage(_: &Path) -> std::io::Result<()> {
+    fn check_overflow_outage(_: &Path) -> std::io::Result<DiskSpace> {
         Err(std::io::Error::other("storage unavailable"))
+    }
+
+    fn check_low_disk(_: &Path) -> std::io::Result<DiskSpace> {
+        Ok(DiskSpace::Low)
     }
 
     fn counted_retained_sync(file: &File) -> std::io::Result<()> {
@@ -1005,6 +1105,10 @@ mod tests {
         } else {
             file.sync_all()
         }
+    }
+
+    fn storage_full_sync(_: &File) -> std::io::Result<()> {
+        Err(std::io::Error::from(std::io::ErrorKind::StorageFull))
     }
 
     fn test_config() -> PersistConfig {
@@ -1128,6 +1232,62 @@ mod tests {
     }
 
     #[test]
+    fn low_disk_keeps_saving_audio_and_warns() {
+        let dir = tempfile::tempdir().unwrap();
+        let health = Arc::new(std::sync::Mutex::new(Vec::new()));
+        let mut config = test_config();
+        config.check = check_low_disk;
+        let reported = Arc::clone(&health);
+        config.on_health = Arc::new(move |event| {
+            reported.lock().unwrap().push(match event {
+                StorageHealth::Delayed(_) => "Delayed",
+                StorageHealth::Resumed => "Resumed",
+                StorageHealth::DiskLow => "DiskLow",
+                StorageHealth::DiskOk => "DiskOk",
+            });
+        });
+        let mut sink = ChunkedSink::new(dir.path(), 123, 0, false, config).unwrap();
+        let samples = vec![0.1; SAMPLE_RATE as usize];
+        for _ in 0..61 {
+            sink.write(&samples, &samples).unwrap();
+        }
+        sink.barrier().unwrap();
+
+        assert_eq!(list_recovery_chunks(dir.path()).unwrap().len(), 1);
+        assert_eq!(*health.lock().unwrap(), vec!["DiskLow"]);
+        sink.finish().unwrap();
+    }
+
+    #[test]
+    fn full_disk_aborts_saving_without_buffering() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut config = test_config();
+        config.sync = storage_full_sync;
+        let mut sink = ChunkedSink::new(dir.path(), 123, 0, false, config).unwrap();
+        let buffered = Arc::clone(&sink.buffered);
+        let samples = vec![0.1; SAMPLE_RATE as usize];
+        let mut write_error = None;
+        for _ in 0..300 {
+            if let Err(error) = sink.write(&samples, &samples) {
+                write_error = Some(error.to_string());
+                break;
+            }
+        }
+
+        assert!(
+            write_error
+                .as_deref()
+                .is_some_and(|error| error.contains(DISK_FULL_ERROR))
+        );
+        let started = Instant::now();
+        let finish = sink.finish();
+        assert_eq!(finish.unwrap_err().to_string(), DISK_FULL_ERROR);
+        assert!(started.elapsed() < Duration::from_secs(1));
+        assert_eq!(buffered.load(Ordering::Relaxed), 0);
+        assert!(list_recovery_chunks(dir.path()).unwrap().is_empty());
+    }
+
+    #[test]
     fn storage_outage_buffers_audio_and_publishes_it_in_order_after_recovery() {
         OUTAGE.store(true, Ordering::SeqCst);
         let dir = tempfile::tempdir().unwrap();
@@ -1140,6 +1300,8 @@ mod tests {
             reported.lock().unwrap().push(match event {
                 StorageHealth::Delayed(_) => "Delayed",
                 StorageHealth::Resumed => "Resumed",
+                StorageHealth::DiskLow => "DiskLow",
+                StorageHealth::DiskOk => "DiskOk",
             });
         });
         let mut sink = ChunkedSink::new(dir.path(), 123, 0, true, config).unwrap();
@@ -1370,10 +1532,16 @@ mod tests {
     }
 
     #[test]
-    fn storage_budget_preserves_database_headroom_and_pending_audio() {
-        assert!(storage_budget(Some(DISK_RESERVE_BYTES - 1), 0).is_err());
+    fn storage_budget_reports_low_disk_and_preserves_the_recovery_budget() {
+        assert_eq!(
+            storage_budget(Some(DISK_RESERVE_BYTES - 1), 0).unwrap(),
+            DiskSpace::Low
+        );
+        assert_eq!(
+            storage_budget(Some(DISK_RESERVE_BYTES), 0).unwrap(),
+            DiskSpace::Ample
+        );
         assert!(storage_budget(Some(u64::MAX), RECOVERY_BUDGET_BYTES).is_err());
-        assert!(storage_budget(Some(DISK_RESERVE_BYTES), 0).is_ok());
     }
 
     #[test]

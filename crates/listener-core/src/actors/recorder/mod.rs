@@ -117,6 +117,12 @@ impl Actor for RecorderActor {
                 chunks::StorageHealth::Resumed => {
                     error_notifier("audio_saving_resumed".to_owned());
                 }
+                chunks::StorageHealth::DiskLow => {
+                    error_notifier("audio_disk_low".to_owned());
+                }
+                chunks::StorageHealth::DiskOk => {
+                    error_notifier("audio_disk_ok".to_owned());
+                }
             })
         };
         let persist_config = chunks::PersistConfig::new(health_notifier);

@@ -321,6 +321,7 @@ const createSessionEventHandlers = <T extends LiveStore>(
 
     clearLiveEventUnlisteners(unlisteners);
     toast.dismiss(`audio-saving-delayed-${targetSessionId}`);
+    toast.dismiss(`audio-disk-low-${targetSessionId}`);
 
     setLiveState(set, (live) => {
       delete live.eventUnlistenersBySession[targetSessionId];
@@ -436,11 +437,27 @@ const createSessionEventHandlers = <T extends LiveStore>(
       return;
     }
 
+    if (payload.type === "audio_error" && payload.error === "audio_disk_low") {
+      toast.warning("Disk almost full", {
+        id: `audio-disk-low-${targetSessionId}`,
+        duration: Infinity,
+        description:
+          "Free up disk space. Audio saving stops if the disk fills up. Live transcription continues.",
+      });
+      return;
+    }
+
+    if (payload.type === "audio_error" && payload.error === "audio_disk_ok") {
+      toast.dismiss(`audio-disk-low-${targetSessionId}`);
+      return;
+    }
+
     if (
       payload.type === "audio_error" &&
       payload.error.startsWith("audio_storage_")
     ) {
       toast.dismiss(`audio-saving-delayed-${targetSessionId}`);
+      toast.dismiss(`audio-disk-low-${targetSessionId}`);
       setLiveState(set, (live) => updateLiveProgress(live, payload));
       toast.error("Audio saving was interrupted", {
         id: `audio-storage-${targetSessionId}`,
