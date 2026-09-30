@@ -9,6 +9,7 @@ use tokio_util::sync::CancellationToken;
 
 mod api;
 mod batch_transcript;
+mod audio_retention;
 mod capture_gaps;
 mod capture_markers;
 mod error;
@@ -28,6 +29,7 @@ pub use anlg_transcription_core::listener2::{
     parse_subtitle_from_path, suggest_providers_for_languages_batch,
 };
 pub use api::*;
+pub use audio_retention::{SessionAudioRetentionEvent, SessionAudioRetentionPhase};
 pub use capture_gaps::CaptureGapRegistry;
 pub use capture_markers::{CaptureLifecycleMarker, CapturePhase, InheritedCapture, SummaryMode};
 pub use error::{Error, Result};
@@ -185,13 +187,14 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             listener2::commands::list_documented_language_codes_batch::<tauri::Wry>,
             voiceprint::extract_voiceprint_candidates::<tauri::Wry>,
             voiceprint::promote_voiceprint_candidates::<tauri::Wry>,
-            voiceprint::cleanup_expired_voiceprint_candidates::<tauri::Wry>,
+            audio_retention::delete_processed_session_audio::<tauri::Wry>,
         ])
         .events(tauri_specta::collect_events![
             CaptureLifecycleEvent,
             CaptureStatusEvent,
             CaptureDataEvent,
             LiveTranscriptPersistenceEvent,
+            SessionAudioRetentionEvent,
             TranscriptionEvent
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
@@ -252,6 +255,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                 .map(|_| tracing::info!("root_actor_spawned"))
                 .map_err(|e| tracing::error!(?e, "failed_to_spawn_root_actor"))
             });
+            audio_retention::spawn(app_handle);
 
             Ok(())
         })
