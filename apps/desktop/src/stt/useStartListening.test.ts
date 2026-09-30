@@ -161,6 +161,7 @@ vi.mock("@anlg/plugin-transcription", () => ({
   commands: {
     acknowledgeStoppedCapture: acknowledgeStoppedCaptureMock,
     getStoppedCapture: getStoppedCaptureMock,
+    getCaptureAudioGaps: vi.fn(async () => ({ status: "ok", data: null })),
     isSupportedLanguagesLive: isSupportedLanguagesLiveMock,
     listCaptureAudioChunks: vi.fn(async () => ({ status: "ok", data: [] })),
     acknowledgeCaptureAudioChunk: vi.fn(async () => ({
