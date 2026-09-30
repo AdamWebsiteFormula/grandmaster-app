@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { generateText } from "ai";
-import { useEffect } from "react";
 
 import { Spinner } from "@anlg/ui/components/ui/spinner";
 
@@ -39,13 +38,6 @@ export function useConnectionHealth(): LlmHealthStatus {
       return result;
     },
   });
-
-  const { refetch } = text;
-  useEffect(() => {
-    if (model) {
-      void refetch();
-    }
-  }, [model, refetch]);
 
   if (!model) {
     return { status: null };
