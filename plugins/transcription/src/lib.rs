@@ -8,8 +8,8 @@ use tokio::task::AbortHandle;
 use tokio_util::sync::CancellationToken;
 
 mod api;
-mod batch_transcript;
 mod audio_retention;
+mod batch_transcript;
 mod capture_gaps;
 mod capture_markers;
 mod error;
