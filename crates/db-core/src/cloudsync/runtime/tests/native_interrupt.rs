@@ -43,12 +43,14 @@ async fn assert_interrupts_stalled_native_request_once() {
     let request_db = Arc::clone(&db);
     let request = tokio::spawn(async move {
         let _sync_operation = request_db.cloudsync_sync_operation.lock().await;
-        let mut connection = request_db.cloudsync_connection.lock().await;
-        super::super::super::ops::interruptible_network_receive_changes(
-            connection.as_mut().unwrap(),
+        let mut connection = request_db.reserve_cloudsync_connection().await.unwrap();
+        let result = super::super::super::ops::interruptible_network_receive_changes(
+            &mut connection,
             &request_db.cloudsync_interrupt,
         )
-        .await
+        .await;
+        drop(connection);
+        result
     });
     tokio::task::spawn_blocking(move || {
         accepted_rx
