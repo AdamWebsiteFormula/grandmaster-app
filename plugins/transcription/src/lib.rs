@@ -258,13 +258,14 @@ mod test {
         make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
-                    .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
                 OUTPUT_FILE,
             )
             .unwrap();
 
-        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        let content = std::fs::read_to_string(OUTPUT_FILE)
+            .unwrap()
+            .replace(" * \n", " *\n");
         std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 }
