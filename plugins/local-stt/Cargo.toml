@@ -68,5 +68,5 @@ tokio-util = { workspace = true }
 tracing = { workspace = true }
 
 anlg-supervisor = { workspace = true }
-ractor = { workspace = true, features = ["async-trait"] }
 port_check = "0.3.0"
+ractor = { workspace = true, features = ["async-trait"] }
