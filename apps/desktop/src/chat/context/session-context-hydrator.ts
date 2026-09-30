@@ -52,7 +52,9 @@ export async function hydrateSessionContext(
   sessionId: string,
   selfHumanId?: string,
 ): Promise<SessionContext | null> {
-  const snapshot = await loadSessionContentSnapshot(sessionId);
+  const snapshot = await loadSessionContentSnapshot(sessionId, {
+    includeTranscripts: false,
+  });
   if (!snapshot) return null;
 
   const participants = snapshot.participants.flatMap((participant) =>

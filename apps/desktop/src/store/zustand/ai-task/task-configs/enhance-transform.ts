@@ -58,7 +58,9 @@ async function transformArgs(
   settingsValues: SettingValues,
 ): Promise<TaskArgsMapTransformed["enhance"]> {
   const { sessionId, templateId } = args;
-  const snapshot = await loadSessionContentSnapshot(sessionId);
+  const snapshot = await loadSessionContentSnapshot(sessionId, {
+    includeTranscripts: false,
+  });
   if (!snapshot) {
     throw new Error(`Session ${sessionId} no longer exists`);
   }

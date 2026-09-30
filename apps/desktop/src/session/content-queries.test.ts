@@ -122,12 +122,26 @@ describe("session content SQLite snapshots", () => {
     });
     expect(snapshot?.rawMarkdown).toContain("Raw note");
     expect(mocks.execute).toHaveBeenCalledWith(expect.any(String), [
+      1,
       "session-1",
     ]);
     expect(mocks.execute.mock.calls[0][0]).toContain("self_human.email");
     expect(mocks.execute.mock.calls[0][0]).toContain(
       "COALESCE(NULLIF(human.email, ''), participant.email)",
     );
+  });
+
+  it("can omit transcripts when a caller renders them through Rust", async () => {
+    mocks.execute.mockResolvedValueOnce([]);
+
+    await expect(
+      loadSessionContentSnapshot("session-1", { includeTranscripts: false }),
+    ).resolves.toBeNull();
+
+    expect(mocks.execute).toHaveBeenCalledWith(expect.any(String), [
+      0,
+      "session-1",
+    ]);
   });
 
   it("lists only active SQLite session ids", async () => {
