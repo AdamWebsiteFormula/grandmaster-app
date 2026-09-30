@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use sqlx::SqlitePool;
 
-use super::transaction_utils::js_iso8601_timestamp;
+use crate::transaction_utils::js_iso8601_timestamp;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub struct CreateSessionRequest {

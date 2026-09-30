@@ -1,6 +1,6 @@
 use tauri::Manager;
 
-use super::{creation, deletion, participants};
+use crate::{creation, deletion, participants};
 
 macro_rules! session_write_command {
     ($name:ident, $module:ident, $function:ident, $request:ty, $result:ty) => {
@@ -11,7 +11,7 @@ macro_rules! session_write_command {
             request: $request,
         ) -> Result<$result, String> {
             let runtime = app
-                .try_state::<crate::ManagedState>()
+                .try_state::<tauri_plugin_db::ManagedState>()
                 .map(|state| state.inner().clone())
                 .ok_or_else(|| "database is not ready yet".to_string())?;
             let _guard = runtime.synced_write_guard().await;

@@ -3,7 +3,6 @@ mod e2ee_witness;
 mod error;
 mod import;
 mod runtime;
-mod session_writes;
 
 pub use error::{Error, Result};
 pub use runtime::{open_app_db, open_app_db_unmigrated};
@@ -364,12 +363,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::end_cloudsync_activity,
             commands::get_startup_status,
             commands::wait_until_ready,
-            session_writes::commands::create_session::<tauri::Wry>,
-            session_writes::commands::create_session_for_event::<tauri::Wry>,
-            session_writes::commands::soft_delete_session::<tauri::Wry>,
-            session_writes::commands::restore_deleted_session::<tauri::Wry>,
-            session_writes::commands::add_session_participant::<tauri::Wry>,
-            session_writes::commands::remove_session_participant::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

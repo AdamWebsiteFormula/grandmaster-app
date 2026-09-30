@@ -34,10 +34,4 @@ permissions = [
   "allow-get-cloudsync-status",
   "allow-get-startup-status",
   "allow-wait-until-ready",
-  "allow-create-session",
-  "allow-create-session-for-event",
-  "allow-soft-delete-session",
-  "allow-restore-deleted-session",
-  "allow-add-session-participant",
-  "allow-remove-session-participant",
 ]

@@ -467,7 +467,7 @@ fn seal_workspace_e2ee_key(
             let grant = anlg_e2ee::seal_workspace_key_for_member(
                 &key,
                 &recipient.public_key,
-                workspace_id,
+                &workspace_id,
                 &user_id,
             )
             .map_err(|error| error.to_string())?;
@@ -488,7 +488,7 @@ pub(crate) async fn import_e2ee_device_enrollment<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     account_user_id: String,
     request_id: String,
-    package_value: crate::E2eeDeviceEnrollmentPackage,
+    package: crate::E2eeDeviceEnrollmentPackage,
 ) -> Result<crate::E2eeRecoveryKeyIdentity, String> {
     let account_user_id = canonical_e2ee_account_user_id(&account_user_id)?;
     let request_id = canonical_e2ee_request_id(&request_id)?;
@@ -508,7 +508,7 @@ pub(crate) async fn import_e2ee_device_enrollment<R: tauri::Runtime>(
     let device_key =
         anlg_e2ee::DeviceEnrollmentKey::parse(&device_key).map_err(|error| error.to_string())?;
     let recovery_key = device_key
-        .open_recovery_key(&account_user_id, &request_id, &package_value.clone().into())
+        .open_recovery_key(&account_user_id, &request_id, &package.clone().into())
         .map_err(|error| error.to_string())?;
     let key_id = recovery_key.key_id();
     tauri_plugin_store2::write_secret(
@@ -562,7 +562,6 @@ pub(crate) async fn configure_cloudsync(
     result
 }
 
-#[allow(clippy::too_many_arguments)]
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn configure_cloudsync_token<R: tauri::Runtime>(

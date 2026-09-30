@@ -158,9 +158,9 @@ async sealWorkspaceE2eeKeyForRecipients(accountUserId: string, workspaceId: stri
     else return { status: "error", error: e  as any };
 }
 },
-async importE2eeDeviceEnrollment(accountUserId: string, requestId: string, packageValue: E2eeDeviceEnrollmentPackage) : Promise<Result<E2eeRecoveryKeyIdentity, string>> {
+async importE2eeDeviceEnrollment(accountUserId: string, requestId: string, package: E2eeDeviceEnrollmentPackage) : Promise<Result<E2eeRecoveryKeyIdentity, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|import_e2ee_device_enrollment", { accountUserId, requestId, packageValue }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:db|import_e2ee_device_enrollment", { accountUserId, requestId, package }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -304,54 +304,6 @@ async waitUntilReady() : Promise<Result<null, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
-},
-async createSession(request: CreateSessionRequest) : Promise<Result<string, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|create_session", { request }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async createSessionForEvent(request: CreateEventSessionRequest) : Promise<Result<EventSessionResult | null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|create_session_for_event", { request }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async softDeleteSession(request: TombstoneSessionRequest) : Promise<Result<DeletedSessionRow | null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|soft_delete_session", { request }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async restoreDeletedSession(request: TombstoneSessionRequest) : Promise<Result<RestoreDeletedSessionOutcome, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|restore_deleted_session", { request }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async addSessionParticipant(request: AddSessionParticipantRequest) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|add_session_participant", { request }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async removeSessionParticipant(request: RemoveSessionParticipantRequest) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db|remove_session_participant", { request }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
 }
 }
 
@@ -366,15 +318,11 @@ async removeSessionParticipant(request: RemoveSessionParticipantRequest) : Promi
 /** user-defined types **/
 
 export type ActionItem = { id: string; assignee_human_id: string; status: string; text: string; due_at: string; completed_at: string | null }
-export type AddSessionParticipantRequest = { session_id: string; human_id: string; source: string }
 export type CloudsyncE2eeWitness = { endpoint: string; accessToken: string }
 export type CloudsyncTokenConfigurationResult = "configured" | "account_mismatch"
 export type CloudsyncWorkspaceKeyGrant = { workspaceId: string; keyId: string; ephemeralPublicKey: string; nonce: string; ciphertext: string; isActive: boolean }
 export type CloudsyncWorkspaceProjection = { accountUserId: string; personalWorkspaceId: string; workspaces: CloudsyncWorkspaceProjectionEntry[] }
 export type CloudsyncWorkspaceProjectionEntry = { id: string; ownerUserId: string; kind: string; name: string; membershipId: string; role: string; membershipCreatedAt: string; membershipUpdatedAt: string; createdAt: string; updatedAt: string }
-export type CreateEventSessionRequest = { event_id: string; user_id: string; title: string | null; participants: EventParticipantIdentity[] }
-export type CreateSessionRequest = { title: string; user_id: string; event_json: string; folder_path: string; raw_md: string }
-export type DeletedSessionRow = { id: string; title: string }
 export type DependencyAnalysis = { kind: "reactive"; data: { targets: DependencyTarget[] } } | { kind: "non_reactive"; data: { reason: string } }
 export type DependencyTarget = { kind: "table"; data: string } | { kind: "virtual_table"; data: string }
 export type Document = { id: string; kind: string; template_id: string; title: string; markdown: string; sort_order: number; created_at: string; updated_at: string }
@@ -382,8 +330,6 @@ export type E2eeDeviceEnrollmentPackage = { ephemeralPublicKey: string; nonce: s
 export type E2eeDeviceIdentity = { publicKey: string }
 export type E2eeIdentityStatus = { configured: boolean; keyId: string | null; memberPublicKey: string | null }
 export type E2eeRecoveryKeyIdentity = { keyId: string }
-export type EventParticipantIdentity = { email: string; name: string; company_name: string | null }
-export type EventSessionResult = { session_id: string; created: boolean }
 export type ExecuteProxyResult = { rows: JsonValue[] }
 export type GetMeetingInput = { meeting_id: string }
 export type GetMeetingTranscriptInput = { meeting_id: string; offset: number | null; limit: number | null }
@@ -410,8 +356,6 @@ export type MeetingPage = { meetings: MeetingListItem[]; pagination: Pagination 
 export type Pagination = { offset: number; limit: number; returned: number; total: number | null; next_offset: number | null }
 export type Participant = { human_id: string; display_name: string; email: string; role: string; job_title: string; organization_id: string; organization_name: string }
 export type QueryEvent = { event: "result"; data: JsonValue[] } | { event: "error"; data: string }
-export type RemoveSessionParticipantRequest = { mapping_id: string }
-export type RestoreDeletedSessionOutcome = "restored" | "alive" | "not_deleted"
 export type SealedWorkspaceE2eeKey = { keyId: string; grants: WorkspaceE2eeKeyGrantUpload[] }
 export type SessionIngestApplyResult = "applied" | "already_applied" | "rejected"
 export type StartupPhase = "preparing_database" | "migrating_database" | "importing_legacy_data" | "configuring_cloudsync" | "ready" | "failed"
@@ -419,7 +363,6 @@ export type StartupStatus = { phase: StartupPhase; migrationCurrent: number | nu
 export type StorageMigrationState = { phase: string; latestRunId: string; parityVerified: boolean; cutoverAt: string | null; rollbackUntil: string | null; lastError: string; updatedAt: string }
 export type SubscriptionRegistration = { id: string; analysis: DependencyAnalysis }
 export type TAURI_CHANNEL<TSend> = null
-export type TombstoneSessionRequest = { session_id: string; tombstone: string }
 export type TransactionStatement = { sql: string; params: JsonValue[]; expectedRowsAffected?: number | null }
 export type TranscriptPage = { meeting_id: string; text: string; words: JsonValue[]; pagination: Pagination }
 export type WorkspaceE2eeKeyGrantUpload = { userId: string; ephemeralPublicKey: string; nonce: string; ciphertext: string }

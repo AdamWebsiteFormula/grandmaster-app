@@ -1,5 +1,5 @@
 import { commands as analyticsCommands } from "@anlg/plugin-analytics";
-import { commands } from "@anlg/plugin-db";
+import { commands } from "@anlg/plugin-session";
 import { eventParticipantSchema, type EventParticipant } from "@anlg/store";
 
 import type { SessionChanges } from "./types";

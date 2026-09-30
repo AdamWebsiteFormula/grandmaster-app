@@ -26,8 +26,6 @@ import type {
   WorkspaceE2eeKeyRecipient,
 } from "./bindings.gen";
 
-export { commands } from "./bindings.gen";
-
 export type {
   CloudsyncE2eeWitness,
   CloudsyncTokenConfigurationResult,
@@ -295,7 +293,7 @@ export async function importE2eeDeviceEnrollment(
   return invoke("plugin:db|import_e2ee_device_enrollment", {
     accountUserId,
     requestId,
-    packageValue,
+    package: packageValue,
   });
 }
 

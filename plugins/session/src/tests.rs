@@ -1,7 +1,7 @@
 use anlg_db_core::Db;
 use sqlx::{Row, SqlitePool};
 
-use super::{
+use crate::{
     creation::{
         CreateEventSessionRequest, CreateSessionRequest, EventParticipantIdentity, create_session,
         create_session_for_event,

@@ -1,4 +1,4 @@
-import { commands } from "@anlg/plugin-db";
+import { commands } from "@anlg/plugin-session";
 
 import type { SessionParticipantRecord } from "./types";
 

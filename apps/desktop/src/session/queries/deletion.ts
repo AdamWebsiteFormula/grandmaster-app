@@ -1,6 +1,6 @@
 import { json2md } from "@anlg/editor/markdown";
-import { commands } from "@anlg/plugin-db";
 import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
+import { commands } from "@anlg/plugin-session";
 
 import { liveQueryClient } from "~/db";
 import { waitForPendingSoftDelete } from "~/session/pending-soft-deletes";

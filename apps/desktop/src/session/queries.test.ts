@@ -42,7 +42,7 @@ vi.mock("@anlg/plugin-analytics", () => ({
   commands: { eventFireAndForget: mocks.analyticsEventFireAndForget },
 }));
 
-vi.mock("@anlg/plugin-db", () => ({
+vi.mock("@anlg/plugin-session", () => ({
   commands: {
     createSession: mocks.createSession,
     createSessionForEvent: mocks.createSessionForEvent,
