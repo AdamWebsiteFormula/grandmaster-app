@@ -262,21 +262,6 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 mod test {
     use super::*;
 
-    fn raw_comments(args: specta_typescript::CommentFormatterArgs) -> String {
-        let comments = specta_typescript::comments::js_doc(args);
-        if comments.is_empty() {
-            return comments;
-        }
-        format!(
-            "{}\n",
-            comments
-                .lines()
-                .map(str::trim_end)
-                .collect::<Vec<_>>()
-                .join("\n")
-        )
-    }
-
     #[test]
     fn export_types() {
         const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
@@ -284,7 +269,6 @@ mod test {
         make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
-                    .comment_style(raw_comments)
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
                 OUTPUT_FILE,
