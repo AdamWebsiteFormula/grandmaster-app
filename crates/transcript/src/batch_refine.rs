@@ -1053,7 +1053,7 @@ fn javascript_number_string(number: f64) -> String {
     number
 }
 
-fn json_number(number: f64) -> Value {
+pub(crate) fn json_number(number: f64) -> Value {
     if number.fract() == 0.0 && number >= i64::MIN as f64 && number <= i64::MAX as f64 {
         return Value::Number(Number::from(number as i64));
     }
