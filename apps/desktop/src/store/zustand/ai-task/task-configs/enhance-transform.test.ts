@@ -134,6 +134,18 @@ describe("enhanceTransform.transformArgs", () => {
     expect(result.postMeetingMemo).toContain("Meeting platform: Google Meet");
   });
 
+  it("keeps the pre-meeting memo when transcript words are omitted", async () => {
+    const result = await enhanceTransform.transformArgs(
+      {
+        sessionId: "session-1",
+        enhancedNoteId: "note-1",
+      },
+      settingsValues,
+    );
+
+    expect(result.preMeetingMemo).toBe("![pre](asset://localhost/pre.png)");
+  });
+
   it("uses the edited memo headings for its applied template", async () => {
     mocks.loadSessionContentSnapshot.mockResolvedValue({
       ...createSnapshot(),

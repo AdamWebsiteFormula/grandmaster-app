@@ -124,19 +124,19 @@ const SESSION_CONTENT_SQL = `
         AND document.kind IN ('summary', 'template_output')
         AND document.deleted_at IS NULL
     ), '[]') AS enhanced_notes_json,
-    CASE WHEN ? THEN COALESCE((
+    COALESCE((
       SELECT json_group_array(json_object(
         'id', transcript.id,
         'started_at_ms', transcript.started_at_ms,
         'ended_at_ms', transcript.ended_at_ms,
         'memo', transcript.memo,
-        'words_json', transcript.words_json,
-        'speaker_hints_json', transcript.speaker_hints_json
+        'words_json', CASE WHEN ? THEN transcript.words_json ELSE '[]' END,
+        'speaker_hints_json', CASE WHEN ? THEN transcript.speaker_hints_json ELSE '[]' END
       ))
       FROM transcripts AS transcript
       WHERE transcript.session_id = session.id
         AND transcript.deleted_at IS NULL
-    ), '[]') ELSE '[]' END AS transcripts_json,
+    ), '[]') AS transcripts_json,
     COALESCE((
       SELECT json_group_array(json_object(
         'human_id', participant.human_id,
@@ -193,12 +193,16 @@ const SESSION_CONTENT_SQL = `
 
 export async function loadSessionContentSnapshot(
   sessionId: string,
-  options: { includeTranscripts?: boolean } = {},
+  options: { includeTranscriptWords?: boolean } = {},
 ): Promise<SessionContentSnapshot | null> {
   if (!sessionId) return null;
   const rows = await liveQueryClient.execute<SessionContentSqlRow>(
     SESSION_CONTENT_SQL,
-    [options.includeTranscripts === false ? 0 : 1, sessionId],
+    [
+      options.includeTranscriptWords === false ? 0 : 1,
+      options.includeTranscriptWords === false ? 0 : 1,
+      sessionId,
+    ],
   );
   const row = rows[0];
   return row ? mapSessionContentRow(row) : null;

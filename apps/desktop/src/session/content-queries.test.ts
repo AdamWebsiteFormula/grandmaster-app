@@ -123,6 +123,7 @@ describe("session content SQLite snapshots", () => {
     expect(snapshot?.rawMarkdown).toContain("Raw note");
     expect(mocks.execute).toHaveBeenCalledWith(expect.any(String), [
       1,
+      1,
       "session-1",
     ]);
     expect(mocks.execute.mock.calls[0][0]).toContain("self_human.email");
@@ -131,14 +132,54 @@ describe("session content SQLite snapshots", () => {
     );
   });
 
-  it("can omit transcripts when a caller renders them through Rust", async () => {
-    mocks.execute.mockResolvedValueOnce([]);
+  it("keeps transcript metadata without loading transcript words", async () => {
+    mocks.execute.mockResolvedValueOnce([
+      {
+        id: "session-1",
+        owner_user_id: "user-1",
+        owner_email: null,
+        title: "Planning",
+        created_at: "2026-07-10T09:00:00.000Z",
+        event_json: "null",
+        source_apps_json: "[]",
+        event_id: "",
+        raw_note_id: "",
+        raw_template_id: "",
+        raw_body: "",
+        raw_body_format: "markdown",
+        enhanced_notes_json: "[]",
+        transcripts_json: JSON.stringify([
+          {
+            id: "transcript-1",
+            started_at_ms: 100,
+            ended_at_ms: 200,
+            memo: "Pre-meeting notes",
+            words_json: "[]",
+            speaker_hints_json: "[]",
+          },
+        ]),
+        participants_json: "[]",
+      },
+    ]);
 
-    await expect(
-      loadSessionContentSnapshot("session-1", { includeTranscripts: false }),
-    ).resolves.toBeNull();
+    const snapshot = await loadSessionContentSnapshot("session-1", {
+      includeTranscriptWords: false,
+    });
 
+    expect(snapshot?.transcripts).toEqual([
+      {
+        id: "transcript-1",
+        started_at: 100,
+        ended_at: 200,
+        memo: "Pre-meeting notes",
+        wordsJson: "[]",
+        speakerHintsJson: "[]",
+        words: [],
+        speaker_hints: [],
+      },
+    ]);
     expect(mocks.execute).toHaveBeenCalledWith(expect.any(String), [
+      0,
       0,
       "session-1",
     ]);

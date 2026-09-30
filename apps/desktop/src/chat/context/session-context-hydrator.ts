@@ -53,7 +53,7 @@ export async function hydrateSessionContext(
   selfHumanId?: string,
 ): Promise<SessionContext | null> {
   const snapshot = await loadSessionContentSnapshot(sessionId, {
-    includeTranscripts: false,
+    includeTranscriptWords: false,
   });
   if (!snapshot) return null;
 
