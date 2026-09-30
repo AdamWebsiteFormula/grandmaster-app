@@ -122,6 +122,27 @@ fn is_expired(created_at_ms: Option<i64>, policy: AudioRetentionPolicy, now_ms: 
     }
 }
 
+fn retention_expired(
+    candidate: &anlg_db_app::SessionAudioRetentionCandidate,
+    policy: AudioRetentionPolicy,
+    now_ms: i64,
+) -> bool {
+    if policy == AudioRetentionPolicy::None && !candidate.has_words {
+        return false;
+    }
+    is_expired(candidate.created_at_ms, policy, now_ms)
+}
+
+async fn session_audio_is_expired(pool: &SqlitePool, session_id: &str) -> Result<bool, String> {
+    let policy = load_policy(pool).await.map_err(|e| e.to_string())?;
+    let candidate = anlg_db_app::get_session_audio_retention_candidate(pool, session_id)
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(candidate.is_some_and(|candidate| {
+        retention_expired(&candidate, policy, chrono::Utc::now().timestamp_millis())
+    }))
+}
+
 #[derive(serde::Serialize, serde::Deserialize, Clone, Copy, specta::Type)]
 #[serde(rename_all = "snake_case")]
 pub enum SessionAudioRetentionPhase {
@@ -189,7 +210,7 @@ async fn delete_local_audio<R: tauri::Runtime>(
         return Ok(false);
     }
     let eligible = match eligibility {
-        Eligibility::Expired => true,
+        Eligibility::Expired => session_audio_is_expired(pool, session_id).await?,
         Eligibility::Processed => anlg_db_app::session_audio_is_processed(pool, session_id)
             .await
             .map_err(|e| e.to_string())?,
@@ -246,9 +267,7 @@ async fn sweep<R: tauri::Runtime>(
         .await
         .map_err(|e| e.to_string())?;
     for candidate in candidates {
-        if (policy == AudioRetentionPolicy::None && !candidate.has_words)
-            || !is_expired(candidate.created_at_ms, policy, now_ms)
-        {
+        if !retention_expired(&candidate, policy, now_ms) {
             continue;
         }
         let session_id = candidate.session_id;

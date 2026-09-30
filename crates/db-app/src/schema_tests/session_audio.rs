@@ -50,6 +50,20 @@ async fn session_audio_retention_skips_sessions_still_owned_by_capture_or_transc
             },
         ]
     );
+    assert!(
+        get_session_audio_retention_candidate(pool, "idle")
+            .await
+            .unwrap()
+            .is_some()
+    );
+    for claimed in ["processing", "capturing"] {
+        assert_eq!(
+            get_session_audio_retention_candidate(pool, claimed)
+                .await
+                .unwrap(),
+            None
+        );
+    }
     assert!(session_audio_is_processed(pool, "idle").await.unwrap());
     assert!(
         !session_audio_is_processed(pool, "processing")

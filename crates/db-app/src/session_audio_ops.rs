@@ -21,13 +21,10 @@ pub async fn get_app_setting_json(
         .await
 }
 
-/// Live sessions whose local audio is not held by transcript processing or a
-/// pending capture lifecycle marker.
-pub async fn list_session_audio_retention_candidates(
-    pool: &SqlitePool,
-) -> Result<Vec<SessionAudioRetentionCandidate>, sqlx::Error> {
-    sqlx::query_as(
-        "SELECT
+macro_rules! session_audio_retention_candidates_sql {
+    ($tail:literal) => {
+        concat!(
+            "SELECT
            session.id AS session_id,
            CAST(round((julianday(session.created_at) - 2440587.5) * 86400000.0) AS INTEGER)
              AS created_at_ms,
@@ -55,11 +52,35 @@ pub async fn list_session_audio_retention_candidates(
              SELECT 1
              FROM app_settings AS capture
              WHERE capture.id = ? || session.id
-           )
-         ORDER BY session.created_at, session.id",
-    )
+           ) ",
+            $tail
+        )
+    };
+}
+
+/// Live sessions whose local audio is not held by transcript processing or a
+/// pending capture lifecycle marker.
+pub async fn list_session_audio_retention_candidates(
+    pool: &SqlitePool,
+) -> Result<Vec<SessionAudioRetentionCandidate>, sqlx::Error> {
+    sqlx::query_as(session_audio_retention_candidates_sql!(
+        "ORDER BY session.created_at, session.id"
+    ))
     .bind(CAPTURE_LIFECYCLE_SETTING_PREFIX)
     .fetch_all(pool)
+    .await
+}
+
+pub async fn get_session_audio_retention_candidate(
+    pool: &SqlitePool,
+    session_id: &str,
+) -> Result<Option<SessionAudioRetentionCandidate>, sqlx::Error> {
+    sqlx::query_as(session_audio_retention_candidates_sql!(
+        "AND session.id = ?"
+    ))
+    .bind(CAPTURE_LIFECYCLE_SETTING_PREFIX)
+    .bind(session_id)
+    .fetch_optional(pool)
     .await
 }
 
