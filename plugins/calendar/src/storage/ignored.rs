@@ -360,7 +360,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn retries_a_contended_update_without_dropping_concurrent_entries() {
+    async fn serializes_concurrent_writers_without_dropping_entries() {
         let db = test_db().await;
         sqlx::query("INSERT INTO app_settings (id, value_json) VALUES ('ignored_events', ?)")
             .bind(json!([{ "tracking_id": "event-1", "last_seen": "first" }]).to_string())
@@ -384,9 +384,6 @@ mod tests {
             }
         };
 
-        // Force a CAS miss on the first attempt by racing a concurrent edit
-        // between the read and write inside the retry loop is not possible
-        // from outside; instead run two writers and confirm both converge.
         let (first, second) = tokio::join!(write(), async {
             let pool2 = db.pool().clone();
             update_ignored_calendar_item(
@@ -410,6 +407,40 @@ mod tests {
             .filter_map(|entry| entry["tracking_id"].as_str())
             .collect();
         assert_eq!(ids, ["event-1", "event-new", "event-concurrent"]);
+    }
+
+    #[tokio::test]
+    async fn exhausts_retries_when_the_cas_guard_keeps_missing() {
+        let db = test_db().await;
+        sqlx::query("INSERT INTO app_settings (id, value_json) VALUES ('ignored_events', ?)")
+            .bind(json!([{ "tracking_id": "event-1", "last_seen": "first" }]).to_string())
+            .execute(db.pool())
+            .await
+            .unwrap();
+        sqlx::query(
+            "CREATE TRIGGER block_ignored_updates BEFORE UPDATE ON app_settings
+             WHEN OLD.id = 'ignored_events' BEGIN SELECT RAISE(IGNORE); END",
+        )
+        .execute(db.pool())
+        .await
+        .unwrap();
+
+        let error = update_ignored_calendar_item(
+            db.pool(),
+            UpdateIgnoredCalendarItemRequest {
+                kind: IgnoredCalendarItemKind::Events,
+                item_id: "event-new".to_string(),
+                ignored: true,
+            },
+        )
+        .await
+        .unwrap_err();
+
+        assert_eq!(error, "Setting ignored_events changed too frequently");
+        assert_eq!(
+            read_setting(&db, "ignored_events").await.unwrap(),
+            json!([{ "tracking_id": "event-1", "last_seen": "first" }])
+        );
     }
 
     #[tokio::test]
