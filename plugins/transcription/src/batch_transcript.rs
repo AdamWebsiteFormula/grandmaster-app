@@ -570,6 +570,104 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn current_capture_replacement_keeps_speaker_identity_from_pending_live_words() {
+        let db = test_db().await;
+        insert_transcript(&db, "replace-this", "session-1", 1000, &[]).await;
+        let source_hints = vec![StoredSpeakerHint {
+            id: "pending-word:user_speaker_assignment".to_string(),
+            word_id: Some("pending-word".to_string()),
+            hint_type: "user_speaker_assignment".to_string(),
+            value: serde_json::Value::String(
+                r#"{"human_id":"alice","scope":"speaker","channel":1,"speaker_index":0}"#
+                    .to_string(),
+            ),
+        }];
+        sqlx::query("UPDATE transcripts SET speaker_hints_json = ? WHERE id = 'replace-this'")
+            .bind(serde_json::to_string(&source_hints).unwrap())
+            .execute(db.pool())
+            .await
+            .unwrap();
+        sqlx::query(
+            "INSERT INTO transcript_live_state (transcript_id, next_sequence)
+             VALUES ('replace-this', 1)",
+        )
+        .execute(db.pool())
+        .await
+        .unwrap();
+        let delta_json = serde_json::json!({
+            "new_words": [{
+                "id": "pending-word",
+                "text": "hello",
+                "start_ms": 0,
+                "end_ms": 500,
+                "channel": 1,
+                "speaker_index": 0,
+                "state": "final"
+            }],
+            "replaced_ids": [],
+            "partials": []
+        })
+        .to_string();
+        sqlx::query(
+            "INSERT INTO transcript_live_deltas (id, transcript_id, sequence, delta_json)
+             VALUES ('pending-delta', 'replace-this', 0, ?)",
+        )
+        .bind(delta_json)
+        .execute(db.pool())
+        .await
+        .unwrap();
+
+        let mut batch_word = stored_word("new-word", "hello".to_string(), 0.0, 500.0);
+        batch_word.channel = Some(1.0);
+        let mut request = request(BatchTranscriptPromotion::CurrentCapture {
+            audio_offset_ms: 0.0,
+            replace_transcript_id: Some("replace-this".to_string()),
+            started_at: 1000.0,
+        });
+        request.started_at = 1000.0;
+        request.words = vec![batch_word];
+        request.hints = vec![StoredSpeakerHint {
+            id: "new-word:provider_speaker_index".to_string(),
+            word_id: Some("new-word".to_string()),
+            hint_type: "provider_speaker_index".to_string(),
+            value: serde_json::Value::String(r#"{"channel":1,"speaker_index":7}"#.to_string()),
+        }];
+        request.mark_audio_complete = false;
+
+        assert_eq!(
+            save_batch_transcript(db.pool(), request).await.unwrap(),
+            SaveBatchTranscriptOutcome::Saved {
+                transcript_id: Some("transcript-new".to_string())
+            }
+        );
+        let replaced = sqlx::query("SELECT deleted_at FROM transcripts WHERE id = 'replace-this'")
+            .fetch_one(db.pool())
+            .await
+            .unwrap();
+        assert!(replaced.get::<Option<String>, _>("deleted_at").is_some());
+
+        let hints_json: String = sqlx::query_scalar(
+            "SELECT speaker_hints_json FROM transcripts WHERE id = 'transcript-new'",
+        )
+        .fetch_one(db.pool())
+        .await
+        .unwrap();
+        let saved_hints = serde_json::from_str::<Value>(&hints_json).unwrap();
+        let assignment = saved_hints.as_array().unwrap().iter().find(|hint| {
+            hint["type"] == "user_speaker_assignment" && hint["word_id"] == "new-word"
+        });
+        assert!(
+            assignment.is_some(),
+            "expected assignment on new-word in saved hints: {saved_hints}"
+        );
+        let assignment_value = match &assignment.unwrap()["value"] {
+            Value::String(value) => serde_json::from_str::<Value>(value).unwrap(),
+            value => value.clone(),
+        };
+        assert_eq!(assignment_value["human_id"], "alice");
+    }
+
+    #[tokio::test]
     async fn current_capture_without_remaining_words_rolls_back_without_finalizing_audio() {
         let db = test_db().await;
         let mut request = request(BatchTranscriptPromotion::CurrentCapture {
