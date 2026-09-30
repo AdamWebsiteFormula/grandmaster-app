@@ -610,7 +610,12 @@ export function useCaptureLifecycle(sessionId: string) {
           return;
         }
         const ledger = result.data;
-        if (!ledger || ledger.capture_started_at_ms < startedAt - 5_000) {
+        const maxNativeStartDelayMs = 60_000;
+        if (
+          !ledger ||
+          ledger.capture_started_at_ms < startedAt - 5_000 ||
+          ledger.capture_started_at_ms > startedAt + maxNativeStartDelayMs
+        ) {
           audioRecovery.recoverPending();
           return;
         }
