@@ -98,39 +98,7 @@ describe("session content SQLite corrections", () => {
     expect(statements[0].sql).toContain("AND title = ?");
   });
 
-  it("forwards generated summary persistence and rejects command errors", async () => {
-    await persistGeneratedEnhancedNote({
-      sessionId: "session-1",
-      ownerUserId: "user-1",
-      note: {
-        id: "summary-1",
-        currentContent: "old summary",
-        currentContentFormat: "markdown",
-        nextContent: '{"type":"doc"}',
-      },
-      tagNames: ["launch", "launch", "prep"],
-      pendingAutoEnhance: {
-        generation: "generation-1",
-        expectedBody: "old summary",
-        expectedContentFormat: "markdown",
-      },
-    });
-
-    expect(mocks.saveGeneratedSummary).toHaveBeenCalledWith({
-      session_id: "session-1",
-      owner_user_id: "user-1",
-      note_id: "summary-1",
-      current_body: "old summary",
-      current_body_format: "markdown",
-      next_body: '{"type":"doc"}',
-      tag_names: ["launch", "launch", "prep"],
-      pending_auto_enhance: {
-        generation: "generation-1",
-        expected_body: "old summary",
-        expected_body_format: "markdown",
-      },
-    });
-
+  it("rejects when the Rust save fails", async () => {
     mocks.saveGeneratedSummary.mockResolvedValueOnce({
       status: "error",
       error: "database is locked",

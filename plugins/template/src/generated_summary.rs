@@ -278,6 +278,53 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn matching_pending_guard_saves_summary_and_removes_setting() {
+        let db = test_db().await;
+        insert_pending_setting(
+            &db,
+            json!({
+                "noteId": "note-1",
+                "generation": "gen-1",
+                "body": "old body",
+                "bodyFormat": "markdown"
+            }),
+        )
+        .await;
+        let mut request = request(vec![]);
+        request.pending_auto_enhance = Some(PendingAutoEnhanceGuard {
+            generation: "gen-1".to_string(),
+            expected_body: "old body".to_string(),
+            expected_body_format: "markdown".to_string(),
+        });
+
+        save_generated_summary(db.pool(), request).await.unwrap();
+
+        let row = sqlx::query(
+            "SELECT body, body_format
+             FROM session_documents WHERE id = 'note-1'",
+        )
+        .fetch_one(db.pool())
+        .await
+        .unwrap();
+        assert_eq!(
+            row.try_get::<String, _>("body").unwrap(),
+            r#"{"type":"doc","content":[]}"#
+        );
+        assert_eq!(
+            row.try_get::<String, _>("body_format").unwrap(),
+            "prosemirror_json"
+        );
+        let pending_count: i64 = sqlx::query_scalar(
+            "SELECT count(*) FROM app_settings
+             WHERE id = 'auto_enhance_pending:session-1'",
+        )
+        .fetch_one(db.pool())
+        .await
+        .unwrap();
+        assert_eq!(pending_count, 0);
+    }
+
+    #[tokio::test]
     async fn stale_current_body_rolls_back_without_inserting_tags() {
         let db = test_db().await;
         let mut request = request(vec!["launch"]);
