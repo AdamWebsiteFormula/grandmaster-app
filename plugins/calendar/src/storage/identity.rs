@@ -150,16 +150,19 @@ pub(crate) fn name_from_email_local_part(email: &str) -> String {
 }
 
 // JS `part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()` uppercases
-// the first UTF-16 code unit and lowercases the remainder.
+// the first UTF-16 code unit and lowercases the remainder; an astral first
+// char has no case mapping, so it stays as-is.
 fn capitalize_js(part: &str) -> String {
-    let mut units: Vec<u16> = part.encode_utf16().collect();
-    if units.is_empty() {
+    let mut chars = part.chars();
+    let Some(first) = chars.next() else {
         return String::new();
-    }
-    let first = String::from_utf16_lossy(&units[..1]).to_uppercase();
-    let rest = String::from_utf16_lossy(&units[1..]).to_lowercase();
-    units.clear();
-    format!("{first}{rest}")
+    };
+    let first: String = if first.len_utf16() == 1 {
+        first.to_uppercase().collect()
+    } else {
+        first.to_string()
+    };
+    format!("{first}{}", chars.as_str().to_lowercase())
 }
 
 pub(crate) fn infer_company_name_from_email(email: &str) -> Option<String> {
@@ -292,6 +295,15 @@ mod tests {
         let identity = derive_contact_identity(None, "jane.doe@gmail.com");
         assert_eq!(identity.name, "Jane Doe");
         assert_eq!(identity.company_name, None);
+    }
+
+    #[test]
+    fn capitalizes_the_first_utf16_unit_like_js() {
+        assert_eq!(
+            name_from_email_local_part("𝒜LICE.smith@acme.com"),
+            "𝒜lice Smith"
+        );
+        assert_eq!(name_from_email_local_part("élodie@x.com"), "Élodie");
     }
 
     #[test]

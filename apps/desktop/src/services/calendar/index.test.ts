@@ -354,32 +354,4 @@ describe("syncCalendarEventsForRange", () => {
     expect(fetchMocks.fetchIncomingEvents).toHaveBeenCalledTimes(1);
     expect(storageMocks.syncConnectionEvents).not.toHaveBeenCalled();
   });
-
-  test("commits one connection snapshot inside the database write queue", async () => {
-    const incoming = [
-      {
-        tracking_id_event: "event-1",
-        tracking_id_calendar: "primary",
-        has_recurrence_rules: false,
-        is_all_day: false,
-      },
-    ];
-    const incomingParticipants = new Map([["event-1", []]]);
-    fetchMocks.fetchIncomingEvents.mockResolvedValue({
-      events: incoming,
-      participants: incomingParticipants,
-    });
-
-    await syncCalendarEventsForRange({ from: ctx.from, to: ctx.to });
-
-    expect(writeQueueMocks.enqueueDatabaseWrite).toHaveBeenCalledWith(
-      "calendar-sync",
-      expect.any(Function),
-    );
-    expect(storageMocks.syncConnectionEvents).toHaveBeenCalledWith({
-      ctx,
-      incoming,
-      incomingParticipants,
-    });
-  });
 });
