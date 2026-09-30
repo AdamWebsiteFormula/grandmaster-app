@@ -66,7 +66,7 @@ static WHITESPACE_PATTERN: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\s+")
 static NAIVE_DATE_PATTERN: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap());
 static NAIVE_DATETIME_PATTERN: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$").unwrap());
+    LazyLock::new(|| Regex::new(r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$").unwrap());
 
 pub(crate) fn is_email_placeholder_name(name: &str) -> bool {
     let trimmed = name.trim();
@@ -232,7 +232,7 @@ pub(crate) fn normalize_name(value: &str) -> String {
 }
 
 // Approximates JS `Date.parse`: RFC 3339 first, then `YYYY-MM-DD` as UTC
-// midnight, then naive `YYYY-MM-DDTHH:mm[:ss[.f]]` in the local timezone.
+// midnight, then naive `YYYY-MM-DD[T| ]HH:mm[:ss[.f]]` in the local timezone.
 // Anything else is NaN, which makes comparisons false.
 pub(crate) fn js_date_parse_millis(value: &str) -> Option<i64> {
     if let Ok(parsed) = chrono::DateTime::parse_from_rfc3339(value) {
@@ -247,7 +247,12 @@ pub(crate) fn js_date_parse_millis(value: &str) -> Option<i64> {
         return None;
     }
     if NAIVE_DATETIME_PATTERN.is_match(value) {
-        for format in ["%Y-%m-%dT%H:%M:%S%.f", "%Y-%m-%dT%H:%M"] {
+        for format in [
+            "%Y-%m-%dT%H:%M:%S%.f",
+            "%Y-%m-%dT%H:%M",
+            "%Y-%m-%d %H:%M:%S%.f",
+            "%Y-%m-%d %H:%M",
+        ] {
             if let Ok(naive) = chrono::NaiveDateTime::parse_from_str(value, format) {
                 return naive
                     .and_local_timezone(chrono::Local)
@@ -322,6 +327,14 @@ mod tests {
                     .and_utc()
                     .timestamp_millis()
             )
+        );
+        assert_eq!(
+            js_date_parse_millis("2026-09-16 10:00:00"),
+            js_date_parse_millis("2026-09-16T10:00:00")
+        );
+        assert_eq!(
+            js_date_parse_millis("2026-09-16 10:00"),
+            js_date_parse_millis("2026-09-16T10:00")
         );
         assert!(js_date_parse_millis("not a date").is_none());
         assert!(js_date_parse_millis("").is_none());

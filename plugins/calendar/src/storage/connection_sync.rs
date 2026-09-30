@@ -1933,4 +1933,32 @@ mod tests {
             .unwrap();
         assert_eq!(title, "Updated meeting");
     }
+
+    #[tokio::test]
+    async fn tombstones_events_whose_timestamps_use_a_space_separator() {
+        let db = seed_participant_db().await;
+        sqlx::query(
+            "INSERT INTO events (id, tracking_id_event, calendar_id, title, started_at, ended_at,
+                provider, created_at, updated_at)
+             VALUES ('event-1', 'tracking-1', 'calendar', 'Meeting', '2026-09-16 10:00:00',
+                '2026-09-16 11:00:00', 'google', '2026-01-01', '2026-01-01')",
+        )
+        .execute(db.pool())
+        .await
+        .unwrap();
+
+        let mut request = google_request(vec![], vec![]);
+        request.from = "2026-09-14T00:00:00.000Z".to_string();
+        request.to = "2026-09-21T00:00:00.000Z".to_string();
+        sync_calendar_connection_events(db.pool(), request)
+            .await
+            .unwrap();
+
+        let deleted_at: Option<String> =
+            sqlx::query_scalar("SELECT deleted_at FROM events WHERE id = 'event-1'")
+                .fetch_one(db.pool())
+                .await
+                .unwrap();
+        assert!(deleted_at.is_some());
+    }
 }
