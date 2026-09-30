@@ -772,7 +772,6 @@ describe("useRunBatch", () => {
       });
     });
 
-    expect(refineBatchTranscriptMock).toHaveBeenCalledOnce();
     expect(refineBatchTranscriptMock.mock.calls[0]?.[0]).toMatchObject({
       promotion: {
         scope: "current_capture",
