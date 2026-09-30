@@ -958,11 +958,7 @@ describe("runBatchSession", () => {
       | ((event: {
           payload:
             | { type: "started"; session_id: string }
-            | {
-                type: "stopped";
-                session_id: string;
-                stopped_at_ms: number;
-              };
+            | { type: "stopped"; session_id: string };
         }) => void)
       | undefined;
 
@@ -977,7 +973,6 @@ describe("runBatchSession", () => {
           payload: {
             type: "stopped",
             session_id: "session-1",
-            stopped_at_ms: 1000,
           },
         });
       });
@@ -1374,9 +1369,7 @@ describe("batch recovery after reload", () => {
       return unlisten;
     });
     listTranscriptionSessionsMock.mockImplementation(async () => {
-      emit({
-        payload: { type: "stopped", session_id: "orphan", stopped_at_ms: 1000 },
-      });
+      emit({ payload: { type: "stopped", session_id: "orphan" } });
       return {
         status: "ok",
         data: [
@@ -1543,9 +1536,7 @@ describe("batch recovery after reload", () => {
 
     await recoverRunningBatchSessions(() => store);
     store.batch.orphan = { percentage: 0 };
-    emit({
-      payload: { type: "stopped", session_id: "orphan", stopped_at_ms: 1000 },
-    });
+    emit({ payload: { type: "stopped", session_id: "orphan" } });
 
     expect(store.handleBatchStopped).not.toHaveBeenCalled();
     expect(unlisten).toHaveBeenCalledOnce();
