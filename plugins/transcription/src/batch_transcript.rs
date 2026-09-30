@@ -6,8 +6,8 @@ use anlg_db_app::{
 use anlg_transcript::{
     BatchRefinementOutcome, BatchRefinementRequest, BatchRefinementSource,
     BatchTranscriptPromotion, StoredLiveTranscriptDelta, StoredSpeakerHint, StoredTranscriptWord,
-    materialize_live_transcript, refine_batch_transcript, serialize_batch_transcript_hints,
-    serialize_batch_transcript_words,
+    materialize_live_transcript, parse_stored_speaker_hints, parse_stored_transcript_words,
+    refine_batch_transcript, serialize_batch_transcript_hints, serialize_batch_transcript_words,
 };
 use serde::Serialize;
 use sqlx::SqlitePool;
@@ -174,10 +174,8 @@ pub async fn save_batch_transcript(
 }
 
 fn materialize_source_row(row: BatchTranscriptRow) -> BatchRefinementSource {
-    let words =
-        serde_json::from_str::<Vec<StoredTranscriptWord>>(&row.words_json).unwrap_or_default();
-    let hints =
-        serde_json::from_str::<Vec<StoredSpeakerHint>>(&row.speaker_hints_json).unwrap_or_default();
+    let words = parse_stored_transcript_words(&row.words_json);
+    let hints = parse_stored_speaker_hints(&row.speaker_hints_json);
     let deltas: Vec<StoredLiveTranscriptDelta> = row
         .pending_delta_jsons
         .iter()
@@ -405,6 +403,65 @@ mod tests {
             serde_json::from_str::<Value>(&audio_metadata(&db).await).unwrap()["transcript_status"],
             "complete"
         );
+    }
+
+    #[tokio::test]
+    async fn whole_session_replacement_keeps_assignment_without_hint_id() {
+        let db = test_db().await;
+        let mut source_word = stored_word("source-word", "hello".to_string(), 100.0, 200.0);
+        source_word.channel = Some(1.0);
+        insert_transcript(&db, "source", "session-1", 1000, &[source_word]).await;
+        let source_hints = serde_json::json!([
+            {
+                "word_id": "source-word",
+                "type": "user_speaker_assignment",
+                "value": r#"{"human_id":"alice","scope":"speaker","channel":1,"speaker_index":0}"#
+            },
+            {
+                "id": "source-word:provider_speaker_index",
+                "word_id": "source-word",
+                "type": "provider_speaker_index",
+                "value": r#"{"channel":1,"speaker_index":0}"#
+            }
+        ]);
+        let parsed_hints = parse_stored_speaker_hints(&source_hints.to_string());
+        assert_eq!(parsed_hints[0].id, "source-word:user_speaker_assignment");
+        sqlx::query("UPDATE transcripts SET speaker_hints_json = ? WHERE id = 'source'")
+            .bind(source_hints.to_string())
+            .execute(db.pool())
+            .await
+            .unwrap();
+
+        let mut request = request(BatchTranscriptPromotion::WholeSession);
+        let mut batch_word = stored_word("new-word", "hello".to_string(), 100.0, 200.0);
+        batch_word.channel = Some(1.0);
+        request.words = vec![batch_word];
+
+        assert_eq!(
+            save_batch_transcript(db.pool(), request).await.unwrap(),
+            SaveBatchTranscriptOutcome::Saved {
+                transcript_id: Some("transcript-new".to_string())
+            }
+        );
+        let hints_json: String = sqlx::query_scalar(
+            "SELECT speaker_hints_json FROM transcripts WHERE id = 'transcript-new'",
+        )
+        .fetch_one(db.pool())
+        .await
+        .unwrap();
+        let saved_hints = serde_json::from_str::<Value>(&hints_json).unwrap();
+        let assignment = saved_hints.as_array().unwrap().iter().find(|hint| {
+            hint["type"] == "user_speaker_assignment" && hint["word_id"] == "new-word"
+        });
+        assert!(
+            assignment.is_some(),
+            "expected assignment on new-word in saved hints: {saved_hints}"
+        );
+        let assignment_value = match &assignment.unwrap()["value"] {
+            Value::String(value) => serde_json::from_str::<Value>(value).unwrap(),
+            value => value.clone(),
+        };
+        assert_eq!(assignment_value["human_id"], "alice");
     }
 
     #[tokio::test]

@@ -1,6 +1,7 @@
 use std::{cmp::Ordering, collections::HashMap, hash::Hash, sync::LazyLock};
 
 use regex::Regex;
+use serde::de::DeserializeOwned;
 use serde_json::{Number, Value};
 
 use crate::ChannelProfile;
@@ -41,6 +42,40 @@ pub struct StoredSpeakerHint {
     pub hint_type: String,
     #[serde(default)]
     pub value: Value,
+}
+
+pub fn parse_stored_transcript_words(json: &str) -> Vec<StoredTranscriptWord> {
+    parse_stored_json_array(json)
+}
+
+pub fn parse_stored_speaker_hints(json: &str) -> Vec<StoredSpeakerHint> {
+    let Ok(values) = serde_json::from_str::<Vec<Value>>(json) else {
+        return Vec::new();
+    };
+    values
+        .into_iter()
+        .filter_map(|mut value| {
+            if let Value::Object(object) = &mut value
+                && !object.get("id").is_some_and(Value::is_string)
+                && let Some(id) = object
+                    .get("word_id")
+                    .and_then(Value::as_str)
+                    .zip(object.get("type").and_then(Value::as_str))
+                    .map(|(word_id, hint_type)| format!("{word_id}:{hint_type}"))
+            {
+                object.insert("id".to_string(), Value::String(id));
+            }
+            serde_json::from_value(value).ok()
+        })
+        .collect()
+}
+
+fn parse_stored_json_array<T: DeserializeOwned>(json: &str) -> Vec<T> {
+    serde_json::from_str::<Vec<Value>>(json)
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|value| serde_json::from_value(value).ok())
+        .collect()
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, specta::Type)]
@@ -151,6 +186,8 @@ pub fn refine_batch_transcript(request: BatchRefinementRequest) -> BatchRefineme
         previous_transcripts
             .iter()
             .find(|source| &source.id == replace_transcript_id)
+    } else if replace_session && previous_transcripts.len() == 1 {
+        previous_transcripts.first()
     } else {
         None
     };

@@ -17,7 +17,8 @@ mod words;
 pub use batch_refine::{
     BatchRefinementOutcome, BatchRefinementRequest, BatchRefinementSource,
     BatchTranscriptPromotion, SpeakerClusterReconciliationRequest, StoredSpeakerHint,
-    StoredTranscriptWord, reconcile_refined_speaker_clusters, refine_batch_transcript,
+    StoredTranscriptWord, parse_stored_speaker_hints, parse_stored_transcript_words,
+    reconcile_refined_speaker_clusters, refine_batch_transcript,
 };
 pub use label::{SpeakerLabelContext, SpeakerLabeler, render_speaker_label};
 pub use live_materialize::{
