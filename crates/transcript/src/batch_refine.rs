@@ -186,8 +186,6 @@ pub fn refine_batch_transcript(request: BatchRefinementRequest) -> BatchRefineme
         previous_transcripts
             .iter()
             .find(|source| &source.id == replace_transcript_id)
-    } else if replace_session && previous_transcripts.len() == 1 {
-        previous_transcripts.first()
     } else {
         None
     };
