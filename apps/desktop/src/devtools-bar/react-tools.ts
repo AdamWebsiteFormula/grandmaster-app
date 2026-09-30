@@ -66,10 +66,6 @@ export function recordReactCommit(): void {
   commitCount += 1;
 }
 
-export function readReactCommitCount(): number {
-  return commitCount;
-}
-
 export function setReactToolbarVisible(visible: boolean): void {
   controls?.setToolbarVisible(visible);
 }
