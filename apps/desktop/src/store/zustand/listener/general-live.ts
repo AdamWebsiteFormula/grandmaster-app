@@ -416,8 +416,30 @@ const createSessionEventHandlers = <T extends LiveStore>(
 
     if (
       payload.type === "audio_error" &&
+      payload.error.startsWith("audio_saving_delayed")
+    ) {
+      toast.warning("Audio saving is delayed", {
+        id: `audio-saving-delayed-${targetSessionId}`,
+        duration: Infinity,
+        description:
+          "Free up disk space. Audio is kept in memory and saved once storage is available. Live transcription continues.",
+      });
+      return;
+    }
+
+    if (
+      payload.type === "audio_error" &&
+      payload.error === "audio_saving_resumed"
+    ) {
+      toast.dismiss(`audio-saving-delayed-${targetSessionId}`);
+      return;
+    }
+
+    if (
+      payload.type === "audio_error" &&
       payload.error.startsWith("audio_storage_")
     ) {
+      toast.dismiss(`audio-saving-delayed-${targetSessionId}`);
       setLiveState(set, (live) => updateLiveProgress(live, payload));
       toast.error("Audio saving was interrupted", {
         id: `audio-storage-${targetSessionId}`,
