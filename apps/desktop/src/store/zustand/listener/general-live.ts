@@ -369,11 +369,13 @@ const createSessionEventHandlers = <T extends LiveStore>(
     };
 
     if (onStopped) {
-      const finishPostStopProcessing = () => {
+      const finishPostStopProcessing = (acknowledge: boolean) => {
         setLiveState(set, (live) => {
           delete live.postStopProcessingBySession[targetSessionId];
         });
-        acknowledgeStoppedCapture();
+        if (acknowledge) {
+          acknowledgeStoppedCapture();
+        }
         dispatchMeetingCompleted();
       };
       try {
@@ -388,14 +390,14 @@ const createSessionEventHandlers = <T extends LiveStore>(
           needsBatchRepair,
         });
         void Promise.resolve(stopped).then(
-          finishPostStopProcessing,
+          () => finishPostStopProcessing(true),
           (error) => {
-            finishPostStopProcessing();
+            finishPostStopProcessing(false);
             console.error("[listener] post-stop processing failed", error);
           },
         );
       } catch (error) {
-        finishPostStopProcessing();
+        finishPostStopProcessing(false);
         console.error("[listener] post-stop processing failed", error);
       }
     } else {

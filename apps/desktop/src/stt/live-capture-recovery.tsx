@@ -61,8 +61,8 @@ export function LiveCaptureRecovery() {
     let active = true;
     let unlisten: (() => void) | undefined;
 
-    // Only explicit requests process stopped captures; ones found at launch
-    // or after a renderer reload wait for the user.
+    // Explicit requests and unacknowledged native stop outcomes are processed;
+    // marker-only captures found at launch wait for the user.
     const addSessionIds = (ids: Array<string | null>, requested = false) => {
       if (!active) {
         return;

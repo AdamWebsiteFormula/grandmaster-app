@@ -1550,6 +1550,13 @@ describe("General Listener Slice", () => {
         "[listener] post-stop processing failed",
         error,
       );
+      expect(acknowledgeStoppedCaptureMock).not.toHaveBeenCalled();
+      await vi.waitFor(() =>
+        expect(dispatchEventMock).toHaveBeenCalledWith(
+          "meeting.completed",
+          "session-a",
+        ),
+      );
       await vi.waitFor(() =>
         expect(store.getState().canStartLiveSession("session-a")).toBe(true),
       );

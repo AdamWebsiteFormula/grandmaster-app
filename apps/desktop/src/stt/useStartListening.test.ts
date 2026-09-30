@@ -2249,6 +2249,57 @@ describe("useStartListening", () => {
     );
   });
 
+  test("rechecks for a native stopped outcome after attaching listeners", async () => {
+    attachLiveSessionMock.mockResolvedValue("inactive");
+    const marker = {
+      version: 1 as const,
+      chunkedAudio: true,
+      retainAudio: true,
+      sessionId: "session-1",
+      transcriptId: "transcript-before-reload",
+      startedAt: 1_000,
+      createdAt: "2026-07-24T00:00:00.000Z",
+      audioOffsetMs: 10_000,
+      preserveExistingTranscript: true,
+      ownerUserId: "user-1",
+      memo: "Existing memo",
+      provider: "elevenlabs",
+      model: "scribe_v2",
+    };
+    loadCaptureLifecycleMarkerMock
+      .mockResolvedValueOnce(marker)
+      .mockResolvedValueOnce(marker)
+      .mockResolvedValueOnce(null);
+    getStoppedCaptureMock
+      .mockResolvedValueOnce({ status: "ok", data: null })
+      .mockResolvedValueOnce({
+        status: "ok",
+        data: {
+          session_id: "session-1",
+          stopped_at_ms: 123456,
+          duration_seconds: 42,
+          chunked_audio: true,
+          audio_path: "/tmp/native-session.wav",
+          requested_live_transcription: true,
+          live_transcription_active: false,
+          error: null,
+        },
+      });
+    const { result } = renderHook(() =>
+      useResumeListeningLifecycle("session-1"),
+    );
+
+    await act(async () => {
+      await expect(result.current()).resolves.toBe("inactive");
+    });
+
+    expect(getStoppedCaptureMock).toHaveBeenCalledTimes(2);
+    expect(acknowledgeStoppedCaptureMock).toHaveBeenCalledWith(
+      "session-1",
+      123456,
+    );
+  });
+
   test.each(["forever", "none"] as const)(
     "transcribes a Scribe V2 capture with %s retention after a stopped renderer recovers",
     async (retention) => {

@@ -105,6 +105,22 @@ export function useResumeListeningLifecycle(sessionId: string) {
       const { lifecycleState, stoppedProcessingRef } = attempt;
       let state: Awaited<typeof lifecycleState> | undefined;
       let stoppedCapture: StoppedCapture | null = null;
+      const readStoppedCapture = async (): Promise<StoppedCapture | null> => {
+        try {
+          const result = await listenerCommands.getStoppedCapture(sessionId);
+          if (result.status === "error") {
+            console.error(
+              "[listener] failed to get stopped capture",
+              result.error,
+            );
+            return null;
+          }
+          return result.data;
+        } catch (error) {
+          console.error("[listener] failed to get stopped capture", error);
+          return null;
+        }
+      };
       const acknowledgeStoppedOutcome = async () => {
         if (!stoppedCapture) return;
         const stoppedAtMs = stoppedCapture.stopped_at_ms;
@@ -170,19 +186,7 @@ export function useResumeListeningLifecycle(sessionId: string) {
       };
       try {
         state = await lifecycleState;
-        try {
-          const result = await listenerCommands.getStoppedCapture(sessionId);
-          if (result.status === "error") {
-            console.error(
-              "[listener] failed to get stopped capture",
-              result.error,
-            );
-          } else {
-            stoppedCapture = result.data;
-          }
-        } catch (error) {
-          console.error("[listener] failed to get stopped capture", error);
-        }
+        stoppedCapture = await readStoppedCapture();
         await state.lifecycle.acquireCloudsyncLease();
       } catch (error) {
         console.error(
@@ -199,7 +203,6 @@ export function useResumeListeningLifecycle(sessionId: string) {
         return failRecovery({ clearMarker: !lifecycleStateUnavailable });
       }
 
-      const processStopped = options?.processStopped || stoppedCapture !== null;
       let result: Awaited<ReturnType<typeof attachLiveSession>>;
       try {
         result = await attachLiveSession(sessionId, {
@@ -245,6 +248,10 @@ export function useResumeListeningLifecycle(sessionId: string) {
         }
         return result;
       }
+      if (stoppedCapture === null) {
+        stoppedCapture = await readStoppedCapture();
+      }
+      const processStopped = options?.processStopped || stoppedCapture !== null;
       if (result === "error") {
         const stoppedProcessing = stoppedProcessingRef.current;
         if (stoppedProcessing) {
