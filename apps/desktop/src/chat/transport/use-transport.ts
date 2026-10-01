@@ -105,18 +105,19 @@ export function useTransport(
     retry: false,
     placeholderData: keepPreviousData,
     queryFn: async () => {
-      try {
-        const result = await templateCommands.render({
-          chatSystem: { language },
-        });
-        return result.status === "ok" ? result.data : "";
-      } catch (error) {
-        console.error(error);
-        return "";
+      const result = await templateCommands.render({
+        chatSystem: { language },
+      });
+      if (result.status !== "ok") {
+        console.error(result.error);
+        throw new Error(String(result.error));
       }
+      return result.data;
     },
   });
-  const systemPrompt = systemPromptOverride ?? systemPromptQuery.data;
+  const systemPrompt =
+    systemPromptOverride ??
+    (systemPromptQuery.isError ? "" : systemPromptQuery.data);
 
   const effectiveSystemPrompt = appendMeetingContextToolGuidance(systemPrompt);
   const isSystemPromptReady = systemPrompt !== undefined;
