@@ -41,6 +41,7 @@ import { toast } from "@anlg/ui/components/ui/toast";
 import { cn, formatDistanceToNow } from "@anlg/utils";
 
 import { E2eeSetupDialog } from "../general/e2ee-setup";
+import { resolveDeviceKind } from "./device-kind";
 import { SyncHealthSection } from "./health";
 
 import { trackAnalyticsEvent } from "~/analytics";
@@ -59,7 +60,6 @@ import {
   removeSyncDevice,
   renameSyncDevice,
   requestSyncDevices,
-  type SyncDeviceKind,
 } from "~/auth/sync-devices";
 import { captureOperationalError } from "~/error-reporting";
 import { SettingsPageTitle } from "~/settings/page-title";
@@ -218,22 +218,6 @@ const DEVICE_KIND_ICONS = {
   watch: Watch,
 } as const;
 
-function resolveDeviceKind(kind: unknown, name: string | null): SyncDeviceKind {
-  if (kind === "desktop" || kind === "mobile" || kind === "watch") {
-    return kind;
-  }
-  if (
-    name &&
-    (/\b(?:android|galaxy|honor|huawei|ios|ipad|iphone|ipod|mobile|moto(?:rola)?|oneplus|oppo|pixel|phone|redmi|tablet|vivo|xiaomi)\b/i.test(
-      name,
-    ) ||
-      /^(?:gt|sch|sgh|sm)-[a-z0-9-]+$/i.test(name.trim()))
-  ) {
-    return "mobile";
-  }
-  return "desktop";
-}
-
 function DeviceKindIcon({
   kind,
   name,
@@ -246,7 +230,6 @@ function DeviceKindIcon({
   return (
     <Icon
       aria-hidden="true"
-      data-device-kind={resolved}
       className="text-muted-foreground size-4 shrink-0"
     />
   );
