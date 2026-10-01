@@ -49,6 +49,7 @@ export function ReactScanControls() {
       action(!enabled);
       return;
     }
+    if (pendingInstall.current) return;
 
     void install().then((installed) => {
       if (installed && !canceled.current) action(true);
