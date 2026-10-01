@@ -22,7 +22,7 @@ import {
 
 const TOGGLE_SYNC_DEBOUNCE_MS = 5000;
 
-export type SyncStatus = "idle" | "scheduled" | "syncing";
+type SyncStatus = "idle" | "scheduled" | "syncing";
 
 interface SyncContextValue {
   status: SyncStatus;

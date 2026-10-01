@@ -24,7 +24,7 @@ import { MessageTimestamp } from "./timestamp";
 import { Tool } from "./tool";
 import type { Part } from "./types";
 
-import { hasRenderableContent } from "~/chat/components/shared";
+import { hasRenderableContent } from "~/chat/message-content";
 import type { AnlgUIMessage } from "~/chat/types";
 
 function getMessageText(message: AnlgUIMessage): string {

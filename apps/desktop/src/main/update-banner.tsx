@@ -11,11 +11,7 @@ import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 import { isAppStoreBuild } from "~/shared/app-store";
 import { useDevtoolsOtaPreview } from "~/store/zustand/devtools-ota-preview";
 
-export type UpdateBannerStatus =
-  | "available"
-  | "downloading"
-  | "ready"
-  | "failed";
+type UpdateBannerStatus = "available" | "downloading" | "ready" | "failed";
 
 export type DesktopUpdateControl = {
   status: UpdateBannerStatus | null;
