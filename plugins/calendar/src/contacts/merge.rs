@@ -38,7 +38,7 @@ async fn reassign_speaker_references(
     now: &str,
 ) -> Result<(), String> {
     let transcripts: Vec<(String, String)> = sqlx::query_as(
-        "SELECT id, speaker_hints_json FROM transcripts WHERE deleted_at IS NULL AND instr(speaker_hints_json, ?) > 0",
+        "SELECT id, speaker_hints_json FROM transcripts WHERE instr(speaker_hints_json, ?) > 0",
     )
     .bind(duplicate_id)
     .fetch_all(&mut *conn)
@@ -89,7 +89,7 @@ async fn reassign_speaker_references(
     }
 
     let sessions: Vec<(String, String)> =
-        sqlx::query_as("SELECT id, metadata_json FROM sessions WHERE deleted_at IS NULL AND instr(metadata_json, ?) > 0")
+        sqlx::query_as("SELECT id, metadata_json FROM sessions WHERE instr(metadata_json, ?) > 0")
             .bind(duplicate_id)
             .fetch_all(&mut *conn)
             .await
@@ -288,6 +288,16 @@ mod tests {
             .execute(db.pool())
             .await
             .unwrap();
+        sqlx::query(
+            "UPDATE sessions SET metadata_json = ?, deleted_at = '2026-10-01' WHERE id = 's2'",
+        )
+        .bind(metadata.to_string())
+        .execute(db.pool())
+        .await
+        .unwrap();
+        sqlx::query("INSERT INTO transcripts (id, session_id, speaker_hints_json, deleted_at) VALUES ('t2', 's2', ?, '2026-10-01')")
+            .bind(hints.to_string())
+            .execute(db.pool()).await.unwrap();
 
         merge_humans(
             db.pool(),
@@ -363,6 +373,31 @@ mod tests {
             serde_json::json!("N");
         assert_eq!(
             serde_json::from_str::<Value>(&stored_metadata).unwrap(),
+            expected_metadata
+        );
+        let (deleted_hints, deleted_at): (String, String) = sqlx::query_as(
+            "SELECT speaker_hints_json, deleted_at FROM transcripts WHERE id = 't2'",
+        )
+        .fetch_one(db.pool())
+        .await
+        .unwrap();
+        assert_eq!(
+            serde_json::from_str::<Value>(&deleted_hints).unwrap(),
+            expected_hints
+        );
+        assert_eq!(deleted_at, "2026-10-01");
+        sqlx::query("UPDATE sessions SET deleted_at = NULL WHERE id = 's2'")
+            .execute(db.pool())
+            .await
+            .unwrap();
+        let restored_context: String = sqlx::query_scalar(
+            "SELECT metadata_json FROM sessions WHERE id = 's2' AND deleted_at IS NULL",
+        )
+        .fetch_one(db.pool())
+        .await
+        .unwrap();
+        assert_eq!(
+            serde_json::from_str::<Value>(&restored_context).unwrap(),
             expected_metadata
         );
         let mut conn = db.pool().acquire().await.unwrap();
