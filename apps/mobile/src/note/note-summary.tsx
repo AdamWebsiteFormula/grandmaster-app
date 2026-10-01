@@ -10,7 +10,6 @@ import {
   notifySummarySkipped,
   SummarySkippedError,
   summarizeSession,
-  useAutomaticSummary,
   useSessionSummaryState,
 } from "@/data/summarize";
 import { transcribeSession, useTranscriptionState } from "@/data/transcribe";
@@ -42,24 +41,12 @@ export function NoteSummary({
   const canSummarize = useProviderAccess("llm");
   const summaryState = useSessionSummaryState(sessionId);
   const transcription = useTranscriptionState(sessionId);
-  const automaticSummary = useAutomaticSummary(
-    sessionId,
-    !active &&
-      !summary &&
-      canSummarize &&
-      audio.data?.transcriptStatus === "complete" &&
-      hasTranscript &&
-      transcription !== "running" &&
-      summaryState?.status !== "error",
-  );
-  const summaryPending =
-    summaryState?.status === "pending" || automaticSummary.isFetching;
+  const summaryPending = summaryState?.status === "pending";
   const summaryError = summaryState?.error;
   const summarySkipped = summaryError instanceof SummarySkippedError;
   const needsTranscription =
     Boolean(audio.data) && audio.data?.transcriptStatus !== "complete";
 
-  // Automatic summaries must keep running when the user switches to Memos.
   if (!visible) return null;
   return (
     <ScrollView
@@ -115,10 +102,7 @@ export function NoteSummary({
       )}
       {!active &&
         !needsTranscription &&
-        (!canSummarize ||
-          summaryError ||
-          summary ||
-          (!audio.data && hasTranscript)) && (
+        (!canSummarize || summaryError || summary || hasTranscript) && (
           <Button
             label={
               !canSummarize

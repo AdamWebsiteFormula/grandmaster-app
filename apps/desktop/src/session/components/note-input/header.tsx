@@ -11,7 +11,6 @@ import { HeaderViewTranscript } from "./header-transcript";
 
 import { FolderPicker } from "~/session/components/folder-picker";
 import { useCanShowTranscript } from "~/session/components/shared";
-import { useEnsureDefaultSummary } from "~/session/hooks/useEnhancedNotes";
 import { deleteEnhancedNote, useEnhancedNoteRecords } from "~/session/queries";
 import { type EditorView } from "~/store/zustand/tabs/schema";
 
@@ -136,7 +135,6 @@ export function useEditorTabs({
   audioExists?: boolean;
   sessionId: string;
 }): EditorView[] {
-  useEnsureDefaultSummary(sessionId);
   const canShowTranscript = useCanShowTranscript(sessionId, { audioExists });
 
   const enhancedNoteIds = useEnhancedNoteRecords(sessionId).map(

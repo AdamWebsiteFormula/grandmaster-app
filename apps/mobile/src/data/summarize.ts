@@ -1,17 +1,17 @@
-import {
-  queryOptions,
-  useMutationState,
-  useQuery,
-} from "@tanstack/react-query";
+import { useMutationState } from "@tanstack/react-query";
 import { fetch } from "expo/fetch";
 
-import { hasSummaryContent } from "@anlg/utils/session";
+import {
+  defaultSummaryDocumentId,
+  hasSummaryContent,
+  resolveSummaryDocument,
+} from "@anlg/utils/session";
 import { getSummaryEligibility } from "@anlg/utils/summary-eligibility";
 
 import { execute, executeTransaction } from "@/db";
 import { env } from "@/lib/env";
 import { captureOperationalError } from "@/lib/error-reporting";
-import { id, nowIso } from "@/lib/ids";
+import { nowIso } from "@/lib/ids";
 import { queryClient } from "@/lib/query-client";
 import { showToast } from "@/lib/toast";
 import { readPreferences } from "@/settings/preferences";
@@ -54,21 +54,30 @@ async function runSummary(
   const existing = await execute<{
     id: string;
     updated_at: string;
+    deleted_at: string | null;
     body: string;
     session_title: string;
+    kind: string;
+    template_id: string;
+    sort_order: number;
   }>(
-    `SELECT document.id, document.updated_at, document.body, session.title AS session_title
+    `SELECT document.id, document.updated_at, document.deleted_at, document.body, document.kind, document.template_id, document.sort_order, session.title AS session_title
      FROM session_documents AS document
      JOIN sessions AS session ON session.id = document.session_id AND session.deleted_at IS NULL
-     WHERE document.session_id = ? AND document.kind = 'summary' AND document.deleted_at IS NULL
-     ORDER BY document.sort_order, document.created_at, document.id LIMIT 1`,
+     WHERE document.session_id = ? AND document.kind IN ('summary', 'template_output')
+     ORDER BY document.sort_order, document.id`,
     [sessionId],
   );
-  if (
-    automatic &&
-    existing[0] &&
-    hasSummaryContent(existing[0].body, existing[0].session_title)
-  )
+  const prior = resolveSummaryDocument(
+    existing.filter((document) => document.deleted_at === null),
+    existing[0]?.session_title,
+  );
+  const target =
+    prior ??
+    existing.find(
+      (document) => document.id === defaultSummaryDocumentId(sessionId),
+    );
+  if (automatic && prior && hasSummaryContent(prior.body, prior.session_title))
     return;
   const [notes, transcripts, humans, preferences, provider] = await Promise.all(
     [
@@ -154,29 +163,38 @@ async function runSummary(
     language: preferences.ai_language,
     summary_length: preferences.summary_length,
   });
-  const prior = existing[0];
   const [changed] = await executeTransaction([
-    prior
+    target
       ? {
-          sql: `UPDATE session_documents SET body = ?, body_format = 'markdown', generation_metadata_json = ?, updated_at = ?
-      WHERE id = ? AND session_id = ? AND updated_at = ? AND body = ? AND deleted_at IS NULL
+          sql: `UPDATE session_documents SET body = ?, body_format = 'markdown', generation_metadata_json = ?, updated_at = ?, deleted_at = NULL
+      WHERE id = ? AND session_id = ? AND updated_at = ? AND body = ? AND deleted_at IS ?
         AND EXISTS (SELECT 1 FROM sessions WHERE id = ? AND deleted_at IS NULL)`,
           params: [
             summary,
             metadata,
             now,
-            prior.id,
+            target.id,
             sessionId,
-            prior.updated_at,
-            prior.body,
+            target.updated_at,
+            target.body,
+            target.deleted_at,
             sessionId,
           ],
         }
       : {
           sql: `INSERT INTO session_documents (id, workspace_id, session_id, kind, title, body_format, body, generation_metadata_json, created_at, updated_at)
       SELECT ?, workspace_id, id, 'summary', 'Summary', 'markdown', ?, ?, ?, ? FROM sessions WHERE id = ? AND deleted_at IS NULL
-        AND NOT EXISTS (SELECT 1 FROM session_documents WHERE session_id = ? AND kind = 'summary' AND deleted_at IS NULL)`,
-          params: [id(), summary, metadata, now, now, sessionId, sessionId],
+        AND NOT EXISTS (SELECT 1 FROM session_documents WHERE session_id = ? AND kind IN ('summary', 'template_output') AND deleted_at IS NULL)
+        ON CONFLICT(id) DO NOTHING`,
+          params: [
+            defaultSummaryDocumentId(sessionId),
+            summary,
+            metadata,
+            now,
+            now,
+            sessionId,
+            sessionId,
+          ],
         },
   ]);
   if (changed !== 1)
@@ -223,23 +241,6 @@ export function generateSummaryAfterTranscription(sessionId: string): void {
   void summarizeSession(sessionId, { automatic: true }).catch((error) =>
     notifySummarySkipped(sessionId, error),
   );
-}
-
-export function automaticSummaryOptions(sessionId: string) {
-  return queryOptions({
-    queryKey: ["session-auto-summary", sessionId],
-    queryFn: async () => {
-      await summarizeSession(sessionId, { automatic: true });
-      return null;
-    },
-    retry: false,
-    retryOnMount: false,
-    staleTime: Infinity,
-  });
-}
-
-export function useAutomaticSummary(sessionId: string, enabled: boolean) {
-  return useQuery({ ...automaticSummaryOptions(sessionId), enabled });
 }
 
 export function useSessionSummaryState(sessionId: string) {

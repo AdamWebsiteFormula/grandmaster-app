@@ -119,11 +119,8 @@ const {
 } = await import("./providers.ts");
 const { requestProviderTranscription } =
   await import("../data/provider-transcription.ts");
-const {
-  summarizeSession,
-  generateSummaryAfterTranscription,
-  automaticSummaryOptions,
-} = await import("../data/summarize.ts");
+const { summarizeSession, generateSummaryAfterTranscription } =
+  await import("../data/summarize.ts");
 const { queryClient } = await import("../lib/query-client.ts");
 const { dismissToast, getToast } = await import("../lib/toast.ts");
 const { loadSessionTranscripts } = await import("../data/transcripts.ts");
@@ -994,6 +991,7 @@ test("summary generation uses the selected provider and persists a canonical sum
   const summary = fixture.db
     .prepare("SELECT * FROM session_documents WHERE kind = 'summary'")
     .get();
+  assert.equal(summary.id, "summary:note-1");
   assert.equal(summary.workspace_id, "workspace-a");
   assert.equal(summary.body_format, "markdown");
   assert.equal(
@@ -1005,6 +1003,28 @@ test("summary generation uses the selected provider and persists a canonical sum
       .prepare("SELECT body FROM session_documents WHERE id = 'note-1'")
       .get().body,
     /Ship the app next week/,
+  );
+  fixture.db
+    .prepare(
+      "UPDATE session_documents SET deleted_at = 'deleted', updated_at = 'deleted' WHERE id = ?",
+    )
+    .run(summary.id);
+  await summarizeSession("note-1");
+  assert.equal(
+    fixture.db
+      .prepare(
+        "SELECT count(*) AS count FROM session_documents WHERE kind = 'summary' AND deleted_at IS NULL",
+      )
+      .get().count,
+    1,
+  );
+  assert.equal(
+    fixture.db
+      .prepare(
+        "SELECT id FROM session_documents WHERE kind = 'summary' AND deleted_at IS NULL",
+      )
+      .get().id,
+    summary.id,
   );
 });
 
@@ -1740,7 +1760,7 @@ test("completed transcription fills an empty desktop summary without creating a 
     .prepare(
       "INSERT INTO session_documents (id, session_id, kind, title, body_format, body) VALUES ('desktop-summary', 'note-1', ?, 'Key decisions', 'prosemirror_json', ?)",
     )
-    .run("summary", placeholder);
+    .run("template_output", placeholder);
   generateSummaryAfterTranscription("note-1");
   await summarizeSession("note-1", { automatic: true });
   assert.equal(fixture.requests.length, 1);
@@ -1754,37 +1774,28 @@ test("completed transcription fills an empty desktop summary without creating a 
   assert.equal(documents[0].title, "Key decisions");
   assert.equal(documents[0].body, "## Decisions\nShip the mobile app.");
   assert.equal(documents[0].body_format, "markdown");
-});
-
-test("reopening a completed recording recovers its missing summary and reuses an in-flight generation", async () => {
-  createNote();
-  signedInWith({
-    subscription_status: "active",
-    entitlements: ["hyprnote_pro"],
-  });
-  let release;
-  fixture.respond = () =>
-    new Promise((resolve) => {
-      release = resolve;
-    });
-  generateSummaryAfterTranscription("note-1");
-  const recovering = queryClient.fetchQuery(automaticSummaryOptions("note-1"));
-  while (!release) await new Promise((resolve) => setImmediate(resolve));
-  release(
-    Response.json({
-      choices: [{ message: { content: "Recovered after stopping" } }],
-    }),
-  );
-  await recovering;
-  assert.equal(fixture.requests.length, 1);
-  queryClient.clear();
-  await queryClient.fetchQuery(automaticSummaryOptions("note-1"));
-  assert.equal(fixture.requests.length, 1);
+  fixture.db
+    .prepare(
+      "UPDATE session_documents SET body = 'Edited template summary' WHERE id = 'desktop-summary'",
+    )
+    .run();
+  await summarizeSession("note-1", { automatic: true });
   assert.equal(
     fixture.db
-      .prepare("SELECT body FROM session_documents WHERE kind = 'summary'")
+      .prepare(
+        "SELECT body FROM session_documents WHERE id = 'desktop-summary'",
+      )
       .get().body,
-    "Recovered after stopping",
+    "Edited template summary",
+  );
+  await summarizeSession("note-1");
+  assert.equal(
+    fixture.db
+      .prepare(
+        "SELECT count(*) AS count FROM session_documents WHERE kind IN ('summary', 'template_output')",
+      )
+      .get().count,
+    1,
   );
 });
 

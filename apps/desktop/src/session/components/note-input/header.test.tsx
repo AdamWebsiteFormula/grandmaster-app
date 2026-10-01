@@ -184,10 +184,6 @@ vi.mock("~/stt/queries", async (importOriginal) => ({
   useSessionTranscriptMetadata: () => hoisted.transcriptMetadata,
 }));
 
-vi.mock("~/session/hooks/useEnhancedNotes", () => ({
-  useEnsureDefaultSummary: vi.fn(),
-}));
-
 vi.mock("~/session/hooks/useSessionEvent", () => ({
   useSessionEvent: () => hoisted.sessionEvent,
 }));
