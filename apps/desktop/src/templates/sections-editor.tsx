@@ -1,6 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { Reorder, useDragControls } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type { TemplateSection } from "@anlg/store";
 import { DotsSixVertical, DotsThree, Plus } from "@anlg/ui/components/icons";
@@ -48,28 +48,15 @@ function useEditableSections({
     });
   }, [initialItems]);
 
-  const pendingCommit = useRef<TemplateSection[] | null>(null);
-
-  useEffect(() => {
-    if (pendingCommit.current) {
-      const value = pendingCommit.current;
-      pendingCommit.current = null;
-      onChange(value);
-    }
-  });
-
   const commit = useCallback(
     (next: SectionDraft[] | ((prev: SectionDraft[]) => SectionDraft[])) => {
-      setDrafts((prev) => {
-        const resolved = typeof next === "function" ? next(prev) : next;
-        pendingCommit.current = resolved.map(({ title, description }) => ({
-          title,
-          description,
-        }));
-        return resolved;
-      });
+      const resolved = typeof next === "function" ? next(drafts) : next;
+      setDrafts(resolved);
+      onChange(
+        resolved.map(({ title, description }) => ({ title, description })),
+      );
     },
-    [],
+    [drafts, onChange],
   );
 
   return {
