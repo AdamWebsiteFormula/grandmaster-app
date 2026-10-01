@@ -33,24 +33,23 @@ fn reassign_human_id(value: &mut Value, primary_id: &str, duplicate_id: &str) ->
 async fn reassign_speaker_references(
     conn: &mut SqliteConnection,
     primary_id: &str,
+    primary_name: &str,
     duplicate_id: &str,
     now: &str,
 ) -> Result<(), String> {
     let transcripts: Vec<(String, String)> = sqlx::query_as(
-        "SELECT id, speaker_hints_json FROM transcripts WHERE instr(speaker_hints_json, ?) > 0",
+        "SELECT id, speaker_hints_json FROM transcripts WHERE deleted_at IS NULL AND instr(speaker_hints_json, ?) > 0",
     )
     .bind(duplicate_id)
     .fetch_all(&mut *conn)
     .await
     .map_err(|error| error.to_string())?;
     for (id, json) in transcripts {
-        let mut hints: Value = serde_json::from_str(&json).map_err(|error| {
-            format!("Cannot merge transcript {id} speaker assignments: {error}")
-        })?;
+        let Ok(mut hints) = serde_json::from_str::<Value>(&json) else {
+            continue;
+        };
         let Some(hints_array) = hints.as_array_mut() else {
-            return Err(format!(
-                "Cannot merge transcript {id}: speaker hints must be an array"
-            ));
+            continue;
         };
         let mut changed = false;
         for hint in hints_array {
@@ -65,9 +64,9 @@ async fn reassign_speaker_references(
             };
             // Older imports encode assignment values as JSON strings.
             if let Some(encoded) = value.as_str() {
-                let mut assignment: Value = serde_json::from_str(encoded).map_err(|error| {
-                    format!("Cannot merge transcript {id} speaker assignment: {error}")
-                })?;
+                let Ok(mut assignment) = serde_json::from_str::<Value>(encoded) else {
+                    continue;
+                };
                 if reassign_human_id(&mut assignment, primary_id, duplicate_id) {
                     *value = Value::String(assignment.to_string());
                     changed = true;
@@ -90,14 +89,15 @@ async fn reassign_speaker_references(
     }
 
     let sessions: Vec<(String, String)> =
-        sqlx::query_as("SELECT id, metadata_json FROM sessions WHERE instr(metadata_json, ?) > 0")
+        sqlx::query_as("SELECT id, metadata_json FROM sessions WHERE deleted_at IS NULL AND instr(metadata_json, ?) > 0")
             .bind(duplicate_id)
             .fetch_all(&mut *conn)
             .await
             .map_err(|error| error.to_string())?;
     for (id, json) in sessions {
-        let mut metadata: Value = serde_json::from_str(&json)
-            .map_err(|error| format!("Cannot merge session {id} speaker context: {error}"))?;
+        let Ok(mut metadata) = serde_json::from_str::<Value>(&json) else {
+            continue;
+        };
         let Some(intervals) = metadata
             .pointer_mut("/speaker_context/intervals")
             .and_then(Value::as_array_mut)
@@ -112,6 +112,13 @@ async fn reassign_speaker_references(
             {
                 for participant in participants {
                     changed |= reassign_human_id(participant, primary_id, duplicate_id);
+                    if !primary_name.trim().is_empty()
+                        && participant.get("human_id").and_then(Value::as_str) == Some(primary_id)
+                        && participant.get("name").and_then(Value::as_str) != Some(primary_name)
+                    {
+                        participant["name"] = Value::String(primary_name.to_owned());
+                        changed = true;
+                    }
                 }
             }
         }
@@ -187,7 +194,8 @@ pub async fn merge_humans(pool: &SqlitePool, request: MergeHumansRequest) -> Res
             anlg_db_app::reassign_participant_mappings(conn, &primary_id, &duplicate_id, &now)
                 .await
                 .map_err(|error| error.to_string())?;
-            reassign_speaker_references(conn, &primary_id, &duplicate_id, &now).await?;
+            reassign_speaker_references(conn, &primary_id, &primary.name, &duplicate_id, &now)
+                .await?;
             anlg_db_app::update_merged_human(
                 conn,
                 &job_title,
@@ -351,6 +359,8 @@ mod tests {
         let mut expected_metadata = metadata;
         expected_metadata["speaker_context"]["intervals"][0]["participants"][0]["human_id"] =
             serde_json::json!("primary");
+        expected_metadata["speaker_context"]["intervals"][0]["participants"][0]["name"] =
+            serde_json::json!("N");
         assert_eq!(
             serde_json::from_str::<Value>(&stored_metadata).unwrap(),
             expected_metadata
@@ -362,6 +372,71 @@ mod tests {
                 .unwrap(),
             vec![("primary".to_string(), "N".to_string())]
         );
+    }
+
+    #[tokio::test]
+    async fn malformed_speaker_data_does_not_block_contact_merges() {
+        let db = test_db().await;
+        seed_human(&db, "primary", "u", "", "", "").await;
+        seed_human(&db, "duplicate", "u", "", "", "").await;
+        let hints = serde_json::json!([
+            {"type": "user_speaker_assignment", "value": {"human_id": "duplicate"}},
+            {"type": "user_speaker_assignment", "value": "unknown"}
+        ]);
+        for (id, json) in [
+            ("valid", hints.to_string()),
+            ("malformed", "{duplicate".to_owned()),
+            ("wrong-shape", r#"{"human_id":"duplicate"}"#.to_owned()),
+        ] {
+            sqlx::query(
+                "INSERT INTO sessions (id, owner_user_id, metadata_json) VALUES (?, 'u', ?)",
+            )
+            .bind(id)
+            .bind(&json)
+            .execute(db.pool())
+            .await
+            .unwrap();
+            sqlx::query(
+                "INSERT INTO transcripts (id, session_id, speaker_hints_json) VALUES (?, ?, ?)",
+            )
+            .bind(id)
+            .bind(id)
+            .bind(&json)
+            .execute(db.pool())
+            .await
+            .unwrap();
+        }
+
+        merge_humans(
+            db.pool(),
+            MergeHumansRequest {
+                selected_human_id: "primary".to_owned(),
+                duplicate_human_id: "duplicate".to_owned(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let stored: Vec<(String, String, String)> = sqlx::query_as(
+            "SELECT transcripts.id, speaker_hints_json, sessions.metadata_json FROM transcripts JOIN sessions ON sessions.id = transcripts.session_id ORDER BY transcripts.id",
+        ).fetch_all(db.pool()).await.unwrap();
+        assert_eq!(stored[0].1, "{duplicate");
+        assert_eq!(stored[0].2, "{duplicate");
+        let mut expected = hints.clone();
+        expected[0]["value"]["human_id"] = serde_json::json!("primary");
+        assert_eq!(
+            serde_json::from_str::<Value>(&stored[1].1).unwrap(),
+            expected
+        );
+        assert_eq!(serde_json::from_str::<Value>(&stored[1].2).unwrap(), hints);
+        assert_eq!(stored[2].1, r#"{"human_id":"duplicate"}"#);
+        assert_eq!(stored[2].2, r#"{"human_id":"duplicate"}"#);
+        let deleted: bool =
+            sqlx::query_scalar("SELECT deleted_at IS NOT NULL FROM humans WHERE id = 'duplicate'")
+                .fetch_one(db.pool())
+                .await
+                .unwrap();
+        assert!(deleted);
     }
 
     #[tokio::test]
