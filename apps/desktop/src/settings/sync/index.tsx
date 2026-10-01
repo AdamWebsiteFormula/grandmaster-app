@@ -252,7 +252,7 @@ function DisconnectDeviceButton({
     <Button
       variant="outline"
       size="sm"
-      className="text-destructive hover:!border-destructive hover:!bg-destructive/10 hover:!text-destructive"
+      className="text-foreground hover:!border-destructive hover:!bg-destructive/10 hover:!text-destructive"
       disabled={isPending}
       onClick={() => onDisconnect(fingerprint)}
     >
