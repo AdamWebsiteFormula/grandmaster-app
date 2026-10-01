@@ -32,8 +32,7 @@ export function createNoteDraft({
     timer = undefined;
   }
 
-  async function flush(throwOnError = false) {
-    cancelTimer();
+  async function waitForSave(throwOnError = false) {
     while (inFlight) {
       try {
         await inFlight;
@@ -41,6 +40,17 @@ export function createNoteDraft({
         if (throwOnError) throw error;
       }
     }
+  }
+
+  function discard() {
+    generation++;
+    cancelTimer();
+    pending = {};
+  }
+
+  async function flush(throwOnError = false) {
+    cancelTimer();
+    if (inFlight) await waitForSave(throwOnError);
     const note = getNote();
     if (!note) return;
     const draft = pending;
@@ -83,10 +93,12 @@ export function createNoteDraft({
       timer = setTimeout(flush, 500);
     },
     flush,
-    discard() {
-      generation++;
+    discard,
+    async remove(deleteNote: () => Promise<void>) {
       cancelTimer();
-      pending = {};
+      await waitForSave();
+      await deleteNote();
+      discard();
     },
     restore(title: string) {
       generation++;

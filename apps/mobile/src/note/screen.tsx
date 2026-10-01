@@ -55,7 +55,7 @@ export function NoteScreen({
   const {
     edit: onEdit,
     flush,
-    discard,
+    remove,
     snapshot,
     restored,
     onRestored: handleRestored,
@@ -160,9 +160,8 @@ export function NoteScreen({
     );
     if (!confirmed) return;
     await recorder.stop();
-    discard();
     try {
-      await deleteSession(id);
+      await remove(() => deleteSession(id));
       if (router.canGoBack()) router.back();
       else router.replace("/");
     } catch (error) {

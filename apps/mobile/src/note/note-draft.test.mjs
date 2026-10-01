@@ -155,3 +155,34 @@ test("version restore waits for an autosave and late failure cannot revive disca
   await attempt;
   assert.deepEqual(failed.snapshot(), {});
 });
+
+test("failed deletion keeps edits from a failed autosave available for retry", async () => {
+  let rejectSave;
+  let attempt = 0;
+  const { draft, writes } = setup({
+    saveNote: (value) => {
+      if (attempt++ === 0)
+        return new Promise((_, reject) => {
+          rejectSave = reject;
+        });
+      writes.push(value);
+      return Promise.resolve();
+    },
+  });
+  draft.edit({ body: "Unsaved edits" });
+  const saving = draft.flush();
+  const deleting = draft.remove(async () => {
+    throw new Error("Deletion failed");
+  });
+  const rejected = assert.rejects(deleting, /Deletion failed/);
+  rejectSave(new Error("Save failed"));
+  await Promise.all([saving, rejected]);
+  await draft.flush();
+  assert.deepEqual(writes, [
+    {
+      title: "Original",
+      bodyText: "Unsaved edits",
+      bodyFormat: "prosemirror_json",
+    },
+  ]);
+});
