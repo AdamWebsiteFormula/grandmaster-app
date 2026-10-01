@@ -23,8 +23,6 @@ export type WordLike = {
   metadata?: TranscriptWordMetadata | null;
 };
 
-export type PartialWord = WordLike;
-
 type SpeakerHintData =
   | {
       type: "provider_speaker_index";
@@ -60,7 +58,7 @@ type SegmentWithWordMetadata<T extends { words: BoundSegmentWord[] }> = Omit<
 export type Segment =
   | SegmentWithWordMetadata<LiveTranscriptSegment>
   | SegmentWithWordMetadata<RenderedTranscriptSegment>;
-export type SegmentChannelProfile = BoundChannelProfile;
+type SegmentChannelProfile = BoundChannelProfile;
 
 const REPLACEMENT_TIME_BUCKET_MS = 1_000;
 
@@ -140,9 +138,12 @@ export const SegmentKeyUtils = {
       }
     }
 
-    if (ctx && key.channel === "DirectMic" && assignedHumanId == null) {
+    if (ctx && key.channel === "DirectMic") {
       const selfHumanId = ctx.getSelfHumanId();
-      if (selfHumanId) {
+      if (
+        selfHumanId &&
+        (assignedHumanId == null || assignedHumanId === selfHumanId)
+      ) {
         const selfHuman = ctx.getHumanName(selfHumanId);
         return selfHuman || "You";
       }
