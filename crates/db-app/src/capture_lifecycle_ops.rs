@@ -95,7 +95,7 @@ pub async fn mark_capture_audio_saved(
     sqlx::query(
         "INSERT INTO app_settings (id, value_json, updated_at)
          VALUES (?, '{}', strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-         ON CONFLICT(id) DO UPDATE SET updated_at = excluded.updated_at",
+         ON CONFLICT(id) DO NOTHING",
     )
     .bind(id)
     .execute(pool)
@@ -113,4 +113,34 @@ pub async fn clear_capture_audio_saved(
         .execute(pool)
         .await?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use anlg_db_core::Db;
+
+    async fn saved_at(pool: &SqlitePool) -> Option<String> {
+        sqlx::query_scalar("SELECT updated_at FROM app_settings WHERE id = ?")
+            .bind(format!("{CAPTURE_AUDIO_SAVED_SETTING_PREFIX}session-1"))
+            .fetch_optional(pool)
+            .await
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn remarking_saved_audio_keeps_the_original_save_time() {
+        let db = Db::connect_memory_plain().await.unwrap();
+        crate::prepare_schema(&db).await.unwrap();
+        let pool = db.pool();
+
+        mark_capture_audio_saved(pool, "session-1").await.unwrap();
+        let first = saved_at(pool).await.unwrap();
+        tokio::time::sleep(std::time::Duration::from_millis(5)).await;
+        mark_capture_audio_saved(pool, "session-1").await.unwrap();
+        assert_eq!(saved_at(pool).await.unwrap(), first);
+
+        clear_capture_audio_saved(pool, "session-1").await.unwrap();
+        assert_eq!(saved_at(pool).await, None);
+    }
 }

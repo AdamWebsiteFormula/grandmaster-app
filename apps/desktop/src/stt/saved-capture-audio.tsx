@@ -71,7 +71,8 @@ export function SavedCaptureAudioPrompt({ sessionId }: { sessionId: string }) {
 
   useEffect(() => {
     if (savedAt === null || !inactive) return;
-    // Keyed by the save time so a later unexpected stop prompts again.
+    // Keyed by the save time; starting a new capture clears it, so a later
+    // unexpected stop prompts again.
     const promptKey = `${sessionId}:${savedAt}`;
     if (readDismissedSavedCaptureAudioPrompts().includes(promptKey)) return;
     const id = `capture-audio-saved-${sessionId}`;

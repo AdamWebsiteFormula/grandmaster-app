@@ -128,7 +128,7 @@ test("does not reshow a closed prompt until audio is saved again", () => {
   expect(mocks.toastWarning).toHaveBeenCalledOnce();
 });
 
-test("keeps showing the prompt after creating the meeting note fails", () => {
+test("does not treat creating the meeting note as closing the prompt", () => {
   const first = render(<SavedCaptureAudioPrompt sessionId="session-1" />);
   const options = shownToast();
   options.action.onClick();
