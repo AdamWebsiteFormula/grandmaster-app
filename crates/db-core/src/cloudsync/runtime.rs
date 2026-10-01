@@ -218,12 +218,15 @@ impl Db {
         &self,
         config: &CloudsyncRuntimeConfig,
     ) -> Result<(), CloudsyncRuntimeError> {
+        tracing::info!("CloudSync connecting");
         if let Err(error) = self.cloudsync_init_enabled_tables(&config.tables).await {
+            tracing::warn!(%error, stage = "tables", "CloudSync connection setup failed");
             self.cleanup_failed_cloudsync_start(false).await;
             return Err(error);
         }
 
         if let Err(error) = self.cloudsync_network_init(&config.connection_string).await {
+            tracing::warn!(error_kind = ?error.kind(), stage = "transport", "CloudSync connection setup failed");
             self.cleanup_failed_cloudsync_start(true).await;
             return Err(error.into());
         }
@@ -233,10 +236,12 @@ impl Db {
         )
         .await
         {
+            tracing::warn!(error_kind = ?error.kind(), stage = "authentication", "CloudSync connection setup failed");
             self.cleanup_failed_cloudsync_start(true).await;
             return Err(error.into());
         }
 
+        tracing::info!("CloudSync connection ready");
         Ok(())
     }
 
@@ -282,6 +287,7 @@ impl Db {
             shutdown_tx: Some(shutdown_tx),
             join_handle,
         });
+        tracing::info!("CloudSync background sync started");
     }
 
     async fn lock_cloudsync_lifecycle_cancelling_active_sync(
@@ -309,6 +315,9 @@ impl Db {
 
     async fn cloudsync_stop_locked(&self) -> Result<(), CloudsyncRuntimeError> {
         let should_cleanup = self.stop_cloudsync_task().await;
+        if should_cleanup {
+            tracing::info!("CloudSync stopping");
+        }
         let mut first_error = None;
 
         if self.cloudsync_enabled
@@ -336,6 +345,11 @@ impl Db {
         runtime.network_initialized = false;
         runtime.outbound_work_state = None;
         runtime.last_error = None;
+        if let Some(error) = &first_error {
+            tracing::warn!(%error, "CloudSync cleanup failed");
+        } else if should_cleanup {
+            tracing::info!("CloudSync stopped");
+        }
         first_error.map_or(Ok(()), Err)
     }
 
@@ -548,6 +562,7 @@ impl Db {
             return Err(CloudsyncRuntimeError::NotStarted);
         }
 
+        tracing::info!("CloudSync manual sync requested");
         let result = sync_cloudsync_connection(
             &self.pool,
             &self.cloudsync_connection,
@@ -568,7 +583,10 @@ impl Db {
                 );
                 Ok(step.network)
             }
-            Ok(CloudsyncStepOutcome::Deferred) => Ok(CloudsyncNetworkResult::default()),
+            Ok(CloudsyncStepOutcome::Deferred) => {
+                tracing::info!("CloudSync manual sync deferred");
+                Ok(CloudsyncNetworkResult::default())
+            }
             Err(error) => {
                 record_sync_error(
                     &self.cloudsync_runtime,

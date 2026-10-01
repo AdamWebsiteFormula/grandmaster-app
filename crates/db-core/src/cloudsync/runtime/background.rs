@@ -33,6 +33,20 @@ pub(super) fn record_sync_result(
                     CloudsyncActivityStatus::Progress | CloudsyncActivityStatus::Failed
                 )
             }));
+    if activity.status != CloudsyncActivityStatus::Failed && runtime.consecutive_failures > 0 {
+        tracing::info!(
+            failures = runtime.consecutive_failures,
+            "CloudSync recovered after failures"
+        );
+    }
+    if should_record_activity {
+        log_sync_result(
+            &result,
+            &activity,
+            local_work_remaining,
+            runtime.consecutive_failures.saturating_add(1),
+        );
+    }
     runtime.last_sync = Some(result);
 
     if let Some(error) = runtime.last_sync.as_ref().and_then(embedded_sync_error) {
@@ -101,6 +115,53 @@ fn activity_entry_from_result(
         },
         transferred_data,
     )
+}
+
+fn log_sync_result(
+    result: &CloudsyncNetworkResult,
+    activity: &CloudsyncActivityEntry,
+    local_work_remaining: bool,
+    failures: u32,
+) {
+    if activity.status == CloudsyncActivityStatus::Failed {
+        tracing::warn!(
+            trigger = ?activity.trigger,
+            send_failed = result.send.as_ref().is_some_and(|send| {
+                send.last_failure.is_some()
+                    || (!send.status.eq_ignore_ascii_case("synced")
+                        && !send.status.eq_ignore_ascii_case("syncing"))
+            }),
+            receive_failed = result.receive.as_ref().is_some_and(|receive| {
+                receive.error.is_some() || receive.last_failure.is_some()
+            }),
+            error_kind = ?activity.error.as_deref().map(|error| {
+                anlg_cloudsync::Error::Io(std::io::Error::other(error)).kind()
+            }),
+            failures,
+            sent_bytes = activity.sent_bytes,
+            received_bytes = activity.received_bytes,
+            "CloudSync failed"
+        );
+    } else {
+        let message = match activity.status {
+            CloudsyncActivityStatus::Completed => "CloudSync complete",
+            _ => "CloudSync transfer progress",
+        };
+        tracing::info!(
+            trigger = ?activity.trigger,
+            sent_bytes = activity.sent_bytes,
+            sent_chunks = result.send.as_ref().map(|send| send.chunks),
+            local_version = result.send.as_ref().map(|send| send.local_version),
+            server_version = result.send.as_ref().map(|send| send.server_version),
+            received_bytes = activity.received_bytes,
+            received_chunks = result.receive.as_ref().map(|receive| receive.chunks),
+            received_rows = result.receive.as_ref().map(|receive| receive.rows),
+            received_tables = result.receive.as_ref().map(|receive| receive.tables.len()),
+            receive_complete = result.receive.as_ref().map(|receive| receive.complete),
+            local_work_remaining,
+            "{message}"
+        );
+    }
 }
 
 fn push_activity(runtime: &mut CloudsyncRuntimeState, activity: CloudsyncActivityEntry) {
@@ -180,6 +241,12 @@ pub(super) fn record_sync_error(
     runtime.consecutive_failures = runtime.consecutive_failures.saturating_add(1);
     runtime.last_error = Some(error.to_string());
     runtime.last_error_kind = Some(error.kind());
+    tracing::warn!(
+        ?trigger,
+        error_kind = ?error.kind(),
+        failures = runtime.consecutive_failures,
+        "CloudSync operation failed"
+    );
     push_activity(
         &mut runtime,
         CloudsyncActivityEntry {
@@ -374,6 +441,7 @@ pub(super) async fn cloudsync_background_loop(
                 );
                 let mut runtime = context.runtime_state.lock().unwrap();
                 runtime.running = false;
+                tracing::warn!(error_kind = ?error.kind(), "CloudSync stopped after failure");
                 break;
             }
         }
@@ -406,9 +474,9 @@ async fn sync_cloudsync_with_retry(
                 );
                 tracing::warn!(
                     error = %error,
-                    retry_after = ?retry_after,
+                    retry_after_ms = retry_after.as_millis() as u64,
                     failures,
-                    "cloudsync transient error, retrying",
+                    "CloudSync retry scheduled",
                 );
 
                 if !wait_for_retry_request_or_shutdown(

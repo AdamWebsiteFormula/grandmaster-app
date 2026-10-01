@@ -64,52 +64,72 @@ fn diagnostic_message(data: &[serde_json::Value]) -> Option<&str> {
 
 impl<R: tauri::Runtime, M: tauri::Manager<R>> Tracing<'_, R, M> {
     pub fn log_content(&self) -> Result<Option<String>, crate::Error> {
+        self.filtered_log_content(false)
+    }
+
+    pub fn filtered_log_content(
+        &self,
+        cloudsync_only: bool,
+    ) -> Result<Option<String>, crate::Error> {
         let logs_dir = self.logs_dir()?;
-        const TARGET_LINES: usize = 300;
-        const MAX_ROTATED_FILES: usize = 5;
-
-        let log_files: Vec<_> = std::iter::once(logs_dir.join("app.log"))
-            .chain((1..=MAX_ROTATED_FILES).map(|i| logs_dir.join(format!("app.log.{}", i))))
-            .collect();
-
-        let mut collected: Vec<String> = Vec::new();
-
-        for log_path in &log_files {
-            if collected.len() >= TARGET_LINES {
-                break;
-            }
-
-            if let Ok(content) = std::fs::read_to_string(log_path) {
-                let lines_needed = TARGET_LINES.saturating_sub(collected.len());
-                let lines = tail_lines(&content, lines_needed);
-                let mut new_collected = lines;
-                new_collected.extend(collected);
-                collected = new_collected;
-            }
-        }
-
-        if collected.is_empty() {
-            return Ok(None);
-        }
-
-        let start = collected.len().saturating_sub(TARGET_LINES);
-        Ok(Some(collected[start..].join("\n")))
+        Ok(read_log_content(&logs_dir, cloudsync_only))
     }
 }
 
-fn tail_lines(content: &str, max_lines: usize) -> Vec<String> {
-    if max_lines == 0 {
-        return Vec::new();
+fn read_log_content(logs_dir: &std::path::Path, cloudsync_only: bool) -> Option<String> {
+    let target_lines = if cloudsync_only { 100 } else { 300 };
+    const MAX_ROTATED_FILES: usize = 5;
+
+    let log_files: Vec<_> = std::iter::once(logs_dir.join("app.log"))
+        .chain((1..=MAX_ROTATED_FILES).map(|i| logs_dir.join(format!("app.log.{}", i))))
+        .collect();
+
+    let mut collected: Vec<String> = Vec::new();
+
+    for log_path in &log_files {
+        if collected.len() >= target_lines {
+            break;
+        }
+
+        if let Ok(content) = std::fs::read_to_string(log_path) {
+            let lines_needed = target_lines.saturating_sub(collected.len());
+            let mut lines: Vec<_> = content
+                .lines()
+                .rev()
+                .filter(|line| !cloudsync_only || is_cloudsync_line(line))
+                .take(lines_needed)
+                .map(str::to_string)
+                .collect();
+            lines.reverse();
+            let mut new_collected = lines;
+            new_collected.extend(collected);
+            collected = new_collected;
+        }
     }
 
-    let mut lines: Vec<_> = content
-        .lines()
-        .rev()
-        .take(max_lines)
-        .map(str::to_string)
-        .collect();
-    lines.reverse();
-    lines
+    if collected.is_empty() {
+        return None;
+    }
+
+    Some(collected.join("\n"))
+}
+
+fn is_cloudsync_line(line: &str) -> bool {
+    let Some((header, message)) = line.split_once(": ") else {
+        return false;
+    };
+    let Some(target) = header.split_whitespace().last() else {
+        return false;
+    };
+    ["db_core::cloudsync", "cloudsync"].iter().any(|namespace| {
+        target == *namespace
+            || target
+                .strip_prefix(namespace)
+                .is_some_and(|suffix| suffix.starts_with("::"))
+    }) || ((target == "tauri_plugin_db" || target.starts_with("tauri_plugin_db::"))
+        && message.to_ascii_lowercase().contains("cloudsync"))
+        || (super::is_webview_console_target(target)
+            && message.contains("diagnostic=\"[cloudsync]"))
 }
 
 pub trait TracingPluginExt<R: tauri::Runtime> {
@@ -179,21 +199,37 @@ mod tests {
     use rquickjs::{Context, Runtime};
 
     #[test]
-    fn tail_lines_returns_recent_lines() {
-        for (content, max_lines, expected) in [
-            (
-                "line 1\nline 2\nline 3\nline 4",
-                2,
-                vec!["line 3", "line 4"],
+    fn cloudsync_log_filters_before_limiting_and_reads_rotated_activity() {
+        let temp = tempfile::tempdir().unwrap();
+        let native =
+            "2026-10-01T00:00:00Z INFO db_core::cloudsync::runtime::background: sync completed";
+        let recovery = "2026-10-01T00:00:01Z WARN tauri_plugin_db::runtime::recovery: CloudSync recovery delayed";
+        let console = "2026-10-01T00:00:02Z WARN anarlog.webview.console: webview_console_event diagnostic=\"[cloudsync] local sync configuration failed\"";
+        std::fs::write(
+            temp.path().join("app.log.1"),
+            (0..110)
+                .map(|i| format!("{native} sequence={i}\n"))
+                .collect::<String>(),
+        )
+        .unwrap();
+        std::fs::write(
+            temp.path().join("app.log"),
+            format!(
+                "{recovery}\n{console}\n{}",
+                "2026-10-01T00:00:03Z INFO unrelated: cloudsync mentioned in unrelated message\n"
+                    .repeat(400)
             ),
-            ("line 1\nline 2", 0, vec![]),
-        ] {
-            assert_eq!(
-                super::tail_lines(content, max_lines),
-                expected.into_iter().map(str::to_string).collect::<Vec<_>>(),
-                "unexpected tail for max_lines={max_lines}"
-            );
-        }
+        )
+        .unwrap();
+        let filtered = super::read_log_content(temp.path(), true).unwrap();
+        let lines: Vec<_> = filtered.lines().collect();
+        assert_eq!(lines.len(), 100);
+        assert_eq!(lines[0], format!("{native} sequence=12"));
+        assert_eq!(&lines[98..], &[recovery, console]);
+        assert!(lines.iter().all(|line| !line.contains("unrelated")));
+        let unfiltered = super::read_log_content(temp.path(), false).unwrap();
+        assert_eq!(unfiltered.lines().count(), 300);
+        assert!(unfiltered.lines().all(|line| line.contains("unrelated")));
     }
 
     #[test]
