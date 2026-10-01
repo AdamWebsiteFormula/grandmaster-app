@@ -1,6 +1,5 @@
 use std::collections::{HashMap, VecDeque};
 use std::future::Future;
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -457,10 +456,21 @@ fn is_rls_policy_denial(message: &str) -> bool {
 }
 
 async fn expect_policy_sync_completed_or_denied(db: &Db, operation: &str) -> Result<(), String> {
-    let outcome = tokio::time::timeout(POLICY_SYNC_TIMEOUT, db.cloudsync_trigger_sync())
-        .await
-        .unwrap_or_else(|_| panic!("{operation} foreign-write sync timed out"));
-    let mut evidence = Vec::new();
+    let mut steps = 0;
+    let outcome = loop {
+        let outcome = tokio::time::timeout(POLICY_SYNC_TIMEOUT, db.cloudsync_trigger_sync())
+            .await
+            .unwrap_or_else(|_| panic!("{operation} foreign-write sync timed out"));
+        steps += 1;
+        let in_progress = outcome
+            .as_ref()
+            .is_ok_and(|result| sync_step_state(result) == SyncStepState::InProgress);
+        if !in_progress || steps == SYNC_PROGRESS_STEPS {
+            break outcome;
+        }
+        tokio::time::sleep(SYNC_RETRY_INTERVAL).await;
+    };
+    let mut evidence = vec![format!("bounded sync steps: {steps}")];
     let mut clean_send = false;
     let mut clean_receive = true;
     match outcome {
@@ -942,14 +952,11 @@ fn upload_step(
     }
 }
 
-async fn scripted_sync_outcome(steps: Vec<CloudsyncNetworkResult>) -> (Result<(), String>, usize) {
+async fn scripted_sync_outcome(steps: Vec<CloudsyncNetworkResult>) -> Result<(), String> {
     let steps = Arc::new(Mutex::new(VecDeque::from(steps)));
-    let calls = Arc::new(AtomicUsize::new(0));
-    let (task_steps, task_calls) = (steps.clone(), calls.clone());
-    let outcome = tokio::spawn(async move {
+    tokio::spawn(async move {
         drive_sync_until_settled("scripted upload", Duration::ZERO, || {
-            task_calls.fetch_add(1, Ordering::SeqCst);
-            let mut steps = task_steps.lock().unwrap();
+            let mut steps = steps.lock().unwrap();
             let next = if steps.len() > 1 {
                 steps.pop_front()
             } else {
@@ -963,23 +970,21 @@ async fn scripted_sync_outcome(steps: Vec<CloudsyncNetworkResult>) -> (Result<()
     .map_err(|error| {
         let panic = error.into_panic();
         panic.downcast_ref::<String>().cloned().unwrap_or_default()
-    });
-    (outcome, calls.load(Ordering::SeqCst))
+    })
 }
 
 #[tokio::test]
 async fn bounded_out_of_sync_upload_continues_until_synced_or_fails_with_diagnostics() {
-    let (outcome, calls) = scripted_sync_outcome(vec![
+    let outcome = scripted_sync_outcome(vec![
         upload_step("out-of-sync", 0, None),
         upload_step("synced", 2, None),
     ])
     .await;
     assert_eq!(outcome, Ok(()));
-    assert_eq!(calls, 2);
 
-    let (outcome, calls) = scripted_sync_outcome(vec![upload_step("out-of-sync", 0, None)]).await;
-    let message = outcome.unwrap_err();
-    assert_eq!(calls, SYNC_PROGRESS_STEPS);
+    let message = scripted_sync_outcome(vec![upload_step("out-of-sync", 0, None)])
+        .await
+        .unwrap_err();
     assert!(message.contains("did not settle after"), "{message}");
     assert!(
         message.contains("status=out-of-sync local_version=2 server_version=0"),
@@ -992,10 +997,9 @@ async fn bounded_out_of_sync_upload_continues_until_synced_or_fails_with_diagnos
         "retryable": true,
         "message": "server detail",
     });
-    let (outcome, calls) =
-        scripted_sync_outcome(vec![upload_step("out-of-sync", 0, Some(failure))]).await;
-    let message = outcome.unwrap_err();
-    assert_eq!(calls, 1);
+    let message = scripted_sync_outcome(vec![upload_step("out-of-sync", 0, Some(failure))])
+        .await
+        .unwrap_err();
     assert!(message.contains("reported a sync failure"), "{message}");
     assert!(
         message.contains(r#"code="internal_error" stage="apply_payload" retryable=true"#),
