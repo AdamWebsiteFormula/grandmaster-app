@@ -39,8 +39,16 @@ on the owning branch can avoid that dependency.
    updates or repairs so rewritten descendants can be identified afterward.
    Coordinate with active agents before shared checkout mutations and preserve
    their unrelated edits.
-2. Refresh from the configured target with `but pull`. When other agents'
-   branches are applied or scope is narrower than the workspace, first run
+2. Read the coordinator's pending merge operations, affected branch names and
+   reviewed heads before updating. While any pending merge stack remains
+   applied, skip the workspace-wide `but pull`; `but pull --check` does not make
+   that pull selective. Exclude pending stacks from repairs, and run independent
+   repairs only when every GitButler mutation and ancestor push scope can
+   demonstrably leave those stacks untouched. Otherwise defer repairs until
+   their merge operations reach a confirmed terminal state.
+   Once this guard is satisfied, refresh from the configured target with
+   `but pull`. When other agents' branches are applied or scope is narrower than
+   the workspace, first run
    `but pull --check` to identify affected branches. The default workspace-wide
    invocation authorizes routine in-scope updates and conflict repairs, subject
    to AGENTS.md's approval boundaries. Ask before resolving semantic conflicts,

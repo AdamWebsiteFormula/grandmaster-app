@@ -94,7 +94,8 @@ the workspace is current or proceeding on dependent work.
 3. **`update-prs`** — rewrite active PR titles/descriptions from their complete
    published changes, including the repairs just made.
 
-Pass the repository, scope, current stack map and known blockers between stages.
+Pass the repository, scope, current stack map, known blockers, and pending merge
+operation IDs, affected branch names and reviewed heads between stages.
 Exclude stacks with pending merges from every stage; child workflows must not
 pull, publish, edit metadata, or otherwise mutate those stacks. Refresh live
 branch/PR mappings after mutations. A blocked branch or pending CI
