@@ -35,15 +35,21 @@ on the owning branch can avoid that dependency.
 1. Inspect applied stacks, dirty files and conflicted commits with
    `but status --json` (use `-fv` when file details are needed). Conflict repair
    covers all applied workspace branches by default, including branches without
-   PRs; honor a narrower user scope. Coordinate with active agents before shared
-   checkout mutations and preserve their unrelated edits.
+   PRs; honor a narrower user scope. Record all local branch heads before any
+   updates or repairs so rewritten descendants can be identified afterward.
+   Coordinate with active agents before shared checkout mutations and preserve
+   their unrelated edits.
 2. Refresh from the configured target with `but pull`. When other agents'
    branches are applied or scope is narrower than the workspace, first run
    `but pull --check` to identify affected branches. The default workspace-wide
-   invocation authorizes in-scope updates and conflict repairs; ask only if an
-   update would modify work outside the authorized scope. Keep the target and
-   stack dependencies unchanged. If dirty changes block an update, use the
-   `but` skill's parking/restoration procedure only for in-scope work.
+   invocation authorizes routine in-scope updates and conflict repairs, subject
+   to AGENTS.md's approval boundaries. Ask before resolving semantic conflicts,
+   dependency updates, generated-file conflicts, or conflicts involving another
+   person's work unless existing user authorization explicitly covers that
+   particular resolution. Also ask before modifying work outside the authorized
+   scope. Keep the target and stack dependencies unchanged. If dirty changes
+   block an update, use the `but` skill's parking/restoration procedure only for
+   in-scope work.
 3. Resolve branches from base toward tip and each branch's commits oldest-first.
    Use the installed `but` skill's conflict tools, preferably
    `but resolve conflicts <full-branch-name>` and
@@ -106,12 +112,17 @@ to publish them, and inspect ancestor push scope so they are not sent implicitly
    branch, with meaningful regression coverage and repository-required checks.
    Amend an appropriate unpublished commit; otherwise create a focused commit
    on that branch. Never invent a repair branch stacked above the issue.
-4. Check stack destinations and remote heads before publishing. Use
-   `but push <highest-changed-branch> --dry-run` when needed to inspect scope.
-   Consolidate fixes and push once per affected stack through its highest
-   changed branch, which includes ancestors. Do not publish unrelated commits,
-   overwrite newer remote work, bypass hooks, or skip force-push protections.
-   Refresh IDs after mutations when the next operation needs them.
+4. Compare all local branch heads with the pre-repair snapshot, including
+   descendants rewritten by updates or repairs without direct file edits.
+   For each affected stack, select its topmost affected branch; pushing it
+   publishes that branch and its ancestors, not its descendants. Check every
+   included branch's destination and current remote head, then inspect scope
+   with `but push <topmost-affected-branch> --dry-run`. Obtain authorization for
+   any otherwise unrelated publication or history rewrite before including it.
+   Consolidate fixes and push once per affected stack through that branch.
+   Verify every affected PR's published head, including rewritten descendants.
+   Do not overwrite newer remote work, bypass hooks, or skip force-push
+   protections. Refresh IDs after mutations when the next operation needs them.
 
 Repeat conflict repair after updates or mutations introduce new conflicts.
 Being behind trunk alone is not a reason to publish equivalent rewritten history.

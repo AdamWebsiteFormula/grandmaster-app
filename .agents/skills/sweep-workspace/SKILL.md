@@ -65,7 +65,16 @@ collaborators' edits. Editing this skill does not execute a sweep.
 
 ## 2. Update the workspace
 
-After the ready-PR merge pass, update from the configured target with `but pull`
+Before any workspace update, confirm pending merge operations have reached a
+terminal state. While a merge is pending, defer `but pull` and all create, fix,
+and metadata-update operations on its affected stacks. Continue independent
+stacks only when the available operations can demonstrably leave pending stacks
+untouched; `but pull --check` is inspection, not permission to rebase them. If
+pending stacks cannot be excluded from the workspace update, defer the update
+and dependent stages until confirmation, retaining operation IDs and reviewed
+heads for the follow-up.
+
+After this guard is satisfied, update from the configured target with `but pull`
 so confirmed merges are incorporated before running the focused workflows.
 With other agents' branches applied, use `but pull --check` first to understand
 affected work. The sweep authorizes scoped updates; work outside that scope needs
@@ -86,7 +95,9 @@ the workspace is current or proceeding on dependent work.
    published changes, including the repairs just made.
 
 Pass the repository, scope, current stack map and known blockers between stages.
-Refresh live branch/PR mappings after mutations. A blocked branch or pending CI
+Exclude stacks with pending merges from every stage; child workflows must not
+pull, publish, edit metadata, or otherwise mutate those stacks. Refresh live
+branch/PR mappings after mutations. A blocked branch or pending CI
 does not prevent independent work in later stages. Run the metadata stage after
 all currently actionable fixes are prepared/published, even when remote checks
 are pending. Local-only changes remain an explicit description gap.

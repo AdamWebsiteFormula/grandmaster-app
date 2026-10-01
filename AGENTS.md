@@ -22,6 +22,7 @@ Check the active checkout's branch with `git symbolic-ref --quiet --short HEAD` 
 
 Only when the result is exactly `gitbutler/workspace`, use the repository-local [but](.agents/skills/gitbutler/SKILL.md), [create-prs](.agents/skills/create-prs/SKILL.md), [fix-prs](.agents/skills/fix-prs/SKILL.md), [update-prs](.agents/skills/update-prs/SKILL.md), and [sweep-workspace](.agents/skills/sweep-workspace/SKILL.md) skills as relevant. All rules below apply only on that branch. On any other branch or detached HEAD, use the normal Git workflow; do not activate these skills, initialize GitButler, or switch branches to satisfy this condition.
 
+- For overlapping PR or CI repair requests on this branch, use [fix-prs](.agents/skills/fix-prs/SKILL.md) instead of [fix-ready-prs](.agents/skills/fix-ready-prs/SKILL.md); preserve any narrower user scope.
 - Use GitButler (`but`) for version-control inspection and write operations, including status, diffs, branching, committing, pushing, and history edits.
 - Assume multiple agents may be working in this repository. Do not move, amend, squash, discard, commit, push, or otherwise modify another agent's work unless the user asks.
 - For commit just/only/specific changes on a new branch (selected-change requests), use the two-command fast path from the GitButler skill: `but diff`, then `but commit -b <branch> -m "message" <id> <id>`.
