@@ -318,6 +318,48 @@ describe("SettingsSync", () => {
     );
   });
 
+  it("infers mobile icons from device names when the API omits device kind", async () => {
+    mocks.requestSyncDevices.mockResolvedValue({
+      devices: [
+        {
+          deviceFingerprint: "iphone-device",
+          deviceName: "iPhone",
+          createdAt: "2026-08-20T00:00:00Z",
+          lastSeenAt: "2026-08-20T00:00:00Z",
+        },
+        {
+          deviceFingerprint: "desktop-device",
+          deviceName: "iPhone development Mac",
+          deviceKind: "desktop",
+          createdAt: "2026-08-20T00:00:00Z",
+          lastSeenAt: "2026-08-20T00:00:00Z",
+        },
+      ],
+      pendingDevices: [
+        {
+          requestId: "11111111-1111-4111-8111-111111111111",
+          deviceFingerprint: "pending-device",
+          deviceName: "John's iPhone",
+          deviceKind: null,
+          publicKey: "A".repeat(43),
+          createdAt: "2026-08-20T00:00:00Z",
+          expiresAt: "2026-08-21T00:00:00Z",
+          status: "pending",
+        },
+      ],
+      maxDevices: 5,
+    });
+    const { container } = renderSettings();
+
+    expect(await screen.findByText("John's iPhone")).toBeTruthy();
+    expect(
+      container.querySelectorAll("[data-device-kind='mobile']"),
+    ).toHaveLength(2);
+    expect(
+      container.querySelectorAll("[data-device-kind='desktop']"),
+    ).toHaveLength(1);
+  });
+
   it("renames the current device and refreshes the synced device list", async () => {
     const currentDevice = {
       deviceFingerprint: "current-device",

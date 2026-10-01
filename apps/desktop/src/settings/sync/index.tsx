@@ -218,15 +218,30 @@ const DEVICE_KIND_ICONS = {
   watch: Watch,
 } as const;
 
-function resolveDeviceKind(kind: unknown): SyncDeviceKind {
-  if (kind === "mobile" || kind === "watch") {
+function resolveDeviceKind(kind: unknown, name: string | null): SyncDeviceKind {
+  if (kind === "desktop" || kind === "mobile" || kind === "watch") {
     return kind;
+  }
+  if (
+    name &&
+    (/\b(?:android|galaxy|honor|huawei|ios|ipad|iphone|ipod|mobile|moto(?:rola)?|oneplus|oppo|pixel|phone|redmi|tablet|vivo|xiaomi)\b/i.test(
+      name,
+    ) ||
+      /^(?:gt|sch|sgh|sm)-[a-z0-9-]+$/i.test(name.trim()))
+  ) {
+    return "mobile";
   }
   return "desktop";
 }
 
-function DeviceKindIcon({ kind }: { kind?: string | null }) {
-  const resolved = resolveDeviceKind(kind);
+function DeviceKindIcon({
+  kind,
+  name,
+}: {
+  kind?: string | null;
+  name: string | null;
+}) {
+  const resolved = resolveDeviceKind(kind, name);
   const Icon = DEVICE_KIND_ICONS[resolved];
   return (
     <Icon
@@ -1071,7 +1086,10 @@ export function SettingsSync() {
                 key={device.deviceFingerprint}
                 className="flex items-center gap-3 px-4 py-3"
               >
-                <DeviceKindIcon kind={device.deviceKind} />
+                <DeviceKindIcon
+                  kind={device.deviceKind}
+                  name={device.deviceName}
+                />
                 <div className="min-w-0 flex-1">
                   <DeviceTitle
                     name={device.deviceName}
@@ -1131,7 +1149,10 @@ export function SettingsSync() {
                 key={device.requestId}
                 className="flex items-center gap-3 px-4 py-3"
               >
-                <DeviceKindIcon kind={device.deviceKind} />
+                <DeviceKindIcon
+                  kind={device.deviceKind}
+                  name={device.deviceName}
+                />
                 <div className="min-w-0 flex-1">
                   <DeviceTitle
                     name={device.deviceName}
