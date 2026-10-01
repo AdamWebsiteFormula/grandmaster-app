@@ -12,7 +12,7 @@ async function readCloudsyncLog() {
   if (result.status === "error") {
     throw new Error(result.error);
   }
-  return result.data?.split("\n").reverse() ?? [];
+  return result.data?.split(/\n(?=\d{4}-\d{2}-\d{2}T)/).reverse() ?? [];
 }
 
 export function SyncLog() {

@@ -76,42 +76,123 @@ impl<R: tauri::Runtime, M: tauri::Manager<R>> Tracing<'_, R, M> {
     }
 }
 
+const LOG_READ_CHUNK_BYTES: u64 = 64 * 1024;
+const MAX_CONTINUATION_LINES: usize = 50;
+
 fn read_log_content(logs_dir: &std::path::Path, cloudsync_only: bool) -> Option<String> {
-    let target_lines = if cloudsync_only { 100 } else { 300 };
+    let target_records = if cloudsync_only { 100 } else { 300 };
     const MAX_ROTATED_FILES: usize = 5;
 
-    let log_files: Vec<_> = std::iter::once(logs_dir.join("app.log"))
-        .chain((1..=MAX_ROTATED_FILES).map(|i| logs_dir.join(format!("app.log.{}", i))))
-        .collect();
+    let log_files = std::iter::once(logs_dir.join("app.log"))
+        .chain((1..=MAX_ROTATED_FILES).map(|i| logs_dir.join(format!("app.log.{}", i))));
 
-    let mut collected: Vec<String> = Vec::new();
+    let mut records: Vec<String> = Vec::new();
 
-    for log_path in &log_files {
-        if collected.len() >= target_lines {
-            break;
-        }
-
-        if let Ok(content) = std::fs::read_to_string(log_path) {
-            let lines_needed = target_lines.saturating_sub(collected.len());
-            let mut lines: Vec<_> = content
-                .lines()
-                .rev()
-                .filter(|line| !cloudsync_only || is_cloudsync_line(line))
-                .take(lines_needed)
-                .map(str::to_string)
-                .collect();
-            lines.reverse();
-            let mut new_collected = lines;
-            new_collected.extend(collected);
-            collected = new_collected;
+    'files: for log_path in log_files {
+        let Ok(lines) = ReverseLines::open(&log_path) else {
+            continue;
+        };
+        let mut continuation = std::collections::VecDeque::new();
+        for line in lines {
+            if line.is_empty() {
+                continue;
+            }
+            if !is_record_start(&line) {
+                continuation.push_back(line);
+                if continuation.len() > MAX_CONTINUATION_LINES {
+                    continuation.pop_front();
+                }
+                continue;
+            }
+            if cloudsync_only && !is_cloudsync_line(&line) {
+                continuation.clear();
+                continue;
+            }
+            let mut record = line;
+            for continued in continuation.drain(..).rev() {
+                record.push('\n');
+                record.push_str(&continued);
+            }
+            records.push(record);
+            if records.len() >= target_records {
+                break 'files;
+            }
         }
     }
 
-    if collected.is_empty() {
+    if records.is_empty() {
         return None;
     }
 
-    Some(collected.join("\n"))
+    records.reverse();
+    Some(records.join("\n"))
+}
+
+fn is_record_start(line: &str) -> bool {
+    let bytes = line.as_bytes();
+    bytes.len() > 10
+        && bytes[..4].iter().all(u8::is_ascii_digit)
+        && bytes[4] == b'-'
+        && bytes[7] == b'-'
+        && bytes[10] == b'T'
+}
+
+struct ReverseLines {
+    file: std::fs::File,
+    pos: u64,
+    carry: Vec<u8>,
+    lines: Vec<String>,
+}
+
+impl ReverseLines {
+    fn open(path: &std::path::Path) -> std::io::Result<Self> {
+        let file = std::fs::File::open(path)?;
+        let pos = file.metadata()?.len();
+        Ok(Self {
+            file,
+            pos,
+            carry: Vec::new(),
+            lines: Vec::new(),
+        })
+    }
+
+    fn read_previous_chunk(&mut self) -> std::io::Result<()> {
+        use std::io::{Read, Seek, SeekFrom};
+
+        let len = self.pos.min(LOG_READ_CHUNK_BYTES);
+        self.pos -= len;
+        self.file.seek(SeekFrom::Start(self.pos))?;
+        let mut chunk = vec![0; len as usize];
+        self.file.read_exact(&mut chunk)?;
+        chunk.append(&mut self.carry);
+
+        let mut parts = chunk.split(|byte| *byte == b'\n');
+        self.carry = parts.next().unwrap_or_default().to_vec();
+        self.lines = parts.map(decode_line).collect();
+        Ok(())
+    }
+}
+
+impl Iterator for ReverseLines {
+    type Item = String;
+
+    fn next(&mut self) -> Option<String> {
+        loop {
+            if let Some(line) = self.lines.pop() {
+                return Some(line);
+            }
+            if self.pos == 0 {
+                return (!self.carry.is_empty())
+                    .then(|| decode_line(&std::mem::take(&mut self.carry)));
+            }
+            self.read_previous_chunk().ok()?;
+        }
+    }
+}
+
+fn decode_line(bytes: &[u8]) -> String {
+    let bytes = bytes.strip_suffix(b"\r").unwrap_or(bytes);
+    String::from_utf8_lossy(bytes).into_owned()
 }
 
 fn is_cloudsync_line(line: &str) -> bool {
@@ -205,6 +286,7 @@ mod tests {
             "2026-10-01T00:00:00Z INFO db_core::cloudsync::runtime::background: sync completed";
         let recovery = "2026-10-01T00:00:01Z WARN tauri_plugin_db::runtime::recovery: CloudSync recovery delayed";
         let console = "2026-10-01T00:00:02Z WARN anarlog.webview.console: webview_console_event diagnostic=\"[cloudsync] local sync configuration failed\"";
+        let multiline = "2026-10-01T00:00:03Z WARN db_core::cloudsync::runtime: CloudSync failed\n  caused by: timed out";
         std::fs::write(
             temp.path().join("app.log.1"),
             (0..110)
@@ -215,20 +297,23 @@ mod tests {
         std::fs::write(
             temp.path().join("app.log"),
             format!(
-                "{recovery}\n{console}\n{}",
-                "2026-10-01T00:00:03Z INFO unrelated: cloudsync mentioned in unrelated message\n"
-                    .repeat(400)
+                "{recovery}\n{console}\n{multiline}\n{}",
+                "2026-10-01T00:00:04Z INFO unrelated: cloudsync mentioned in unrelated message\n  unrelated continuation\n"
+                    .repeat(2_000)
             ),
         )
         .unwrap();
         let filtered = super::read_log_content(temp.path(), true).unwrap();
         let lines: Vec<_> = filtered.lines().collect();
-        assert_eq!(lines.len(), 100);
-        assert_eq!(lines[0], format!("{native} sequence=12"));
-        assert_eq!(&lines[98..], &[recovery, console]);
+        assert_eq!(lines.len(), 101);
+        assert_eq!(lines[0], format!("{native} sequence=13"));
+        assert_eq!(
+            filtered.split_once(recovery).unwrap().1,
+            format!("\n{console}\n{multiline}")
+        );
         assert!(lines.iter().all(|line| !line.contains("unrelated")));
         let unfiltered = super::read_log_content(temp.path(), false).unwrap();
-        assert_eq!(unfiltered.lines().count(), 300);
+        assert_eq!(unfiltered.lines().count(), 600);
         assert!(unfiltered.lines().all(|line| line.contains("unrelated")));
     }
 

@@ -13,10 +13,10 @@ mod background;
 pub(super) use background::cloudsync_activity_paused;
 #[cfg(test)]
 use background::{
-    CLOUDSYNC_PROGRESS_INTERVAL, CloudsyncWake, MAX_ACTIVITY_LOG_ENTRIES, cloudsync_busy_delay,
+    CLOUDSYNC_PROGRESS_INTERVAL, CloudsyncWake, SyncLogLevel, cloudsync_busy_delay,
     cloudsync_next_delay, cloudsync_request_pending, cloudsync_wake_deadline,
     drain_pending_changes, merge_bounded_sync_results, next_synced_change,
-    pending_cloudsync_payload_exists, sync_result_needs_receive_progress,
+    pending_cloudsync_payload_exists, sync_result_log_level, sync_result_needs_receive_progress,
     wait_for_retry_request_or_shutdown,
 };
 use background::{
@@ -220,7 +220,7 @@ impl Db {
     ) -> Result<(), CloudsyncRuntimeError> {
         tracing::info!("CloudSync connecting");
         if let Err(error) = self.cloudsync_init_enabled_tables(&config.tables).await {
-            tracing::warn!(%error, stage = "tables", "CloudSync connection setup failed");
+            tracing::warn!(error_kind = ?error.cloudsync_kind(), stage = "tables", "CloudSync connection setup failed");
             self.cleanup_failed_cloudsync_start(false).await;
             return Err(error);
         }
@@ -346,7 +346,7 @@ impl Db {
         runtime.outbound_work_state = None;
         runtime.last_error = None;
         if let Some(error) = &first_error {
-            tracing::warn!(%error, "CloudSync cleanup failed");
+            tracing::warn!(error_kind = ?error.cloudsync_kind(), "CloudSync cleanup failed");
         } else if should_cleanup {
             tracing::info!("CloudSync stopped");
         }
@@ -378,7 +378,7 @@ impl Db {
             let mut runtime = self.cloudsync_runtime.lock().unwrap();
             runtime.config = None;
             runtime.outbound_work_state = None;
-            runtime.activity_log.clear();
+            runtime.last_logged_activity = None;
             return Ok(());
         }
 
@@ -457,7 +457,7 @@ impl Db {
             runtime.last_error = None;
             runtime.last_error_kind = None;
             runtime.consecutive_failures = 0;
-            runtime.activity_log.clear();
+            runtime.last_logged_activity = None;
         }
         drop(runtime);
 
@@ -486,7 +486,6 @@ impl Db {
             last_error,
             last_error_kind,
             consecutive_failures,
-            activity_log,
         ) = {
             let runtime = self.cloudsync_runtime.lock().unwrap();
             (
@@ -499,7 +498,6 @@ impl Db {
                 runtime.last_error.clone(),
                 runtime.last_error_kind.map(CloudsyncErrorKind::from),
                 runtime.consecutive_failures,
-                runtime.activity_log.iter().rev().cloned().collect(),
             )
         };
 
@@ -536,7 +534,6 @@ impl Db {
             last_error,
             last_error_kind,
             consecutive_failures,
-            activity_log,
         })
     }
 

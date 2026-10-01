@@ -155,7 +155,6 @@ function syncedStatus() {
     last_error: null,
     last_error_kind: null,
     consecutive_failures: 0,
-    activity_log: [],
   };
 }
 
@@ -424,36 +423,14 @@ describe("SettingsSync", () => {
     );
   });
 
-  it("shows persisted app-log activity newest first instead of session history", async () => {
+  it("shows persisted app-log records newest first", async () => {
     const older =
-      "2026-09-30T12:00:00Z INFO db_core::cloudsync::runtime: CloudSync activity";
+      "2026-09-30T12:00:00Z WARN db_core::cloudsync::runtime: CloudSync failed\n  caused by: timed out";
     const newer =
       "2026-10-01T12:00:00Z WARN tauri_plugin_db::runtime::recovery: CloudSync recovery delayed";
     mocks.logContent.mockResolvedValue({
       status: "ok",
       data: `${older}\n${newer}`,
-    });
-    mocks.getCloudsyncStatus.mockResolvedValue({
-      ...syncedStatus(),
-      activity_log: [
-        {
-          timestamp_ms: Date.now(),
-          trigger: "manual",
-          status: "completed",
-          sent_bytes: 2048,
-          received_bytes: 1024,
-          error: null,
-        },
-        {
-          timestamp_ms: Date.now() - 1_000,
-          trigger: "background",
-          status: "failed",
-          sent_bytes: 0,
-          received_bytes: 0,
-          error:
-            "sqlx error: error returned from database: (code: 1) Connection timed out after 5002 milliseconds",
-        },
-      ],
     });
     renderSettings();
 
@@ -461,13 +438,14 @@ describe("SettingsSync", () => {
     fireEvent.click(screen.getByRole("button", { name: "View sync log" }));
 
     const latest = await screen.findByText(newer);
-    const previous = screen.getByText(older);
+    const previous = screen.getByText(
+      (_, element) =>
+        element?.tagName === "LI" && element.textContent === older,
+    );
     expect(
       latest.compareDocumentPosition(previous) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
-    expect(screen.queryByText("Manual sync")).toBeNull();
-    expect(screen.queryByText(/sqlx error/)).toBeNull();
     expect(screen.getByRole("button", { name: "Hide sync log" })).toBeTruthy();
   });
 
