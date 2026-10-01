@@ -147,7 +147,7 @@ pub(super) fn reconciled_send_result(
     anlg_cloudsync::NetworkResult {
         send: Some(anlg_cloudsync::NetworkSendResult {
             status: if !fully_confirmed || batch.remaining || has_unsent_changes {
-                "out-of-sync"
+                "syncing"
             } else {
                 "synced"
             }
