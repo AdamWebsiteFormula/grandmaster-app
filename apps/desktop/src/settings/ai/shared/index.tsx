@@ -127,18 +127,21 @@ export function ProviderBrandImage({
   src,
   alt,
   className,
+  preserveColor = false,
 }: {
   src: string;
   alt: string;
   className?: string;
+  preserveColor?: boolean;
 }) {
   return (
     <img
       src={src}
       alt={alt}
-      data-slot="provider-brand-icon"
+      data-slot={preserveColor ? "provider-color-icon" : "provider-brand-icon"}
       className={cn([
-        "object-contain object-center [filter:var(--provider-brand-filter)]",
+        "object-contain object-center",
+        !preserveColor && "[filter:var(--provider-brand-filter)]",
         className,
       ])}
     />

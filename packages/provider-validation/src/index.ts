@@ -29,7 +29,12 @@ export async function verifyProviderCredentials(
   signal?: AbortSignal,
 ): Promise<void> {
   const apiKey = credential.apiKey.trim();
-  if (!apiKey || apiKey.length > 8192 || /[\r\n]/.test(apiKey))
+  if (
+    (!apiKey &&
+      !(credential.type === "stt" && credential.provider === "nvidia")) ||
+    apiKey.length > 8192 ||
+    /[\r\n]/.test(apiKey)
+  )
     throw new ProviderCredentialError("Enter a valid API key.");
   let base: URL;
   try {
@@ -51,9 +56,15 @@ export async function verifyProviderCredentials(
     throw new ProviderCredentialError("Use HTTPS for provider credentials.");
 
   signal?.throwIfAborted();
-  // Deepgram-compatible listen servers need not expose a model catalog or a
-  // credential-probe endpoint. Their credentials are checked when transcribing.
-  if (credential.type === "stt" && credential.provider === "custom") return;
+  // These streaming endpoints have no shared read-only credential probe.
+  // Authenticate on the native WebSocket handshake/session instead.
+  if (
+    credential.type === "stt" &&
+    ["custom", "inworld", "gradium", "modulate", "alebex", "nvidia"].includes(
+      credential.provider,
+    )
+  )
+    return;
 
   const identity = providerCredentialIdentity({ ...credential, apiKey });
   const recent = verified.get(fetcher) ?? new Map<string, number>();
