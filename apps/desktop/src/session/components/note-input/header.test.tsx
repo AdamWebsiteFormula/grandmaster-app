@@ -39,6 +39,13 @@ const hoisted = vi.hoisted(() => ({
   liveMuted: false,
   sessionMode: "inactive",
   sessionEvent: null as { ended_at?: string } | null,
+  transcriptMetadata: [] as Array<{
+    id: string;
+    sessionId: string;
+    startedAt: number;
+    endedAt?: number;
+    hasWords: boolean;
+  }>,
   nowMs: new Date("2026-06-05T10:31:00.000Z").getTime(),
   isMainWebviewWindow: true,
   isDeletingRecording: false,
@@ -170,6 +177,11 @@ vi.mock("~/session/enhance-config", () => ({
 vi.mock("~/session/components/shared", () => ({
   useHasTranscript: () => hoisted.hasTranscript,
   useCanShowTranscript: () => hoisted.canShowTranscript,
+}));
+
+vi.mock("~/stt/queries", async (importOriginal) => ({
+  ...(await importOriginal()),
+  useSessionTranscriptMetadata: () => hoisted.transcriptMetadata,
 }));
 
 vi.mock("~/session/hooks/useEnhancedNotes", () => ({
@@ -376,6 +388,14 @@ describe("SessionViewSwitcher", () => {
     hoisted.liveMuted = false;
     hoisted.sessionMode = "inactive";
     hoisted.sessionEvent = null;
+    hoisted.transcriptMetadata = [
+      {
+        id: "transcript-1",
+        sessionId: "session-1",
+        startedAt: 0,
+        hasWords: true,
+      },
+    ];
     hoisted.nowMs = new Date("2026-06-05T10:31:00.000Z").getTime();
     hoisted.isMainWebviewWindow = true;
     hoisted.isDeletingRecording = false;
@@ -544,11 +564,36 @@ describe("SessionViewSwitcher", () => {
 
   it("disables Copy when the session has no transcript", () => {
     hoisted.hasTranscript = false;
+    hoisted.transcriptMetadata = [
+      {
+        id: "transcript-1",
+        sessionId: "session-1",
+        startedAt: 0,
+        hasWords: false,
+      },
+    ];
     renderSwitcher({ currentTab: { type: "transcript" } });
 
     expect(
       transcriptMenu().find((item) => item.text === "Copy")?.disabled,
     ).toBe(true);
+  });
+
+  it("enables Copy when transcript words are still pending compaction", () => {
+    hoisted.hasTranscript = false;
+    hoisted.transcriptMetadata = [
+      {
+        id: "transcript-1",
+        sessionId: "session-1",
+        startedAt: 0,
+        hasWords: true,
+      },
+    ];
+    renderSwitcher({ currentTab: { type: "transcript" } });
+
+    expect(
+      transcriptMenu().find((item) => item.text === "Copy")?.disabled,
+    ).toBe(false);
   });
 
   it.each([

@@ -23,6 +23,7 @@ import {
   useNativeContextMenu,
 } from "~/shared/hooks/useNativeContextMenu";
 import { useListener } from "~/stt/contexts";
+import { useSessionTranscriptMetadata } from "~/stt/queries";
 import { useStartListeningWithBatchOverride } from "~/stt/useStartListeningWithBatchOverride";
 import {
   isMainWebviewWindow,
@@ -201,6 +202,7 @@ function HeaderViewTranscriptActive({
   const regenerate = useRegenerateTranscript(sessionId);
   const startListening = useStartListeningWithBatchOverride(sessionId);
   const hasTranscript = useHasTranscript(sessionId);
+  const transcriptMetadata = useSessionTranscriptMetadata(sessionId);
   const {
     audioExists,
     audioExistsResolved,
@@ -218,7 +220,7 @@ function HeaderViewTranscriptActive({
 
     onClick?.();
   }, [canEdit, editMode, onClick, onEditModeChange]);
-  const canCopyTranscript = hasTranscript;
+  const canCopyTranscript = transcriptMetadata.some((t) => t.hasWords);
   const handleCopyTranscript = useCallback(async () => {
     try {
       const transcriptExportRequest =
