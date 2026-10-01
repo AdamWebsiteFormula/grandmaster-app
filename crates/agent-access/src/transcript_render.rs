@@ -376,6 +376,7 @@ mod tests {
                         organization_name: String::new(),
                     })
                     .collect(),
+                folder_path: None,
                 action_items: Vec::new(),
             },
             transcripts,
