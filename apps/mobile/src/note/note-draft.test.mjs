@@ -156,7 +156,8 @@ test("version restore waits for an autosave and late failure cannot revive disca
   assert.deepEqual(failed.snapshot(), {});
 });
 
-test("failed deletion keeps edits from a failed autosave available for retry", async () => {
+test("failed deletion automatically retries edits from a failed autosave", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
   let rejectSave;
   let attempt = 0;
   const { draft, writes } = setup({
@@ -177,7 +178,8 @@ test("failed deletion keeps edits from a failed autosave available for retry", a
   const rejected = assert.rejects(deleting, /Deletion failed/);
   rejectSave(new Error("Save failed"));
   await Promise.all([saving, rejected]);
-  await draft.flush();
+  t.mock.timers.tick(500);
+  await Promise.resolve();
   assert.deepEqual(writes, [
     {
       title: "Original",

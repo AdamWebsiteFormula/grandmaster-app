@@ -32,6 +32,11 @@ export function createNoteDraft({
     timer = undefined;
   }
 
+  function scheduleSave() {
+    cancelTimer();
+    timer = setTimeout(flush, 500);
+  }
+
   async function waitForSave(throwOnError = false) {
     while (inFlight) {
       try {
@@ -89,15 +94,19 @@ export function createNoteDraft({
   return {
     edit(patch: NoteDraft) {
       pending = { ...pending, ...patch };
-      cancelTimer();
-      timer = setTimeout(flush, 500);
+      scheduleSave();
     },
     flush,
     discard,
     async remove(deleteNote: () => Promise<void>) {
       cancelTimer();
       await waitForSave();
-      await deleteNote();
+      try {
+        await deleteNote();
+      } catch (error) {
+        if (Object.keys(pending).length) scheduleSave();
+        throw error;
+      }
       discard();
     },
     restore(title: string) {
