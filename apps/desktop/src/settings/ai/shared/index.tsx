@@ -9,6 +9,7 @@ import {
   ProviderCredentialError,
   providerCredentialIdentity,
   verifyProviderCredentials,
+  usesDeferredProviderAuthentication,
 } from "@anlg/provider-validation";
 import type { AIProvider } from "@anlg/store";
 import { aiProviderSchema } from "@anlg/store";
@@ -559,6 +560,12 @@ export function NonAnarlogProviderCard({
         ])}
       >
         {providerContext}
+        {hasStoredConfig &&
+          usesDeferredProviderAuthentication(providerType, config.id) && (
+            <p className="text-muted-foreground mb-3 text-xs">
+              <Trans>Saved</Trans> · <Trans>Not connected</Trans>
+            </p>
+          )}
 
         {isSubscription ? (
           <div className="mb-3 flex items-center gap-2">

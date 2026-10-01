@@ -23,6 +23,24 @@ export function providerCredentialIdentity(credential: ProviderCredential) {
   return sha256(JSON.stringify(credential));
 }
 
+export function usesDeferredProviderAuthentication(
+  type: "stt" | "llm" | undefined,
+  provider: string,
+) {
+  return (
+    type === "stt" &&
+    [
+      "custom",
+      "inworld",
+      "gradium",
+      "modulate",
+      "alebex",
+      "nvidia",
+      "amazon_bedrock",
+    ].includes(provider)
+  );
+}
+
 export async function verifyProviderCredentials(
   credential: ProviderCredential,
   fetcher: CredentialFetch,
@@ -56,14 +74,9 @@ export async function verifyProviderCredentials(
     throw new ProviderCredentialError("Use HTTPS for provider credentials.");
 
   signal?.throwIfAborted();
-  // These streaming endpoints have no shared read-only credential probe.
-  // Authenticate on the native WebSocket handshake/session instead.
-  if (
-    credential.type === "stt" &&
-    ["custom", "inworld", "gradium", "modulate", "alebex", "nvidia"].includes(
-      credential.provider,
-    )
-  )
+  // These providers have no shared read-only credential probe.
+  // Authenticate on the native session or transcription request instead.
+  if (usesDeferredProviderAuthentication(credential.type, credential.provider))
     return;
 
   const identity = providerCredentialIdentity({ ...credential, apiKey });

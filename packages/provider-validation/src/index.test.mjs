@@ -488,6 +488,7 @@ test("native streaming providers validate input without requiring a model catalo
   for (const provider of [
     "inworld",
     "gradium",
+    "amazon_bedrock",
     "modulate",
     "alebex",
     "nvidia",

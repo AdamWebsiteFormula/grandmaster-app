@@ -57,6 +57,10 @@ test("a saved recording uses the corresponding batch model after live failure", 
     ["dashscope", "qwen3-asr-flash-realtime", null],
     ["nari", "qwen3-asr-fast", null],
     ["nari", "qwen3-asr", null],
+    ["inworld", "inworld/inworld-stt-1", null],
+    ["gradium", "default", null],
+    ["modulate", "velma-2-stt-streaming-multilingual-vfast", null],
+    ["alebex", "alebex-asr", null],
   ])
     assert.equal(batchTranscriptionModel(provider, live), batch);
 });
