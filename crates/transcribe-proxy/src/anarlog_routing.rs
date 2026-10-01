@@ -105,10 +105,12 @@ impl AnarlogRouter {
         candidates.sort_by(|a, b| {
             let (p1, s1) = a;
             let (p2, s2) = b;
-            match (*p1 == Provider::Soniox, *p2 == Provider::Soniox) {
-                (true, false) => return std::cmp::Ordering::Less,
-                (false, true) => return std::cmp::Ordering::Greater,
-                _ => {}
+            if mode == RoutingMode::Batch || priorities.first() == Some(&Provider::Soniox) {
+                match (*p1 == Provider::Soniox, *p2 == Provider::Soniox) {
+                    (true, false) => return std::cmp::Ordering::Less,
+                    (false, true) => return std::cmp::Ordering::Greater,
+                    _ => {}
+                }
             }
 
             match s2.cmp(s1) {
@@ -599,5 +601,24 @@ mod tests {
                 "{mode:?}"
             );
         }
+    }
+
+    #[test]
+    fn custom_live_priority_can_prefer_deepgram() {
+        let router = AnarlogRouter::new(AnarlogRoutingConfig {
+            priorities: vec![Provider::Deepgram, Provider::Soniox],
+            ..Default::default()
+        });
+        let languages = langs(&[ISO639::En]);
+        let available = default_available();
+
+        assert_eq!(
+            router.select_provider_chain_with_mode(RoutingMode::Live, &languages, &available),
+            vec![Provider::Deepgram, Provider::Soniox]
+        );
+        assert_eq!(
+            router.select_provider_chain_with_mode(RoutingMode::Batch, &languages, &available),
+            vec![Provider::Soniox, Provider::Deepgram]
+        );
     }
 }
