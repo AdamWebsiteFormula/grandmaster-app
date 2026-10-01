@@ -16,7 +16,7 @@ import {
   buildTranscriptExportSegments,
   formatTranscriptExportSegments,
 } from "~/session/components/note-input/transcript/export-data";
-import { useSessionTranscriptRenderData } from "~/session/components/note-input/transcript/render-request-hooks";
+import { getSessionTranscriptRenderRequest } from "~/session/components/note-input/transcript/render-request-hooks";
 import { useHasTranscript } from "~/session/components/shared";
 import {
   type MenuItemDef,
@@ -201,8 +201,6 @@ function HeaderViewTranscriptActive({
   const regenerate = useRegenerateTranscript(sessionId);
   const startListening = useStartListeningWithBatchOverride(sessionId);
   const hasTranscript = useHasTranscript(sessionId);
-  const { request: transcriptExportRequest } =
-    useSessionTranscriptRenderData(sessionId);
   const {
     audioExists,
     audioExistsResolved,
@@ -220,13 +218,15 @@ function HeaderViewTranscriptActive({
 
     onClick?.();
   }, [canEdit, editMode, onClick, onEditModeChange]);
-  const canCopyTranscript = Boolean(transcriptExportRequest);
+  const canCopyTranscript = hasTranscript;
   const handleCopyTranscript = useCallback(async () => {
-    if (!transcriptExportRequest) {
-      return;
-    }
-
     try {
+      const transcriptExportRequest =
+        await getSessionTranscriptRenderRequest(sessionId);
+      if (!transcriptExportRequest) {
+        return;
+      }
+
       const transcriptSegments = await buildTranscriptExportSegments(
         transcriptExportRequest,
       );
@@ -243,7 +243,7 @@ function HeaderViewTranscriptActive({
       console.error("Failed to copy transcript", error);
       toast.error("Failed to copy transcript");
     }
-  }, [transcriptExportRequest]);
+  }, [sessionId]);
   const handleDeleteRecording = useCallback(() => {
     void deleteRecording();
   }, [deleteRecording]);
