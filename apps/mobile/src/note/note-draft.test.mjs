@@ -114,3 +114,44 @@ test("restoring a title discards stale edits but preserves that title in subsequ
     },
   ]);
 });
+
+test("version restore waits for an autosave and late failure cannot revive discarded edits", async () => {
+  let finish;
+  let persisted = "Original";
+  const { draft } = setup({
+    saveNote: (value) =>
+      new Promise((resolve) => {
+        finish = () => {
+          persisted = value.bodyText;
+          resolve();
+        };
+      }),
+  });
+  draft.edit({ body: "New edit" });
+  const saving = draft.flush();
+  const restoring = (async () => {
+    await draft.flush(true);
+    persisted = "Previous version";
+    draft.restore("Restored title");
+  })();
+  await Promise.resolve();
+  assert.equal(persisted, "Original");
+  finish();
+  await Promise.all([saving, restoring]);
+  assert.equal(persisted, "Previous version");
+  assert.deepEqual(draft.snapshot(), {});
+
+  let reject;
+  const failed = setup({
+    saveNote: () =>
+      new Promise((_, fail) => {
+        reject = fail;
+      }),
+  }).draft;
+  failed.edit({ body: "Stale" });
+  const attempt = failed.flush();
+  failed.restore("Restored");
+  reject(new Error("Disk full"));
+  await attempt;
+  assert.deepEqual(failed.snapshot(), {});
+});

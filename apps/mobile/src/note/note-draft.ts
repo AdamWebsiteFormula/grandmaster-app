@@ -24,18 +24,28 @@ export function createNoteDraft({
   let pending: NoteDraft = {};
   let timer: ReturnType<typeof setTimeout> | undefined;
   let savedTitle: string | null = null;
+  let inFlight: Promise<void> | undefined;
+  let generation = 0;
 
   function cancelTimer() {
     clearTimeout(timer);
     timer = undefined;
   }
 
-  function flush(throwOnError = false) {
+  async function flush(throwOnError = false) {
     cancelTimer();
+    while (inFlight) {
+      try {
+        await inFlight;
+      } catch (error) {
+        if (throwOnError) throw error;
+      }
+    }
     const note = getNote();
     if (!note) return;
     const draft = pending;
     pending = {};
+    const currentGeneration = generation;
     let write: Promise<void>;
     if (draft.body !== undefined) {
       // Live-query results can lag our writes; a body save must keep the latest title.
@@ -52,11 +62,18 @@ export function createNoteDraft({
     } else {
       return;
     }
-    return write.catch((error) => {
-      pending = { ...draft, ...pending };
-      onError(error, draft);
+    inFlight = write;
+    try {
+      await write;
+    } catch (error) {
+      if (generation === currentGeneration) {
+        pending = { ...draft, ...pending };
+        onError(error, draft);
+      }
       if (throwOnError) throw error;
-    });
+    } finally {
+      if (inFlight === write) inFlight = undefined;
+    }
   }
 
   return {
@@ -67,10 +84,12 @@ export function createNoteDraft({
     },
     flush,
     discard() {
+      generation++;
       cancelTimer();
       pending = {};
     },
     restore(title: string) {
+      generation++;
       cancelTimer();
       pending = {};
       savedTitle = title;
