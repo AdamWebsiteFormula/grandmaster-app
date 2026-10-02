@@ -142,7 +142,8 @@ export function useTimelineEventsTable(): TimelineEventsTable {
         event.location,
         event.meeting_link,
         event.description,
-        calendar.color AS calendar_color
+        calendar.color AS calendar_color,
+        json_extract(event.attendance_json, '$.self_status') AS self_status
       FROM events AS event
       LEFT JOIN calendars AS calendar
         ON calendar.id = event.calendar_id AND calendar.deleted_at IS NULL
