@@ -184,7 +184,7 @@ export function LegacyMigrationCleanupRow() {
             onClick={() => setConfirmationOpen(true)}
           >
             <Trash className="size-4" aria-hidden="true" />
-            <Trans>Clean Up</Trans>
+            <Trans>Clean up</Trans>
           </Button>
         )}
       </div>
@@ -231,7 +231,7 @@ export function LegacyMigrationCleanupRow() {
                 onClick={() => cleanupMutation.mutate()}
                 disabled={cleanupMutation.isPending}
               >
-                {cleanupMutation.isPending ? t`Cleaning up...` : t`Clean Up`}
+                {cleanupMutation.isPending ? t`Cleaning up...` : t`Clean up`}
               </Button>
             </DialogFooter>
           </DialogContent>

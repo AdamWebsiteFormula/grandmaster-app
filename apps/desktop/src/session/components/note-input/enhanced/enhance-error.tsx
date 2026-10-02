@@ -58,8 +58,8 @@ export function EnhanceError({
         <p className="text-muted-foreground text-sm leading-relaxed">
           {isUnauthenticated ? (
             <Trans>
-              Upshot could not generate this summary because you were not
-              signed in. Sign in, then try again.
+              Upshot could not generate this summary because you were not signed
+              in. Sign in, then try again.
             </Trans>
           ) : (
             error?.message || (

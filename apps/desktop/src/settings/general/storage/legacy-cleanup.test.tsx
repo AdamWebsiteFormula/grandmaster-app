@@ -110,7 +110,7 @@ describe("LegacyMigrationCleanupRow", () => {
   it("requires confirmation before removing files", async () => {
     renderRow();
     const openButton = await screen.findByRole("button", {
-      name: "Clean Up",
+      name: "Clean up",
     });
 
     fireEvent.click(openButton);
@@ -120,7 +120,7 @@ describe("LegacyMigrationCleanupRow", () => {
 
     fireEvent.click(
       within(screen.getByRole("dialog")).getByRole("button", {
-        name: "Clean Up",
+        name: "Clean up",
       }),
     );
 
@@ -170,7 +170,7 @@ describe("LegacyMigrationCleanupRow", () => {
       screen.getByText("SQLite migration verification is incomplete"),
     ).toBeTruthy();
     expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Clean Up" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Clean up" })).toBeNull();
   });
 
   it("treats retained recovery copies as a completed migration", async () => {
@@ -196,7 +196,7 @@ describe("LegacyMigrationCleanupRow", () => {
     ).toBeTruthy();
     expect(screen.queryByText("Migration needs attention")).toBeNull();
     expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Clean Up" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Clean up" })).toBeNull();
   });
 
   it("recovers automatically after a transient status failure", async () => {

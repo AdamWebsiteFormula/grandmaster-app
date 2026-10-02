@@ -59,6 +59,12 @@ vi.mock("~/ai/hooks", () => ({
     };
   },
   useLLMConnectionStatus: () => hoisted.llmStatus,
+  useLanguageModel: () => null,
+}));
+
+vi.mock("~/ai/contexts", () => ({
+  useAITask: (select: (state: { generate: () => void }) => unknown) =>
+    select({ generate: vi.fn() }),
 }));
 
 vi.mock("~/session/queries", () => ({
@@ -344,6 +350,10 @@ describe("Enhanced", () => {
 
     expect(screen.getByText("Enhanced editor")).not.toBeNull();
     expect(screen.queryByRole("status")).toBeNull();
+    // Fork: the empty summary also offers to generate one.
+    expect(
+      screen.getByRole("button", { name: /Generate summary/ }),
+    ).toBeTruthy();
   });
 
   it.each([

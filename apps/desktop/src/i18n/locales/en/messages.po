@@ -400,10 +400,6 @@ msgstr "Add another account"
 msgid "Add another device"
 msgstr "Add another device"
 
-#: src/session/components/note-input/enhanced/config-error.tsx
-msgid "Add API key"
-msgstr "Add API key"
-
 #: src/settings/automations/workflow-builder.tsx
 msgid "Add at least one configured action before enabling."
 msgstr "Add at least one configured action before enabling."
@@ -1063,6 +1059,10 @@ msgstr "Choose a language model for summaries and chat."
 msgid "Choose a Linear team first."
 msgstr "Choose a Linear team first."
 
+#: src/session/components/note-input/enhanced/config-error.tsx
+msgid "Choose a model"
+msgstr "Choose a model"
+
 #: src/settings/automations/index.tsx
 msgid "Choose a Notion page first."
 msgstr "Choose a Notion page first."
@@ -1086,6 +1086,10 @@ msgstr "Choose a transcription model"
 #: src/settings/ai/stt/select.tsx
 msgid "Choose a transcription model to start listening."
 msgstr "Choose a transcription model to start listening."
+
+#: src/session/components/note-input/enhanced/config-error.tsx
+msgid "Choose an AI model"
+msgstr "Choose an AI model"
 
 #: src/templates/auto-format-examples-dialog.tsx
 msgid "Choose an AI model before generating a format."
@@ -1183,8 +1187,8 @@ msgid "Claim email domain"
 msgstr "Claim email domain"
 
 #: src/settings/general/storage/legacy-cleanup.tsx
-msgid "Clean Up"
-msgstr "Clean Up"
+msgid "Clean up"
+msgstr "Clean up"
 
 #: src/settings/general/storage/legacy-cleanup.tsx
 msgid "Clean up legacy files?"
@@ -2656,6 +2660,10 @@ msgstr "General"
 msgid "General access"
 msgstr "General access"
 
+#: src/session/components/note-input/enhanced/generate-summary.tsx
+msgid "Generate summary"
+msgstr "Generate summary"
+
 #: src/session/components/note-input/enhanced/streaming.tsx
 #: src/session/components/title-input.tsx
 msgid "Generating title..."
@@ -2669,7 +2677,6 @@ msgstr "Generating transcript..."
 msgid "Get more slots"
 msgstr "Get more slots"
 
-#: src/session/components/note-input/enhanced/config-error.tsx
 #: src/settings/general/billing.tsx
 msgid "Get Pro"
 msgstr "Get Pro"
@@ -3857,6 +3864,10 @@ msgstr "No sound from the other side yet"
 msgid "No speech detected"
 msgstr "No speech detected"
 
+#: src/session/components/note-input/enhanced/generate-summary.tsx
+msgid "No summary yet. Turn this meeting into clear notes."
+msgstr "No summary yet. Turn this meeting into clear notes."
+
 #: src/settings/sync/log.tsx
 msgid "No sync activity yet."
 msgstr "No sync activity yet."
@@ -4258,6 +4269,10 @@ msgstr "phone"
 #: src/settings/general/account-profile.tsx
 msgid "Phone"
 msgstr "Phone"
+
+#: src/session/components/note-input/enhanced/config-error.tsx
+msgid "Pick a model in Settings to turn this transcript into a summary."
+msgstr "Pick a model in Settings to turn this transcript into a summary."
 
 #: src/contacts/contact-page-header.tsx
 msgid "Pin"
@@ -4743,8 +4758,8 @@ msgid "Restart"
 msgstr "Restart"
 
 #: src/shared/control.tsx
-msgid "Restart App"
-msgstr "Restart App"
+msgid "Restart app"
+msgstr "Restart app"
 
 #: src/main/windows-window-controls.tsx
 #: src/session/components/version-history-dialog.tsx
@@ -5113,10 +5128,6 @@ msgstr "Set as current"
 #: src/templates/details.tsx
 msgid "Set as default"
 msgstr "Set as default"
-
-#: src/session/components/note-input/enhanced/config-error.tsx
-msgid "Set up AI summaries"
-msgstr "Set up AI summaries"
 
 #: src/onboarding/index.tsx
 msgid "Set up transcription"
@@ -5545,10 +5556,6 @@ msgstr "SQLite migration verification is incomplete"
 #: src/settings/automations/workflow-builder.tsx
 msgid "Stack another destination. Steps run top to bottom."
 msgstr "Stack another destination. Steps run top to bottom."
-
-#: src/session/components/note-input/enhanced/config-error.tsx
-msgid "Start a Pro trial or add your own LLM API key to generate a summary from this transcript."
-msgstr "Start a Pro trial or add your own LLM API key to generate a summary from this transcript."
 
 #: src/settings/general/billing.tsx
 msgid "Start free trial"

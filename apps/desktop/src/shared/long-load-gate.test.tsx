@@ -116,7 +116,7 @@ describe("LongLoadGate", () => {
       expect(screen.getByText("Upshot needs an update")).toBeTruthy();
     });
     expect(screen.queryByText("app")).toBeNull();
-    expect(screen.queryByRole("button", { name: "Restart App" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Restart app" })).toBeNull();
   });
 });
 

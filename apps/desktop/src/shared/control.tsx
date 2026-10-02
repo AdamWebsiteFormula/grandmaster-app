@@ -94,7 +94,7 @@ const ReportedErrorComponent = ({ error }: { error: Error }) => {
               <div className="pt-2">
                 <Button size="sm" onClick={handleRestart}>
                   <ArrowClockwise className="mr-1.5 h-3.5 w-3.5" />
-                  {t`Restart App`}
+                  {t`Restart app`}
                 </Button>
               </div>
             </div>

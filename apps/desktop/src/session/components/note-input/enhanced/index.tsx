@@ -6,6 +6,7 @@ import type { NoteEditorRef } from "@anlg/editor/note";
 import { ConfigError } from "./config-error";
 import { EnhancedEditor } from "./editor";
 import { EnhanceError } from "./enhance-error";
+import { GenerateSummary } from "./generate-summary";
 import { StreamingView } from "./streaming";
 
 import { useAITaskTask } from "~/ai/hooks";
@@ -88,7 +89,7 @@ export const Enhanced = forwardRef<
       );
     }
 
-    return (
+    const editor = (
       <EnhancedEditor
         ref={ref}
         sessionId={sessionId}
@@ -100,5 +101,20 @@ export const Enhanced = forwardRef<
         onViewDisposed={onViewDisposed}
       />
     );
+
+    // Fork: an empty, idle summary keeps the editor and offers to generate.
+    if (status === "idle" && !hasContent) {
+      return (
+        <div className="flex flex-col gap-3">
+          <GenerateSummary
+            sessionId={sessionId}
+            enhancedNoteId={enhancedNoteId}
+          />
+          {editor}
+        </div>
+      );
+    }
+
+    return editor;
   },
 );

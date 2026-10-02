@@ -363,7 +363,8 @@ describe("SettingsBilling", () => {
       isPaused: false,
       plan: "trial",
       trialDaysRemaining: 3,
-      trialEnd: new Date("2025-10-01T00:00:00Z"),
+      // Noon UTC: the same calendar day in every time zone.
+      trialEnd: new Date("2025-10-01T12:00:00Z"),
     };
     mocks.workspaces.data = [
       {
@@ -403,7 +404,7 @@ describe("SettingsBilling", () => {
       isPaused: false,
       plan: "pro",
       trialDaysRemaining: null,
-      currentPeriodEnd: new Date("2025-10-15T00:00:00Z"),
+      currentPeriodEnd: new Date("2025-10-15T12:00:00Z"),
     };
     mocks.requestSyncDevices.mockResolvedValue({
       devices: [{ deviceFingerprint: "device-a" }],

@@ -400,10 +400,6 @@ msgstr ""
 msgid "Add another device"
 msgstr ""
 
-#: src/session/components/note-input/enhanced/config-error.tsx
-msgid "Add API key"
-msgstr ""
-
 #: src/settings/automations/workflow-builder.tsx
 msgid "Add at least one configured action before enabling."
 msgstr ""
@@ -1063,6 +1059,10 @@ msgstr ""
 msgid "Choose a Linear team first."
 msgstr ""
 
+#: src/session/components/note-input/enhanced/config-error.tsx
+msgid "Choose a model"
+msgstr ""
+
 #: src/settings/automations/index.tsx
 msgid "Choose a Notion page first."
 msgstr ""
@@ -1085,6 +1085,10 @@ msgstr ""
 
 #: src/settings/ai/stt/select.tsx
 msgid "Choose a transcription model to start listening."
+msgstr ""
+
+#: src/session/components/note-input/enhanced/config-error.tsx
+msgid "Choose an AI model"
 msgstr ""
 
 #: src/templates/auto-format-examples-dialog.tsx
@@ -1183,7 +1187,7 @@ msgid "Claim email domain"
 msgstr ""
 
 #: src/settings/general/storage/legacy-cleanup.tsx
-msgid "Clean Up"
+msgid "Clean up"
 msgstr ""
 
 #: src/settings/general/storage/legacy-cleanup.tsx
@@ -2656,6 +2660,10 @@ msgstr ""
 msgid "General access"
 msgstr ""
 
+#: src/session/components/note-input/enhanced/generate-summary.tsx
+msgid "Generate summary"
+msgstr ""
+
 #: src/session/components/note-input/enhanced/streaming.tsx
 #: src/session/components/title-input.tsx
 msgid "Generating title..."
@@ -2669,7 +2677,6 @@ msgstr ""
 msgid "Get more slots"
 msgstr ""
 
-#: src/session/components/note-input/enhanced/config-error.tsx
 #: src/settings/general/billing.tsx
 msgid "Get Pro"
 msgstr ""
@@ -3857,6 +3864,10 @@ msgstr ""
 msgid "No speech detected"
 msgstr ""
 
+#: src/session/components/note-input/enhanced/generate-summary.tsx
+msgid "No summary yet. Turn this meeting into clear notes."
+msgstr ""
+
 #: src/settings/sync/log.tsx
 msgid "No sync activity yet."
 msgstr ""
@@ -4257,6 +4268,10 @@ msgstr ""
 #: src/contacts/details.tsx
 #: src/settings/general/account-profile.tsx
 msgid "Phone"
+msgstr ""
+
+#: src/session/components/note-input/enhanced/config-error.tsx
+msgid "Pick a model in Settings to turn this transcript into a summary."
 msgstr ""
 
 #: src/contacts/contact-page-header.tsx
@@ -4743,7 +4758,7 @@ msgid "Restart"
 msgstr ""
 
 #: src/shared/control.tsx
-msgid "Restart App"
+msgid "Restart app"
 msgstr ""
 
 #: src/main/windows-window-controls.tsx
@@ -5112,10 +5127,6 @@ msgstr ""
 #: src/templates/auto-form.tsx
 #: src/templates/details.tsx
 msgid "Set as default"
-msgstr ""
-
-#: src/session/components/note-input/enhanced/config-error.tsx
-msgid "Set up AI summaries"
 msgstr ""
 
 #: src/onboarding/index.tsx
@@ -5544,10 +5555,6 @@ msgstr ""
 
 #: src/settings/automations/workflow-builder.tsx
 msgid "Stack another destination. Steps run top to bottom."
-msgstr ""
-
-#: src/session/components/note-input/enhanced/config-error.tsx
-msgid "Start a Pro trial or add your own LLM API key to generate a summary from this transcript."
 msgstr ""
 
 #: src/settings/general/billing.tsx

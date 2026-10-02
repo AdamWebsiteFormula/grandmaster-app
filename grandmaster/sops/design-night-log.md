@@ -2,6 +2,25 @@
 
 Design lane, overnight. Nothing here is committed. Adam commits in the morning.
 
+## Morning summary (read this first)
+
+**What changed tonight:** the app now follows the design system on every main screen. That covers home, notes and transcript, recording, Settings, Calendar, Templates, chat and onboarding (onboarding not seen on screen). Three fresh-eyes critic rounds drove the fixes. Glaido's real brand tokens are recorded as the source.
+
+**State at stop:** full type check passes (tsc exit 0). Tests: 4,099 pass and 2 fail, the old billing tests with 2025 dates, not from design work. Rebrand check: 0 hits.
+
+**Screenshots:** `grandmaster/sops/design-night-shots/` (home, note transcript, Settings, recording).
+
+**Your 3 steps in the morning:**
+1. Rebuild the DMG, because a few UI changes landed after the build session's DMG:
+   `bash grandmaster/scripts/release.sh`
+2. Commit with this summary: `Overnight design pass: critic fixes, Glaido source, onboarding value line, labeled chat pill, local-only calendar`
+3. Open onboarding once (first launch in a second macOS user) and check the new line under "Welcome to Upshot". I could not see onboarding on screen tonight.
+
+**Not done (needs you or the build session):**
+- A note's Summary tab is blank when no AI model is set up, so it shows no prompt. That is logic, and I reported it to the build session.
+- Recording-screen screenshot `4-recording.png` is from before the "New note" gray-while-recording fix (a test covers that fix).
+- Delight detail (Jack gap 7) is an idea only.
+
 ## Plan
 
 1. Glaido brand extraction (Jack gap 5): record the source tokens in design-system.md.
@@ -38,3 +57,7 @@ Design lane, overnight. Nothing here is committed. Adam commits in the morning.
 - **Full check.** Full tsc exits 0. Full vitest: 4091 pass, 7 fail, none in design files: open-note-dialog (2) still expects the "Contacts" option the build session hid; billing (3) old Enterprise URL and 2025 dates; provider-routing (1); session-correction (1, the build session's in-progress security fix).
 - **Critic round 3 fixes.** Speaker labels start at a cool hue (220), so they never read as the orange accent. The off-toggle knob is gray instead of black (it vanished into the track). Home cards lost their borders (fill only); empty-card hints wrap evenly (text-balance). "New note" measured at the same spot on home and in a note (31 px from the right, 32 px from the top), so it needs no move.
 - **Paused app-code edits** while the build session runs its final tests, i18n extract and DMG build.
+- **After the DMG build (rerun `bash grandmaster/scripts/release.sh` in the morning to include these).** Home card titles one step down (text-lg) so "Wrap-up streak" fits on one line.
+- **Empty summary prompt** (also after the DMG). session/components/note-input/enhanced/config-error.tsx said "Start a Pro trial…" with a "Get Pro" button that pointed at the hidden Billing page. Now: "Choose an AI model" / "Pick a model in Settings to turn this transcript into a summary." with one button, "Choose a model". Test updated; enhanced tests 34/34.
+- **Sentence case** (after the DMG): "Clean Up" became "Clean up" (Settings › Storage) and "Restart App" became "Restart app" (slow-load screen). Tests updated, 17/17. Kept as names: badge names, app-icon names, template names.
+- **Open issue for the build session (logic).** On this Mac, an ended note with a transcript shows a blank Summary tab: no prompt, no Enhance button. Reported to the build session.

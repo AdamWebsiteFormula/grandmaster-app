@@ -14,34 +14,23 @@ export function ConfigError() {
     >
       <div className="mb-6 flex max-w-md flex-col gap-2 text-center">
         <p className="text-base font-medium">
-          <Trans>Set up AI summaries</Trans>
+          <Trans>Choose an AI model</Trans>
         </p>
-        <p className="text-muted-foreground text-sm leading-relaxed">
+        <p className="text-muted-foreground text-sm leading-relaxed text-pretty">
           <Trans>
-            Start a Pro trial or add your own LLM API key to generate a summary
-            from this transcript.
+            Pick a model in Settings to turn this transcript into a summary.
           </Trans>
         </p>
       </div>
-      <div className="flex items-center gap-2">
-        <Button
-          className="shadow-none"
-          onClick={() =>
-            openNew({ type: "settings", state: { tab: "billing" } })
-          }
-        >
-          <Trans>Get Pro</Trans>
-        </Button>
-        <Button
-          variant="outline"
-          className="shadow-none"
-          onClick={() =>
-            openNew({ type: "settings", state: { tab: "intelligence" } })
-          }
-        >
-          <Trans>Add API key</Trans>
-        </Button>
-      </div>
+      {/* Fork: billing is hidden, so the only path is choosing a model. */}
+      <Button
+        className="shadow-none"
+        onClick={() =>
+          openNew({ type: "settings", state: { tab: "intelligence" } })
+        }
+      >
+        <Trans>Choose a model</Trans>
+      </Button>
     </div>
   );
 }
