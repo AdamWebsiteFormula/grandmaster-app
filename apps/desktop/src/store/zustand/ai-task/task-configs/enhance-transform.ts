@@ -105,7 +105,6 @@ async function transformArgs(
       transcript.segments.map((segment) => segment.text),
     ),
     mode: summaryLength,
-    custom_format: Boolean(formatOverride.trim()) || templateSectionCount > 0,
     template_section_count: templateSectionCount,
   });
   if (policyResult.status === "error") {

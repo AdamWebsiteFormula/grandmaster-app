@@ -9,7 +9,6 @@ pub fn summary_length_policy(
     Ok(anlg_summary::summary_length_policy_for_texts(
         &request.transcript_texts,
         request.mode,
-        request.custom_format,
         request.template_section_count as usize,
     ))
 }

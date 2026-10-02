@@ -295,8 +295,6 @@ describe("enhanceTransform.transformArgs", () => {
   it("builds the summary policy from the returned transcript segments", async () => {
     const lengthPolicy = {
       mode: "crisp",
-      max_characters: 320,
-      max_sections: 2,
       transcript_characters: 27,
       guidance: {
         max_characters: 320,
@@ -342,7 +340,6 @@ describe("enhanceTransform.transformArgs", () => {
     expect(mocks.summaryLengthPolicy).toHaveBeenCalledWith({
       transcript_texts: ["First segment", "Second segment"],
       mode: "crisp",
-      custom_format: true,
       template_section_count: 0,
     });
     expect(result.lengthPolicy).toEqual(lengthPolicy);
