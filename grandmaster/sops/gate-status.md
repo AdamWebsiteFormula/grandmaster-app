@@ -18,5 +18,6 @@
 - Dev onboarding: permissions granted (mic, system audio, accessibility), sign-in skipped.
 - Anthropic key bug: fixed. Key valid (curl 200). Tauri http sends the webview Origin, and api.anthropic.com answers 401 "CORS requests must set 'anthropic-dangerous-direct-browser-access'". Fix: apps/desktop/src/ai/provider-fetch.ts strips Origin for all hosts (was localhost only); provider-fetch.test.ts updated; 36/36 tests pass. Covers key check and Enhance (useLLMConnection uses providerFetch).
 - DMG rebuilt with that fix (13:19): SHA-256 295877a00d673cce46afb33f7e814268b1222fdbb0a3c437c4cfb56e1f77dc10, valid on disk.
-- Gate test: Apple Speech being selected; Anthropic key re-entry pending.
-- Second-account DMG test: waiting on Adam
+- Apple Speech asset: the app's own download hung on "Downloading apple-speech". Installing via AssetInventory from a separate process finished in seconds; app restart picked it up ("Live"). Watch for this on the clean account.
+- Gate test (dev app, 13:46): GREEN, with one caveat. System channel (1): 41 words from the built-in demo meeting. Mic channel (0): 9 words. Both via Apple Speech, but in two separate recordings, not one. Enhance with Adam's key (Anthropic, Claude Sonnet 5.5): works; summary output ended mid-markdown ("**Settings →"), to check later.
+- Second-account DMG test: DMG copied to /Users/Shared/ (checksum OK). No second macOS user exists yet. Adam creates one, installs, and runs one recording with demo audio and his voice together.
