@@ -6,7 +6,6 @@ import { fileURLToPath } from "node:url";
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const webDir = resolve(scriptDir, "..");
 const publicBlogDir = resolve(webDir, "public/images/blog");
-const articlesDir = resolve(webDir, "content/articles");
 const scanRoots = [resolve(webDir, "content/articles"), resolve(webDir, "src")];
 const textExtensions = new Set([".md", ".mdx", ".ts", ".tsx"]);
 
@@ -58,9 +57,7 @@ for (const root of scanRoots) {
     }
     for (const url of text.match(staticBlogPattern) || []) assetUrls.add(url);
     for (const url of text.match(supabaseBlogPattern) || []) {
-      if (file.startsWith(`${articlesDir}/`))
-        directSupabaseReferences.push({ file, url });
-      else assetUrls.add(url);
+      directSupabaseReferences.push({ file, url });
     }
   }
 }
