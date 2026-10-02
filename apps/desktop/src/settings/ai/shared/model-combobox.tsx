@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import {
   ArrowsCounterClockwise,
   CaretDown,
+  CaretRight,
   Check,
   Eye,
   EyeSlash,
@@ -24,6 +25,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@anlg/ui/components/ui/popover";
+import { Switch } from "@anlg/ui/components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
@@ -33,8 +35,16 @@ import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
 import { chipSquircle } from "@anlg/ui/lib/squircle";
 import { cn } from "@anlg/utils";
 
-import type { ListModelsResult, ModelIgnoreReason } from "./list-common";
+import type {
+  ListModelsResult,
+  ModelIgnoreReason,
+  ModelMetadata,
+} from "./list-common";
+import { formatContextWindow } from "./model-catalog";
 import { displayLlmModelId } from "./model-display";
+import { groupModelOptions } from "./model-list-enrich";
+import { refreshRegistry } from "./model-registry";
+import { formatUpdatedAgo, useModelRegistry } from "./use-model-registry";
 
 import { useModelMetadata } from "~/ai/hooks";
 
@@ -70,8 +80,18 @@ const formatIgnoreReason = (reason: ModelIgnoreReason): string => {
   }
 };
 
-const getDisplayName = (providerId: string, model: string): string => {
-  return displayLlmModelId(providerId, model);
+const getDisplayName = (
+  providerId: string,
+  model: string,
+  metadata?: Record<string, ModelMetadata>,
+): string => {
+  return metadata?.[model]?.displayName ?? displayLlmModelId(providerId, model);
+};
+
+const getDetail = (meta: ModelMetadata | undefined): string | null => {
+  const parts = [meta?.priceTier, formatContextWindow(meta?.contextWindow)];
+  const detail = parts.filter(Boolean).join(" · ");
+  return detail.length > 0 ? detail : null;
 };
 
 export function ModelCombobox({
@@ -97,6 +117,9 @@ export function ModelCombobox({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [showIgnored, setShowIgnored] = useState(false);
+  const [showMore, setShowMore] = useState(false);
+  const [showPreviews, setShowPreviews] = useState(false);
+  const registryState = useModelRegistry();
 
   const {
     data: fetchedResult,
@@ -113,7 +136,42 @@ export function ModelCombobox({
     () => fetchedResult?.ignored ?? [],
     [fetchedResult],
   );
+  const metadata = useMemo(
+    () => fetchedResult?.metadata ?? {},
+    [fetchedResult],
+  );
+  const groups = useMemo(
+    () => groupModelOptions(options, metadata),
+    [options, metadata],
+  );
   const trimmedQuery = query.trim();
+  const isSearching = trimmedQuery.length > 0;
+  const moreExpanded = showMore || groups.more.includes(value);
+  // Searching looks through every model, folded or not.
+  const visibleOptions = isSearching
+    ? options
+    : [
+        ...groups.primary,
+        ...(moreExpanded ? groups.more : []),
+        ...(showPreviews ? groups.previews : []),
+      ];
+  // A Thinking badge on every row says nothing; show it only when it
+  // tells models apart.
+  const showThinkingBadge =
+    visibleOptions.some((id) => metadata[id]?.thinking) &&
+    visibleOptions.some((id) => !metadata[id]?.thinking);
+  const isOfflineList = fetchedResult?.source === "offline";
+  const updatedAgo = formatUpdatedAgo(registryState.registry.fetchedAt);
+  const freshnessLabel = isOfflineList
+    ? t`Offline list`
+    : updatedAgo
+      ? t`Updated ${updatedAgo}`
+      : null;
+  const isRefreshing = isFetching || registryState.refreshing;
+  const handleRefresh = useCallback(async () => {
+    await refreshRegistry({ force: true });
+    await refetch();
+  }, [refetch]);
   const hasExactMatch = useMemo(
     () =>
       options.some(
@@ -165,7 +223,7 @@ export function ModelCombobox({
                     isSelectedDeprecated && "text-muted-foreground",
                   ])}
                 >
-                  {getDisplayName(providerId, value)}
+                  {getDisplayName(providerId, value, metadata)}
                 </span>
                 {isSelectedDeprecated ? <DeprecatedBadge /> : null}
               </span>
@@ -224,11 +282,11 @@ export function ModelCombobox({
 
             <CommandList>
               <CommandGroup className="overflow-y-auto">
-                {options.map((option) => (
+                {visibleOptions.map((option) => (
                   <CommandItem
                     key={option}
                     tabIndex={0}
-                    value={`${option} ${getDisplayName(providerId, option)}`}
+                    value={`${option} ${getDisplayName(providerId, option, metadata)}`}
                     onSelect={() => {
                       handleSelect(option);
                     }}
@@ -243,18 +301,45 @@ export function ModelCombobox({
                       "hover:bg-accent! focus:bg-accent! aria-selected:bg-transparent",
                     ])}
                   >
-                    <span className="truncate">
-                      {getDisplayName(providerId, option)}
-                    </span>
+                    <ModelRow
+                      name={getDisplayName(providerId, option, metadata)}
+                      meta={metadata[option]}
+                      showThinking={showThinkingBadge}
+                    />
                   </CommandItem>
                 ))}
+
+                {!isSearching && groups.more.length > 0 && (
+                  <CommandItem
+                    key="more-models"
+                    value="more-models"
+                    onSelect={() => setShowMore((prev) => !prev)}
+                    className={cn([
+                      "text-muted-foreground cursor-pointer",
+                      "hover:bg-accent! focus:bg-accent! aria-selected:bg-transparent",
+                    ])}
+                  >
+                    {moreExpanded ? (
+                      <CaretDown className="mr-2 h-3 w-3" />
+                    ) : (
+                      <CaretRight className="mr-2 h-3 w-3" />
+                    )}
+                    <span className="truncate">
+                      {moreExpanded ? (
+                        <Trans>Fewer models</Trans>
+                      ) : (
+                        <Trans>More models ({groups.more.length})</Trans>
+                      )}
+                    </span>
+                  </CommandItem>
+                )}
 
                 {showIgnored &&
                   ignoredOptions.map((option) => (
                     <CommandItem
                       key={`ignored-${option.id}`}
                       tabIndex={0}
-                      value={`${option.id} ${getDisplayName(providerId, option.id)}`}
+                      value={`${option.id} ${getDisplayName(providerId, option.id, metadata)}`}
                       onSelect={() => {
                         handleSelect(option.id);
                       }}
@@ -275,7 +360,7 @@ export function ModelCombobox({
                         <TooltipTrigger asChild>
                           <span className="flex w-full min-w-0 items-center gap-2">
                             <span className="truncate">
-                              {getDisplayName(providerId, option.id)}
+                              {getDisplayName(providerId, option.id, metadata)}
                             </span>
                             {option.reasons.includes("old_model") ? (
                               <DeprecatedBadge />
@@ -321,11 +406,21 @@ export function ModelCombobox({
               </CommandGroup>
             </CommandList>
 
-            <div className="text-muted-foreground flex items-center justify-between border-t px-2 py-1.5 text-xs">
+            <div className="text-muted-foreground flex items-center gap-3 border-t px-2 py-1.5 text-xs">
               <button
                 type="button"
                 onClick={toggleShowIgnored}
-                className="hover:text-foreground mr-1 flex items-center gap-1 text-xs transition-colors"
+                aria-label={
+                  showIgnored ? t`Hide unsupported models` : t`Show unsupported models`
+                }
+                title={
+                  hasIgnoredOptions
+                    ? showIgnored
+                      ? t`Showing total of ${options.length} models.`
+                      : t`${ignoredOptions.length} items ignored.`
+                    : undefined
+                }
+                className="hover:text-foreground flex items-center gap-1 text-xs transition-colors"
               >
                 {showIgnored ? (
                   <EyeSlash className="h-3 w-3" />
@@ -334,23 +429,29 @@ export function ModelCombobox({
                 )}
               </button>
 
-              {hasIgnoredOptions && (
-                <span>
-                  {showIgnored
-                    ? `Showing total of ${options.length} models.`
-                    : `${ignoredOptions.length} items ignored.`}
-                </span>
+              {groups.previews.length > 0 && (
+                <label className="hover:text-foreground flex cursor-pointer items-center gap-1.5 transition-colors">
+                  <Switch
+                    size="sm"
+                    checked={showPreviews}
+                    onCheckedChange={setShowPreviews}
+                  />
+                  <Trans>Show previews</Trans>
+                </label>
               )}
+
+              <span className="ml-auto truncate">{freshnessLabel}</span>
 
               <button
                 type="button"
-                onClick={() => refetch()}
-                disabled={isFetching}
-                className="hover:text-foreground ml-auto flex items-center gap-1 text-xs transition-colors disabled:opacity-50"
+                onClick={() => void handleRefresh()}
+                disabled={isRefreshing}
+                className="hover:text-foreground flex shrink-0 items-center gap-1 text-xs transition-colors disabled:opacity-50"
               >
                 <ArrowsCounterClockwise
-                  className={cn(["h-3 w-3", isFetching && "animate-spin"])}
+                  className={cn(["h-3 w-3", isRefreshing && "animate-spin"])}
                 />
+                <Trans>Refresh</Trans>
               </button>
             </div>
           </Command>
@@ -371,6 +472,66 @@ function DeprecatedBadge() {
       ])}
     >
       <Trans>Deprecated</Trans>
+    </span>
+  );
+}
+
+function ModelRow({
+  name,
+  meta,
+  showThinking,
+}: {
+  name: string;
+  meta: ModelMetadata | undefined;
+  showThinking: boolean;
+}) {
+  const detail = getDetail(meta);
+  return (
+    <span className="flex w-full min-w-0 flex-col">
+      <span className="flex min-w-0 items-center gap-2">
+        <span className="truncate">{name}</span>
+        {meta?.isNew ? (
+          <ModelBadge emphasis>
+            <Trans>New</Trans>
+          </ModelBadge>
+        ) : null}
+        {showThinking && meta?.thinking ? (
+          <ModelBadge>
+            <Trans>Thinking</Trans>
+          </ModelBadge>
+        ) : null}
+        {meta?.preview ? (
+          <ModelBadge>
+            <Trans>Preview</Trans>
+          </ModelBadge>
+        ) : null}
+      </span>
+      {detail ? (
+        <span className="text-muted-foreground truncate text-xs">{detail}</span>
+      ) : null}
+    </span>
+  );
+}
+
+function ModelBadge({
+  children,
+  emphasis = false,
+}: {
+  children: React.ReactNode;
+  emphasis?: boolean;
+}) {
+  const ref = useSquircleRef<HTMLSpanElement>(undefined, chipSquircle);
+  return (
+    <span
+      ref={ref}
+      className={cn([
+        "shrink-0 rounded-md px-1.5 py-0.5 text-xs font-medium",
+        emphasis
+          ? "bg-secondary text-foreground"
+          : "text-muted-foreground border",
+      ])}
+    >
+      {children}
     </span>
   );
 }
