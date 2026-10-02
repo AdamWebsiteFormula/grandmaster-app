@@ -1,7 +1,13 @@
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { listGenericModels, processGenericModels } from "./list-openai";
+import { EMPTY_REGISTRY, setRegistryForTesting } from "./model-registry";
+
+// These upstream tests cover the name-based fallback used for ids the model
+// catalog does not know; catalog rules are tested in model-registry.test.ts.
+beforeEach(() => setRegistryForTesting(EMPTY_REGISTRY));
+afterEach(() => setRegistryForTesting(null));
 
 vi.mock("@tauri-apps/plugin-http", () => ({ fetch: vi.fn() }));
 

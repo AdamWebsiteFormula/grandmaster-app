@@ -1,4 +1,6 @@
+import { catalogProviderFor, findCatalogEntry } from "./model-catalog";
 import { modelName } from "./model-id";
+import { getRegistry } from "./model-registry";
 
 const MODEL_NAME_OVERRIDES: Record<string, string> = {
   "chat-latest": "Chat Latest",
@@ -17,6 +19,16 @@ export function displayLlmModelId(providerId: string, model: string): string {
   const override = MODEL_NAME_OVERRIDES[normalized];
   if (override) {
     return override;
+  }
+
+  // The catalog knows names for models released after this build.
+  const catalogProvider = catalogProviderFor(providerId);
+  if (catalogProvider) {
+    const name = findCatalogEntry(getRegistry(), catalogProvider, model)?.entry
+      .name;
+    if (name) {
+      return name;
+    }
   }
 
   const claudeName = formatClaudeModel(normalized);

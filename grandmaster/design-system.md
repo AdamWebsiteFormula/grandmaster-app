@@ -35,6 +35,10 @@ Bare HSL triples in `packages/design-system/src/tokens.css`, read as `hsl(var(--
 
 Orange `#FF6A1F` = `hsl(20 100% 56%)`, sampled from `icons/stable/icon.png`. It is the only hue in the UI. Red is reserved for errors and recording-stop. Every other color is a neutral gray.
 
+Toggles, checkboxes and selected rows stay neutral (white "on" track, gray fills). They never use the accent.
+
+While recording, the red Stop in the bottom recording bar is the main action. It is the only Stop on screen, and the "New note" button turns gray until recording ends.
+
 Adam picked orange on Oct 2 (the blueprint offered mint or violet). It matches the app icon. To change it later, edit `--primary` and `--ring` in both token blocks, `--selection-overlay` in `dark-theme.css`, and the splash in `apps/desktop/index.html`.
 
 ## Type
@@ -62,11 +66,17 @@ Adam picked orange on Oct 2 (the blueprint offered mint or violet). It matches t
 - Radius: `--radius: 0.5rem`. Controls are squircles. True circles use `.rounded-pill`.
 - Flat: no drop shadows on black. Separate layers with a 1 px `--border` and one surface step.
 - Nothing touches the window edges. Every panel has inner padding. The 40 px chrome row and the traffic-light inset stay as they are.
+- The sidebar sits 12 px from the window edge. With the sidebar collapsed, the main panel keeps a 6 px black frame on the sides and bottom.
 
 ## Words
 
 - Sentence case everywhere. No all-caps, no letter-spaced labels.
-- No eyebrow labels (the small caps line above a heading). Delete them; the heading carries the meaning.
+- No eyebrow labels (the small caps line above a heading). Delete them; the heading carries the meaning. The Settings nav has no group labels; space separates the groups.
+
+## Build notes
+
+- Classes in `packages/ui` components only reach the app after `pnpm -F ui build` (it writes `packages/ui/dist/globals.css`). The release script runs it.
+- Colors the app uses in `apps/desktop/src` (`destructive`, `alert`, `primary` and the others) must be in the `--color-*` list in the `@theme` block of `apps/desktop/src/styles/globals.css`. If one is missing, opacity variants like `bg-destructive/10` render as nothing.
 
 ## Glance test
 

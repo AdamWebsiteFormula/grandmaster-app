@@ -35,15 +35,24 @@ export function MainShellScaffold({
       <div
         className={cn([
           "bg-background flex h-full gap-1 overflow-hidden",
-          !hasTopMainSurfaceChrome && "pl-1",
+          // Fork: nothing touches the window edges.
+          !hasTopMainSurfaceChrome && "pl-3",
           hasTopMainSurfaceChrome && [
             isMacos && "[&_[data-chat-floating-anchor]]:rounded-t-xl",
-            "[&_[data-chat-floating-anchor]]:rounded-b-none",
-            "[&_[data-chat-floating-anchor]]:border-x-0",
+            isMacos && resolvedMainSurfaceChrome === "top-borderless"
+              ? [
+                  "[&_[data-chat-floating-anchor]]:mx-1.5 [&_[data-chat-floating-anchor]]:mb-1.5",
+                  "[&_[data-chat-floating-anchor]]:rounded-b-xl",
+                ]
+              : [
+                  "[&_[data-chat-floating-anchor]]:rounded-b-none",
+                  "[&_[data-chat-floating-anchor]]:border-x-0",
+                ],
             resolvedMainSurfaceChrome === "top" || hasCustomTitleBar
               ? "[&_[data-chat-floating-anchor]]:border-t"
               : "[&_[data-chat-floating-anchor]]:!border-t-0",
-            "[&_[data-chat-floating-anchor]]:border-b-0",
+            !(isMacos && resolvedMainSurfaceChrome === "top-borderless") &&
+              "[&_[data-chat-floating-anchor]]:border-b-0",
           ],
           resolvedMainSurfaceChrome === "left" &&
             (isMacos

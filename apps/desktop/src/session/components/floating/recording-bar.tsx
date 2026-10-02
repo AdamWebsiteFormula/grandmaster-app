@@ -56,9 +56,10 @@ export function RecordingBar({ sessionId }: { sessionId: string }) {
           // A floor keeps the bars moving in silence, so recording always reads as live.
           amplitude={muted ? 0 : Math.max(amplitude, 0.35)}
           color="hsl(var(--primary))"
-          height={18}
-          width={22}
-          stickWidth={3}
+          height={24}
+          width={32}
+          stickWidth={4}
+          gap={3}
         />
         <span className="text-sm font-medium">
           {muted ? <Trans>Muted</Trans> : <Trans>Recording</Trans>}
@@ -100,7 +101,7 @@ function LevelMeter({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(level * 100)}
-        className="bg-muted relative h-1.5 w-8 overflow-hidden rounded-full"
+        className="bg-muted-foreground/30 relative h-1.5 w-8 overflow-hidden rounded-full"
       >
         <span
           className="bg-foreground absolute inset-y-0 left-0 rounded-full transition-[width] duration-100 ease-out"

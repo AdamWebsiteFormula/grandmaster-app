@@ -30,7 +30,9 @@ async function main() {
     providers,
   };
   writeFileSync(out, `${JSON.stringify(registry)}\n`);
-  console.log(`Wrote ${count} models from ${Object.keys(providers).length} providers`);
+  console.log(
+    `Wrote ${count} models from ${Object.keys(providers).length} providers`,
+  );
 }
 
 void main();

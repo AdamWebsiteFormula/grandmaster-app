@@ -110,6 +110,10 @@ vi.mock("~/shared/open-note-dialog", () => ({
   }),
 }));
 
+vi.mock("~/shared/new-note-button", () => ({
+  NewNoteButton: () => <button type="button">New note</button>,
+}));
+
 vi.mock("~/shared/useNewNote", () => ({
   useNewNote: () => mocks.createNewNote,
   useNewNoteAndListen: () => mocks.createNewNote,

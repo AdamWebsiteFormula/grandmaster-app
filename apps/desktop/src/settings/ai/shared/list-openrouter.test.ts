@@ -1,6 +1,12 @@
-import { describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import { processOpenRouterModels } from "./list-openrouter";
+import { EMPTY_REGISTRY, setRegistryForTesting } from "./model-registry";
+
+// These upstream tests cover the name-based fallback used for ids the model
+// catalog does not know; catalog rules are tested in model-registry.test.ts.
+beforeEach(() => setRegistryForTesting(EMPTY_REGISTRY));
+afterEach(() => setRegistryForTesting(null));
 
 describe("processOpenRouterModels", () => {
   test("keeps current provider-prefixed dated models", () => {

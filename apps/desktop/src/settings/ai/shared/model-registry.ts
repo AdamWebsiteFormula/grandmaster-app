@@ -34,7 +34,11 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 export function parseRegistry(value: unknown): ModelRegistry | null {
   if (!isRecord(value) || !isRecord(value.providers)) return null;
   const source = value.catalogSource;
-  if (source !== "models.dev" && source !== "openrouter" && source !== "bundled")
+  if (
+    source !== "models.dev" &&
+    source !== "openrouter" &&
+    source !== "bundled"
+  )
     return null;
   const providers: Record<string, CatalogEntry[]> = {};
   for (const [id, list] of Object.entries(value.providers)) {
@@ -200,13 +204,16 @@ export function refreshRegistry(
 
   setState({ refreshing: true });
   inflight = fetchRegistry(state.registry, options.fetchImpl)
-    .then((next) => {
-      if (!next) {
-        setState({ refreshing: false, lastError: "Could not reach models.dev" });
+    .then((fresh) => {
+      if (!fresh) {
+        setState({
+          refreshing: false,
+          lastError: "Could not reach models.dev",
+        });
         return false;
       }
-      writeCache(next);
-      setState({ registry: next, refreshing: false, lastError: null });
+      writeCache(fresh);
+      setState({ registry: fresh, refreshing: false, lastError: null });
       return true;
     })
     .catch(() => {
@@ -219,7 +226,14 @@ export function refreshRegistry(
   return inflight;
 }
 
-/** Test hook: replace the in-memory registry. */
+export const EMPTY_REGISTRY: ModelRegistry = {
+  fetchedAt: null,
+  catalogSource: "bundled",
+  fallbackVersion: "",
+  providers: {},
+};
+
+/** Test hook: replace the in-memory registry (null restores the default). */
 export function setRegistryForTesting(registry: ModelRegistry | null) {
   inflight = null;
   setState({

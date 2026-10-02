@@ -42,12 +42,12 @@ export const CurrentTimeIndicator = forwardRef<
       <div className="absolute inset-x-0 top-0 -translate-y-1/2">
         <div
           data-sidebar-current-time-line
-          className="absolute top-1/2 right-0 left-0 h-px -translate-y-1/2 bg-primary/85"
+          className="bg-foreground/25 absolute top-1/2 right-0 left-0 h-px -translate-y-1/2"
         />
         <div className="relative flex h-5 items-center justify-center">
           <div
             data-sidebar-current-time-label
-            className="border-primary bg-primary text-primary-foreground rounded-full border px-2 py-0.5 font-mono text-xs font-semibold opacity-0 shadow-xs transition-opacity group-hover:opacity-100"
+            className="border-border bg-popover text-popover-foreground rounded-full border px-2 py-0.5 font-mono text-xs font-semibold opacity-0 shadow-xs transition-opacity group-hover:opacity-100"
           >
             {label}
           </div>

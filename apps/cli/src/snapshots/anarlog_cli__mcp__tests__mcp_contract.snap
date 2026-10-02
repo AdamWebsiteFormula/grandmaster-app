@@ -119,7 +119,7 @@ expression: "canonicalize_json(serde_json::json!({\n    \"protocol_version\": in
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "properties": {
           "meeting_id": {
-            "description": "Anarlog meeting id",
+            "description": "Upshot meeting id",
             "type": "string"
           }
         },
@@ -437,7 +437,7 @@ expression: "canonicalize_json(serde_json::json!({\n    \"protocol_version\": in
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "properties": {
           "meeting_id": {
-            "description": "Anarlog meeting id",
+            "description": "Upshot meeting id",
             "type": "string"
           }
         },
@@ -673,7 +673,7 @@ expression: "canonicalize_json(serde_json::json!({\n    \"protocol_version\": in
             ]
           },
           "meeting_id": {
-            "description": "Anarlog meeting id",
+            "description": "Upshot meeting id",
             "type": "string"
           },
           "offset": {

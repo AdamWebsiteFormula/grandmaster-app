@@ -7,7 +7,7 @@ export PATH="$HOME/.local/share/grandmaster-shims:$HOME/.cargo/bin:$HOME/.local/
 export CARGO_TARGET_DIR="$HOME/anarlog-target"
 export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
 export VITE_API_URL="http://localhost:3001"
-export APP_VERSION="1.4.28"
+export APP_VERSION="1.0.0"
 export VITE_APP_VERSION="$APP_VERSION"
 export CI=false
 # CMake 4 rejects cmake_minimum_required < 3.5 in older vendored C++ deps.
@@ -29,13 +29,15 @@ cp "$CARGO_TARGET_DIR/$TRIPLE/release/anarlog" "$ST/resources/cli/anarlog-cli-$T
 # Register them as externalBin with scripts/sidecar.sh, as desktop_cd.yaml does,
 # but into a small overlay config so tauri*.json stays untouched by the build.
 CONF="$OUT/tauri.conf.sidecars.json"
-echo '{"bundle":{"externalBin":[]}}' > "$CONF"
+echo "{\"version\":\"$APP_VERSION\",\"bundle\":{\"externalBin\":[]}}" > "$CONF"
 for b in binaries/char-chrome-native-host binaries/check-permissions resources/cli/anarlog-cli; do
   ./scripts/sidecar.sh "$CONF" "$b"
 done
 cat "$CONF"
 
 echo "== 2 tauri build"
+# Remove old bundles first, so step 3 can never pick a stale .app (e.g. "Anarlog Dev.app").
+rm -rf "$CARGO_TARGET_DIR/$TRIPLE/release/bundle/macos"
 pnpm -F ui build
 pnpm -F desktop tauri build --target $TRIPLE --config "$CONF" --bundles app
 

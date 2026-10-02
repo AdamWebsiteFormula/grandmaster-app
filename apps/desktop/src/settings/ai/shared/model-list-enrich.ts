@@ -45,7 +45,8 @@ function mergeMetadata(
     releasedAt,
     isNew: isNewModel(releasedAt, now) || undefined,
     thinking: provider?.thinking ?? catalog?.thinking,
-    preview: provider?.preview || catalog?.preview || isPreviewId(id) || undefined,
+    preview:
+      provider?.preview || catalog?.preview || isPreviewId(id) || undefined,
     deprecated: provider?.deprecated || catalog?.deprecated || undefined,
     contextWindow: provider?.contextWindow ?? catalog?.contextWindow,
     priceTier: provider?.priceTier ?? priceTier(catalog?.priceIn),
@@ -99,10 +100,15 @@ function applyCatalog(
     const meta = metadata[id];
     if (!meta?.releasedAt || meta.deprecated) continue;
     const head = heads.get(meta.family!);
-    if (!head || meta.releasedAt > head) heads.set(meta.family!, meta.releasedAt);
+    if (!head || meta.releasedAt > head)
+      heads.set(meta.family!, meta.releasedAt);
   }
   const isOld = (id: string) =>
-    isOldByRelease(metadata[id] ?? {}, heads.get(metadata[id]?.family ?? ""), now);
+    isOldByRelease(
+      metadata[id] ?? {},
+      heads.get(metadata[id]?.family ?? ""),
+      now,
+    );
 
   const models: string[] = [];
   const ignored = [];

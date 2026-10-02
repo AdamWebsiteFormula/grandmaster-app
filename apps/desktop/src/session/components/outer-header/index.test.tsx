@@ -229,11 +229,12 @@ describe("OuterHeader", () => {
 
   it.each<[string, Scenario, (typeof ACTIONS)[number] | null]>([
     ["new ad hoc note", {}, "Record"],
-    ["active recording", { mode: "active" }, "Stop"],
+    // Stop lives in the bottom recording bar (see floating/recording-bar.test.tsx).
+    ["active recording", { mode: "active" }, null],
     [
       "active recording past the scheduled end",
       { mode: "active", event: scheduled(MEET_LINK), now: AFTER },
-      "Stop",
+      null,
     ],
     ["post-meeting transcription", { mode: "running_batch", now: AFTER }, null],
     ["finalizing", { mode: "finalizing", event: scheduled(MEET_LINK) }, null],
@@ -310,29 +311,6 @@ describe("OuterHeader", () => {
 
     expect(mocks.openUrl).toHaveBeenCalledWith(MEET_LINK, null);
     expect(mocks.startListening).toHaveBeenCalledTimes(1);
-  });
-
-  it("stops listening from the stop button", () => {
-    arrange({ mode: "active" });
-    renderHeader();
-
-    fireEvent.click(screen.getByRole("button", { name: "Stop" }));
-
-    expect(mocks.stopListening).toHaveBeenCalledTimes(1);
-  });
-
-  it("delegates stop to the main window from standalone windows", () => {
-    arrange({ mode: "active" });
-    mocks.isMainWebviewWindow = false;
-    renderHeader({ standaloneWindow: true });
-
-    fireEvent.click(screen.getByRole("button", { name: "Stop" }));
-
-    expect(mocks.requestMainListenerControl).toHaveBeenCalledWith(
-      "stop",
-      "session-1",
-    );
-    expect(mocks.stopListening).not.toHaveBeenCalled();
   });
 
   it("opens the welcome demo with an automatic completion callback", async () => {
@@ -486,4 +464,22 @@ describe("OuterHeader", () => {
       ).toBe(visible);
     },
   );
+
+  it.each<[string, Scenario, boolean]>([
+    ["saved audio", { audio: true }, true],
+    ["saved audio and a transcript", { audio: true, transcript: true }, true],
+    ["no audio", { transcript: true }, false],
+    ["recording", { audio: true, mode: "active" }, false],
+    ["finalizing", { audio: true, mode: "finalizing" }, false],
+    ["transcribing", { audio: true, mode: "running_batch" }, false],
+  ])("audio saved line when %s", (_label, scenario, visible) => {
+    arrange(scenario);
+    renderHeader();
+
+    expect(
+      screen.queryByRole("button", {
+        name: "Audio saved on this Mac · kept forever",
+      }) !== null,
+    ).toBe(visible);
+  });
 });

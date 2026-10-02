@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import {
   isDateSnapshot,
@@ -8,6 +8,12 @@ import {
   removeNonStreamingModels,
   sortModelsByRecency,
 } from "./list-common";
+import { EMPTY_REGISTRY, setRegistryForTesting } from "./model-registry";
+
+// These upstream tests cover the name-based fallback used for ids the model
+// catalog does not know; catalog rules are tested in model-registry.test.ts.
+beforeEach(() => setRegistryForTesting(EMPTY_REGISTRY));
+afterEach(() => setRegistryForTesting(null));
 
 describe("readResponseTextWithLimit", () => {
   test("reads a response within the byte limit", async () => {

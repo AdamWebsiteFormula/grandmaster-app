@@ -111,10 +111,12 @@ export function SettingsNav() {
             </div>
           ) : null}
           {visibleGroups.map((group) => (
-            <div key={group.label} className="flex flex-col gap-0.5">
-              <span className="text-muted-foreground/60 px-3 pb-1 text-xs font-medium">
-                {group.label}
-              </span>
+            <div
+              key={group.label}
+              role="group"
+              aria-label={group.label}
+              className="flex flex-col gap-0.5"
+            >
               {group.items.map((item) => {
                 const requiresPro = Boolean(item.requiresPro && !isPro);
 

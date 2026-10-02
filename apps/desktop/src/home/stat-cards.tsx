@@ -73,9 +73,9 @@ export function HomeStatCards() {
   return (
     <section
       aria-label={t`Your stats`}
-      className="flex w-full max-w-2xl flex-col items-center gap-3 px-4"
+      className="flex w-full max-w-2xl flex-col items-center gap-4 px-8"
     >
-      <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard
           title={t`Time saved`}
           value={minutes > 0 ? formatMinutes(minutes) : null}
@@ -143,7 +143,7 @@ function StatCard({
     <div
       title={hint}
       className={cn([
-        "bg-card flex min-h-32 flex-col gap-1 rounded-lg border p-4 text-left",
+        "bg-muted/60 border-border flex min-h-32 flex-col gap-1.5 rounded-xl border p-5 text-left",
       ])}
     >
       <p className="text-muted-foreground text-sm">{title}</p>

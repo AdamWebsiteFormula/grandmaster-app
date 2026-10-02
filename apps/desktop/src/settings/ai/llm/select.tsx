@@ -24,7 +24,9 @@ import {
   isSubscriptionProviderId,
   listSubscriptionModels,
 } from "./subscriptions";
+import { useVanishedModelSwitch } from "./vanished-model";
 
+import { useModelMetadata } from "~/ai/hooks";
 import {
   normalizeReasoningEffort,
   supportsReasoningEffort,
@@ -248,6 +250,21 @@ export function SelectProviderAndModel() {
         model: activePendingSelection.model,
       }
     : (defaultSelection ?? visibleSelection);
+
+  // Same query as the picker, so this reuses its fetch.
+  const currentListModels = current_llm_provider
+    ? configuredProviders[current_llm_provider]?.listModels
+    : undefined;
+  const { data: currentModels } = useModelMetadata(
+    current_llm_provider ?? null,
+    currentListModels,
+    { enabled: !!currentListModels && !activePendingSelection },
+  );
+  useVanishedModelSwitch(
+    activePendingSelection ? undefined : current_llm_provider,
+    current_llm_model,
+    currentModels,
+  );
 
   const health = useConnectionHealth();
   const isConfigured = !!(

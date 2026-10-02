@@ -15,6 +15,7 @@ import { cn, parseEventInstant, safeParseDate } from "@anlg/utils";
 import { FolderPicker } from "../folder-picker";
 import { RecordingIcon, useHasTranscript } from "../shared";
 import { TitleInput } from "../title-input";
+import { AudioSavedLine } from "./audio-saved";
 import { OverflowButton } from "./overflow";
 
 import { useAudioPlayer } from "~/audio-player";
@@ -113,8 +114,10 @@ export function OuterHeader({
       <div
         data-tauri-drag-region
         data-session-header-spacer
-        className="min-h-full min-w-0 flex-1"
-      />
+        className="flex min-h-full min-w-0 flex-1 items-center justify-end"
+      >
+        {audioExists && !isLiveMeeting ? <AudioSavedLine /> : null}
+      </div>
       <div
         data-tauri-drag-region
         className="relative z-10 flex shrink-0 items-center pr-1"
@@ -153,7 +156,12 @@ function HeaderMeetingControl({
     ? safeParseDate(sessionEvent.ended_at)
     : null;
   const ended = !!endedAt && endedAt.getTime() <= now.getTime();
-  if (sessionMode === "finalizing" || sessionMode === "running_batch") {
+  // Fork: while recording, Stop lives in the bottom recording bar only.
+  if (
+    sessionMode === "active" ||
+    sessionMode === "finalizing" ||
+    sessionMode === "running_batch"
+  ) {
     return null;
   }
 
@@ -288,7 +296,7 @@ function HeaderMeetingAction({
       return {
         label: t`Stop`,
         title: t`Stop listening`,
-        icon: <Square className="size-3 text-destructive" />,
+        icon: <Square className="text-destructive size-3" />,
         onClick: stopListening,
       };
     }

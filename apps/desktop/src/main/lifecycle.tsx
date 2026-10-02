@@ -16,6 +16,7 @@ import { takePendingWelcomeSession } from "~/onboarding/welcome-note";
 import { useSearchEngine } from "~/search/contexts/engine";
 import { initEnhancerService } from "~/services/enhancer";
 import { OwnedSharedNotePublisher } from "~/session-sharing/sync";
+import { ModelRegistryInit } from "~/settings/ai/llm/model-freshness";
 import { SharedAttachmentCacheLifecycle } from "~/shared-notes/attachment-cache-lifecycle";
 import { SharedNotePreviewAuthLifecycle } from "~/shared-notes/preview";
 import { DurableSharedNoteCacheSync } from "~/shared-notes/sync";
@@ -66,6 +67,7 @@ export function ClassicMainServices() {
       <DictationLifecycle />
       <ToolRegistration />
       <EnhancerInit />
+      <ModelRegistryInit />
     </>
   );
 }

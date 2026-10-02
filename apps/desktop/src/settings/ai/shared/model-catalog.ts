@@ -64,8 +64,10 @@ export const CATALOG_PROVIDER: Record<string, string> = {
   github_copilot: "github-copilot",
 };
 
-// First-party catalogs win when an id is looked up without a provider.
-const LOOKUP_PRIORITY = [
+// Lookups without a provider only use first-party catalogs, in this order.
+// Hosts (Groq, OpenRouter, Bedrock...) list other vendors' models under
+// their own dates and families.
+const FIRST_PARTY = [
   "anthropic",
   "openai",
   "google",
@@ -77,7 +79,6 @@ const LOOKUP_PRIORITY = [
   "cohere",
   "alibaba",
   "meta",
-  "groq",
 ];
 
 export const CATALOG_PROVIDER_IDS = Array.from(
@@ -108,6 +109,20 @@ export const toReleaseDate = asDate;
 const asPositiveNumber = (value: unknown): number | undefined => {
   const n = typeof value === "string" ? Number(value) : value;
   return typeof n === "number" && Number.isFinite(n) && n >= 0 ? n : undefined;
+};
+
+// Mistral-style yymm stamps (mistral-large-2512) date a model even when
+// the catalog's release_date is wrong.
+const stampDate = (id: string): string | undefined => {
+  const match = modelName(id).match(/-(2[3-9]|3\d)(0[1-9]|1[0-2])$/);
+  return match ? `20${match[1]}-${match[2]}-01` : undefined;
+};
+
+const releaseDateFor = (id: string, value: unknown): string | undefined => {
+  const date = asDate(value);
+  const stamp = stampDate(id);
+  if (!date) return stamp;
+  return stamp && stamp > date ? stamp : date;
 };
 
 export const isPreviewId = (id: string): boolean =>
@@ -147,7 +162,7 @@ function normalizeModelsDevModel(
   return compact({
     id,
     name: cleanName(raw.name),
-    releasedAt: asDate(raw.release_date),
+    releasedAt: releaseDateFor(id, raw.release_date),
     contextWindow: asPositiveNumber(limit.context) || undefined,
     priceIn: asPositiveNumber(cost.input),
     thinking: raw.reasoning === true,
@@ -242,7 +257,10 @@ export const normalizeModelKey = (id: string): string =>
  * prefix (OpenRouter "anthropic/") is kept so vendors never merge.
  */
 export function deriveFamily(id: string): string {
-  const lower = id.trim().toLowerCase().replace(/^models\//, "");
+  const lower = id
+    .trim()
+    .toLowerCase()
+    .replace(/^models\//, "");
   const slash = lower.lastIndexOf("/");
   const vendor = slash >= 0 ? lower.slice(0, slash + 1) : "";
   const name = modelName(lower)
@@ -254,7 +272,11 @@ export function deriveFamily(id: string): string {
   const tokens = name
     .split("-")
     .filter((token) => token.length > 0)
-    .filter((token) => token !== "latest")
+    // Aliases and release stages are not part of the family.
+    .filter(
+      (token) =>
+        !/^(?:latest|preview|exp|experimental|beta|alpha)$/.test(token),
+    )
     // Pure versions and 4-digit date stamps (2604, 0309).
     .filter((token) => !/^v?\d+(?:\.\d+)*$/.test(token))
     // qwen3.8 -> qwen, k2.7 -> k. Sizes like 70b keep their digits.
@@ -295,8 +317,10 @@ export const formatContextWindow = (
 };
 
 /**
- * True when the model is deprecated, or superseded in its family and more
- * than OLD_MODEL_DAYS old. undefined when the release date is unknown.
+ * Release-date + deprecation rule. true: deprecated, or superseded in its
+ * family and older than OLD_MODEL_DAYS. false: released within
+ * OLD_MODEL_DAYS. undefined: no date, or an older family head; the
+ * caller's own rule decides.
  */
 export function isOldByRelease(
   entry: { releasedAt?: string; deprecated?: boolean },
@@ -305,11 +329,13 @@ export function isOldByRelease(
 ): boolean | undefined {
   if (entry.deprecated) return true;
   if (!entry.releasedAt) return undefined;
+  const released = Date.parse(entry.releasedAt);
+  if (!Number.isFinite(released)) return undefined;
+  if (now - released <= OLD_MODEL_DAYS * DAY_MS) return false;
   const superseded =
     familyHeadReleasedAt !== undefined &&
     familyHeadReleasedAt > entry.releasedAt;
-  const age = now - Date.parse(entry.releasedAt);
-  return superseded && age > OLD_MODEL_DAYS * DAY_MS;
+  return superseded ? true : undefined;
 }
 
 type IndexHit = { provider: string; entry: CatalogEntry };
@@ -328,14 +354,7 @@ function buildIndex(registry: ModelRegistry): RegistryIndex {
   const byProvider = new Map<string, Map<string, CatalogEntry>>();
   const global = new Map<string, IndexHit>();
   const familyHeads = new Map<string, string>();
-  const order = [
-    ...LOOKUP_PRIORITY.filter((id) => registry.providers[id]),
-    ...Object.keys(registry.providers)
-      .filter((id) => !LOOKUP_PRIORITY.includes(id))
-      .sort(),
-  ];
-
-  for (const provider of order) {
+  for (const provider of Object.keys(registry.providers)) {
     const map = new Map<string, CatalogEntry>();
     for (const entry of registry.providers[provider] ?? []) {
       map.set(entry.id, entry);
@@ -343,7 +362,6 @@ function buildIndex(registry: ModelRegistry): RegistryIndex {
       if (!map.has(key)) map.set(key, entry);
       const bare = normalizeModelKey(modelName(entry.id));
       if (!map.has(`bare:${bare}`)) map.set(`bare:${bare}`, entry);
-      if (!global.has(bare)) global.set(bare, { provider, entry });
 
       if (!entry.deprecated && entry.releasedAt) {
         const familyKey = `${provider} ${deriveFamily(entry.id)}`;
@@ -354,6 +372,13 @@ function buildIndex(registry: ModelRegistry): RegistryIndex {
       }
     }
     byProvider.set(provider, map);
+  }
+
+  for (const provider of FIRST_PARTY) {
+    for (const entry of registry.providers[provider] ?? []) {
+      const bare = normalizeModelKey(modelName(entry.id));
+      if (!global.has(bare)) global.set(bare, { provider, entry });
+    }
   }
 
   const index = { byProvider, global, familyHeads };

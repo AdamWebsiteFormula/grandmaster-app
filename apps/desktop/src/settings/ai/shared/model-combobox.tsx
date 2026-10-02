@@ -160,7 +160,10 @@ export function ModelCombobox({
   const showThinkingBadge =
     visibleOptions.some((id) => metadata[id]?.thinking) &&
     visibleOptions.some((id) => !metadata[id]?.thinking);
-  const isOfflineList = fetchedResult?.source === "offline";
+  // The provider list or the model details come from the bundled snapshot.
+  const isOfflineList =
+    fetchedResult?.source === "offline" ||
+    registryState.registry.catalogSource === "bundled";
   const updatedAgo = formatUpdatedAgo(registryState.registry.fetchedAt);
   const freshnessLabel = isOfflineList
     ? t`Offline list`
@@ -411,7 +414,9 @@ export function ModelCombobox({
                 type="button"
                 onClick={toggleShowIgnored}
                 aria-label={
-                  showIgnored ? t`Hide unsupported models` : t`Show unsupported models`
+                  showIgnored
+                    ? t`Hide unsupported models`
+                    : t`Show unsupported models`
                 }
                 title={
                   hasIgnoredOptions
