@@ -132,39 +132,41 @@ export const STREAK_SQL = `
   HAVING started_at_ms >= ?
 `;
 
-/** Stable per local day, so live queries are not re-subscribed every render. */
-function useDayStamp(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
-}
-
-function startOfLocalDay(daysAgo: number): number {
-  const now = new Date();
-  return new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() - daysAgo,
-  ).getTime();
+/** Windows anchored to local midnight, so params (and live queries) only
+ * change once a day, not on every render. */
+export function homeWindows(todayStartMs: number) {
+  const today = new Date(todayStartMs);
+  const daysAgo = (days: number) =>
+    new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() - days,
+    ).getTime();
+  return {
+    monthStartIso: new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      1,
+    ).toISOString(),
+    // Last 7 days including today.
+    talkSince: daysAgo(6),
+    streakSince: daysAgo(STREAK_LOOKBACK_DAYS),
+  };
 }
 
 export function useHomeStats() {
   const auth = useAuth();
   const ownerId = auth.session?.user.id ?? DEFAULT_USER_ID;
-  const day = useDayStamp();
-
-  const { monthStartIso, talkSince, streakSince } = useMemo(() => {
-    const now = new Date();
-    return {
-      monthStartIso: new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        1,
-      ).toISOString(),
-      // Last 7 days including today.
-      talkSince: startOfLocalDay(6),
-      streakSince: startOfLocalDay(STREAK_LOOKBACK_DAYS),
-    };
-  }, [day]);
+  const now = new Date();
+  const todayStartMs = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+  ).getTime();
+  const { monthStartIso, talkSince, streakSince } = useMemo(
+    () => homeWindows(todayStartMs),
+    [todayStartMs],
+  );
 
   const notes = useLiveQuery<NotesRow, NotesRow | null>({
     sql: NOTES_SQL,

@@ -79,7 +79,11 @@ export function HomeStatCards() {
         <StatCard
           title={t`Time saved`}
           value={minutes > 0 ? formatMinutes(minutes) : null}
-          line={minutes > 0 ? timeSavedLine : t`Enhance a meeting to start saving time`}
+          line={
+            minutes > 0
+              ? timeSavedLine
+              : t`Enhance a meeting to start saving time`
+          }
           hint={t`Words in your AI notes, at ${TYPING_WPM} words a minute of typing`}
         />
         <StatCard

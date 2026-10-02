@@ -169,9 +169,10 @@ describe("AI cost estimate", () => {
       inputPerMillion: 1,
       outputPerMillion: 5,
     });
-    expect(priceFor("google_generative_ai", "gemini-3.8-flash")).toMatchObject(
-      { inputPerMillion: 0.75, outputPerMillion: 3.75 },
-    );
+    expect(priceFor("google_generative_ai", "gemini-3.8-flash")).toMatchObject({
+      inputPerMillion: 0.75,
+      outputPerMillion: 3.75,
+    });
     expect(priceFor("openai", "gpt-6.1")).toMatchObject({
       inputPerMillion: 2,
       outputPerMillion: 10,

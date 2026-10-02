@@ -37,9 +37,15 @@ describe("HomeStatCards", () => {
     mocks.config.current_llm_provider = undefined;
     render(<HomeStatCards />);
 
-    expect(screen.getByText("Enhance a meeting to start saving time")).toBeTruthy();
-    expect(screen.getByText("Record a meeting to see how much you talk")).toBeTruthy();
-    expect(screen.getByText("Wrap up today's meeting to start a streak")).toBeTruthy();
+    expect(
+      screen.getByText("Enhance a meeting to start saving time"),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("Record a meeting to see how much you talk"),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("Wrap up today's meeting to start a streak"),
+    ).toBeTruthy();
     expect(screen.queryByText(/^0/)).toBeNull();
     expect(screen.queryByText(/AI cost/)).toBeNull();
   });
