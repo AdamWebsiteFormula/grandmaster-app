@@ -6,16 +6,20 @@ import { Check, PushPin } from "@anlg/ui/components/icons";
 import { DropdownMenuItem } from "@anlg/ui/components/ui/dropdown-menu";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 
+let requestedAlwaysOnTop: boolean | null = null;
+
 export function AlwaysOnTop() {
-  const [enabled, setEnabled] = useState<boolean | null>(null);
+  const [enabled, setEnabled] = useState<boolean | null>(requestedAlwaysOnTop);
 
   useMountEffect(() => {
-    getCurrentWindow()
-      .isAlwaysOnTop()
-      .then(setEnabled)
-      .catch((error) => {
-        console.error("Failed to read always-on-top state", error);
-      });
+    if (requestedAlwaysOnTop === null) {
+      getCurrentWindow()
+        .isAlwaysOnTop()
+        .then(setEnabled)
+        .catch((error) => {
+          console.error("Failed to read always-on-top state", error);
+        });
+    }
   });
 
   return (
@@ -25,11 +29,13 @@ export function AlwaysOnTop() {
         const previous = enabled ?? false;
         const next = !previous;
         setEnabled(next);
+        requestedAlwaysOnTop = next;
         getCurrentWindow()
           .setAlwaysOnTop(next)
           .catch((error) => {
             console.error("Failed to set always-on-top state", error);
             setEnabled(previous);
+            requestedAlwaysOnTop = previous;
           });
       }}
       disabled={enabled == null}
