@@ -155,10 +155,12 @@ function PermissionsSectionContent({
     "onboarding",
   );
 
+  // Fork: complete only on the confirmed macOS status, not the optimistic
+  // "authorized" shown for a moment after a click.
   const isComplete =
-    mic.status === "authorized" &&
-    systemAudio.status === "authorized" &&
-    (!accessibility || accessibility.status === "authorized");
+    mic.confirmedStatus === "authorized" &&
+    systemAudio.confirmedStatus === "authorized" &&
+    (!accessibility || accessibility.confirmedStatus === "authorized");
 
   const handleAction = (
     permission: string,

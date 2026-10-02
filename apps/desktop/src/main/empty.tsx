@@ -40,12 +40,12 @@ function EmptyView() {
     >
       <div className="flex min-w-[280px] flex-col gap-1 text-center">
         <ActionItem
-          label={<Trans>New Note</Trans>}
+          label={<Trans>New note</Trans>}
           shortcut={[primaryModifier, "N"]}
           onClick={newNote}
         />
         <ActionItem
-          label={<Trans>Start Recording</Trans>}
+          label={<Trans>Start recording</Trans>}
           shortcut={[primaryModifier, "⇧", "N"]}
           onClick={newNoteAndListen}
         />

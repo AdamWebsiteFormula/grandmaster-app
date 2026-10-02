@@ -61,6 +61,7 @@ describe("PermissionsSection", () => {
 
     Object.values(mocks.permissions).forEach((permission) => {
       permission.status = "denied";
+      permission.confirmedStatus = "denied";
       permission.isPending = false;
       permission.error = null;
     });
@@ -69,13 +70,17 @@ describe("PermissionsSection", () => {
   it("waits for all three macOS permissions before continuing", () => {
     const onContinue = vi.fn();
     mocks.permissions.microphone.status = "authorized";
+    mocks.permissions.microphone.confirmedStatus = "authorized";
     mocks.permissions.systemAudio.status = "authorized";
+    mocks.permissions.systemAudio.confirmedStatus = "authorized";
 
     const view = render(<PermissionsSection onContinue={onContinue} />);
 
     expect(onContinue).not.toHaveBeenCalled();
 
     mocks.permissions.accessibility.status = "authorized";
+
+    mocks.permissions.accessibility.confirmedStatus = "authorized";
     view.rerender(<PermissionsSection onContinue={onContinue} />);
 
     expect(onContinue).toHaveBeenCalledTimes(1);
@@ -85,11 +90,24 @@ describe("PermissionsSection", () => {
     expect(onContinue).toHaveBeenCalledTimes(1);
   });
 
+  it("does not continue on an optimistic, unconfirmed grant", () => {
+    const onContinue = vi.fn();
+    mocks.permissions.microphone.status = "authorized";
+    mocks.permissions.systemAudio.status = "authorized";
+    mocks.permissions.accessibility.status = "authorized";
+
+    render(<PermissionsSection onContinue={onContinue} />);
+
+    expect(onContinue).not.toHaveBeenCalled();
+  });
+
   it("preserves the audio-only flow outside macOS", () => {
     const onContinue = vi.fn();
     mocks.currentPlatform = "windows";
     mocks.permissions.microphone.status = "authorized";
+    mocks.permissions.microphone.confirmedStatus = "authorized";
     mocks.permissions.systemAudio.status = "authorized";
+    mocks.permissions.systemAudio.confirmedStatus = "authorized";
 
     render(<PermissionsSection onContinue={onContinue} />);
 

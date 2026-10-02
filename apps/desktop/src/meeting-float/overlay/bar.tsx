@@ -324,7 +324,7 @@ function TranscriptList({
           className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-xs font-medium"
           style={{
             background:
-              colorScheme === "dark" ? "rgb(46, 46, 43)" : "rgb(242, 242, 237)",
+              colorScheme === "dark" ? "rgb(26, 26, 26)" : "rgb(242, 242, 237)",
             color: colorScheme === "dark" ? "white" : "rgb(31, 28, 26)",
           }}
         >
@@ -416,7 +416,7 @@ function barColors(state: FloatingBarState): BarColors {
   const opacity = Math.min(Math.max(state.opacity, 0.35), 0.95);
   const dark = state.colorScheme === "dark";
   const content = dark ? "rgb(255, 255, 255)" : "rgb(31, 28, 26)";
-  const surfaceRgb = dark ? "110, 112, 102" : "219, 217, 209";
+  const surfaceRgb = dark ? "20, 20, 20" : "219, 217, 209";
 
   return {
     surface: `rgba(${surfaceRgb}, ${opacity * 0.82})`,

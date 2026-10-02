@@ -85,7 +85,8 @@ function OnboardingScreenContent({
 }) {
   const queryClient = useQueryClient();
   const auth = useAuth();
-  const [isMuted, setIsMuted] = useState(false);
+  // Fork: start muted; the speaker button turns the music on.
+  const [isMuted, setIsMuted] = useState(true);
   const [currentStep, setCurrentStep] = useState(getInitialStep);
   const [didSkipLogin, setDidSkipLogin] = useState(false);
   const onboardingVideoRef = useRef<HTMLVideoElement>(null);
@@ -127,14 +128,20 @@ function OnboardingScreenContent({
   }, [currentPlatform, currentStep]);
 
   useMountEffect(() => {
-    sfxCommands.play("BGM").catch(console.error);
     return () => {
       sfxCommands.stop("BGM").catch(console.error);
     };
   });
 
   useEffect(() => {
-    sfxCommands.setVolume("BGM", isMuted ? 0 : 0.2).catch(console.error);
+    if (isMuted) {
+      sfxCommands.stop("BGM").catch(console.error);
+      return;
+    }
+    sfxCommands
+      .play("BGM")
+      .then(() => sfxCommands.setVolume("BGM", 0.2))
+      .catch(console.error);
   }, [isMuted]);
 
   useMountEffect(() => {

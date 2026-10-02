@@ -116,15 +116,15 @@ function ComposerSettingsCard() {
     <div
       className={cn([
         "h-full w-full rounded-[28px] px-5 py-4",
-        "bg-primary/88 text-primary-foreground",
+        "bg-popover border border-border text-popover-foreground",
       ])}
     >
       <div className="mb-3 flex items-center justify-between gap-3">
         <div data-tauri-drag-region className="min-w-0 flex-1 pr-4">
-          <p className="text-primary-foreground/38 text-xs font-semibold">
+          <p className="text-popover-foreground/38 text-xs font-semibold">
             {t`Composer`}
           </p>
-          <p className="text-primary-foreground/72 truncate pt-1 text-sm">
+          <p className="text-popover-foreground/72 truncate pt-1 text-sm">
             {t`Configure a chat model to use the quick composer.`}
           </p>
         </div>
@@ -135,8 +135,8 @@ function ComposerSettingsCard() {
           data-tauri-drag-region="false"
           className={cn([
             "inline-flex size-8 items-center justify-center rounded-full",
-            "bg-primary-foreground/7 text-primary-foreground/65 transition-colors",
-            "hover:bg-primary-foreground/12 hover:text-primary-foreground",
+            "bg-popover-foreground/7 text-popover-foreground/65 transition-colors",
+            "hover:bg-popover-foreground/12 hover:text-popover-foreground",
           ])}
         >
           <X className="size-4" />
@@ -148,8 +148,8 @@ function ComposerSettingsCard() {
         onClick={() => void openSettingsInMainWindow()}
         className={cn([
           "inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-medium",
-          "bg-primary-foreground/7 text-primary-foreground/85 transition-colors",
-          "hover:bg-primary-foreground/10 hover:text-primary-foreground",
+          "bg-popover-foreground/7 text-popover-foreground/85 transition-colors",
+          "hover:bg-popover-foreground/10 hover:text-popover-foreground",
         ])}
       >
         <GearSix className="size-4" />
@@ -201,15 +201,15 @@ function ComposerInput({
     <div
       className={cn([
         "h-full w-full rounded-[28px] px-5 py-4",
-        "bg-primary/88 text-primary-foreground",
+        "bg-popover border border-border text-popover-foreground",
       ])}
     >
       <div className="mb-3 flex items-start justify-between gap-4">
         <div data-tauri-drag-region className="min-w-0 flex-1 pr-4">
-          <p className="text-primary-foreground/38 text-xs font-semibold">
+          <p className="text-popover-foreground/38 text-xs font-semibold">
             {t`Composer`}
           </p>
-          <p className="text-primary-foreground/90 truncate pt-1 text-[15px]">
+          <p className="text-popover-foreground/90 truncate pt-1 text-[15px]">
             {title}
           </p>
         </div>
@@ -221,8 +221,8 @@ function ComposerInput({
             data-tauri-drag-region="false"
             className={cn([
               "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium",
-              "bg-primary-foreground/7 text-primary-foreground/76",
-              "hover:bg-primary-foreground/12 hover:text-primary-foreground transition-colors",
+              "bg-popover-foreground/7 text-popover-foreground/76",
+              "hover:bg-popover-foreground/12 hover:text-popover-foreground transition-colors",
             ])}
           >
             <ArrowUpRight className="size-3.5" />
@@ -234,8 +234,8 @@ function ComposerInput({
             data-tauri-drag-region="false"
             className={cn([
               "inline-flex size-8 items-center justify-center rounded-full",
-              "bg-primary-foreground/7 text-primary-foreground/65 transition-colors",
-              "hover:bg-primary-foreground/12 hover:text-primary-foreground",
+              "bg-popover-foreground/7 text-popover-foreground/65 transition-colors",
+              "hover:bg-popover-foreground/12 hover:text-popover-foreground",
             ])}
           >
             <X className="size-4" />
@@ -247,9 +247,9 @@ function ComposerInput({
         ref={editorRef}
         onAttachmentError={(message) => toast.error(message)}
         className={cn([
-          "text-primary-foreground max-h-[88px] min-h-[34px] overflow-y-auto text-[15px] leading-6",
+          "text-popover-foreground max-h-[88px] min-h-[34px] overflow-y-auto text-[15px] leading-6",
           "[&_.ProseMirror]:min-h-[34px] [&_.ProseMirror]:outline-none",
-          "[&_.ProseMirror]:placeholder:text-primary-foreground/28",
+          "[&_.ProseMirror]:placeholder:text-popover-foreground/28",
         ])}
         initialContent={initialContent}
         mentionConfig={mentionConfig}
@@ -259,11 +259,11 @@ function ComposerInput({
       />
 
       <div className="mt-3 flex items-center justify-between gap-3">
-        <div className="text-primary-foreground/40 flex items-center gap-2 text-xs">
-          <span className="bg-primary-foreground/8 rounded-full px-2 py-1">
+        <div className="text-popover-foreground/40 flex items-center gap-2 text-xs">
+          <span className="bg-popover-foreground/8 rounded-full px-2 py-1">
             {t`Esc to dismiss`}
           </span>
-          <span className="bg-primary-foreground/8 rounded-full px-2 py-1">
+          <span className="bg-popover-foreground/8 rounded-full px-2 py-1">
             {t`${primaryModifier} ↩ to send`}
           </span>
         </div>
@@ -274,8 +274,8 @@ function ComposerInput({
             onClick={onStop}
             className={cn([
               "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium",
-              "bg-primary-foreground/8 text-primary-foreground/82 transition-colors",
-              "hover:bg-primary-foreground/12 hover:text-primary-foreground",
+              "bg-popover-foreground/8 text-popover-foreground/82 transition-colors",
+              "hover:bg-popover-foreground/12 hover:text-popover-foreground",
             ])}
           >
             <Sparkle className="size-3.5" />
@@ -289,9 +289,9 @@ function ComposerInput({
             className={cn([
               "inline-flex size-10 items-center justify-center rounded-full",
               disabled
-                ? "bg-primary-foreground/8 text-primary-foreground/25 cursor-default"
+                ? "bg-popover-foreground/8 text-popover-foreground/25 cursor-default"
                 : [
-                    "bg-primary-foreground text-primary",
+                    "bg-primary text-primary-foreground",
                     "transition-transform hover:scale-[1.02]",
                   ],
               !hasContent && !disabled && "opacity-55",

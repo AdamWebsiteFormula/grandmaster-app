@@ -45,19 +45,22 @@ export function MainShellScaffold({
               : "[&_[data-chat-floating-anchor]]:!border-t-0",
             "[&_[data-chat-floating-anchor]]:border-b-0",
           ],
-          resolvedMainSurfaceChrome === "left" && [
-            isMacos && "[&_[data-chat-floating-anchor]]:rounded-l-xl",
-            !isMacos && "[&_[data-chat-floating-anchor]]:rounded-tl-xl",
-            "[&_[data-chat-floating-anchor]]:rounded-r-none",
-            hasCustomTitleBar
-              ? [
-                  "[&_[data-chat-floating-anchor]]:border-t",
-                  "[&_[data-chat-floating-anchor]]:border-b-0",
-                ]
-              : "[&_[data-chat-floating-anchor]]:border-y-0",
-            "[&_[data-chat-floating-anchor]]:border-r-0",
-            "[&_[data-chat-floating-anchor]]:border-l",
-          ],
+          resolvedMainSurfaceChrome === "left" &&
+            (isMacos
+              ? // Fork: nothing touches the window edges.
+                "[&_[data-chat-floating-anchor]]:my-1.5 [&_[data-chat-floating-anchor]]:mr-1.5"
+              : [
+                  "[&_[data-chat-floating-anchor]]:rounded-tl-xl",
+                  "[&_[data-chat-floating-anchor]]:rounded-r-none",
+                  hasCustomTitleBar
+                    ? [
+                        "[&_[data-chat-floating-anchor]]:border-t",
+                        "[&_[data-chat-floating-anchor]]:border-b-0",
+                      ]
+                    : "[&_[data-chat-floating-anchor]]:border-y-0",
+                  "[&_[data-chat-floating-anchor]]:border-r-0",
+                  "[&_[data-chat-floating-anchor]]:border-l",
+                ]),
           hasTopMainSurfaceChrome &&
             !isMacos &&
             "[&_[data-chat-floating-anchor]]:rounded-t-xl",
