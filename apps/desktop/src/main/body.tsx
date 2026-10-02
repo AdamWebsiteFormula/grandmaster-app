@@ -48,7 +48,7 @@ import {
   getMainContentMinWidth,
 } from "~/shared/main/layout-widths";
 import { useOpenNoteDialog } from "~/shared/open-note-dialog";
-import { useNewNote } from "~/shared/useNewNote";
+import { useNewNoteAndListen } from "~/shared/useNewNote";
 import { useSidebarNotes } from "~/sidebar/note-filter";
 import {
   hasCustomSidebarTab,
@@ -106,7 +106,8 @@ export function ClassicMainBody() {
   const mainAreaTopDrag = useMainAreaTopWindowDrag(enableMainAreaTopDrag);
   const currentSessionId =
     currentTab?.type === "sessions" ? currentTab.id : undefined;
-  const createNewNote = useNewNote();
+  // Fork (Granola standard): "New note" creates a note and starts recording.
+  const createNewNote = useNewNoteAndListen();
   const openNoteDialog = useOpenNoteDialog();
   const handleOpenNoteDialog = useCallback(() => {
     openNoteDialog.open();

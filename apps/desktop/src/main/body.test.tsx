@@ -115,6 +115,7 @@ vi.mock("~/shared/open-note-dialog", () => ({
 
 vi.mock("~/shared/useNewNote", () => ({
   useNewNote: () => vi.fn(),
+  useNewNoteAndListen: () => vi.fn(),
 }));
 
 vi.mock("~/sidebar/timeline/upcoming-meeting", () => ({
