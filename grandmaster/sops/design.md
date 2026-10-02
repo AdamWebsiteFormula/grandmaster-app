@@ -115,4 +115,4 @@ Rules to carry into every edit: nothing touches the window edges (padding inside
 - So: make `.dark` in `packages/design-system/src/tokens.css` the default, and push the background to black.
 - Change the hardcoded Light native theme in `plugins/windows/src/window/v1.rs` to Dark.
 - Change the boot splash colors in `apps/desktop/index.html`.
-- Keep one accent colour.
+- Keep one accent color.

@@ -32,7 +32,7 @@ Lanes: **Features** owns `settings/ai/**`, `apps/desktop/src/[app]-features/`, `
 
 **Story:** I open the picker and see this week's models at the top, labelled New, without updating the app.
 
-**Behaviour:**
+**Behavior:**
 - Replace the `isOldModel()` regex in `settings/ai/shared/list-common.ts` (around L209) with a release-date rule plus deprecation signals: OpenAI `shutdown_date`, OpenRouter `expiration_date`, Groq `active`, models.dev `status`.
 - Newest first. One row per family (strip `-YYYYMMDD`); older versions go under "More models". Previews go behind a "Show previews" toggle.
 - Badges: **New** (released ≤30 days ago) and **Thinking**. Show the price tier and context window in the row's detail.
@@ -53,7 +53,7 @@ Lanes: **Features** owns `settings/ai/**`, `apps/desktop/src/[app]-features/`, `
 
 **Story:** I can see the app is hearing both sides, and it tells me loudly when it isn't.
 
-**Behaviour:**
+**Behavior:**
 - Emit RMS levels for the mic (You) and system audio (Them) as a Tauri event about 30 times a second. Check what the fork already exposes first.
 - Show You and Them meters inside the recorder.
 - If Them is silent for 10 s while recording, show a persistent banner: "Can't hear the other side. Check system audio permission." It includes a button that opens the right System Settings pane.
@@ -68,7 +68,7 @@ Lanes: **Features** owns `settings/ai/**`, `apps/desktop/src/[app]-features/`, `
 
 **Story:** a judge with no API key still sees Enhance work.
 
-**Behaviour:**
+**Behavior:**
 - Default to Apple Intelligence where available (macOS 26 on an eligible Mac).
 - Otherwise, a "Demo" provider points at a small Cloudflare Worker that holds Adam's capped key:
   - set with `wrangler secret put`, never in the repo;
@@ -86,7 +86,7 @@ Lanes: **Features** owns `settings/ai/**`, `apps/desktop/src/[app]-features/`, `
 
 **Story:** Jack holds his Glaido key in Slack, asks "What did we decide about pricing in my last meeting?", and the answer pastes at his cursor.
 
-**Behaviour:**
+**Behavior:**
 - Glaido imports any folder whose root `mcp.json` names a local stdio server. See `creating-glaido-mcp-servers/references/glaido-integration.md` in github.com/daveebbelaar/glaido-skills.
 - The bundled CLI already serves MCP over stdio (`mcp` subcommand) with `list_meetings`, `get_meeting`, `get_meeting_transcript`, `export_meeting`, `list_folders`, `get_recurring_meeting_history` and proposal tools.
 - A **Connect to Glaido** button in Settings writes `~/Library/Application Support/[App]/glaido/mcp.json`, pointing at the CLI's absolute path inside `/Applications/[App].app` with `"args": ["mcp"]`, plus `instructions`.
@@ -106,7 +106,7 @@ Lanes: **Features** owns `settings/ai/**`, `apps/desktop/src/[app]-features/`, `
 
 **Story:** I open the app and see what it's done for me, the way Jack sees his Glaido Home.
 
-**Behaviour:** three cards, each with a big number and a plain-English line.
+**Behavior:** three cards, each with a big number and a plain-English line.
 
 | Card | Number | Line |
 |---|---|---|
@@ -126,7 +126,7 @@ Lanes: **Features** owns `settings/ai/**`, `apps/desktop/src/[app]-features/`, `
 
 **Story:** I trust that a bad transcript can be checked and a failed one can be retried.
 
-**Behaviour:**
+**Behavior:**
 - One line in the note header: "Audio saved on this Mac · kept [retention setting]". It links to the retention setting.
 - If transcription failed, keep the audio and show **Retry** on the note. Check whether upstream already does this before building.
 - Click any transcript line to hear it (upstream). Make sure it's discoverable: a hover hint on the first line.

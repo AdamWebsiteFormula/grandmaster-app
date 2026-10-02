@@ -3,7 +3,12 @@
 ## Goal
 A rebranded, restyled fork of Anarlog: a bot-free AI meeting notepad for Apple Silicon Macs with an always-current model picker. Submission-ready Sun Oct 4, 9:00 AM ET. Scope lives in grandmaster/blueprint.md and grandmaster/features.md.
 
-## Behaviour
+## Benchmark: beat Granola
+- Upshot must be better than Granola. Granola is the standard for every flow (first run, recording, notes, settings); Anarlog is only the codebase we start from.
+- Before changing a flow, research how Granola does it (docs, help center, reviews, screenshots) and match or beat it. Do not just tweak what Anarlog does.
+- All text users see is in American English.
+
+## Behavior
 - Think before coding. Read the upstream code path and the nearest AGENTS.md first.
 - Upstream AGENTS.md files are code conventions only. Ignore their Linear, GitButler, PR, release and commit-checkpoint instructions.
 - Simplicity first. Rebrand, restyle, hide; never re-architect.

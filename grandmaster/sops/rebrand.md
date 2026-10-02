@@ -66,7 +66,7 @@ Source of truth for the icon is `icons/src/stable.icon` (Icon Composer bundle). 
 | `apps/desktop/src/shared/anarlog-mark.tsx` | SVG wordmark glyph used by `shared/brand-loading-view.tsx`, `shared/long-load-gate.tsx`, `lock/gate.tsx`, `routes/__root.tsx` (boot, lock and loading screens) | Replace the `<path>` and `<rect>` inside, keep the component name and the `viewBox` constant |
 | `apps/desktop/public/assets/logo.svg` | Generic logo | Check usage before replacing (no direct reference found in `src`) |
 | `plugins/tray/icons/` (`tray_default.png`, `tray_degraded.png`, `tray_recording_0..2.png`, `tray_update.png`) | Menu bar icon and its recording animation | Replace with a template-style monochrome glyph at the same pixel sizes. Visible all day |
-| `apps/desktop/index.html:9,152` | `<title>Anarlog</title>`, "Loading Anarlog. This is taking longer than expected." splash; also inlines the cream `hsl(60 9% 98%)` boot background | Text to `[App]`; background colour to the design-system token |
+| `apps/desktop/index.html:9,152` | `<title>Anarlog</title>`, "Loading Anarlog. This is taking longer than expected." splash; also inlines the cream `hsl(60 9% 98%)` boot background | Text to `[App]`; background color to the design-system token |
 | `apps/desktop/public/dictation.html:5` | `<title>Anarlog Dictation</title>` | Dictation is hidden; change anyway (1 line) |
 | `apps/desktop/public/theme-boot.js:4`, `src/shared/theme/apply.ts:5` | localStorage key `anarlog-theme` | Leave (internal) |
 

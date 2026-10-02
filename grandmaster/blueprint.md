@@ -28,7 +28,7 @@ Companion files: `grandmaster/features.md` (what we build), `CLAUDE.md` (how ses
 | 2 | Integrations | <ul><li>Model providers: Anthropic, OpenAI, Gemini, OpenRouter, Ollama, LM Studio and Apple Intelligence.</li><li>Transcription: Apple Speech on macOS 26, Soniqo local as the fallback.</li><li>macOS mic plus a Core Audio system-audio tap.</li><li>Apple Calendar: local and read-only.</li><li>Glaido: through the bundled CLI's MCP server.</li><li>models.dev (OpenRouter as backup) for model metadata.</li></ul> |
 | 3 | Source of truth | <ul><li>The app's local SQLite database (`crates/db-app`) for meetings, notes, transcripts and audio references.</li><li>The model registry (live lists, then catalog, then bundled fallback) for models.</li><li>`grandmaster/` for every decision.</li></ul> |
 | 4 | Delivery payload | <ul><li>One Apple Silicon DMG: ad-hoc signed, notarized if a cleared Developer account is available.</li><li>A GitHub Release.</li><li>The Skool post with a 60-second Loom.</li><li>In the app, the payload is the enhanced note.</li></ul> |
-| 5 | Behavioural rules | `CLAUDE.md` at the repo root, plus each session's prompt (owns, don't touch, done when) |
+| 5 | Behavioral rules | `CLAUDE.md` at the repo root, plus each session's prompt (owns, don't touch, done when) |
 
 ## 3. Pitch and the one twist
 
