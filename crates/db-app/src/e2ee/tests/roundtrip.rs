@@ -269,9 +269,25 @@ async fn copied_link_activation_survives_encrypted_restore_without_local_cache()
     let target = test_db().await;
     let workspace_keys = keys("workspace-a");
     let activation = r#"{"user-a":{"share_id":"share-a","activated_at":"2026-10-02T00:00:00Z"}}"#;
-    sqlx::query("INSERT INTO sessions (id, workspace_id, share_activation_json, metadata_json)
-        VALUES ('copied', 'workspace-a', ?, '{\"unrelated\":true}'), ('draft', 'workspace-a', '{}', '{}')")
-        .bind(activation).execute(source.pool()).await.unwrap();
+    sqlx::query(
+        "INSERT INTO sessions (id, workspace_id, metadata_json)
+        VALUES ('copied', 'workspace-a', '{\"unrelated\":true}'), ('draft', 'workspace-a', '{}')",
+    )
+    .execute(source.pool())
+    .await
+    .unwrap();
+    encrypt_e2ee_replica_changes(source.pool(), &workspace_keys)
+        .await
+        .unwrap();
+    copy_replica(source.pool(), target.pool()).await;
+    apply_e2ee_replica_changes(target.pool(), &workspace_keys)
+        .await
+        .unwrap();
+    sqlx::query("UPDATE sessions SET share_activation_json = ? WHERE id = 'copied'")
+        .bind(activation)
+        .execute(source.pool())
+        .await
+        .unwrap();
     encrypt_e2ee_replica_changes(source.pool(), &workspace_keys)
         .await
         .unwrap();

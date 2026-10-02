@@ -1,4 +1,4 @@
-import { useMutationState } from "@tanstack/react-query";
+import { queryOptions, useMutationState } from "@tanstack/react-query";
 import { fetch } from "expo/fetch";
 
 import {
@@ -19,6 +19,7 @@ import { resolveProvider } from "@/settings/providers";
 
 import { docToPlainText, stripMarkdownTitle } from "./note-doc";
 import { summaryRequest } from "./provider-summary";
+import { PENDING_SUMMARY_PREFIX } from "./summary-job";
 import { buildSummaryPrompt, readSummaryText } from "./summary-model";
 import {
   SESSION_TRANSCRIPTS_SQL,
@@ -221,7 +222,26 @@ export function summarizeSession(
     mutationKey: ["session-summary", sessionId],
     mutationFn: async () => {
       await beforeGenerate?.();
-      await runSummary(sessionId, automatic);
+      const [job] = await execute<{ value_json: string }>(
+        "SELECT value_json FROM app_settings WHERE id = ?",
+        [`${PENDING_SUMMARY_PREFIX}${sessionId}`],
+      );
+      const finish = async () => {
+        if (!job) return;
+        await executeTransaction([
+          {
+            sql: "DELETE FROM app_settings WHERE id = ? AND value_json = ?",
+            params: [`${PENDING_SUMMARY_PREFIX}${sessionId}`, job.value_json],
+          },
+        ]);
+      };
+      try {
+        await runSummary(sessionId, automatic);
+        await finish();
+      } catch (error) {
+        if (error instanceof SummarySkippedError) await finish();
+        throw error;
+      }
     },
     retry: false,
     onError: (error) => {
@@ -241,6 +261,40 @@ export function generateSummaryAfterTranscription(sessionId: string): void {
   void summarizeSession(sessionId, { automatic: true }).catch((error) =>
     notifySummarySkipped(sessionId, error),
   );
+}
+
+export function summaryRecoveryOptions(sessionId: string, enabled = true) {
+  return queryOptions({
+    queryKey: ["session-summary-recovery", sessionId],
+    enabled,
+    queryFn: async () => {
+      // Only a local transcription transaction can authorize crash recovery.
+      const jobs = await execute<{ value_json: string }>(
+        `SELECT setting.value_json FROM app_settings AS setting
+         WHERE setting.id = ? AND EXISTS (
+           SELECT 1 FROM sessions WHERE id = ? AND deleted_at IS NULL
+         ) AND EXISTS (
+           SELECT 1 FROM transcripts WHERE session_id = ? AND deleted_at IS NULL
+         ) AND EXISTS (
+           SELECT 1 FROM session_attachments WHERE session_id = ?
+             AND source_type = 'session_audio' AND deleted_at IS NULL
+             AND json_extract(metadata_json, '$.transcript_status') = 'complete'
+         )`,
+        [
+          `${PENDING_SUMMARY_PREFIX}${sessionId}`,
+          sessionId,
+          sessionId,
+          sessionId,
+        ],
+      );
+      if (jobs.length) await summarizeSession(sessionId, { automatic: true });
+      return null;
+    },
+    retry: false,
+    staleTime: Infinity,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
+  });
 }
 
 export function useSessionSummaryState(sessionId: string) {

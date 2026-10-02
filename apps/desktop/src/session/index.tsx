@@ -176,7 +176,10 @@ function TabContentNoteInner({
     hasTranscript,
     sessionMode,
   });
-  const enhancedNoteIds = useEnhancedNotes(sessionId);
+  const enhancedNoteIds = useEnhancedNotes(
+    sessionId,
+    hasTranscript && sessionMode === "inactive",
+  );
   const session = useSession(sessionId);
   const sessionEvent = session ? getSessionEvent(session) : null;
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);

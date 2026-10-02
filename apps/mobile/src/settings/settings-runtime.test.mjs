@@ -119,8 +119,13 @@ const {
 } = await import("./providers.ts");
 const { requestProviderTranscription } =
   await import("../data/provider-transcription.ts");
-const { summarizeSession, generateSummaryAfterTranscription } =
-  await import("../data/summarize.ts");
+const {
+  summarizeSession,
+  generateSummaryAfterTranscription,
+  summaryRecoveryOptions,
+} = await import("../data/summarize.ts");
+const { pendingSummaryStatement, PENDING_SUMMARY_PREFIX } =
+  await import("../data/summary-job.ts");
 const { queryClient } = await import("../lib/query-client.ts");
 const { dismissToast, getToast } = await import("../lib/toast.ts");
 const { loadSessionTranscripts } = await import("../data/transcripts.ts");
@@ -1704,6 +1709,56 @@ test("automatic summaries preserve memos and never overwrite an existing summary
       .get().body,
     "My edited summary",
   );
+});
+
+test("summary recovery resumes persisted local work after restart but ignores a synced transcript alone", async () => {
+  createNote();
+  signedInWith({
+    subscription_status: "active",
+    entitlements: ["hyprnote_pro"],
+  });
+  insertTranscript(
+    Array.from({ length: 30 }, (_, index) => `planning-${index}`),
+  );
+  fixture.db
+    .prepare(`INSERT INTO session_attachments (id, session_id, source_type, metadata_json)
+    VALUES ('session-audio:note-1', 'note-1', 'session_audio', '{"transcript_status":"complete"}')`)
+    .run();
+  await queryClient.fetchQuery(summaryRecoveryOptions("note-1"));
+  assert.equal(fixture.requests.length, 0);
+  assert.equal(summaryCount(), 0);
+
+  const job = pendingSummaryStatement("note-1");
+  fixture.db.prepare(job.sql).run(...job.params);
+  fixture.respond = () => {
+    throw new Error("Interrupted summary request");
+  };
+  await assert.rejects(
+    summarizeSession("note-1", { automatic: true }),
+    /Interrupted/,
+  );
+  const pending = () =>
+    fixture.db
+      .prepare("SELECT value_json FROM app_settings WHERE id = ?")
+      .get(`${PENDING_SUMMARY_PREFIX}note-1`);
+  assert.ok(pending());
+
+  queryClient.clear();
+  fixture.respond = () =>
+    Response.json({ choices: [{ message: { content: "Recovered summary" } }] });
+  await queryClient.fetchQuery(summaryRecoveryOptions("note-1"));
+  assert.equal(
+    fixture.db
+      .prepare("SELECT body FROM session_documents WHERE id = 'summary:note-1'")
+      .get().body,
+    "Recovered summary",
+  );
+  assert.equal(summaryCount(), 1);
+  assert.equal(pending(), undefined);
+  const requests = fixture.requests.length;
+  queryClient.clear();
+  await queryClient.fetchQuery(summaryRecoveryOptions("note-1"));
+  assert.equal(fixture.requests.length, requests);
 });
 
 test("automatic and manual summary requests share an in-flight generation", async () => {

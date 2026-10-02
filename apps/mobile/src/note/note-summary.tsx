@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { ScrollView, Text, View } from "react-native";
 
@@ -10,6 +11,7 @@ import {
   notifySummarySkipped,
   SummarySkippedError,
   summarizeSession,
+  summaryRecoveryOptions,
   useSessionSummaryState,
 } from "@/data/summarize";
 import { transcribeSession, useTranscriptionState } from "@/data/transcribe";
@@ -41,6 +43,17 @@ export function NoteSummary({
   const canSummarize = useProviderAccess("llm");
   const summaryState = useSessionSummaryState(sessionId);
   const transcription = useTranscriptionState(sessionId);
+  useQuery(
+    summaryRecoveryOptions(
+      sessionId,
+      visible &&
+        !active &&
+        hasTranscript &&
+        canSummarize &&
+        audio.data?.transcriptStatus === "complete" &&
+        transcription !== "running",
+    ),
+  );
   const summaryPending = summaryState?.status === "pending";
   const summaryError = summaryState?.error;
   const summarySkipped = summaryError instanceof SummarySkippedError;
