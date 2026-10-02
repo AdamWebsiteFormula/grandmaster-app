@@ -208,6 +208,7 @@ describe("getBatchProvider", () => {
     ["cloudflare_workers_ai", "nova-3", "deepgram"],
     ["custom", "nova-3", "deepgram"],
     ["anarlog", "soniqo-parakeet-batch", "soniqo"],
+    ["anarlog", "deepgram/nova-3", "openrouter"],
     ["soniqo", "soniqo-parakeet-batch", "soniqo"],
     ["apple_speech", "apple-speech", "applespeech"],
     ["local_file", "local-file", "whispercpp"],

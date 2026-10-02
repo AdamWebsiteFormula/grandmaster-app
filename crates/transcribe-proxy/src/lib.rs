@@ -22,7 +22,7 @@ pub use openapi::openapi;
 pub use provider_selector::{ProviderSelector, SelectedProvider};
 pub use relay::{ClientRequestBuilder, UpstreamError, WebSocketProxy, detect_upstream_error};
 pub use routes::{
-    callback_router, listen_router, listen_router_with_session_gate, router,
+    callback_router, listen_router, listen_router_with_session_gate, openrouter_router, router,
     router_with_session_gate,
 };
 pub use session_gate::{ServerDraining, SessionGate, SessionPermit};

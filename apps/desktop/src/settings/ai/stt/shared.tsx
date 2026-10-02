@@ -33,6 +33,7 @@ import {
 } from "~/settings/ai/shared";
 import { type ProviderRequirement } from "~/settings/ai/shared/eligibility";
 import { sortProviders } from "~/settings/ai/shared/sort-providers";
+import { ANARLOG_PRO_OPENROUTER_STT_MODELS } from "~/stt/anarlog-pro-models";
 import { localSttQueries } from "~/stt/useLocalSttModel";
 
 export { localSttQueries as sttModelQueries };
@@ -396,7 +397,7 @@ const _PROVIDERS = [
       "/stt",
       env.VITE_AI_API_URL ?? env.VITE_API_URL,
     ).toString(),
-    models: ["cloud"],
+    models: ["cloud", ...ANARLOG_PRO_OPENROUTER_STT_MODELS],
     requirements: [],
   },
   {

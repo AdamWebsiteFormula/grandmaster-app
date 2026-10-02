@@ -19,6 +19,13 @@ pub(crate) fn router(
         &env.supabase,
     )
     .with_anarlog_routing(anlg_transcribe_proxy::AnarlogRoutingConfig::default())
+    .with_openrouter(
+        env.llm
+            .as_ref()
+            .expect("AI configuration resolved")
+            .openrouter_api_key
+            .clone(),
+    )
     .with_analytics(analytics.clone());
 
     let stt_rate_limit = rate_limit::RateLimitState::builder()
@@ -79,6 +86,21 @@ pub(crate) fn router(
             ))
     };
 
+    let openrouter_stt_routes = Router::new()
+        .nest(
+            "/stt/openrouter",
+            anlg_transcribe_proxy::openrouter_router(stt_config.clone()),
+        )
+        .route_layer(middleware::from_fn_with_state(
+            stt_rate_limit.clone(),
+            rate_limit::rate_limit,
+        ))
+        .route_layer(middleware::from_fn(auth::sentry_and_analytics))
+        .route_layer(middleware::from_fn_with_state(
+            auth_state_paid.clone(),
+            auth::require_auth,
+        ));
+
     let stt_routes = Router::new()
         .merge(anlg_transcribe_proxy::listen_router_with_session_gate(
             stt_config.clone(),
@@ -108,5 +130,8 @@ pub(crate) fn router(
             auth_state,
             auth::require_auth,
         ));
-    authenticated.merge(paid_routes).merge(callbacks)
+    authenticated
+        .merge(paid_routes)
+        .merge(openrouter_stt_routes)
+        .merge(callbacks)
 }

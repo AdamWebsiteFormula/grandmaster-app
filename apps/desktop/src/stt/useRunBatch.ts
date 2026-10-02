@@ -13,6 +13,7 @@ import {
 } from "@anlg/plugin-transcription";
 import { toast } from "@anlg/ui/components/ui/toast";
 
+import { isAnarlogProOpenRouterSttModel } from "./anarlog-pro-models";
 import { BatchResponseProcessingError } from "./batch-response-processing-error";
 import { useListener } from "./contexts";
 import { persistTranscriptWrite } from "./persist-retry";
@@ -190,6 +191,7 @@ export function getBatchProvider(
   }
 
   if (provider === "anarlog") {
+    if (isAnarlogProOpenRouterSttModel(provider, model)) return "openrouter";
     if (model.startsWith("soniqo-")) return "soniqo";
     if (model === "apple-speech") return "applespeech";
     if (model.startsWith("am-")) return "am";
@@ -257,6 +259,22 @@ function selectedProviderLabel(
   }
 
   return modelOverride ?? conn.model ?? conn.provider;
+}
+
+export function anarlogProOpenRouterBaseUrl(apiBaseUrl: string) {
+  return new URL("/stt/openrouter", apiBaseUrl).toString();
+}
+
+function isProCloudBatchTarget(
+  target: Pick<BatchTarget, "provider" | "model" | "baseUrl">,
+  apiBaseUrl: string,
+) {
+  return (
+    (target.provider === "anarlog" && target.model === "cloud") ||
+    (target.provider === "openrouter" &&
+      isAnarlogProOpenRouterSttModel("anarlog", target.model) &&
+      target.baseUrl === anarlogProOpenRouterBaseUrl(apiBaseUrl))
+  );
 }
 
 function sameBatchTarget(
@@ -346,12 +364,21 @@ export const useRunBatch = (sessionId: string) => {
         selectedProviderId && selectedModel
           ? getBatchProvider(selectedProviderId, selectedModel)
           : null;
+      const apiBaseUrl = env.VITE_AI_API_URL ?? env.VITE_API_URL;
+      const proOpenRouterBaseUrl = anarlogProOpenRouterBaseUrl(apiBaseUrl);
       const selectedTarget =
         conn && selectedModel && selectedProvider
           ? {
               provider: selectedProvider,
               model: selectedModel,
-              baseUrl: options?.baseUrl ?? conn.baseUrl,
+              baseUrl:
+                options?.baseUrl ??
+                (isAnarlogProOpenRouterSttModel(
+                  selectedProviderId,
+                  selectedModel,
+                )
+                  ? proOpenRouterBaseUrl
+                  : conn.baseUrl),
               apiKey: options?.apiKey ?? conn.apiKey,
               label: selectedModel,
             }
@@ -373,8 +400,7 @@ export const useRunBatch = (sessionId: string) => {
       options?.signal?.throwIfAborted();
       const requiresCloudSession =
         billing.isPaid ||
-        (selectedTarget?.provider === "anarlog" &&
-          selectedTarget.model === "cloud");
+        (!!selectedTarget && isProCloudBatchTarget(selectedTarget, apiBaseUrl));
       const requestSession = requiresCloudSession
         ? await auth.getSessionForRequest().catch(() => null)
         : null;
@@ -384,7 +410,7 @@ export const useRunBatch = (sessionId: string) => {
       const fallbackTarget = getBatchFallbackTarget({
         isPaid: billing.isPaid,
         accessToken: cloudAccessToken,
-        apiBaseUrl: env.VITE_AI_API_URL ?? env.VITE_API_URL,
+        apiBaseUrl,
         currentPlatform,
         currentArch,
       });
@@ -395,7 +421,11 @@ export const useRunBatch = (sessionId: string) => {
         ? {
             provider: options.resume.provider,
             model: options.resume.model,
-            baseUrl: conn?.baseUrl ?? "",
+            baseUrl:
+              options.resume.provider === "openrouter" &&
+              isAnarlogProOpenRouterSttModel(conn?.provider, conn?.model)
+                ? proOpenRouterBaseUrl
+                : (conn?.baseUrl ?? ""),
             apiKey: conn?.apiKey ?? "",
             label: options.resume.model,
           }
@@ -411,7 +441,7 @@ export const useRunBatch = (sessionId: string) => {
         );
       }
 
-      if (target.provider === "anarlog" && target.model === "cloud") {
+      if (isProCloudBatchTarget(target, apiBaseUrl)) {
         if (!cloudAccessToken) {
           throw new Error(t`Transcription failed`);
         }
@@ -583,8 +613,7 @@ export const useRunBatch = (sessionId: string) => {
               )
             ) {
               if (
-                target.provider !== "anarlog" ||
-                target.model !== "cloud" ||
+                !isProCloudBatchTarget(target, apiBaseUrl) ||
                 !isTranscriptionAuthenticationError(error)
               ) {
                 throw error;

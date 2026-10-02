@@ -2,8 +2,11 @@ pub mod batch;
 pub mod callback;
 mod error;
 mod model_resolution;
+mod openrouter;
 pub mod status;
 pub mod streaming;
+
+pub use openrouter::openrouter_router;
 
 use std::sync::{Arc, LazyLock};
 

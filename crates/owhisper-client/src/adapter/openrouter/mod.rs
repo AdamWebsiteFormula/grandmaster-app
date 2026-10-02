@@ -11,9 +11,23 @@ use crate::adapter::{
 };
 use crate::error::Error;
 
-const DEFAULT_API_BASE: &str = "https://openrouter.ai/api/v1";
+pub const OPENROUTER_DEFAULT_API_BASE: &str = "https://openrouter.ai/api/v1";
+const DEFAULT_API_BASE: &str = OPENROUTER_DEFAULT_API_BASE;
 const DEFAULT_MODEL: &str = "openai/gpt-transcribe";
 const TRANSCRIPTION_PATH: &str = "audio/transcriptions";
+
+/// OpenRouter STT models Anarlog Pro users may pick. Batch only.
+pub const ANARLOG_PRO_OPENROUTER_STT_MODELS: &[&str] = &[
+    DEFAULT_MODEL,
+    "deepgram/nova-3",
+    "microsoft/mai-transcribe-2",
+    "mistralai/voxtral-mini-transcribe",
+    "google/chirp-3",
+];
+
+pub fn is_anarlog_pro_openrouter_stt_model(model: &str) -> bool {
+    ANARLOG_PRO_OPENROUTER_STT_MODELS.contains(&model)
+}
 
 // App attribution per https://openrouter.ai/docs/app-attribution
 const APP_REFERER: &str = "https://anarlog.so";

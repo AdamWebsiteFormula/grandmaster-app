@@ -4,6 +4,8 @@ import {
   type TranscriptionMode,
 } from "@anlg/plugin-transcription";
 
+import { isAnarlogProOpenRouterSttModel } from "./anarlog-pro-models";
+
 type LiveTranscriptionConfig = {
   languages: string[];
   omittedLanguages?: string[];
@@ -82,7 +84,10 @@ export function isAnarlogCloudSttModel(
   provider?: string | null,
   model?: string | null,
 ) {
-  return provider === "anarlog" && model === "cloud";
+  return (
+    (provider === "anarlog" && model === "cloud") ||
+    isAnarlogProOpenRouterSttModel(provider, model)
+  );
 }
 
 export function requiresRetainedBatchAudio(
@@ -154,7 +159,11 @@ export function isConfiguredSttModel(
   }
 
   if (provider === "anarlog") {
-    return model === "cloud" || isSupportedLocalSttModel(model);
+    return (
+      model === "cloud" ||
+      isAnarlogProOpenRouterSttModel(provider, model) ||
+      isSupportedLocalSttModel(model)
+    );
   }
 
   if (provider === "soniqo") {
@@ -180,7 +189,10 @@ export function getSttModelTranscriptionMode(
   provider?: string | null,
   model?: string | null,
 ): TranscriptionMode | undefined {
-  if (isLocalFileSttModel(provider, model)) {
+  if (
+    isLocalFileSttModel(provider, model) ||
+    isAnarlogProOpenRouterSttModel(provider, model)
+  ) {
     return "batch";
   }
 

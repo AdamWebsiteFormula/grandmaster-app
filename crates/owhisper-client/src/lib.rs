@@ -22,6 +22,10 @@ pub use providers::{Auth, Provider, is_meta_model};
 pub use adapter::StreamingBatchConfig;
 pub use adapter::deepgram::DeepgramModel;
 pub use adapter::{
+    ANARLOG_PRO_OPENROUTER_STT_MODELS, OPENROUTER_DEFAULT_API_BASE,
+    is_anarlog_pro_openrouter_stt_model,
+};
+pub use adapter::{
     AdapterKind, AlebexAdapter, AmazonBedrockAdapter, AnarlogAdapter, AquaVoiceAdapter,
     ArgmaxAdapter, AssemblyAIAdapter, AwsTranscribeAdapter, AzureSpeechAdapter, BatchSttAdapter,
     BatchUploadLimit, CallbackResult, CallbackSttAdapter, CartesiaAdapter, CohereAdapter,

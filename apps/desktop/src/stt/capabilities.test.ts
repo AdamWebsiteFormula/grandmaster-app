@@ -73,6 +73,9 @@ describe("getSttModelTranscriptionMode", () => {
     expect(getSttModelTranscriptionMode("local_file", "local-file")).toBe(
       "batch",
     );
+    expect(getSttModelTranscriptionMode("anarlog", "deepgram/nova-3")).toBe(
+      "batch",
+    );
     expect(getSttModelTranscriptionMode("openai", "gpt-live-transcribe")).toBe(
       "live",
     );
@@ -210,6 +213,8 @@ describe("isConfiguredSttModel", () => {
     { provider: "anarlog", model: "cloud", expected: true },
     { provider: "anarlog", model: "soniqo-qwen3-small", expected: true },
     { provider: "anarlog", model: "removed-local-model", expected: false },
+    { provider: "anarlog", model: "deepgram/nova-3", expected: true },
+    { provider: "anarlog", model: "openai/whisper-1", expected: false },
     { provider: "soniqo", model: "soniqo-parakeet-batch", expected: true },
     { provider: "soniqo", model: "apple-speech", expected: false },
     { provider: "apple_speech", model: "apple-speech", expected: true },

@@ -33,6 +33,13 @@ pub struct SttProxyConfig {
     pub anarlog_routing: Option<AnarlogRoutingConfig>,
     pub supabase: SupabaseConfig,
     pub callback: CallbackConfig,
+    pub openrouter: Option<OpenRouterSttConfig>,
+}
+
+#[derive(Clone)]
+pub struct OpenRouterSttConfig {
+    pub api_key: String,
+    pub api_base: String,
 }
 
 impl SttProxyConfig {
@@ -52,6 +59,7 @@ impl SttProxyConfig {
                 api_base_url: Some(env.callback.api_base_url.clone()),
                 secret: env.callback.callback_secret.clone(),
             },
+            openrouter: None,
         }
     }
 
@@ -77,6 +85,21 @@ impl SttProxyConfig {
 
     pub fn with_anarlog_routing(mut self, config: AnarlogRoutingConfig) -> Self {
         self.anarlog_routing = Some(config);
+        self
+    }
+
+    pub fn with_openrouter(mut self, api_key: impl Into<String>) -> Self {
+        self.openrouter = Some(OpenRouterSttConfig {
+            api_key: api_key.into(),
+            api_base: owhisper_client::OPENROUTER_DEFAULT_API_BASE.to_string(),
+        });
+        self
+    }
+
+    pub fn with_openrouter_api_base(mut self, api_base: impl Into<String>) -> Self {
+        if let Some(openrouter) = self.openrouter.as_mut() {
+            openrouter.api_base = api_base.into();
+        }
         self
     }
 

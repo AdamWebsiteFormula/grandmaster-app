@@ -84,6 +84,10 @@ import { useSetSettingValues } from "~/settings/queries";
 import { useConfigValues } from "~/shared/config";
 import { SettingsAlertToast } from "~/shared/ui/settings-alert";
 import {
+  ANARLOG_PRO_OPENROUTER_STT_MODELS,
+  isAnarlogProOpenRouterSttModel,
+} from "~/stt/anarlog-pro-models";
+import {
   canAppleSpeechTranscribe,
   isConfiguredSttModel,
   getSttModelTranscriptionMode,
@@ -723,6 +727,11 @@ export function useConfiguredMapping(): {
                 isDownloaded: billing.isPaid,
                 category: "latest" as const,
               },
+              ...ANARLOG_PRO_OPENROUTER_STT_MODELS.map((id) => ({
+                id,
+                isDownloaded: billing.isPaid,
+                category: "latest" as const,
+              })),
             ],
           },
         ];
@@ -849,7 +858,8 @@ function ModelSelectItem({
   onDownload: () => void;
   onStartTrial: () => void;
 }) {
-  const isCloud = model.id === "cloud";
+  const isCloud =
+    model.id === "cloud" || isAnarlogProOpenRouterSttModel("anarlog", model.id);
   const { activeDownloads } = useNotifications();
   const { queuedDownloads } = useSttSettings();
   const downloadInfo = activeDownloads.find((d) => d.model === model.id);

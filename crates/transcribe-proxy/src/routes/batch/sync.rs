@@ -473,6 +473,7 @@ mod tests {
                     api_base_url: None,
                     secret: None,
                 },
+                openrouter: None,
             },
             Default::default(),
         )

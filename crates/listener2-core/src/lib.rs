@@ -52,6 +52,10 @@ pub fn is_supported_languages_live(
         && let Some(model) = model
         && model != "cloud"
     {
+        if owhisper_client::is_anarlog_pro_openrouter_stt_model(model) {
+            return Ok(false);
+        }
+
         if let Ok(model) = model.parse::<anlg_transcribe_soniqo::SoniqoModel>() {
             return Ok(
                 model.supports_live_on_current_platform() && model.supports_languages(languages)
@@ -230,6 +234,7 @@ mod tests {
             ("anarlog", "soniqo-parakeet-batch", &["ko"], false),
             ("soniqo", "soniqo-omnilingual", &["fr"], true),
             ("anarlog", "cloud", &["fr"], true),
+            ("anarlog", "deepgram/nova-3", &["ko"], true),
             ("mistral", "voxtral-mini-2602", &["de-DE", "en-US"], true),
             ("hyprnote", "cloud", &["ko"], true),
         ];
@@ -258,6 +263,7 @@ mod tests {
                 cfg!(all(target_os = "macos", target_arch = "aarch64")),
             ),
             ("anarlog", "cloud", &["ko"], true),
+            ("anarlog", "openai/gpt-transcribe", &["en"], false),
             ("hyprnote", "cloud", &["ko"], true),
         ];
 
