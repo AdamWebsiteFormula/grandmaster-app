@@ -88,11 +88,11 @@ export function ChatBodyEmpty({
             onClick={handleGoToSettings}
             className={cn([
               "border-primary bg-primary text-primary-foreground inline-flex w-fit items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium",
-              "hover:bg-primary/90 shadow-[0_4px_14px_rgba(87,83,78,0.18)] transition-colors",
+              "hover:bg-primary/90 shadow-none transition-colors",
             ])}
           >
             <Sparkle size={12} />
-            {t`Open AI Settings`}
+            {t`Open AI settings`}
           </button>
         </div>
       </div>

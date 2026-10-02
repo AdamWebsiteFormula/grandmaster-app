@@ -1,6 +1,8 @@
 import { parseImageMetadata } from "@anlg/editor/node-views";
 import { cn } from "@anlg/utils";
 
+import { isSafeImageSrc } from "~/shared/safe-image";
+
 // Typography comes from the shared `.note-typography` scope (see
 // packages/editor styles) so the streaming view matches the editor exactly;
 // only structural concerns live here.
@@ -25,6 +27,10 @@ export const streamdownComponents = {
     />
   ),
   img: (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
+    // Fork: never load a remote image from AI output (exfiltration risk).
+    if (!isSafeImageSrc(typeof props.src === "string" ? props.src : null)) {
+      return props.alt ? <span>{props.alt}</span> : null;
+    }
     const { editorWidth, title } = parseImageMetadata(props.title);
 
     return (

@@ -1289,10 +1289,6 @@ msgstr "Cloud API URL copied"
 msgid "Cloud sync"
 msgstr "Cloud sync"
 
-#: src/settings/general/notification.tsx
-msgid "Cloud sync complete"
-msgstr "Cloud sync complete"
-
 #: src/settings/sync/index.tsx
 msgid "Cloud sync delayed"
 msgstr "Cloud sync delayed"
@@ -4021,8 +4017,8 @@ msgid "Open {0} settings"
 msgstr "Open {0} settings"
 
 #: src/chat/components/body/empty.tsx
-msgid "Open AI Settings"
-msgstr "Open AI Settings"
+msgid "Open AI settings"
+msgstr "Open AI settings"
 
 #: src/sidebar/timeline/index.tsx
 msgid "Open calendar"
@@ -4479,6 +4475,10 @@ msgstr "Record"
 #: src/home/stat-cards.tsx
 msgid "Record a meeting to see how much you talk"
 msgstr "Record a meeting to see how much you talk"
+
+#: src/onboarding/index.tsx
+msgid "Record any call without a bot, and get clear notes from the newest AI models."
+msgstr "Record any call without a bot, and get clear notes from the newest AI models."
 
 #: src/settings/general/permissions.tsx
 msgid "Record other participants in meetings."
@@ -5324,10 +5324,6 @@ msgstr "Show when a summary is ready."
 #: src/settings/general/notification.tsx
 msgid "Show when a transcript is ready."
 msgstr "Show when a transcript is ready."
-
-#: src/settings/general/notification.tsx
-msgid "Show when initial cloud sync finishes."
-msgstr "Show when initial cloud sync finishes."
 
 #: src/settings/dictation.tsx
 msgid "Show words in the floating panel as you speak. Uses a live connection to your selected transcription provider when supported. Text is inserted when you finish."

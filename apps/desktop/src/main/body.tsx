@@ -63,12 +63,9 @@ type LeftSidebarSizeStyle = CSSProperties & {
   "--left-sidebar-panel-width": string;
 };
 
-const NOTE_HEADER_TAB_TYPES = new Set<string>([
-  "sessions",
-  "shared_sessions",
-  "shared_note_preview",
-  "onboarding",
-]);
+// Fork: tabs whose top-right corner is free. Note tabs show the button in
+// their own header; other tabs (templates, contacts, ...) have header actions there.
+const FLOATING_NEW_NOTE_TAB_TYPES = new Set<string>(["empty", "settings"]);
 
 export function ClassicMainBody() {
   const { leftsidebar } = useShell();
@@ -597,7 +594,7 @@ export function ClassicMainBody() {
             {/* Fork: note tabs show this button in their own header. */}
             {!isOnboarding &&
             currentTab &&
-            !NOTE_HEADER_TAB_TYPES.has(currentTab.type) ? (
+            FLOATING_NEW_NOTE_TAB_TYPES.has(currentTab.type) ? (
               <NewNoteButton className="absolute top-[15px] right-[11px] z-30" />
             ) : null}
           </div>

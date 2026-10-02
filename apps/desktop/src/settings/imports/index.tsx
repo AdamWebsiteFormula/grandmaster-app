@@ -7,7 +7,8 @@ import { Button } from "@anlg/ui/components/ui/button";
 import { MeetingImportScreen } from "~/imports/screen";
 import { SettingsPageTitle } from "~/settings/page-title";
 
-const IMPORTS_DOCUMENTATION_URL = "https://github.com/AdamWebsiteFormula/upshot";
+const IMPORTS_DOCUMENTATION_URL =
+  "https://github.com/AdamWebsiteFormula/grandmaster-app";
 
 export function SettingsImports() {
   return (

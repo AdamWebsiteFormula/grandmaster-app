@@ -180,7 +180,10 @@ export function WindowsTitleBar({
           <TitleBarMenu label={t`Help`} onPointerDown={rememberEditTarget}>
             <DropdownMenuItem
               onSelect={() =>
-                void openerCommands.openUrl("https://github.com/AdamWebsiteFormula/upshot", null)
+                void openerCommands.openUrl(
+                  "https://github.com/AdamWebsiteFormula/grandmaster-app",
+                  null,
+                )
               }
             >
               {t`Documentation`}
@@ -188,14 +191,20 @@ export function WindowsTitleBar({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onSelect={() =>
-                void openerCommands.openUrl("https://github.com/AdamWebsiteFormula/upshot", null)
+                void openerCommands.openUrl(
+                  "https://github.com/AdamWebsiteFormula/grandmaster-app",
+                  null,
+                )
               }
             >
               {t`Report a Bug`}
             </DropdownMenuItem>
             <DropdownMenuItem
               onSelect={() =>
-                void openerCommands.openUrl("https://github.com/AdamWebsiteFormula/upshot", null)
+                void openerCommands.openUrl(
+                  "https://github.com/AdamWebsiteFormula/grandmaster-app",
+                  null,
+                )
               }
             >
               {t`Suggest a Feature`}

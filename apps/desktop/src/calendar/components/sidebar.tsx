@@ -166,7 +166,9 @@ export function CalendarSidebarContent({
     () =>
       PROVIDERS.filter(
         (p) => p.platform === "all" || (p.platform === "macos" && isMacos),
-      ),
+      )
+        // Fork: local calendars only (Apple Calendar); cloud ones need upstream services.
+        .filter((p) => !p.nangoIntegrationId),
     [isMacos],
   );
   const defaultOpenProviders = useMemo(

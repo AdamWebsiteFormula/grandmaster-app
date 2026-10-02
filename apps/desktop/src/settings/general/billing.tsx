@@ -167,7 +167,10 @@ function useBillingActions(
   const openEnterprise = useCallback(async () => {
     setActionPending(true);
     try {
-      await openerCommands.openUrl("https://github.com/AdamWebsiteFormula/upshot", null);
+      await openerCommands.openUrl(
+        "https://github.com/AdamWebsiteFormula/grandmaster-app",
+        null,
+      );
     } finally {
       setActionPending(false);
     }

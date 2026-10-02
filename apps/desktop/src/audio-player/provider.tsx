@@ -175,7 +175,7 @@ export function AudioPlayerProvider({
       height: 24,
       waveColor: "#3a3a3a",
       progressColor: "#a3a3a3",
-      cursorColor: "#ff6a1f",
+      cursorColor: "#e5e5e5",
       cursorWidth: 2,
       barWidth: 3,
       barGap: 2,
@@ -184,7 +184,7 @@ export function AudioPlayerProvider({
       dragToSeek: true,
       normalize: true,
       splitChannels: [
-        { waveColor: "#5c3a26", progressColor: "#ff6a1f", overlay: true },
+        { waveColor: "#3a3a3a", progressColor: "#a3a3a3", overlay: true },
         { waveColor: "#3a3a3a", progressColor: "#a3a3a3", overlay: true },
       ],
     });

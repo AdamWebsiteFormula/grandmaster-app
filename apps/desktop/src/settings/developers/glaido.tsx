@@ -19,11 +19,16 @@ export const GLAIDO_READ_TOOLS = [
   "list_meetings",
   "list_folders",
   "get_meeting",
-  "get_meeting_transcript",
   "get_recurring_meeting_history",
-  "export_meeting",
   "list_proposals",
   "get_proposal",
+] as const;
+
+// Bulk reads of a whole transcript or meeting export ask first (red-team
+// finding: least privilege for data an agent could forward elsewhere).
+export const GLAIDO_ASK_TOOLS = [
+  "get_meeting_transcript",
+  "export_meeting",
 ] as const;
 
 // These stage or discard edits, so Glaido never runs them.
@@ -47,6 +52,7 @@ export function buildGlaidoMcpConfig({ cliPath, dbPath }: McpServerPaths) {
           ...Object.fromEntries(
             GLAIDO_READ_TOOLS.map((tool) => [tool, "auto"]),
           ),
+          ...Object.fromEntries(GLAIDO_ASK_TOOLS.map((tool) => [tool, "ask"])),
           ...Object.fromEntries(
             GLAIDO_DENIED_TOOLS.map((tool) => [tool, "deny"]),
           ),

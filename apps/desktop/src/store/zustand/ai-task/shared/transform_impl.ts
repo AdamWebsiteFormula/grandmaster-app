@@ -2,6 +2,8 @@ import type { TextStreamPart, ToolSet } from "ai";
 
 import type { StreamTransform } from "./transform_infra";
 
+import { stripRemoteMarkdownImages } from "~/shared/safe-image";
+
 export function addMarkdownSectionSeparators<
   TOOLS extends ToolSet = ToolSet,
 >(): StreamTransform<TOOLS> {
@@ -100,4 +102,24 @@ export function normalizeBulletPoints<
       },
     });
   };
+}
+
+// Fork (red-team finding): drop remote images from AI output before it is
+// shown or saved. Runs after line chunking, so each image is in one chunk.
+export function stripRemoteImages<
+  TOOLS extends ToolSet = ToolSet,
+>(): StreamTransform<TOOLS> {
+  return () =>
+    new TransformStream<TextStreamPart<TOOLS>, TextStreamPart<TOOLS>>({
+      transform(chunk, controller) {
+        if (chunk.type !== "text-delta") {
+          controller.enqueue(chunk);
+          return;
+        }
+        controller.enqueue({
+          ...chunk,
+          text: stripRemoteMarkdownImages(chunk.text),
+        });
+      },
+    });
 }

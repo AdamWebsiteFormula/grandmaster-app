@@ -21,7 +21,7 @@ const switchVariants = cva(
 );
 
 const thumbVariants = cva(
-  "bg-background data-[state=checked]:bg-background rounded-pill pointer-events-none block shadow-lg ring-0 transition-transform [corner-shape:round]",
+  "bg-muted-foreground data-[state=checked]:bg-background rounded-pill pointer-events-none block shadow-lg ring-0 transition-transform [corner-shape:round]",
   {
     variants: {
       size: {

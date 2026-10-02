@@ -143,7 +143,9 @@ describe("OpenNoteDialog", () => {
     render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
 
     expect(screen.getByText("Go to")).toBeTruthy();
-    expect(screen.getByRole("option", { name: "Contacts" })).toBeTruthy();
+    expect(screen.getByRole("option", { name: "Calendar" })).toBeTruthy();
+    // Fork: Contacts is hidden.
+    expect(screen.queryByRole("option", { name: "Contacts" })).toBeNull();
     expect(screen.getByRole("option", { name: "Settings" })).toBeTruthy();
     expect(screen.queryByRole("option", { name: "Transcription" })).toBeNull();
   });
@@ -152,12 +154,12 @@ describe("OpenNoteDialog", () => {
     render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
 
     fireEvent.change(screen.getByPlaceholderText("Search notes and pages..."), {
-      target: { value: "contact" },
+      target: { value: "calendar" },
     });
-    fireEvent.click(screen.getByRole("option", { name: "Contacts" }));
+    fireEvent.click(screen.getByRole("option", { name: "Calendar" }));
 
     expect(mocks.onOpenChange).toHaveBeenCalledWith(false);
-    expect(mocks.openNew).toHaveBeenCalledWith({ type: "contacts" });
+    expect(mocks.openNew).toHaveBeenCalledWith({ type: "calendar" });
   });
 
   it("opens a matching settings sub-page", () => {

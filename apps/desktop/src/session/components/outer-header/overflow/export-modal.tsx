@@ -501,7 +501,7 @@ export function ExportModal({
           </div>
 
           {error && (
-            <p role="alert" className="text-xs text-destructive">
+            <p role="alert" className="text-destructive text-xs">
               <Trans>
                 Could not export. Check the export location in Settings and try
                 again.
@@ -513,7 +513,7 @@ export function ExportModal({
             disabled={
               isPending || isTranscriptPending || !hasAnyContentSelected
             }
-            className="border-primary bg-primary text-primary-foreground hover:bg-primary/90 h-10 w-full rounded-full border-2 text-sm font-medium shadow-[0_4px_14px_rgba(87,83,78,0.4)] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+            className="border-primary bg-primary text-primary-foreground hover:bg-primary/90 h-10 w-full rounded-full border-2 text-sm font-medium shadow-[0_4px_14px_rgba(0,0,0,0.4)] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isPending
               ? t`Exporting...`

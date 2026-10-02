@@ -16,7 +16,7 @@ import { useNow, useTimezone, useWeekStartsOn } from "~/calendar/hooks";
 import { SettingsPageTitle } from "~/settings/page-title";
 
 const ACTIVITY_COLORS = [
-  "bg-muted",
+  "bg-foreground/10",
   "bg-foreground/20",
   "bg-foreground/40",
   "bg-foreground/60",
@@ -127,8 +127,17 @@ export function SettingsInsights() {
                       key={day.key}
                       className="overflow-visible whitespace-nowrap"
                     >
-                      {index === 0 ||
-                      day.date.getMonth() !== columns[index - 1].date.getMonth()
+                      {/* Fork: skip a first partial month so its label can't collide with the next. */}
+                      {(index === 0 &&
+                        columns
+                          .slice(1, 3)
+                          .every(
+                            (next) =>
+                              next.date.getMonth() === day.date.getMonth(),
+                          )) ||
+                      (index > 0 &&
+                        day.date.getMonth() !==
+                          columns[index - 1].date.getMonth())
                         ? monthFormat.format(day.date)
                         : ""}
                     </span>

@@ -184,7 +184,7 @@ const _PROVIDERS = [
       models: { label: "Available models", url: "https://lmstudio.ai/models" },
       setup: {
         label: "Setup guide",
-        url: "https://github.com/AdamWebsiteFormula/upshot",
+        url: "https://github.com/AdamWebsiteFormula/grandmaster-app",
       },
     },
   },
@@ -204,7 +204,7 @@ const _PROVIDERS = [
       models: { label: "Available models", url: "https://ollama.com/library" },
       setup: {
         label: "Setup guide",
-        url: "https://github.com/AdamWebsiteFormula/upshot",
+        url: "https://github.com/AdamWebsiteFormula/grandmaster-app",
       },
     },
   },
@@ -233,7 +233,7 @@ const _PROVIDERS = [
       },
       setup: {
         label: "Setup guide",
-        url: "https://github.com/AdamWebsiteFormula/upshot",
+        url: "https://github.com/AdamWebsiteFormula/grandmaster-app",
       },
     },
   },

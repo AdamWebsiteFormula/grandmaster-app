@@ -1,4 +1,4 @@
-export const WELCOME_NOTE_DEMO_URL = "https://github.com/AdamWebsiteFormula/upshot";
+export const WELCOME_NOTE_DEMO_URL = "";
 export const WELCOME_NOTE_TRACKING_ID = "anarlog-onboarding-demo-v1";
 const WELCOME_NOTE_COMPLETE_PATH = "/onboarding-demo/complete";
 const WELCOME_NOTE_DEMO_AUTOJOIN_PARAM = "autojoin";

@@ -26,6 +26,7 @@ import type { Part } from "./types";
 
 import { hasRenderableContent } from "~/chat/message-content";
 import type { AnlgUIMessage } from "~/chat/types";
+import { isSafeImageSrc } from "~/shared/safe-image";
 
 function getMessageText(message: AnlgUIMessage): string {
   return message.parts
@@ -222,6 +223,13 @@ function Reasoning({ part }: { part: Extract<Part, { type: "reasoning" }> }) {
 }
 
 const chatComponents = {
+  // Fork: never load a remote image from AI output (exfiltration risk).
+  img: (props: React.ImgHTMLAttributes<HTMLImageElement>) =>
+    isSafeImageSrc(typeof props.src === "string" ? props.src : null) ? (
+      <img {...props} className="max-w-full" />
+    ) : props.alt ? (
+      <span>{props.alt}</span>
+    ) : null,
   h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
     return (
       <h1 className="mt-3 mb-1 text-base font-semibold first:mt-0">

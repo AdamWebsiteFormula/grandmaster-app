@@ -9,6 +9,21 @@ Dark-first. True black base. One accent. Written Oct 2, 2026. The SOP that appli
 - The accent is the orange from the app icon. It marks one thing per screen: the main action, the live recording state, focus and selection.
 - Light theme stays as an option in Settings. Dark is the default for new users.
 
+## Source: Glaido extraction (Oct 2, glaido.com, Firecrawl branding)
+
+| Glaido | Value | Upshot |
+|---|---|---|
+| Background | `#0D0D0D` | `0 0% 0%` true black (Adam's call), panels `0 0% 6%` |
+| Text | `#FFFFFF`, secondary `#B6B6B6` | `0 0% 96%`, muted `0 0% 60%` |
+| Accent | one, lime `#BFF549`, black text on it | one, orange `#FF6A1F` (app icon), black text on it |
+| Borders | `#252525` | `0 0% 16%` (`#292929`) |
+| Shadows | none | none on black; 1 px borders instead |
+| Corners | 2 px, near square | 0.5rem squircle (kept: macOS controls) |
+| Font | Aspekta (sans), 13 px body | Geist (OFL), 13.3 px `text-sm` body |
+| Spacing | 8 px base unit | Tailwind 4 px steps, used in pairs of 8 |
+
+What we take: the near-black base, one bright accent used sparingly, black text on the accent, hairline borders, a flat look. What we don't: lime (our icon is orange) and square corners (a desktop app reads better with macOS-style squircles).
+
 ## Color tokens
 
 Bare HSL triples in `packages/design-system/src/tokens.css`, read as `hsl(var(--x))`. Never put hex or `oklch()` there.
@@ -36,6 +51,8 @@ Bare HSL triples in `packages/design-system/src/tokens.css`, read as `hsl(var(--
 Orange `#FF6A1F` = `hsl(20 100% 56%)`, sampled from `icons/stable/icon.png`. It is the only hue in the UI. Red is reserved for errors and recording-stop. Every other color is a neutral gray.
 
 Toggles, checkboxes and selected rows stay neutral (white "on" track, gray fills). They never use the accent.
+
+Data colors are the one exception: transcript speaker labels get distinct hues so people are easy to tell apart, at low chroma (OKLCH C 0.10) starting at a cool hue (220), so no speaker reads as the orange accent. The audio waveform and playhead stay neutral gray.
 
 While recording, the red Stop in the bottom recording bar is the main action. It is the only Stop on screen, and the "New note" button turns gray until recording ends.
 
@@ -80,6 +97,13 @@ Adam picked orange on Oct 2 (the blueprint offered mint or violet). It matches t
 - Classes in `packages/ui` components only reach the app after `pnpm -F ui build` (it writes `packages/ui/dist/globals.css`). The release script runs it.
 - Colors the app uses in `apps/desktop/src` (`destructive`, `alert`, `primary` and the others) must be in the `--color-*` list in the `@theme` block of `apps/desktop/src/styles/globals.css`. If one is missing, opacity variants like `bg-destructive/10` render as nothing.
 
+## Spacing rhythm
+
+- Equal spacing: the gap from a heading to its rule (divider) equals the gap from the rule to the next text. Use one value per pair (for example `pb-3` above the rule and `pt-3` below it).
+- Steps come in pairs of 8 px (Tailwind 2, 4, 6, 8). Cards use `p-5`; card grids use `gap-4`.
+
 ## Glance test
 
 Each screen must answer "what is this and what do I do" in 3 seconds. One accent element per screen at most.
+
+Words: empty states should stay near 10 words above the fold (Jack). Home is the exception on purpose: the stat cards (feature F5) and the shortcut list stay, because they are how a first-time user finds Settings and recording.

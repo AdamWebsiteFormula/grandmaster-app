@@ -241,19 +241,7 @@ export function NotificationSettingsView() {
               )}
             </form.Field>
 
-            <form.Field name="notification_cloudsync_complete">
-              {(field) => (
-                <SettingSwitchRow
-                  title={<Trans>Cloud sync complete</Trans>}
-                  description={
-                    <Trans>Show when initial cloud sync finishes.</Trans>
-                  }
-                  checked={field.state.value}
-                  onChange={field.handleChange}
-                  disabled={notificationsDisabled}
-                />
-              )}
-            </form.Field>
+            {/* Fork: cloud sync is hidden, so its notification row is too. */}
 
             <form.Field name="notification_event">
               {(field) => (

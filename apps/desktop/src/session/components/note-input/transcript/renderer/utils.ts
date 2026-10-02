@@ -101,9 +101,10 @@ export function getSegmentColor(
       ? 180
       : 0;
   // Golden-angle spacing keeps consecutive speakers visually distinct.
-  const hue = (10 + speakerIndex * 137.508 + channelOffset) % 360;
+  // Fork: start at a cool hue (220) at low chroma, so speakers never read as the orange accent.
+  const hue = (220 + speakerIndex * 137.508 + channelOffset) % 360;
 
-  return chroma.oklch(mode === "dark" ? 0.72 : 0.55, 0.15, hue).hex();
+  return chroma.oklch(mode === "dark" ? 0.72 : 0.55, 0.1, hue).hex();
 }
 
 export function getSegmentColorVars(key: SegmentKey): SegmentColorVars {

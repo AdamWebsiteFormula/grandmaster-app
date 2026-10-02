@@ -218,13 +218,20 @@ function OnboardingScreenContent({
       <div
         data-tauri-drag-region={headerDragRegion || undefined}
         className={cn([
-          "relative z-10 flex shrink-0 items-center",
+          "relative z-10 flex shrink-0 flex-col items-start gap-2",
           headerClassName,
         ])}
       >
-        <h1 className="text-foreground text-3xl leading-tight font-semibold">
+        <h1 className="text-foreground text-2xl leading-tight font-semibold">
           <Trans>Welcome to Upshot</Trans>
         </h1>
+        {/* Fork: the value proposition in one sentence (matches the README hero). */}
+        <p className="text-muted-foreground max-w-md text-base">
+          <Trans>
+            Record any call without a bot, and get clear notes from the newest
+            AI models.
+          </Trans>
+        </p>
       </div>
 
       <div className="scroll-fade-y relative z-10 flex-1 overflow-y-auto">

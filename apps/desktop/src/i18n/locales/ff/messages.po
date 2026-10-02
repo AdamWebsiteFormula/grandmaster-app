@@ -1289,10 +1289,6 @@ msgstr ""
 msgid "Cloud sync"
 msgstr ""
 
-#: src/settings/general/notification.tsx
-msgid "Cloud sync complete"
-msgstr ""
-
 #: src/settings/sync/index.tsx
 msgid "Cloud sync delayed"
 msgstr ""
@@ -4021,7 +4017,7 @@ msgid "Open {0} settings"
 msgstr ""
 
 #: src/chat/components/body/empty.tsx
-msgid "Open AI Settings"
+msgid "Open AI settings"
 msgstr ""
 
 #: src/sidebar/timeline/index.tsx
@@ -4478,6 +4474,10 @@ msgstr ""
 
 #: src/home/stat-cards.tsx
 msgid "Record a meeting to see how much you talk"
+msgstr ""
+
+#: src/onboarding/index.tsx
+msgid "Record any call without a bot, and get clear notes from the newest AI models."
 msgstr ""
 
 #: src/settings/general/permissions.tsx
@@ -5323,10 +5323,6 @@ msgstr ""
 
 #: src/settings/general/notification.tsx
 msgid "Show when a transcript is ready."
-msgstr ""
-
-#: src/settings/general/notification.tsx
-msgid "Show when initial cloud sync finishes."
 msgstr ""
 
 #: src/settings/dictation.tsx

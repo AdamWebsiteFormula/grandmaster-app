@@ -26,12 +26,12 @@ const SOCIALS = [
   {
     label: "Discord",
     icon: DiscordLogo,
-    url: "https://github.com/AdamWebsiteFormula/upshot",
+    url: "https://github.com/AdamWebsiteFormula/grandmaster-app",
   },
   {
     label: "GitHub",
     icon: GithubLogo,
-    url: "https://github.com/AdamWebsiteFormula/upshot",
+    url: "https://github.com/AdamWebsiteFormula/grandmaster-app",
   },
   {
     label: "X",

@@ -97,7 +97,7 @@ export function DayCell({
       className={cn([
         "border-r-border border-b-border border-r border-b",
         "flex min-w-0 flex-col p-1.5 select-none",
-        (day.getDay() === 0 || day.getDay() === 6) && "bg-muted",
+        (day.getDay() === 0 || day.getDay() === 6) && "bg-background/40",
       ])}
     >
       <div className="flex shrink-0 justify-end">

@@ -17,7 +17,10 @@ import {
   formatSummaryLengthModeGuidance,
   formatSummaryLengthGuidance,
 } from "~/services/enhancer/summary-length";
-import { normalizeBulletPoints } from "~/store/zustand/ai-task/shared/transform_impl";
+import {
+  normalizeBulletPoints,
+  stripRemoteImages,
+} from "~/store/zustand/ai-task/shared/transform_impl";
 import { withEarlyValidationRetry } from "~/store/zustand/ai-task/shared/validate";
 import { assertCanonicalTemplateSections } from "~/templates/codec";
 
@@ -34,6 +37,7 @@ export const enhanceWorkflow: Pick<
   transforms: [
     normalizeBulletPoints(),
     smoothStream({ delayInMs: 250, chunking: "line" }),
+    stripRemoteImages(),
   ],
 };
 

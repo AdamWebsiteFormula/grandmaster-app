@@ -58,6 +58,7 @@ const HIDDEN_SETTINGS = new Set<string>([
   "dictation",
   "automations",
   "crm",
+  "contacts",
 ]);
 
 export function useSettingsNavGroups(): SettingsNavGroup[] {

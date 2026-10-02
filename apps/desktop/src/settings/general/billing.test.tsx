@@ -305,7 +305,7 @@ describe("SettingsBilling", () => {
 
     await waitFor(() =>
       expect(mocks.openUrl).toHaveBeenCalledWith(
-        "https://github.com/AdamWebsiteFormula/upshot",
+        "https://github.com/AdamWebsiteFormula/grandmaster-app",
         null,
       ),
     );

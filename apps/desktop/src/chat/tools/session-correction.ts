@@ -9,6 +9,7 @@ import {
 } from "./current-session";
 import type { ToolDependencies } from "./types";
 
+import { waitForApproval } from "~/chat/components/message/tool/pending-approval-store";
 import {
   applySessionContentCorrections,
   type SummaryContentCorrection,
@@ -462,12 +463,32 @@ function shouldEditTranscript(target: CorrectionTarget): boolean {
   return target === "transcript" || target === "summary_and_transcript";
 }
 
+function describeCorrectionPlan({
+  summaryChanges,
+  transcriptChanges,
+  titleChange,
+}: {
+  summaryChanges: SummaryChange[];
+  transcriptChanges: TranscriptChange[];
+  titleChange: TitleChange | null;
+}): string {
+  const places = [
+    titleChange ? "the title" : null,
+    ...summaryChanges.map(
+      (change) =>
+        `${change.title} (${change.replacements} ${change.replacements === 1 ? "place" : "places"})`,
+    ),
+    transcriptChanges.length > 0 ? "the transcript" : null,
+  ].filter((place): place is string => Boolean(place));
+  return `Will change ${places.join(", ")}.`;
+}
+
 export const buildApplySessionCorrectionTool = (
   deps: Pick<ToolDependencies, "getSessionId" | "getEnhancedNoteId">,
 ) =>
   tool({
     description:
-      "Apply a correction to a session summary, visible session title, and/or transcript. Use this when the user corrects note content, for example 'it's not X but Y'. Prefer summary_and_transcript for factual meeting corrections unless the user explicitly asks for one target only. Read the note first if you need exact summary text.",
+      "Propose a correction to a session summary, visible session title, and/or transcript. Nothing changes until the user presses Apply on the card; a declined status means the user dismissed it. Use this when the user corrects note content, for example 'it's not X but Y'. Prefer summary_and_transcript for factual meeting corrections unless the user explicitly asks for one target only. Read the note first if you need exact summary text.",
     inputSchema: z.object({
       sessionId: z
         .string()
@@ -597,6 +618,22 @@ export const buildApplySessionCorrectionTool = (
           status: "not_found",
           message:
             "No exact match found. Read the note and call apply_session_correction with the exact current text.",
+          sessionId,
+        };
+      }
+
+      const approved = await waitForApproval(options.toolCallId, {
+        details: describeCorrectionPlan({
+          summaryChanges,
+          transcriptChanges,
+          titleChange,
+        }),
+        abortSignal: options.abortSignal,
+      });
+      if (!approved) {
+        return {
+          status: "declined",
+          message: "The user dismissed the correction. Nothing was changed.",
           sessionId,
         };
       }

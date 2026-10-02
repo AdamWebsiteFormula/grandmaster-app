@@ -177,7 +177,7 @@ export function SectionsList({
         <Button
           variant="outline"
           size="sm"
-          className="border-border bg-card text-foreground hover:bg-background h-auto w-fit rounded-full px-4 py-2.5 text-sm shadow-[0_2px_6px_rgba(87,83,78,0.08),0_10px_18px_-10px_rgba(87,83,78,0.22)]"
+          className="border-border bg-card text-foreground hover:bg-background h-auto w-fit rounded-full px-4 py-2.5 text-sm shadow-[0_2px_6px_rgba(0,0,0,0.08),0_10px_18px_-10px_rgba(0,0,0,0.22)]"
           onClick={addSection}
           disabled={disabled}
         >
@@ -272,7 +272,7 @@ function SectionItem({
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => onDelete(item.key)}
-                  className="cursor-pointer text-destructive focus:text-destructive"
+                  className="text-destructive focus:text-destructive cursor-pointer"
                 >
                   <Trans>Delete</Trans>
                 </DropdownMenuItem>

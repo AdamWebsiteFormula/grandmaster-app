@@ -15,13 +15,19 @@ const PENDING_WELCOME_SESSION_KEY = "anarlog.pending-welcome-session";
 const WELCOME_NOTE = `Welcome to Upshot 👋
 
 
-This note is a quick way to see how Upshot works.
+Upshot takes notes for your meetings. No bot joins your call.
 
 
-Click **Join & record** in the top-right corner. It will open a private, prerecorded demo meeting, so you don't have to worry about your camera or microphone. Upshot will save the audio. To create a transcript and notes, choose a provider in **Settings → Transcription**; if one is not ready, Upshot will show you a setup shortcut.
+**Record:** click **New note** at the top right. Upshot starts listening right away. It hears you through your microphone and the other people through your Mac's sound.
 
 
-When the video ends, Upshot will stop listening. If transcription and intelligence are configured, it will start creating your summary automatically.`;
+**Take notes:** jot a few words while you talk, or nothing at all.
+
+
+**Finish:** click **Stop** at the bottom. Upshot turns your notes and the transcript into a clear summary with the AI model you picked in **Settings → Intelligence**.
+
+
+Your notes, transcripts and audio stay on this Mac.`;
 
 let pendingWelcomeSession: Promise<string> | null = null;
 
@@ -110,8 +116,10 @@ async function findOrCreateWelcomeSession(): Promise<string> {
     ended_at: "",
     is_all_day: false,
     has_recurrence_rules: false,
+    // Fork: no prerecorded demo; it lived on the upstream server. An empty
+    // link means no "Join & record" button on the welcome note.
     meeting_link: WELCOME_NOTE_DEMO_URL,
-    description: "A private, prerecorded introduction to Upshot.",
+    description: "How to record your first meeting with Upshot.",
   };
 
   return createSession("Welcome to Upshot", DEFAULT_USER_ID, {

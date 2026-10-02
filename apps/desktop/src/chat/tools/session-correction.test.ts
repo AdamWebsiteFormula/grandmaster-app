@@ -25,6 +25,22 @@ import {
   sessionCorrectionTestInternals,
 } from "./session-correction";
 
+import { usePendingApprovalStore } from "~/chat/components/message/tool/pending-approval-store";
+
+// Simulates the user pressing Apply (or Dismiss) on the chat card.
+let approvalChoice: boolean | null = true;
+usePendingApprovalStore.subscribe((state) => {
+  if (approvalChoice === null) {
+    return;
+  }
+  for (const id of state.approvals.keys()) {
+    const choice = approvalChoice;
+    queueMicrotask(() =>
+      usePendingApprovalStore.getState().resolveApproval(id, choice),
+    );
+  }
+});
+
 function summary(markdown: string, id = "note-1", title = "Summary") {
   const content = JSON.stringify(md2json(markdown));
   return {
@@ -87,15 +103,21 @@ function buildTool({
   sessionId?: string;
   enhancedNoteId?: string;
 } = {}) {
-  return buildApplySessionCorrectionTool({
+  const tool = buildApplySessionCorrectionTool({
     getSessionId: () => sessionId,
     getEnhancedNoteId: () => enhancedNoteId,
-  });
+  }) as any;
+  return {
+    execute: (input: Record<string, unknown>) =>
+      tool.execute(input, { toolCallId: "call-1", messages: [] }),
+  };
 }
 
 describe("session correction chat tool", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    approvalChoice = true;
+    usePendingApprovalStore.setState({ approvals: new Map() });
     vi.spyOn(console, "error").mockImplementation(() => {});
     mocks.applySessionContentCorrections.mockResolvedValue(undefined);
     mocks.updateSettingValue.mockImplementation(async (_key, update) =>
@@ -389,9 +411,7 @@ describe("session correction chat tool", () => {
       return persistedDictionary;
     });
 
-    const result = await (
-      buildTool({ enhancedNoteId: "note-1" }) as any
-    ).execute({
+    const result = await buildTool({ enhancedNoteId: "note-1" }).execute({
       oldText: "Sam (from Airborne Brothers)",
       newText: "Tim from Erebor",
       dictionaryTerms: ["Erebor"],
@@ -423,6 +443,55 @@ describe("session correction chat tool", () => {
     expect(persistedDictionary).toBe(JSON.stringify(["Anarlog", "Erebor"]));
   });
 
+  it("changes nothing until the user presses Apply", async () => {
+    mocks.loadSessionContentSnapshot.mockResolvedValue(
+      snapshot({ notes: [summary("Discussed X roadmap.")] }),
+    );
+    approvalChoice = null;
+
+    const pending = buildTool().execute({
+      target: "summary",
+      oldText: "X roadmap",
+      newText: "Y roadmap",
+      dictionaryTerms: ["Ywing"],
+    });
+    await vi.waitFor(() =>
+      expect(usePendingApprovalStore.getState().approvals.has("call-1")).toBe(
+        true,
+      ),
+    );
+
+    expect(mocks.applySessionContentCorrections).not.toHaveBeenCalled();
+    expect(mocks.updateSettingValue).not.toHaveBeenCalled();
+    expect(
+      usePendingApprovalStore.getState().approvals.get("call-1")?.details,
+    ).toBe("Will change Summary (1 place).");
+
+    usePendingApprovalStore.getState().resolveApproval("call-1", true);
+
+    await expect(pending).resolves.toMatchObject({ status: "applied" });
+    expect(mocks.applySessionContentCorrections).toHaveBeenCalledTimes(1);
+    expect(mocks.updateSettingValue).toHaveBeenCalledTimes(1);
+  });
+
+  it("changes nothing when the user dismisses the correction", async () => {
+    mocks.loadSessionContentSnapshot.mockResolvedValue(
+      snapshot({ notes: [summary("Discussed X roadmap.")] }),
+    );
+    approvalChoice = false;
+
+    await expect(
+      buildTool().execute({
+        oldText: "X roadmap",
+        newText: "Y roadmap",
+        dictionaryTerms: ["Ywing"],
+      }),
+    ).resolves.toMatchObject({ status: "declined" });
+
+    expect(mocks.applySessionContentCorrections).not.toHaveBeenCalled();
+    expect(mocks.updateSettingValue).not.toHaveBeenCalled();
+  });
+
   it("updates the visible session title even when it is not in the summary body", async () => {
     mocks.loadSessionContentSnapshot.mockResolvedValue(
       snapshot({
@@ -431,7 +500,7 @@ describe("session correction chat tool", () => {
       }),
     );
 
-    const result = await (buildTool() as any).execute({
+    const result = await buildTool().execute({
       target: "summary",
       oldText: "Analog",
       newText: "Anarlog",
@@ -462,7 +531,7 @@ describe("session correction chat tool", () => {
       snapshot({ notes: [summary("Discussed X roadmap.")] }),
     );
 
-    const result = await (buildTool() as any).execute({
+    const result = await buildTool().execute({
       oldText: "X roadmap",
       newText: "Y roadmap",
     });
@@ -481,7 +550,7 @@ describe("session correction chat tool", () => {
       snapshot({ notes: [summary("Discussed X roadmap.")] }),
     );
 
-    const result = await (buildTool() as any).execute({
+    const result = await buildTool().execute({
       target: "summary",
       enhancedNoteId: "missing-note",
       oldText: "X roadmap",
@@ -511,7 +580,7 @@ describe("session correction chat tool", () => {
       }),
     );
 
-    const result = await (buildTool() as any).execute({
+    const result = await buildTool().execute({
       enhancedNoteId: "missing-note",
       oldText: "X",
       newText: "Y",
@@ -534,9 +603,7 @@ describe("session correction chat tool", () => {
       }),
     );
 
-    const result = await (
-      buildTool({ enhancedNoteId: "note-1" }) as any
-    ).execute({
+    const result = await buildTool({ enhancedNoteId: "note-1" }).execute({
       target: "summary",
       oldText: "X roadmap",
       newText: "Y roadmap",
@@ -562,9 +629,7 @@ describe("session correction chat tool", () => {
       }),
     );
 
-    const result = await (
-      buildTool({ enhancedNoteId: "note-1" }) as any
-    ).execute({
+    const result = await buildTool({ enhancedNoteId: "note-1" }).execute({
       sessionId: "session-2",
       target: "summary",
       oldText: "X roadmap",
@@ -586,7 +651,7 @@ describe("session correction chat tool", () => {
       new Error("expected 1 row"),
     );
 
-    const result = await (buildTool() as any).execute({
+    const result = await buildTool().execute({
       target: "summary",
       oldText: "X roadmap",
       newText: "Y roadmap",
@@ -608,7 +673,7 @@ describe("session correction chat tool", () => {
     );
     mocks.updateSettingValue.mockRejectedValueOnce(new Error("settings busy"));
 
-    const result = await (buildTool() as any).execute({
+    const result = await buildTool().execute({
       target: "summary",
       oldText: "X roadmap",
       newText: "Y roadmap",

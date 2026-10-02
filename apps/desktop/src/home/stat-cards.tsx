@@ -143,10 +143,19 @@ function StatCard({
     <div
       title={hint}
       className={cn([
-        "bg-muted/60 border-border flex min-h-32 flex-col gap-1.5 rounded-xl border p-5 text-left",
+        "bg-muted/60 flex min-h-32 flex-col gap-1.5 rounded-xl p-5 text-left",
       ])}
     >
-      <p className="text-muted-foreground text-sm">{title}</p>
+      {/* Fork: empty cards lead with the title, so no small label sits over a big sentence. */}
+      <p
+        className={cn([
+          value
+            ? "text-muted-foreground text-sm"
+            : "text-foreground text-lg font-medium",
+        ])}
+      >
+        {title}
+      </p>
       {value ? (
         <>
           <p className="text-foreground font-mono text-xl font-medium tabular-nums">
@@ -155,7 +164,7 @@ function StatCard({
           <p className="text-muted-foreground text-sm">{line}</p>
         </>
       ) : (
-        <p className="text-foreground mt-auto text-base">{line}</p>
+        <p className="text-muted-foreground text-sm text-balance">{line}</p>
       )}
     </div>
   );
