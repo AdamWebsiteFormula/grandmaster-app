@@ -13,6 +13,7 @@ import {
   shouldIgnoreCommonKeywords,
   sortModelsByRecency,
 } from "./list-common";
+import { toReleaseDate } from "./model-catalog";
 
 const AnthropicModelSchema = Schema.Struct({
   data: Schema.Array(
@@ -76,7 +77,11 @@ export async function listAnthropicModels(
         metadata: extractMetadataMap(
           data,
           (model) => model.id,
-          (model) => ({ input_modalities: getInputModalities(model.id) }),
+          (model) => ({
+            input_modalities: getInputModalities(model.id),
+            displayName: model.display_name || undefined,
+            releasedAt: toReleaseDate(model.created_at),
+          }),
         ),
       };
     }),

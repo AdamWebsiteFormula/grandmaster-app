@@ -123,7 +123,7 @@ export function VersionHistoryDialog({
         )}
 
         {restoreMutation.error && (
-          <p className="text-xs text-red-500">
+          <p className="text-xs text-destructive">
             {restoreMutation.error.message}
           </p>
         )}

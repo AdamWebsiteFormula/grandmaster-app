@@ -147,7 +147,7 @@ export function AutoFormatForm({
     >
       <div className="flex h-12 shrink-0 items-center justify-between gap-3 pr-1 pl-3">
         <div className="flex min-w-0 items-center gap-2">
-          <Sparkle className="size-4 shrink-0 text-violet-500" />
+          <Sparkle className="size-4 shrink-0 text-primary" />
           <span className="truncate text-sm font-semibold">Auto</span>
         </div>
         <div className="flex shrink-0 items-center gap-1">
@@ -158,7 +158,7 @@ export function AutoFormatForm({
             className={cn([
               "text-muted-foreground shrink-0 hover:text-black",
               isDefault
-                ? "text-emerald-600 hover:bg-transparent hover:text-emerald-700 disabled:opacity-100 dark:text-emerald-400 dark:hover:text-emerald-300"
+                ? "text-primary hover:bg-transparent hover:text-primary disabled:opacity-100"
                 : null,
             ])}
             onClick={() => {

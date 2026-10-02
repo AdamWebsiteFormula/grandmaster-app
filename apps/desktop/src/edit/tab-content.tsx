@@ -177,7 +177,7 @@ export function TabContentEdit({ tab }: { tab: EditTab }) {
           </div>
         </div>
         {error ? (
-          <div className="border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+          <div className="border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive">
             {error}
           </div>
         ) : null}

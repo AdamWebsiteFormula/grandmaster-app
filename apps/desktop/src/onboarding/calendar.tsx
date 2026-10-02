@@ -72,7 +72,7 @@ function AppleCalendarList() {
       onRefresh={handleRefresh}
       isLoading={isLoading}
       disableHoverTone
-      className="border-border/45 bg-card/28 rounded-xl border p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_8px_24px_-20px_rgba(87,83,78,0.35)] backdrop-blur-md backdrop-saturate-150"
+      className="border-border/45 bg-card/28 rounded-xl border p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_24px_-20px_rgba(0,0,0,0.35)] backdrop-blur-md backdrop-saturate-150"
     />
   );
 }
@@ -110,7 +110,7 @@ function AppleCalendarProvider({
             onRequest();
           }}
           disabled={isPending}
-          className="border-border bg-card text-foreground hover:bg-accent flex h-full w-full items-center justify-center gap-3 border px-6 shadow-[0_2px_6px_rgba(87,83,78,0.08),0_10px_18px_-10px_rgba(87,83,78,0.22)] transition-all duration-150"
+          className="border-border bg-card text-foreground hover:bg-accent flex h-full w-full items-center justify-center gap-3 border px-6 shadow-[0_2px_6px_rgba(0,0,0,0.08),0_10px_18px_-10px_rgba(0,0,0,0.22)] transition-all duration-150"
         >
           <img
             src="/assets/apple-calendar.png"
@@ -165,7 +165,7 @@ function GoogleCalendarConnectedContent({
   return (
     <div className="flex flex-col gap-3">
       {reconnectRequiredConnections.length > 0 && (
-        <div className="flex items-start gap-2 text-sm text-amber-700">
+        <div className="flex items-start gap-2 text-alert-foreground text-sm">
           <span className="pt-1">
             <ReconnectRequiredIndicator />
           </span>
@@ -183,7 +183,7 @@ function GoogleCalendarConnectedContent({
         onRefresh={handleRefresh}
         isLoading={isLoading}
         disableHoverTone
-        className="border-border/45 bg-card/28 rounded-xl border p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_8px_24px_-20px_rgba(87,83,78,0.35)] backdrop-blur-md backdrop-saturate-150"
+        className="border-border/45 bg-card/28 rounded-xl border p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_24px_-20px_rgba(0,0,0,0.35)] backdrop-blur-md backdrop-saturate-150"
       />
     </div>
   );
@@ -281,7 +281,7 @@ function OutlookCalendarConnectedContent({
   return (
     <div className="flex flex-col gap-3">
       {reconnectRequiredConnections.length > 0 && (
-        <div className="flex items-start gap-2 text-sm text-amber-700">
+        <div className="flex items-start gap-2 text-alert-foreground text-sm">
           <span className="pt-1">
             <ReconnectRequiredIndicator />
           </span>
@@ -299,7 +299,7 @@ function OutlookCalendarConnectedContent({
         onRefresh={handleRefresh}
         isLoading={isLoading}
         disableHoverTone
-        className="border-border/45 bg-card/28 rounded-xl border p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_8px_24px_-20px_rgba(87,83,78,0.35)] backdrop-blur-md backdrop-saturate-150"
+        className="border-border/45 bg-card/28 rounded-xl border p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_24px_-20px_rgba(0,0,0,0.35)] backdrop-blur-md backdrop-saturate-150"
       />
     </div>
   );
@@ -339,8 +339,8 @@ function OAuthCalendarProviderAction({
         disabled={isOpening || (isSignedIn && (isPending || !isReady))}
         className={
           isSignedIn
-            ? "border-border bg-card text-foreground hover:bg-accent disabled:hover:bg-card flex h-full w-full items-center justify-center gap-3 border shadow-[0_2px_6px_rgba(87,83,78,0.08),0_10px_18px_-10px_rgba(87,83,78,0.22)] disabled:cursor-not-allowed disabled:opacity-60"
-            : "border-border bg-muted text-foreground hover:border-primary hover:bg-primary hover:text-primary-foreground focus-visible:border-primary focus-visible:bg-primary focus-visible:text-primary-foreground h-full w-full border-1 shadow-[0_2px_6px_rgba(87,83,78,0.01),0_10px_18px_-10px_rgba(87,83,78,0.1)] transition-all duration-150"
+            ? "border-border bg-card text-foreground hover:bg-accent disabled:hover:bg-card flex h-full w-full items-center justify-center gap-3 border shadow-[0_2px_6px_rgba(0,0,0,0.08),0_10px_18px_-10px_rgba(0,0,0,0.22)] disabled:cursor-not-allowed disabled:opacity-60"
+            : "border-border bg-muted text-foreground hover:border-primary hover:bg-primary hover:text-primary-foreground focus-visible:border-primary focus-visible:bg-primary focus-visible:text-primary-foreground h-full w-full border-1 shadow-[0_2px_6px_rgba(0,0,0,0.01),0_10px_18px_-10px_rgba(0,0,0,0.1)] transition-all duration-150"
         }
       >
         {!isSignedIn ? (
@@ -437,7 +437,7 @@ function OutlookCalendarProvider({ onSignIn }: { onSignIn: () => void }) {
 
   if (isError) {
     return (
-      <p className="order-2 min-w-56 flex-1 text-sm text-red-600">
+      <p className="order-2 text-destructive min-w-56 flex-1 text-sm">
         <Trans>Failed to load Outlook Calendar</Trans>
       </p>
     );
@@ -523,7 +523,7 @@ function GoogleCalendarProvider({ onSignIn }: { onSignIn: () => void }) {
 
   if (isError) {
     return (
-      <p className="order-2 min-w-56 flex-1 text-sm text-red-600">
+      <p className="order-2 text-destructive min-w-56 flex-1 text-sm">
         <Trans>Failed to load Google Calendar</Trans>
       </p>
     );

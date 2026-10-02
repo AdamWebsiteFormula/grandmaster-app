@@ -309,7 +309,7 @@ export function TemplatePickerPopover({
       {
         key: "create",
         title: "Create new template",
-        icon: <Plus className="h-3.5 w-3.5 text-blue-500" />,
+        icon: <Plus className="h-3.5 w-3.5 text-primary" />,
         uppercase: false,
         items: [
           {
@@ -610,7 +610,7 @@ function TemplateResultButton({
           {title}
         </span>
         {isFavorite ? (
-          <Heart aria-hidden className="size-3.5 shrink-0 text-rose-500" />
+          <Heart aria-hidden className="size-3.5 shrink-0 text-primary" />
         ) : null}
       </button>
       {regenerateLabel && onRegenerate ? (

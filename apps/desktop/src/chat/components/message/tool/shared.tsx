@@ -18,7 +18,7 @@ export function ToolCard({
     <div
       className={cn([
         "my-2.5 overflow-hidden rounded-xl border shadow-sm",
-        failed ? "border-red-200" : "border-border/80",
+        failed ? "border-destructive/40" : "border-border/80",
       ])}
     >
       {children}
@@ -43,7 +43,9 @@ export function ToolCardHeader({
     <div
       className={cn([
         "flex items-center gap-2.5 px-3.5 py-2 text-sm",
-        failed ? "bg-red-50 text-red-700" : "bg-muted/80 text-muted-foreground",
+        failed
+          ? "bg-destructive/10 text-destructive"
+          : "bg-muted/80 text-muted-foreground",
       ])}
     >
       {running ? (
@@ -53,9 +55,9 @@ export function ToolCardHeader({
           className={cn([
             "shrink-0 [&>svg]:h-4 [&>svg]:w-4",
             failed
-              ? "text-red-500"
+              ? "text-destructive"
               : done
-                ? "text-emerald-500"
+                ? "text-primary"
                 : "text-muted-foreground",
           ])}
         >
@@ -73,9 +75,9 @@ export function ToolCardBody({ children }: { children: ReactNode }) {
 
 export function ToolCardFooterError({ text }: { text: string }) {
   return (
-    <div className="flex items-center gap-2 border-t border-red-200 bg-red-50 px-3.5 py-2.5">
-      <XCircle className="h-4 w-4 shrink-0 text-red-500" />
-      <p className="text-sm text-red-600">{text}</p>
+    <div className="flex items-center gap-2 border-t border-destructive/40 bg-destructive/10 px-3.5 py-2.5">
+      <XCircle className="h-4 w-4 shrink-0 text-destructive" />
+      <p className="text-sm text-destructive">{text}</p>
     </div>
   );
 }

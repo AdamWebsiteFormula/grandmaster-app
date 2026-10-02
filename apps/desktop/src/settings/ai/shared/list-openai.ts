@@ -9,18 +9,46 @@ import {
   isOldModel,
   type ListModelsResult,
   type ModelIgnoreReason,
+  type ModelMetadata,
   partition,
   REQUEST_TIMEOUT,
   shouldIgnoreCommonKeywords,
   sortModelsByRecency,
 } from "./list-common";
+import { toReleaseDate } from "./model-catalog";
 
 const OpenAIModelSchema = Schema.Struct({
   data: Schema.Array(
     Schema.Struct({
       id: Schema.String,
+      // Optional release and deprecation signals: OpenAI `created` and
+      // `shutdown_date`, Groq `active` and `context_window`.
+      created: Schema.optional(Schema.Unknown),
+      shutdown_date: Schema.optional(Schema.Unknown),
+      active: Schema.optional(Schema.Unknown),
+      context_window: Schema.optional(Schema.Unknown),
     }),
   ),
+});
+
+type OpenAIModel = {
+  id: string;
+  created?: unknown;
+  shutdown_date?: unknown;
+  active?: unknown;
+  context_window?: unknown;
+};
+
+const providerSignals = (model: OpenAIModel): ModelMetadata => ({
+  releasedAt: toReleaseDate(model.created),
+  deprecated:
+    model.active === false ||
+    (model.shutdown_date !== undefined && model.shutdown_date !== null) ||
+    undefined,
+  contextWindow:
+    typeof model.context_window === "number" && model.context_window > 0
+      ? model.context_window
+      : undefined,
 });
 
 export async function listOpenAIModels(
@@ -62,7 +90,10 @@ export async function listOpenAIModels(
         metadata: extractMetadataMap(
           data,
           (model) => model.id,
-          (_model) => ({ input_modalities: ["text", "image"] }),
+          (model) => ({
+            input_modalities: ["text", "image"],
+            ...providerSignals(model),
+          }),
         ),
       };
     }),
@@ -92,7 +123,7 @@ export async function listGenericModels(
 }
 
 export function processGenericModels(
-  data: readonly { id: string }[],
+  data: readonly OpenAIModel[],
   options?: { filterDateSnapshots?: boolean },
 ): ListModelsResult {
   const result = partition(
@@ -122,7 +153,7 @@ export function processGenericModels(
     metadata: extractMetadataMap(
       data,
       (model) => model.id,
-      () => ({ input_modalities: ["text"] }),
+      (model) => ({ input_modalities: ["text"], ...providerSignals(model) }),
     ),
   };
 }

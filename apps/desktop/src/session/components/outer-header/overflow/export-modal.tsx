@@ -501,7 +501,7 @@ export function ExportModal({
           </div>
 
           {error && (
-            <p role="alert" className="text-xs text-red-500">
+            <p role="alert" className="text-xs text-destructive">
               <Trans>
                 Could not export. Check the export location in Settings and try
                 again.

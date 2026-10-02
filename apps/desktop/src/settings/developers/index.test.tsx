@@ -259,7 +259,8 @@ describe("SettingsDevelopers", () => {
     ).toBeNull();
   });
 
-  it("keeps a one-time API key visible when clipboard access fails", async () => {
+  // Fork: cloud API section hidden (blueprint section 5).
+  it.skip("keeps a one-time API key visible when clipboard access fails", async () => {
     mocks.checkEmbeddedCli.mockResolvedValue({
       status: "ok",
       data: {
@@ -319,7 +320,8 @@ describe("SettingsDevelopers", () => {
     expect(screen.getByText("anl_test_secret")).toBeTruthy();
   });
 
-  it("requires explicit cloud opt-in and backfills existing meetings", async () => {
+  // Fork: cloud API section hidden (blueprint section 5).
+  it.skip("requires explicit cloud opt-in and backfills existing meetings", async () => {
     mocks.checkEmbeddedCli.mockResolvedValue({
       status: "ok",
       data: {
@@ -373,7 +375,8 @@ describe("SettingsDevelopers", () => {
     expect(screen.getByText("Remote MCP")).toBeTruthy();
   });
 
-  it("reports that disabling deletes the server-readable copies", async () => {
+  // Fork: cloud API section hidden (blueprint section 5).
+  it.skip("reports that disabling deletes the server-readable copies", async () => {
     mocks.checkEmbeddedCli.mockResolvedValue({
       status: "ok",
       data: {
@@ -419,7 +422,8 @@ describe("SettingsDevelopers", () => {
     expect(mocks.backfillCloudApiSnapshots).not.toHaveBeenCalled();
   });
 
-  it("shows Cloud API controls and toasts on the free plan", () => {
+  // Fork: cloud API section hidden (blueprint section 5).
+  it.skip("shows Cloud API controls and toasts on the free plan", () => {
     mocks.billing.isPro = false;
     mocks.checkEmbeddedCli.mockResolvedValue({
       status: "ok",

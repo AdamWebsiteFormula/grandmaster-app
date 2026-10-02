@@ -5,14 +5,15 @@ import { ArrowSquareOut } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 
 import { CliSettingsSections } from "./cli";
-import { CloudApiSection } from "./cloud-api";
+import { GlaidoSection } from "./glaido";
 import { WebhooksSection } from "./webhooks";
 
 import { SettingsPageTitle } from "~/settings/page-title";
 
 export { buildMcpConfiguration, getCliInstallNotification } from "./cli";
 
-const DEVELOPERS_GUIDE_URL = "https://github.com/AdamWebsiteFormula/upshot";
+const DEVELOPERS_GUIDE_URL =
+  "https://github.com/AdamWebsiteFormula/grandmaster-app";
 
 export function SettingsDevelopers() {
   return (
@@ -32,7 +33,8 @@ export function SettingsDevelopers() {
         </Button>
       </div>
       <CliSettingsSections />
-      <CloudApiSection />
+      <GlaidoSection />
+      {/* Fork: cloud API hidden (blueprint section 5); local CLI and webhooks stay. */}
       <WebhooksSection />
     </div>
   );

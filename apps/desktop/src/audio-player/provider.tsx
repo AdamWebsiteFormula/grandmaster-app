@@ -173,9 +173,9 @@ export function AudioPlayerProvider({
       container,
       media,
       height: 24,
-      waveColor: "#e5e5e5",
-      progressColor: "#a8a8a8",
-      cursorColor: "#737373",
+      waveColor: "#3a3a3a",
+      progressColor: "#a3a3a3",
+      cursorColor: "#ff6a1f",
       cursorWidth: 2,
       barWidth: 3,
       barGap: 2,
@@ -184,8 +184,8 @@ export function AudioPlayerProvider({
       dragToSeek: true,
       normalize: true,
       splitChannels: [
-        { waveColor: "#e8d5d5", progressColor: "#c9a3a3", overlay: true },
-        { waveColor: "#d5dde8", progressColor: "#a3b3c9", overlay: true },
+        { waveColor: "#5c3a26", progressColor: "#ff6a1f", overlay: true },
+        { waveColor: "#3a3a3a", progressColor: "#a3a3a3", overlay: true },
       ],
     });
     const audioContext = configureCenteredPlayback(media);

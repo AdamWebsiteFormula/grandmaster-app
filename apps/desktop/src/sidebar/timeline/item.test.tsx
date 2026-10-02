@@ -334,11 +334,11 @@ describe("TimelineItemComponent", () => {
   );
 
   it.each([
-    ["hidden", {}, "Locked note", "Unlock Note"],
+    ["hidden", {}, "Locked note", "Unlock note"],
     [
       "revealed",
       { "session-locked": true as const },
-      "Unlock Note",
+      "Unlock note",
       "Locked note",
     ],
   ])(

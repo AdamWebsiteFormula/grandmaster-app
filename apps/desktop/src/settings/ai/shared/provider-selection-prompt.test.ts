@@ -66,6 +66,38 @@ describe("useProviderSelectionPrompt", () => {
     });
   });
 
+  it.each([undefined, "apple_foundation"])(
+    "switches right away with Undo when the current LLM provider is %s",
+    (currentProvider) => {
+      const { result } = renderHook(() =>
+        useProviderSelectionPrompt({
+          providerType: "llm",
+          providerId: "anthropic",
+          providerName: "Anthropic",
+          currentProvider,
+          providerStateReady: true,
+          storedApiKey: "",
+        }),
+      );
+
+      act(() => result.current("sk-ant-new"));
+
+      expect(mocks.setSettingValues).toHaveBeenCalledWith({
+        current_llm_provider: "anthropic",
+        current_llm_model: "",
+      });
+      const [title, options] = mocks.toastSuccess.mock.calls[0];
+      expect(title).toBe("Using Anthropic");
+      expect(options.action.label).toBe("Undo");
+
+      act(() => options.action.onClick());
+      expect(mocks.setSettingValues).toHaveBeenLastCalledWith({
+        current_llm_provider: currentProvider ?? "",
+        current_llm_model: "",
+      });
+    },
+  );
+
   it("sets a transcription provider and lets model resolution choose its model", () => {
     const { result } = renderHook(() =>
       useProviderSelectionPrompt({

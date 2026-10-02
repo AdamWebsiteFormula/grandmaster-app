@@ -103,7 +103,7 @@ function OAuthTodoProviderContent({ config }: { config: TodoProvider }) {
   if (isError) {
     return (
       <div className="pt-1 pb-2">
-        <span className="text-xs text-red-600">
+        <span className="text-xs text-destructive">
           <Trans>Failed to load integration status</Trans>
         </span>
       </div>
@@ -184,7 +184,7 @@ function ConnectionActions({
             })
           }
           disabled={openingAction !== null}
-          className="inline-flex cursor-pointer items-center gap-1 text-xs text-amber-700 underline transition-colors hover:text-amber-900 disabled:opacity-50"
+          className="inline-flex cursor-pointer items-center gap-1 text-xs text-primary underline transition-colors hover:text-primary disabled:opacity-50"
         >
           {openingAction === "reconnect" && (
             <CircleNotch className="size-3 animate-spin" aria-hidden="true" />
@@ -205,7 +205,7 @@ function ConnectionActions({
             })
           }
           disabled={openingAction !== null}
-          className="inline-flex cursor-pointer items-center gap-1 text-xs text-red-500 underline transition-colors hover:text-red-700 disabled:opacity-50"
+          className="inline-flex cursor-pointer items-center gap-1 text-xs text-destructive underline transition-colors hover:text-destructive disabled:opacity-50"
         >
           {openingAction === "disconnect" && (
             <CircleNotch className="size-3 animate-spin" aria-hidden="true" />

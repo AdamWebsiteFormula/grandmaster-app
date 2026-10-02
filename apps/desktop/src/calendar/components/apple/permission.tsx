@@ -57,7 +57,7 @@ export function AppleCalendarPermissionDialog({
               onOpenChange(false);
             }}
           >
-            <Trans>Open Settings</Trans>
+            <Trans>Open settings</Trans>
           </Button>
         </DialogFooter>
       </GlassDialogContent>

@@ -436,7 +436,7 @@ export const TimelineView = memo(function TimelineView({
         ? [
             {
               id: "delete-selected",
-              text: t`Delete Selected (${sessionCount})`,
+              text: t`Delete selected (${sessionCount})`,
               action: handleRequestDeleteSelected,
               accelerator: "Backspace",
               disabled: sessionCount === 0,
@@ -446,8 +446,8 @@ export const TimelineView = memo(function TimelineView({
             {
               id: "toggle-ignored",
               text: showIgnored
-                ? t`Hide Deleted Events`
-                : t`Show Deleted Events`,
+                ? t`Hide deleted events`
+                : t`Show deleted events`,
               action: toggleShowIgnored,
             },
           ],

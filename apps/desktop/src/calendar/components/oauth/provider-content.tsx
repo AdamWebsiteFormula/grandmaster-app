@@ -133,7 +133,7 @@ export function OAuthProviderContent({
   if (isError) {
     return (
       <div className="pt-1 pb-2">
-        <span className="text-xs text-red-600">
+        <span className="text-xs text-destructive">
           {t`Failed to load integration status`}
         </span>
       </div>
@@ -171,7 +171,7 @@ function ReconnectRequiredContent({
 }) {
   return (
     <div className="flex flex-col gap-2 pb-2">
-      <div className="flex items-center gap-2 text-xs text-amber-700">
+      <div className="flex items-center gap-2 text-xs text-primary">
         <ReconnectRequiredIndicator />
         <span>{t`Reconnect required for ${config.displayName} Calendar`}</span>
       </div>
@@ -195,7 +195,7 @@ function ReconnectRequiredContent({
         <button
           onClick={onDisconnect}
           disabled={openingAction !== null}
-          className="inline-flex cursor-pointer items-center gap-1 text-xs text-red-500 underline transition-colors hover:text-red-700 disabled:opacity-50"
+          className="inline-flex cursor-pointer items-center gap-1 text-xs text-destructive underline transition-colors hover:text-destructive disabled:opacity-50"
         >
           {openingAction === "disconnect" && (
             <CircleNotch className="size-3 animate-spin" aria-hidden="true" />

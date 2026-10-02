@@ -25,6 +25,10 @@ vi.mock("~/shared/main", () => ({
   ),
 }));
 
+vi.mock("~/home/stat-cards", () => ({
+  HomeStatCards: () => null,
+}));
+
 vi.mock("~/shared/useNewNote", () => ({
   useNewNote: () => vi.fn(),
   useNewNoteAndListen: () => vi.fn(),

@@ -309,7 +309,7 @@ const ItemBase = memo(function ItemBase({
           {isLocked ? (
             isLockRevealed ? (
               <LockOpen
-                aria-label={t`Unlock Note`}
+                aria-label={t`Unlock note`}
                 className="text-muted-foreground size-3.5 shrink-0"
               />
             ) : (
@@ -531,31 +531,31 @@ const EventItem = memo(
           return [
             {
               id: "unignore",
-              text: t`Show This Event`,
+              text: t`Show this event`,
               action: handleUnignore,
             },
             {
               id: "unignore-series",
-              text: t`Show All Recurring Events`,
+              text: t`Show all recurring events`,
               action: handleUnignoreSeries,
             },
           ];
         }
         return [
-          { id: "unignore", text: t`Show Event`, action: handleUnignore },
+          { id: "unignore", text: t`Show event`, action: handleUnignore },
         ];
       }
       const menu: MenuItemDef[] = [
         {
           id: "ignore",
-          text: recurrenceSeriesId ? t`Delete This Event` : t`Delete Event`,
+          text: recurrenceSeriesId ? t`Delete this event` : t`Delete event`,
           action: handleIgnore,
         },
       ];
       if (recurrenceSeriesId) {
         menu.push({
           id: "ignore-series",
-          text: t`Delete All Recurring Events`,
+          text: t`Delete all recurring events`,
           action: handleIgnoreSeries,
         });
       }
@@ -770,7 +770,7 @@ const SessionItem = memo(
       if (authAvailable) {
         menu.push({
           id: noteLocked ? "unlock" : "lock",
-          text: noteLocked ? t`Unlock Note` : t`Lock Note`,
+          text: noteLocked ? t`Unlock note` : t`Lock note`,
           action: handleToggleLock,
         });
       }
@@ -778,7 +778,7 @@ const SessionItem = memo(
         { separator: true as const },
         {
           id: "delete",
-          text: t`Delete Note`,
+          text: t`Delete note`,
           action: handleDelete,
         },
       );

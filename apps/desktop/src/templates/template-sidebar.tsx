@@ -460,7 +460,7 @@ export function TemplatesSidebarContent({
                       ])}
                     >
                       <div className="flex items-center gap-2">
-                        <Sparkle className="size-4 text-violet-500" />
+                        <Sparkle className="size-4 text-primary" />
                         <div className="min-w-0 flex-1">
                           <div className="truncate font-medium">
                             {item.title}

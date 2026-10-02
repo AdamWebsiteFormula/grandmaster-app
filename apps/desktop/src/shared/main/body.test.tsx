@@ -112,6 +112,7 @@ vi.mock("~/shared/open-note-dialog", () => ({
 
 vi.mock("~/shared/useNewNote", () => ({
   useNewNote: () => mocks.createNewNote,
+  useNewNoteAndListen: () => mocks.createNewNote,
 }));
 
 vi.mock("~/store/zustand/tabs", () => ({
@@ -152,7 +153,10 @@ describe("ClassicMainBody", () => {
     render(<ClassicMainBody />);
 
     fireEvent.click(screen.getByRole("button", { name: "Search" }));
-    fireEvent.click(screen.getByRole("button", { name: "New note" }));
+    // Sidebar icon plus the labeled top-right button.
+    const newNoteButtons = screen.getAllByRole("button", { name: "New note" });
+    expect(newNoteButtons).toHaveLength(2);
+    fireEvent.click(newNoteButtons[0]);
 
     expect(screen.getByTestId("main-sidebar")).toBeTruthy();
     expect(screen.getByTestId("main-tab-content").textContent).toContain(

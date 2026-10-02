@@ -36,6 +36,33 @@ pub struct EmbeddedCliStatus {
     pub details: Option<String>,
 }
 
+// Fork: absolute paths for an external MCP client (Glaido). The bundled CLI,
+// not the ~/.local/bin symlink, plus the database this app actually opens.
+#[derive(Clone, Debug, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct McpServerPaths {
+    pub cli_path: String,
+    pub db_path: String,
+}
+
+pub fn mcp_server_paths<R: tauri::Runtime, T: tauri::Manager<R>>(
+    manager: &T,
+) -> Result<McpServerPaths, String> {
+    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
+    let cli_path = resolve_resource_path(manager);
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+    let cli_path: Option<PathBuf> = None;
+
+    let cli_path = cli_path.ok_or_else(|| "The bundled CLI was not found.".to_string())?;
+    let db_dir = crate::db::desktop_db_dir(manager.config().identifier.as_ref())
+        .ok_or_else(|| "The application data folder is unavailable.".to_string())?;
+
+    Ok(McpServerPaths {
+        cli_path: cli_path.display().to_string(),
+        db_path: db_dir.join("app.db").display().to_string(),
+    })
+}
+
 pub fn check<R: tauri::Runtime, T: tauri::Manager<R>>(manager: &T) -> EmbeddedCliStatus {
     let command_name = command_name_from_identifier(manager.config().identifier.as_ref());
 

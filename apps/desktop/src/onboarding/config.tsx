@@ -4,13 +4,19 @@ import type { SectionStatus } from "./shared";
 
 export type OnboardingStep =
   | "permissions"
+  | "transcription"
   | "login"
   | "calendar"
   | "imports"
   | "final";
 
 // Fork: no sign-in and no cloud calendar step; both need upstream services.
-const STEPS_MACOS: OnboardingStep[] = ["permissions", "imports", "final"];
+const STEPS_MACOS: OnboardingStep[] = [
+  "permissions",
+  "transcription",
+  "imports",
+  "final",
+];
 const STEPS_OTHER: OnboardingStep[] = ["imports", "final"];
 
 function getOnboardingSteps(): OnboardingStep[] {

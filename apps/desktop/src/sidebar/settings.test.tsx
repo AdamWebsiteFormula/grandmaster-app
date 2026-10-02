@@ -147,8 +147,7 @@ describe("SettingsNav", () => {
 
   it.each([
     ["Permissions", "permissions"],
-    ["Account", "account"],
-    ["Billing", "billing"],
+    ["Transcription", "transcription"],
   ])("opens %s inside settings", (label, tab) => {
     render(<SettingsNav />);
 
@@ -162,7 +161,7 @@ describe("SettingsNav", () => {
 
   it.each([
     ["Calendar", "calendar"],
-    ["Automations", "automations"],
+    ["Templates", "templates"],
   ])("opens the %s workspace in a new tab", (label, type) => {
     render(<SettingsNav />);
 
@@ -185,27 +184,30 @@ describe("SettingsNav", () => {
     expect(screen.queryByRole("button", { name: "Stats" })).toBeNull();
   });
 
-  it("keeps locked Pro features visible and navigable without forcing an upgrade", () => {
+  // Fork (blueprint section 5): cloud, account and plan screens are hidden.
+  it("hides cloud, account and plan screens and keeps local ones", () => {
     mocks.isPro = false;
     render(<SettingsNav />);
 
-    expect(hasProLock(/Sync/)).toBe(true);
-
-    for (const [label, tab] of [
-      ["Sync", "sync"],
-      ["Dictionary", "dictionary"],
-      ["Teams", "team"],
+    for (const label of [
+      /Account/,
+      /Billing/,
+      /Teams/,
+      /Sync/,
+      /Dictation/,
+      /Automations/,
+      /CRM/,
     ]) {
-      fireEvent.click(screen.getByRole("button", { name: new RegExp(label) }));
-      expect(openedSettingsTab()).toEqual({ tab });
+      expect(screen.queryByRole("button", { name: label })).toBeNull();
     }
-    fireEvent.click(screen.getByRole("button", { name: /Automations/ }));
 
-    expect(mocks.openNew).toHaveBeenCalledWith({ type: "automations" });
+    fireEvent.click(screen.getByRole("button", { name: /Dictionary/ }));
+    expect(openedSettingsTab()).toEqual({ tab: "dictionary" });
     expect(mocks.upgradeToPro).not.toHaveBeenCalled();
   });
 
-  it.each([
+  // Fork: Teams is hidden, so its lock states no longer apply.
+  it.skip.each([
     ["without a workspace", [], false, true],
     [
       "for members of an existing workspace",

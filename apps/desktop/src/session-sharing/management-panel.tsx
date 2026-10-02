@@ -383,11 +383,11 @@ export function SessionSharePopoverContent({
               {hasConflict ? (
                 <section
                   aria-labelledby="sharing-conflict-heading"
-                  className="rounded-lg border border-amber-500/35 bg-amber-500/10 px-2.5 py-2"
+                  className="rounded-lg border border-alert-border bg-alert text-alert-foreground px-2.5 py-2"
                 >
                   <div className="flex items-start gap-2.5">
                     <Warning
-                      className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
+                      className="mt-0.5 size-4 shrink-0 text-alert-foreground"
                       aria-hidden="true"
                     />
                     <div className="min-w-0 flex-1">

@@ -5,6 +5,7 @@ import { useCallback } from "react";
 import { Kbd } from "@anlg/ui/components/ui/kbd";
 import { cn } from "@anlg/utils";
 
+import { HomeStatCards } from "~/home/stat-cards";
 import { FloatingChatCTA } from "~/shared/chat-cta";
 import { StandardContentWrapper } from "~/shared/main";
 import { useNewNote, useNewNoteAndListen } from "~/shared/useNewNote";
@@ -38,6 +39,7 @@ function EmptyView() {
       data-tauri-drag-region
       className="flex h-full flex-col items-center justify-center gap-6"
     >
+      <HomeStatCards />
       <div className="flex min-w-[280px] flex-col gap-1 text-center">
         <ActionItem
           label={<Trans>New note</Trans>}

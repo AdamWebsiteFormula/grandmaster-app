@@ -260,7 +260,7 @@ export function E2eeSetupDialog({
           )}
 
           {error && (
-            <p className="mt-3 text-center text-xs text-red-500">
+            <p className="mt-3 text-center text-xs text-destructive">
               {error.message}
             </p>
           )}

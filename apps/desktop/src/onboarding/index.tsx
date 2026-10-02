@@ -21,6 +21,7 @@ import { FinalDescription, FinalSection, finishOnboarding } from "./final";
 import { ImportSection } from "./imports";
 import { PermissionsSection } from "./permissions";
 import { OnboardingSection } from "./shared";
+import { TranscriptionSetupSection } from "./transcription";
 
 import { trackAnalyticsEvent } from "~/analytics";
 import { useAuth } from "~/auth";
@@ -221,7 +222,7 @@ function OnboardingScreenContent({
           headerClassName,
         ])}
       >
-        <h1 className="font-hand text-foreground text-4xl leading-none font-semibold tracking-normal">
+        <h1 className="text-foreground text-3xl leading-tight font-semibold">
           <Trans>Welcome to Upshot</Trans>
         </h1>
       </div>
@@ -251,6 +252,22 @@ function OnboardingScreenContent({
             onNext={goNext}
           >
             <PermissionsSection onContinue={goNext} />
+          </OnboardingSection>
+
+          <OnboardingSection
+            title={<Trans>Set up transcription</Trans>}
+            description={
+              <Trans>
+                Upshot transcribes on your Mac. No account and no API key.
+              </Trans>
+            }
+            completedTitle={<Trans>Transcription ready</Trans>}
+            status={getStepStatus("transcription", currentStep)}
+            skippable={false}
+            onBack={goBack}
+            onNext={goNext}
+          >
+            <TranscriptionSetupSection onContinue={goNext} />
           </OnboardingSection>
 
           <OnboardingSection

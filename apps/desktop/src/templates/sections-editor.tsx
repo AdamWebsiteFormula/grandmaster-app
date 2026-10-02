@@ -272,7 +272,7 @@ function SectionItem({
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => onDelete(item.key)}
-                  className="cursor-pointer text-red-600 focus:text-red-600"
+                  className="cursor-pointer text-destructive focus:text-destructive"
                 >
                   <Trans>Delete</Trans>
                 </DropdownMenuItem>
@@ -304,7 +304,7 @@ function SectionItem({
             disabled
               ? "bg-muted"
               : isFocused
-                ? "ring-primary/20 border-blue-500 ring-2"
+                ? "ring-primary/20 border-primary ring-2"
                 : "border-input",
           ])}
         />

@@ -38,8 +38,7 @@ html[data-rounded-window] #root {
 }
 
 .undo-delete-toast-gauge {
-  animation: undo-delete-toast-gauge var(--undo-delete-duration) linear
-    forwards;
+  animation: undo-delete-toast-gauge var(--undo-delete-duration) linear forwards;
   transform: scaleX(var(--undo-delete-progress));
   transform-origin: left;
 }
@@ -128,6 +127,11 @@ html[data-rounded-window] #root {
   --color-accent-foreground: hsl(var(--accent-foreground));
   --color-popover: hsl(var(--popover));
   --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-alert: hsl(var(--alert));
+  --color-alert-foreground: hsl(var(--alert-foreground));
+  --color-alert-border: hsl(var(--alert-border));
 
   --color-sidebar-accent: hsl(var(--sidebar-accent));
 
@@ -138,16 +142,15 @@ html[data-rounded-window] #root {
   --animate-shimmer: shimmer 2s infinite;
   --animate-logo-shimmer-sweep: logo-shimmer-sweep 2.4s ease-in-out infinite;
   --animate-reveal-left: reveal-left 0.5s ease-out forwards;
-  --animate-title-hover-scroll: title-hover-scroll var(
-    --title-hover-scroll-duration,
-    4s
-  ) ease-in-out forwards;
+  --animate-title-hover-scroll: title-hover-scroll
+    var(--title-hover-scroll-duration, 4s) ease-in-out forwards;
   --animate-kbd-press: kbd-press 0.4s ease-out forwards;
 
   --animate-wiggle: wiggle 1s ease-in-out infinite;
 
   @keyframes wiggle {
-    0%, 100% {
+    0%,
+    100% {
       transform: rotate(0deg);
     }
     15% {
@@ -165,7 +168,8 @@ html[data-rounded-window] #root {
     60% {
       transform: rotate(2deg);
     }
-    70%, 100% {
+    70%,
+    100% {
       transform: rotate(0deg);
     }
   }
@@ -196,10 +200,12 @@ html[data-rounded-window] #root {
     }
   }
   @keyframes title-hover-scroll {
-    0%, 16% {
+    0%,
+    16% {
       transform: translateX(0);
     }
-    84%, 100% {
+    84%,
+    100% {
       transform: translateX(var(--title-hover-scroll-distance, 0px));
     }
   }

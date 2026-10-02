@@ -119,7 +119,7 @@ describe("OpenNoteDialog", () => {
     expect(
       document.querySelector("[data-open-note-dialog-drag-region]"),
     ).toBeTruthy();
-    expect(screen.getByText("All Notes")).toBeTruthy();
+    expect(screen.getByText("All notes")).toBeTruthy();
     const sharedNote = screen.getByRole("option", {
       name: "Shared roadmap",
     });

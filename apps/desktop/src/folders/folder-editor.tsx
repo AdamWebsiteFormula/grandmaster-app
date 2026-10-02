@@ -255,7 +255,7 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
                 <DropdownMenuItem
                   disabled={busy}
                   onClick={() => setDeleting(true)}
-                  className="cursor-pointer text-red-600 focus:text-red-600"
+                  className="cursor-pointer text-destructive focus:text-destructive"
                 >
                   <Trans>Delete</Trans>
                 </DropdownMenuItem>

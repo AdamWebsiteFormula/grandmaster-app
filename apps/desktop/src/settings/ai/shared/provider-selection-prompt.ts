@@ -39,6 +39,49 @@ export function useProviderSelectionPrompt({
       return;
     }
 
+    const selectValues =
+      providerType === "llm"
+        ? { current_llm_provider: providerId, current_llm_model: "" }
+        : { current_stt_provider: providerId, current_stt_model: "" };
+
+    // Fork: a first key replaces "nothing chosen" or the on-device fallback
+    // right away, with Undo (NN/g: prefer undo over confirmation for
+    // reversible actions). A provider the user chose still gets the prompt.
+    if (
+      !currentProvider ||
+      (providerType === "llm" && currentProvider === "apple_foundation")
+    ) {
+      void setSettingValues(selectValues).catch((error) => {
+        console.error(
+          `[settings] failed to select ${providerType} provider`,
+          error,
+        );
+      });
+      toast.success(t`Using ${providerName}`, {
+        id: `provider-selection:${providerType}:${providerId}`,
+        description: t`Your key works. ${providerName} is now the current provider.`,
+        action: {
+          label: t`Undo`,
+          onClick: () => {
+            void setSettingValues(
+              providerType === "llm"
+                ? {
+                    current_llm_provider: currentProvider ?? "",
+                    current_llm_model: "",
+                  }
+                : {
+                    current_stt_provider: currentProvider ?? "",
+                    current_stt_model: "",
+                  },
+            ).catch((error) => {
+              console.error(`[settings] failed to undo ${providerType}`, error);
+            });
+          },
+        },
+      });
+      return;
+    }
+
     toast.success(t`API key saved`, {
       id: `provider-selection:${providerType}:${providerId}`,
       duration: Infinity,

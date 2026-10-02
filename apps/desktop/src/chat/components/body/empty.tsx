@@ -144,7 +144,7 @@ function BetaChip({ isDarkAppearance }: { isDarkAppearance: boolean }) {
         "rounded-full border px-1.5 py-0.5 text-xs font-medium",
         isDarkAppearance
           ? "border-border bg-accent text-accent-foreground"
-          : "border-sky-200 bg-sky-100 text-sky-900",
+          : "border-primary/30 bg-primary/10 text-primary",
       ])}
     >
       {t`Beta`}

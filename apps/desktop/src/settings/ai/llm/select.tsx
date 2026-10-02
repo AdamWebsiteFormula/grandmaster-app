@@ -63,6 +63,7 @@ import { listOpenRouterModels } from "~/settings/ai/shared/list-openrouter";
 import { listUnslothModels } from "~/settings/ai/shared/list-unsloth";
 import { listVeniceModels } from "~/settings/ai/shared/list-venice";
 import { ModelCombobox } from "~/settings/ai/shared/model-combobox";
+import { enrichResult } from "~/settings/ai/shared/model-list-enrich";
 import { PersistAiSelection } from "~/settings/ai/shared/persist-selection";
 import {
   getConfiguredProviderIds,
@@ -641,7 +642,13 @@ export function getLlmProviderStatus({
 
   return {
     configured: true,
-    listModels: async () => removeNonStreamingModels(await listModelsFunc()),
+    // Catalog join: newest first, New/Thinking flags, release-date "old"
+    // rule, and the Offline list when the provider cannot be reached.
+    listModels: async () =>
+      enrichResult(
+        provider.id,
+        removeNonStreamingModels(await listModelsFunc()),
+      ),
   };
 }
 

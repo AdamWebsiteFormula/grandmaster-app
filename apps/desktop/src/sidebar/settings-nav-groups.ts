@@ -48,12 +48,24 @@ type SettingsNavItem =
 
 export type SettingsNavGroup = { label: string; items: SettingsNavItem[] };
 
+// Fork (blueprint section 5): hide cloud, account and plan screens a judge
+// cannot use. UI only; the screens and their code stay in place.
+const HIDDEN_SETTINGS = new Set<string>([
+  "account",
+  "billing",
+  "team",
+  "sync",
+  "dictation",
+  "automations",
+  "crm",
+]);
+
 export function useSettingsNavGroups(): SettingsNavGroup[] {
   const { i18n, t } = useLingui();
   const workspaces = useMyWorkspacesWithMirror();
   const hasExistingWorkspace = (workspaces.data?.length ?? 0) > 0;
 
-  return [
+  const groups: SettingsNavGroup[] = [
     {
       label: t`App`,
       items: [
@@ -153,4 +165,11 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
       ],
     },
   ];
+
+  return groups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => !HIDDEN_SETTINGS.has(item.id)),
+    }))
+    .filter((group) => group.items.length > 0);
 }

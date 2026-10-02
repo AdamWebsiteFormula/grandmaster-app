@@ -47,6 +47,7 @@ import {
   boundedMinWidthPx,
   getMainContentMinWidth,
 } from "~/shared/main/layout-widths";
+import { NewNoteButton } from "~/shared/new-note-button";
 import { useOpenNoteDialog } from "~/shared/open-note-dialog";
 import { useNewNoteAndListen } from "~/shared/useNewNote";
 import { useSidebarNotes } from "~/sidebar/note-filter";
@@ -61,6 +62,13 @@ type LeftSidebarSizeStyle = CSSProperties & {
   "--left-sidebar-panel-size": string;
   "--left-sidebar-panel-width": string;
 };
+
+const NOTE_HEADER_TAB_TYPES = new Set<string>([
+  "sessions",
+  "shared_sessions",
+  "shared_note_preview",
+  "onboarding",
+]);
 
 export function ClassicMainBody() {
   const { leftsidebar } = useShell();
@@ -585,6 +593,12 @@ export function ClassicMainBody() {
                 key={uniqueIdfromTab(currentTab)}
                 tab={currentTab as Tab}
               />
+            ) : null}
+            {/* Fork: note tabs show this button in their own header. */}
+            {!isOnboarding &&
+            currentTab &&
+            !NOTE_HEADER_TAB_TYPES.has(currentTab.type) ? (
+              <NewNoteButton className="absolute top-[15px] right-[11px] z-30" />
             ) : null}
           </div>
         </ResizablePanel>

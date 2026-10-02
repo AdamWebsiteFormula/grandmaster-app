@@ -78,7 +78,7 @@ export async function checkEventNotifications(
 
       void notificationCommands.showNotification({
         key: notificationKey,
-        title: event.title || t`Upcoming Event`,
+        title: event.title || t`Upcoming event`,
         message:
           minutesUntil === 1
             ? t`Starting in 1 minute`

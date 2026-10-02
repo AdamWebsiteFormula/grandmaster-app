@@ -83,7 +83,7 @@ export function NoteLockScreen({
     <LockScreen
       title={sessionTitle || t`Note is Locked`}
       description={hint}
-      action={t`View Note`}
+      action={t`View note`}
       authenticating={authenticating}
       onUnlock={onUnlock}
       className="bg-transparent"

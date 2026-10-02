@@ -271,17 +271,17 @@ function StateBadge({
 
   if (isPR && isMerged) {
     label = t`Merged`;
-    colorClass = "bg-purple-100 text-purple-700";
+    colorClass = "bg-primary/10 text-primary";
     Icon = GitMerge;
   } else if (isClosed) {
     label = t`Closed`;
     colorClass = isPR
-      ? "bg-red-100 text-red-700"
-      : "bg-purple-100 text-purple-700";
+      ? "bg-destructive/10 text-destructive"
+      : "bg-primary/10 text-primary";
     Icon = XCircle;
   } else {
     label = t`Open`;
-    colorClass = "bg-green-100 text-green-700";
+    colorClass = "bg-primary/10 text-primary";
     Icon = isPR ? GitPullRequest : RadioButton;
   }
 

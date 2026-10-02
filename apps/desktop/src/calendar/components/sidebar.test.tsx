@@ -139,7 +139,7 @@ describe("CalendarSidebarContent", () => {
     expect(screen.getByText("Apple Calendar access is off")).toBeTruthy();
     expect(mocks.calendar.open).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole("button", { name: "Open Settings" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open settings" }));
 
     expect(mocks.calendar.open).toHaveBeenCalledOnce();
   });

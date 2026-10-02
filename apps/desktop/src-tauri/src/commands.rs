@@ -146,6 +146,14 @@ pub async fn install_embedded_cli<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn get_mcp_server_paths<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<crate::embedded_cli::McpServerPaths, String> {
+    crate::embedded_cli::mcp_server_paths(&app)
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn list_skill_agents() -> Result<Vec<SkillAgentStatus>, String> {
     if cfg!(feature = "app-store") {
         return Ok(Vec::new());

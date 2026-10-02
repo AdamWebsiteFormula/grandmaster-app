@@ -38,6 +38,7 @@ import {
   WINDOW_CONTROLS_GUTTER_CLASS,
   WINDOW_CONTROLS_GUTTER_PLUS_32_CLASS,
 } from "~/shared/hooks/useWindowControlsGutter";
+import { NewNoteButton } from "~/shared/new-note-button";
 import { getScheme } from "~/shared/utils";
 import type { EditorView, Tab } from "~/store/zustand/tabs/schema";
 import { useListener } from "~/stt/contexts";
@@ -129,6 +130,7 @@ export function OuterHeader({
           sessionId={sessionId}
           currentView={currentView}
         />
+        {!standaloneWindow && <NewNoteButton className="ml-1" />}
       </div>
     </div>
   );
@@ -286,7 +288,7 @@ function HeaderMeetingAction({
       return {
         label: t`Stop`,
         title: t`Stop listening`,
-        icon: <Square className="size-3 text-red-500" />,
+        icon: <Square className="size-3 text-destructive" />,
         onClick: stopListening,
       };
     }

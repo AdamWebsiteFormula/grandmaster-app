@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useMemo } from "react";
 
 import type { BillingInfo } from "@anlg/supabase";
 
@@ -14,9 +14,16 @@ export const BillingContext = createContext<BillingAccess | null>(null);
 export function useBillingAccess() {
   const context = useContext(BillingContext);
 
-  if (!context) {
+  // Fork (blueprint section 5): no plans or plan gates. Pro features are
+  // local and always on; isPaid (cloud models, sharing) stays as reported.
+  const access = useMemo(
+    () => (context ? { ...context, isPro: true } : null),
+    [context],
+  );
+
+  if (!access) {
     throw new Error("useBillingAccess must be used within BillingProvider");
   }
 
-  return context;
+  return access;
 }

@@ -114,7 +114,7 @@ export function FinalSection({
         )}
       </OnboardingButton>
       {status === "error" && (
-        <p className="text-sm text-red-500" role="alert">
+        <p className="text-destructive text-sm" role="alert">
           {translate({
             id: "onboarding.finish-error",
             message: "Couldn't open Upshot. Please try again.",

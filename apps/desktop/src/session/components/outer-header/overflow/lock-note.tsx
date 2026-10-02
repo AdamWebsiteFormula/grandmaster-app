@@ -32,7 +32,7 @@ export function LockNote({ sessionId }: { sessionId: string }) {
     >
       {locked ? <LockOpen /> : <Lock />}
       <span>
-        {locked ? <Trans>Unlock Note</Trans> : <Trans>Lock Note</Trans>}
+        {locked ? <Trans>Unlock note</Trans> : <Trans>Lock note</Trans>}
       </span>
     </DropdownMenuItem>
   );

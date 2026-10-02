@@ -145,10 +145,10 @@ export function LegacyMigrationCleanupRow() {
             <CircleNotch className="text-muted-foreground mt-0.5 size-4 shrink-0 animate-spin" />
           )}
           {statusCopy.state === "success" && (
-            <CheckCircle className="mt-0.5 size-4 shrink-0 text-green-600" />
+            <CheckCircle className="mt-0.5 size-4 shrink-0 text-primary" />
           )}
           {statusCopy.state === "warning" && (
-            <Warning className="mt-0.5 size-4 shrink-0 text-yellow-600" />
+            <Warning className="mt-0.5 size-4 shrink-0 text-primary" />
           )}
           {statusCopy.state === "unavailable" && (
             <Info className="text-muted-foreground mt-0.5 size-4 shrink-0" />
@@ -211,7 +211,7 @@ export function LegacyMigrationCleanupRow() {
             </DialogHeader>
 
             {cleanupMutation.error && (
-              <p className="mx-4 mt-3 text-center text-xs text-red-500">
+              <p className="mx-4 mt-3 text-center text-xs text-destructive">
                 {cleanupMutation.error.message}
               </p>
             )}

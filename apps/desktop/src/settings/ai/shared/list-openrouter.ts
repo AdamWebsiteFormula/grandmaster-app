@@ -14,11 +14,17 @@ import {
   shouldIgnoreCommonKeywords,
   sortModelsByRecency,
 } from "./list-common";
+import { priceTier, toReleaseDate } from "./model-catalog";
 
 const OpenRouterModelSchema = Schema.Struct({
   data: Schema.Array(
     Schema.Struct({
       id: Schema.String,
+      name: Schema.optional(Schema.Unknown),
+      created: Schema.optional(Schema.Unknown),
+      expiration_date: Schema.optional(Schema.Unknown),
+      context_length: Schema.optional(Schema.Unknown),
+      pricing: Schema.optional(Schema.Unknown),
       supported_parameters: Schema.optional(Schema.Array(Schema.String)),
       architecture: Schema.optional(
         Schema.Struct({
@@ -63,7 +69,10 @@ export const processOpenRouterModels = (
     metadata: extractMetadataMap(
       data,
       (model) => model.id,
-      (model) => ({ input_modalities: getInputModalities(model) }),
+      (model) => ({
+        input_modalities: getInputModalities(model),
+        ...getCatalogSignals(model),
+      }),
     ),
   };
 };
@@ -114,4 +123,29 @@ const getInputModalities = (model: OpenRouterModel): InputModality[] => {
       ? ["image"]
       : []) satisfies InputModality[]),
   ];
+};
+
+const getCatalogSignals = (model: OpenRouterModel) => {
+  const pricing =
+    typeof model.pricing === "object" && model.pricing !== null
+      ? (model.pricing as { prompt?: unknown })
+      : {};
+  const perToken = Number(pricing.prompt);
+  return {
+    displayName:
+      typeof model.name === "string"
+        ? model.name.replace(/^[^:]+:\s*/, "")
+        : undefined,
+    releasedAt: toReleaseDate(model.created),
+    deprecated: Boolean(model.expiration_date) || undefined,
+    contextWindow:
+      typeof model.context_length === "number" && model.context_length > 0
+        ? model.context_length
+        : undefined,
+    priceTier:
+      pricing.prompt !== undefined && Number.isFinite(perToken) && perToken >= 0
+        ? priceTier(perToken * 1e6)
+        : undefined,
+    thinking: model.supported_parameters?.includes("reasoning") || undefined,
+  };
 };

@@ -245,7 +245,7 @@ export function TemplateForm({
             className={cn([
               "text-muted-foreground shrink-0 hover:text-black",
               isDefault
-                ? "text-emerald-600 hover:bg-transparent hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
+                ? "text-primary hover:bg-transparent hover:text-primary"
                 : null,
             ])}
           >
@@ -265,7 +265,7 @@ export function TemplateForm({
             onClick={() => toggleTemplateFavorite(id)}
             className={cn([
               "text-muted-foreground hover:text-foreground",
-              template.pinned && "text-rose-500 hover:text-rose-600",
+              template.pinned && "text-destructive hover:text-destructive",
             ])}
             title={
               template.pinned ? "Unfavorite template" : "Favorite template"
@@ -304,7 +304,7 @@ export function TemplateForm({
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => handleDeleteTemplate(id)}
-                  className="cursor-pointer text-red-600 focus:text-red-600"
+                  className="cursor-pointer text-destructive focus:text-destructive"
                 >
                   <Trans>Delete</Trans>
                 </DropdownMenuItem>

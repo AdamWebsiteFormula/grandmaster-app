@@ -1,6 +1,8 @@
 import { Effect } from "effect";
 
+import { catalogOldVerdict, findCatalogEntry } from "./model-catalog";
 import { modelName } from "./model-id";
+import { getRegistry } from "./model-registry";
 
 import { providerFetch } from "~/ai/provider-fetch";
 
@@ -21,12 +23,24 @@ export type InputModality = "image" | "text";
 
 export type ModelMetadata = {
   input_modalities?: InputModality[];
+  displayName?: string;
+  family?: string;
+  releasedAt?: string; // YYYY-MM-DD, from the provider or the catalog
+  isNew?: boolean;
+  thinking?: boolean;
+  preview?: boolean;
+  deprecated?: boolean;
+  contextWindow?: number;
+  priceTier?: string;
 };
 
 export type ListModelsResult = {
   models: string[];
   ignored: IgnoredModel[];
   metadata: Record<string, ModelMetadata>;
+  // "offline": the provider could not be reached and the list comes from
+  // the model catalog ("Offline list").
+  source?: "live" | "offline";
 };
 
 export const DEFAULT_RESULT: ListModelsResult = {
@@ -206,7 +220,17 @@ export const removeNonStreamingModels = (
   };
 };
 
+// Release date + deprecation signals from the model catalog decide first.
+// The regex deny-list below only applies to ids the catalog does not know.
 export const isOldModel = (id: string): boolean => {
+  const verdict = catalogOldVerdict(getRegistry(), id, Date.now());
+  if (verdict !== undefined) {
+    return verdict;
+  }
+  return isOldModelByName(id);
+};
+
+const isOldModelByName = (id: string): boolean => {
   const name = modelName(id);
   const dashedName = name.replace(/\./g, "-");
 
@@ -266,7 +290,12 @@ export const isOldModel = (id: string): boolean => {
   return false;
 };
 
+// Newest release first when the catalog knows the date; the patterns below
+// only order models the catalog does not know yet.
 export const sortModelsByRecency = (models: string[]): string[] => {
+  const registry = getRegistry();
+  const released = (model: string) =>
+    findCatalogEntry(registry, undefined, model)?.entry.releasedAt ?? "";
   const priority = (model: string) => {
     const normalized = modelName(model);
     const index = modelPriorityPatterns.findIndex((pattern) =>
@@ -276,6 +305,10 @@ export const sortModelsByRecency = (models: string[]): string[] => {
   };
 
   return [...models].sort((a, b) => {
+    const dateDelta = released(b).localeCompare(released(a));
+    if (dateDelta !== 0) {
+      return dateDelta;
+    }
     const priorityDelta = priority(a) - priority(b);
     if (priorityDelta !== 0) {
       return priorityDelta;
@@ -291,7 +324,9 @@ const hasMetadata = (metadata: ModelMetadata | undefined): boolean => {
   if (metadata.input_modalities && metadata.input_modalities.length > 0) {
     return true;
   }
-  return false;
+  return Object.entries(metadata).some(
+    ([key, value]) => key !== "input_modalities" && value !== undefined,
+  );
 };
 
 export const partition = <T>(
