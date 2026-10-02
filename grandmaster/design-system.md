@@ -59,6 +59,8 @@ Adam picked orange on Oct 2 (the blueprint offered mint or violet). It matches t
 | `text-3xl` | 33.2 px (2.074rem) | 2.5rem |
 
 - Note headings use the same ratio in `em`: h1 1.44em, h2 1.2em, h3 1em.
+- Headline and body pairs sit three steps apart (1.2³ = 1.73, close to the 1.6 "golden ratio"). Examples: a Settings page title `text-xl` over `text-sm` rows, a note title 1.728rem over 16 px body, an onboarding section title `text-xl` over `text-sm` text, a home stat number `text-xl` over a `text-sm` label. Sub-headings may sit one or two steps above their text.
+- No widows: a heading never ends with one word alone on its last line. Every `h1`–`h6` gets `text-wrap: balance`, and `p`, `li` and `figcaption` get `text-wrap: pretty`, in the `@layer base` block of `apps/desktop/src/styles/globals.css`. For a heading built from a `div` or `span`, add Tailwind `text-balance`.
 - Arbitrary sizes map down to a step: `text-[10px]` and `text-[11px]` to `text-xs`, `text-[13px]` to `text-sm`.
 
 ## Shape and space

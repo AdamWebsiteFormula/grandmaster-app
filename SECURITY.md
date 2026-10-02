@@ -1,36 +1,29 @@
-# Security Policy
+# Security policy
 
-## Supported Versions
+## Supported versions
 
-Anarlog moves fast and we only ship fixes forward. Security updates are applied to the latest release only.
+Upshot ships fixes forward. Only the latest release gets security fixes.
 
-| Version        | Supported          |
-| -------------- | ------------------ |
-| Latest release | :white_check_mark: |
-| Older versions | :x:                |
+## Report a vulnerability
 
-If you're on an older version, please update to the latest release before reporting an issue you can no longer reproduce.
+Please do not open a public issue for a security problem.
 
-## Reporting a Vulnerability
+Report it privately on GitHub: [report a vulnerability](https://github.com/AdamWebsiteFormula/grandmaster-app/security/advisories/new).
 
-Please do not open a public issue for security vulnerabilities.
+Please include:
 
-Instead, use one of these private channels:
+- What the problem is and what an attacker could do with it
+- Steps to reproduce, a proof of concept, or the affected code
+- The Upshot version and your macOS version
 
-- **GitHub**: [Report a vulnerability](https://github.com/fastrepl/anarlog/security/advisories/new) via private vulnerability reporting (preferred)
-- **Email**: team@fastrepl.com
+## What to expect
 
-When reporting, please include:
+- We confirm we received your report within 3 business days.
+- We tell you what we plan to do and when.
+- We credit you in the fix, unless you ask us not to.
 
-- A description of the vulnerability and its potential impact
-- Steps to reproduce, a proof of concept, or affected code paths
-- The Anarlog version and platform you tested against
+## Scope
 
-## What to Expect
+Upshot is a local-first Mac app. It has no server of its own. Your notes, transcripts and audio stay on your Mac, and your AI keys stay in the macOS Keychain. See "Where your data lives" in the [README](README.md).
 
-- We'll acknowledge your report within 3 business days.
-- We'll keep you updated as we investigate, and let you know whether the report is accepted or declined.
-- If accepted, we'll work on a fix and credit you in the release notes unless you prefer to stay anonymous.
-- Please give us a reasonable window to ship a fix before any public disclosure.
-
-Thanks for helping keep Anarlog and its users safe.
+Upshot is a fork of [Anarlog](https://github.com/fastrepl/anarlog). If a problem is in code that Upshot did not change, please also report it to the Anarlog project.

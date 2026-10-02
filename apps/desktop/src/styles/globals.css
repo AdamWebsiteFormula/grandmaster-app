@@ -76,6 +76,23 @@ html[data-rounded-window] #root {
   --text-4xl--line-height: 2.75rem;
 }
 
+/* No widows: headings balance their lines; short copy avoids a lone last word. */
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-wrap: balance;
+  }
+  p,
+  li,
+  figcaption {
+    text-wrap: pretty;
+  }
+}
+
 @source "../../node_modules/streamdown/dist/index.js";
 @source "../../../../packages/changelog/src";
 @source "../../../../packages/editor/src";

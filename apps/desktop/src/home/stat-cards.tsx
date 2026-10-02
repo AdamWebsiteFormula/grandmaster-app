@@ -149,7 +149,7 @@ function StatCard({
       <p className="text-muted-foreground text-sm">{title}</p>
       {value ? (
         <>
-          <p className="text-foreground font-mono text-3xl font-medium tabular-nums">
+          <p className="text-foreground font-mono text-xl font-medium tabular-nums">
             {value}
           </p>
           <p className="text-muted-foreground text-sm">{line}</p>

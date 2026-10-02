@@ -239,7 +239,7 @@ function SettingsSectionContent({
           </form.Subscribe>
 
           <div>
-            <h2 className="mb-4 font-sans text-lg font-semibold">
+            <h2 className="mb-4 font-sans text-base font-semibold">
               <Trans>Language &amp; region</Trans>
             </h2>
             <div className="flex flex-col gap-6">
@@ -327,14 +327,14 @@ function SettingsSectionContent({
           </form.Subscribe>
 
           <div>
-            <h2 className="mb-4 font-sans text-lg font-semibold">
+            <h2 className="mb-4 font-sans text-base font-semibold">
               <Trans>Summaries</Trans>
             </h2>
             <SummaryLengthSelector />
           </div>
 
           <div>
-            <h2 className="mb-4 font-sans text-lg font-semibold">
+            <h2 className="mb-4 font-sans text-base font-semibold">
               <Trans>Audio</Trans>
             </h2>
             <AudioSettingsView

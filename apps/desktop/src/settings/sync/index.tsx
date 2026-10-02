@@ -294,7 +294,7 @@ function SyncSettingsPreview() {
         </Button>
       </div>
       <div>
-        <h2 className="mb-4 font-sans text-lg font-semibold">
+        <h2 className="mb-4 font-sans text-base font-semibold">
           <Trans>Devices</Trans>
         </h2>
         <div className="border-border/60 overflow-hidden rounded-xl border">
