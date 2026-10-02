@@ -9,7 +9,7 @@ Dark-first. True black base. One accent. Written Oct 2, 2026. The SOP that appli
 - The accent is the orange from the app icon. It marks one thing per screen: the main action, the live recording state, focus and selection.
 - Light theme stays as an option in Settings. Dark is the default for new users.
 
-## Colour tokens
+## Color tokens
 
 Bare HSL triples in `packages/design-system/src/tokens.css`, read as `hsl(var(--x))`. Never put hex or `oklch()` there.
 
@@ -33,14 +33,16 @@ Bare HSL triples in `packages/design-system/src/tokens.css`, read as `hsl(var(--
 
 ### The one accent
 
-Orange `#FF6A1F` = `hsl(20 100% 56%)`, sampled from `icons/stable/icon.png`. It is the only hue in the UI. Red is reserved for errors and recording-stop. Every other colour is a neutral grey.
+Orange `#FF6A1F` = `hsl(20 100% 56%)`, sampled from `icons/stable/icon.png`. It is the only hue in the UI. Red is reserved for errors and recording-stop. Every other color is a neutral gray.
 
-The blueprint offered mint or violet. The icon already shipped in orange, so the UI matches the icon. To change it, edit `--primary` and `--ring` in both token blocks, `--selection-overlay` in `dark-theme.css`, and the splash in `apps/desktop/index.html`.
+Adam picked orange on Oct 2 (the blueprint offered mint or violet). It matches the app icon. To change it later, edit `--primary` and `--ring` in both token blocks, `--selection-overlay` in `dark-theme.css`, and the splash in `apps/desktop/index.html`.
 
 ## Type
 
-- Font: system UI (SF Pro on macOS) until Geist (OFL) is added under `apps/desktop/public/fonts/`. Mono: system mono until Geist Mono is added.
+- Font: Geist, with Geist Mono for numbers and times. Variable `.woff2` files and the SIL OFL license live in `apps/desktop/public/fonts/`. `--font-sans` and `--font-mono` are set in `apps/desktop/src/styles/globals.css`.
 - One ratio: 1.2 (minor third) from a 16 px base. Set in the desktop `@theme` as `--text-*`, so every Tailwind `text-*` class follows it.
+- Fonts and `--text-*` are also set in an unlayered `:root` block in `apps/desktop/src/styles/globals.css`. Keep it: `@anlg/ui/globals.css` loads later and would reset them to Tailwind defaults.
+- Note text never auto-hyphenates (`hyphens: manual` in `packages/editor/src/styles/prosemirror/base.css`).
 
 | Class | Size | Line height |
 |---|---|---|

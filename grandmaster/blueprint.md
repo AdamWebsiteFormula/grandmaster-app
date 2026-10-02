@@ -44,8 +44,8 @@ Companion files: `grandmaster/features.md` (what we build), `CLAUDE.md` (how ses
 | Bundle ID | `co.websiteformula.[app]` | A new ID also gives a fresh macOS permissions identity |
 | Deep link | `[app]://` | One scheme only |
 | Icon | 1024 px PNG, which becomes `.icns` | Simple silhouette that reads at 16 px |
-| Accent | Electric mint or violet (Design lane proposes, Adam picks) | One accent only |
-| Fonts | Geist or Inter Display, plus Geist Mono for numbers | OFL fonts only |
+| Accent | Orange #FF6A1F, from the app icon (Adam picked, Oct 2) | One accent only |
+| Fonts | Geist, plus Geist Mono for numbers (Adam picked, Oct 2) | OFL fonts only |
 | Voice | Plain, sentence case, no eyebrow labels | — |
 | IP rules | No Granola name, logo, cream-and-olive palette, slab serif or look-alike layout. Credit Anarlog (MIT) and sqlite-sync (ELv2) in NOTICE and README. | — |
 

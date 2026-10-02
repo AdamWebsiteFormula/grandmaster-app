@@ -15,7 +15,7 @@
   word-break: break-word;
   overflow-wrap: break-word;
   white-space: pre-wrap;
-  hyphens: auto;
+  hyphens: manual;
   padding-bottom: 24px;
   caret-color: #374151;
   min-height: 100%;

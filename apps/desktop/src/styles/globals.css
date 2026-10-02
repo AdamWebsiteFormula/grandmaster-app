@@ -8,6 +8,22 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Geist and Geist Mono, SIL OFL 1.1 (public/fonts/Geist-OFL.txt). */
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/Geist-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/GeistMono-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 html[data-floating-bar],
 html[data-floating-bar] body,
 html[data-floating-bar] #root,
@@ -34,6 +50,33 @@ html[data-rounded-window] #root {
   }
 }
 
+/* Unlayered so @anlg/ui/globals.css (imported later, in @layer theme) can't
+ * reset the fonts or the type scale. Values match the @theme block below. */
+:root {
+  --font-sans:
+    "Geist", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --default-font-family: var(--font-sans);
+  --default-mono-font-family: var(--font-mono);
+  --text-xs: 0.694rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.833rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.2rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.44rem;
+  --text-xl--line-height: 2rem;
+  --text-2xl: 1.728rem;
+  --text-2xl--line-height: 2.25rem;
+  --text-3xl: 2.074rem;
+  --text-3xl--line-height: 2.5rem;
+  --text-4xl: 2.488rem;
+  --text-4xl--line-height: 2.75rem;
+}
+
 @source "../../node_modules/streamdown/dist/index.js";
 @source "../../../../packages/changelog/src";
 @source "../../../../packages/editor/src";
@@ -41,7 +84,9 @@ html[data-rounded-window] #root {
 
 @theme {
   --font-sans:
-    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    "Geist", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --font-hand: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
 
   /* One type ratio: 1.2 from a 16px base. See grandmaster/design-system.md. */
