@@ -1,0 +1,8 @@
+Upshot
+Copyright (c) 2026 Website Formula.
+
+This product is a fork of Anarlog (desktop v1.4.28).
+Anarlog is Copyright (c) Fastrepl, Inc. and licensed under the MIT License. See LICENSE.
+
+This product includes sqlite-sync (crates/cloudsync), licensed under the Elastic License 2.0 (ELv2).
+It is included unmodified. See LICENSE.enterprise.

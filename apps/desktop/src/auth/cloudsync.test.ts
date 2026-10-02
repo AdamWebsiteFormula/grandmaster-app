@@ -655,7 +655,7 @@ describe("CloudSync auth lifecycle", () => {
         method: "POST",
         headers: {
           Authorization: "Bearer supabase-token",
-          "X-Anarlog-E2EE-Key-Id": E2EE_KEY_ID,
+          "X-Upshot-E2EE-Key-Id": E2EE_KEY_ID,
           "x-anarlog-e2ee-member-public-key": E2EE_MEMBER_PUBLIC_KEY,
           "x-anarlog-cloudsync-transports": "replica",
         },
@@ -1158,7 +1158,7 @@ describe("CloudSync auth lifecycle", () => {
           JSON.stringify({
             error: {
               code: "subscription_required",
-              message: "Anarlog Pro is required for CloudSync",
+              message: "Upshot Pro is required for CloudSync",
             },
           }),
           { status: 403, headers: { "Content-Type": "application/json" } },
@@ -1175,7 +1175,7 @@ describe("CloudSync auth lifecycle", () => {
     expect(configureCloudsyncToken).not.toHaveBeenCalled();
     expect(suspendCloudsync).toHaveBeenCalledTimes(1);
     expect(warn).toHaveBeenCalledWith(
-      "[cloudsync] Anarlog Pro is required; sync remains disabled",
+      "[cloudsync] Upshot Pro is required; sync remains disabled",
     );
     expect(getCloudsyncCredentialBlock()).toBe("not_entitled");
   });

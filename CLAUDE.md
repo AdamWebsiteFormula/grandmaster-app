@@ -1,4 +1,4 @@
-# CLAUDE.md — [APP NAME] (fork of Anarlog desktop_v1.4.28)
+# CLAUDE.md — Upshot (fork of Anarlog desktop_v1.4.28)
 
 ## Goal
 A rebranded, restyled fork of Anarlog: a bot-free AI meeting notepad for Apple Silicon Macs with an always-current model picker. Submission-ready Sun Oct 4, 9:00 AM ET. Scope lives in grandmaster/blueprint.md and grandmaster/features.md.

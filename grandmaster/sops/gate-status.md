@@ -20,4 +20,5 @@
 - DMG rebuilt with that fix (13:19): SHA-256 295877a00d673cce46afb33f7e814268b1222fdbb0a3c437c4cfb56e1f77dc10, valid on disk.
 - Apple Speech asset: the app's own download hung on "Downloading apple-speech". Installing via AssetInventory from a separate process finished in seconds; app restart picked it up ("Live"). Watch for this on the clean account.
 - Gate test (dev app, 13:46): GREEN, with one caveat. System channel (1): 41 words from the built-in demo meeting. Mic channel (0): 9 words. Both via Apple Speech, but in two separate recordings, not one. Enhance with Adam's key (Anthropic, Claude Sonnet 5.5): works; summary output ended mid-markdown ("**Settings →"), to check later.
-- Second-account DMG test: DMG copied to /Users/Shared/ (checksum OK). No second macOS user exists yet. Adam creates one, installs, and runs one recording with demo audio and his voice together.
+- Second-account DMG test: DEFERRED by Adam (14:0x) to keep moving. "Test" (Standard) user now exists; DMG at /Users/Shared/Anarlog-Dev_1.4.28_aarch64.dmg (Spotlight finds it: Cmd+Space "Anarlog-Dev"). Run before 10 PM or on the Saturday release DMG.
+- Release script: grandmaster/scripts/release.sh (rebuilds sidecars, tauri build, ad-hoc sign, DMG -> ~/grandmaster-release/).

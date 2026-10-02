@@ -106,7 +106,7 @@ function getStartupDetail(status: StartupStatus | undefined) {
 
 function StartupErrorView({ error }: { error: Error }) {
   const needsUpdate = error.message.includes(
-    "created by a newer version of Anarlog",
+    "created by a newer version of Upshot",
   );
 
   const handleRestart = async () => {
@@ -128,11 +128,11 @@ function StartupErrorView({ error }: { error: Error }) {
     >
       <div className="flex max-w-sm flex-col items-center gap-4 text-center">
         <h1 className="text-foreground text-base font-semibold">
-          {needsUpdate ? "Anarlog needs an update" : "Anarlog could not start"}
+          {needsUpdate ? "Upshot needs an update" : "Upshot could not start"}
         </h1>
         <p className="text-muted-foreground text-sm leading-relaxed">
           {needsUpdate
-            ? "Your data was updated by a newer version of Anarlog, such as Anarlog Nightly, and this version cannot open it yet. Your existing data was left unchanged. Install the latest version of Anarlog, or keep using the newer app until this version catches up."
+            ? "Your data was updated by a newer version of Upshot, such as Upshot Nightly, and this version cannot open it yet. Your existing data was left unchanged. Install the latest version of Upshot, or keep using the newer app until this version catches up."
             : "Your existing data was left unchanged. Please restart the app. If the problem continues, contact support."}
         </p>
         {needsUpdate ? null : (

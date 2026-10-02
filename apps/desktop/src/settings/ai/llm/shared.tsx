@@ -66,7 +66,7 @@ export type Provider = {
 const _PROVIDERS = [
   {
     id: "anarlog",
-    displayName: "Anarlog",
+    displayName: "Upshot",
     badge: "Recommended",
     icon: <AnarlogProviderIcon />,
     baseUrl: new URL(
@@ -184,7 +184,7 @@ const _PROVIDERS = [
       models: { label: "Available models", url: "https://lmstudio.ai/models" },
       setup: {
         label: "Setup guide",
-        url: "https://docs.anarlog.so/ai-setup#lm-studio",
+        url: "https://github.com/AdamWebsiteFormula/upshot",
       },
     },
   },
@@ -204,7 +204,7 @@ const _PROVIDERS = [
       models: { label: "Available models", url: "https://ollama.com/library" },
       setup: {
         label: "Setup guide",
-        url: "https://docs.anarlog.so/ai-setup#ollama",
+        url: "https://github.com/AdamWebsiteFormula/upshot",
       },
     },
   },
@@ -233,7 +233,7 @@ const _PROVIDERS = [
       },
       setup: {
         label: "Setup guide",
-        url: "https://docs.anarlog.so/ai-setup#unsloth",
+        url: "https://github.com/AdamWebsiteFormula/upshot",
       },
     },
   },

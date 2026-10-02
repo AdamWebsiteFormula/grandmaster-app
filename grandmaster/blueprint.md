@@ -1,4 +1,4 @@
-# Blueprint — [APP NAME]
+# Blueprint — Upshot
 
 Oct 2, 2026 · B.L.A.S.T. phase 1 (Blueprint) · No code until Adam approves this file.
 

@@ -1,4 +1,4 @@
-# Features — [APP NAME]
+# Features — Upshot
 
 Oct 2, 2026 · Final scope · Source: the build plan §8, Adam's "Granola UX and UI weaknesses" research and "Glaido Crossover Features" research.
 

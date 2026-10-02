@@ -48,7 +48,7 @@ export async function requestCloudsyncCredentials({
     }
     const headers: Record<string, string> = {
       Authorization: `Bearer ${accessToken}`,
-      "X-Anarlog-E2EE-Key-Id": encryptionKeyId,
+      "X-Upshot-E2EE-Key-Id": encryptionKeyId,
       [E2EE_MEMBER_PUBLIC_KEY_HEADER]: memberPublicKey,
       [CLOUDSYNC_TRANSPORTS_HEADER]: CLOUDSYNC_ACCEPTED_TRANSPORTS,
     };

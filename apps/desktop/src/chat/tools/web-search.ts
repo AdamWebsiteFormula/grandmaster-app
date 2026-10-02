@@ -13,7 +13,7 @@ const webSearchInputSchema = z.object({
     .max(5)
     .optional()
     .describe(
-      "Optional domains to search within, for example ['char.com']. Use only when the user names a specific site or domain.",
+      "Optional domains to search within, for example ['example.com']. Use only when the user names a specific site or domain.",
     ),
   excludeDomains: z
     .array(z.string().min(1))

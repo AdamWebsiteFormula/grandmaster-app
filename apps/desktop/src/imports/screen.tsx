@@ -683,7 +683,7 @@ export function MeetingImportScreen({
                         <p className="text-muted-foreground text-xs">
                           <Trans>
                             New meetings are imported automatically while
-                            Anarlog is running.
+                            Upshot is running.
                           </Trans>
                         </p>
                       ) : null}

@@ -62,7 +62,7 @@ export function useDictation({
       }
       if (captureState.data !== "inactive") {
         toast.warning(
-          t`Voice input is unavailable while Anarlog is recording a meeting.`,
+          t`Voice input is unavailable while Upshot is recording a meeting.`,
         );
         setPhase("idle");
         return;

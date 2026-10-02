@@ -1,6 +1,6 @@
-# Anarlog Overview
+# Upshot Overview
 
-Anarlog is an AI-powered notepad designed for private meetings with complete on-device processing. No data leaves your computer, with optional telemetry.
+Upshot is an AI-powered notepad designed for private meetings with complete on-device processing. No data leaves your computer, with optional telemetry.
 
 # How It Works
 

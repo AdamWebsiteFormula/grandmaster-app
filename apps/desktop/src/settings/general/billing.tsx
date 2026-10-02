@@ -101,7 +101,7 @@ export function SettingsBilling() {
               openNew({ type: "settings", state: { tab: "account" } })
             }
           >
-            <Trans>Sign in to Anarlog</Trans>
+            <Trans>Sign in to Upshot</Trans>
           </button>
           <GuestPlanSection />
         </>
@@ -167,7 +167,7 @@ function useBillingActions(
   const openEnterprise = useCallback(async () => {
     setActionPending(true);
     try {
-      await openerCommands.openUrl("https://anarlog.so/enterprise/", null);
+      await openerCommands.openUrl("https://github.com/AdamWebsiteFormula/upshot", null);
     } finally {
       setActionPending(false);
     }
@@ -414,7 +414,7 @@ function PlanBillingSection({
           ) : (
             <>
               <p className="font-sans text-base font-medium">
-                {`Anarlog ${planLabel}`}
+                {`Upshot ${planLabel}`}
               </p>
               <div className="text-muted-foreground mt-1 flex flex-col gap-0.5 text-sm">
                 {priceText != null && <p>{priceText}</p>}

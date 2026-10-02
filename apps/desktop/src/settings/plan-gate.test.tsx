@@ -59,7 +59,7 @@ describe("PlanGate", () => {
 
     expect(onClick).not.toHaveBeenCalled();
     expect(mocks.toastWarning).toHaveBeenCalledWith(
-      "This requires Anarlog Pro",
+      "This requires Upshot Pro",
       {
         action: {
           label: "Upgrade",
@@ -73,8 +73,8 @@ describe("PlanGate", () => {
   });
 
   it.each([
-    ["team", "Create workspace", "This requires Anarlog Team"],
-    ["enterprise", "Require SSO", "This requires Anarlog Enterprise"],
+    ["team", "Create workspace", "This requires Upshot Team"],
+    ["enterprise", "Require SSO", "This requires Upshot Enterprise"],
   ] as const)(
     "toasts for %s without opening Pro checkout",
     (plan, label, message) => {

@@ -1184,7 +1184,7 @@ async function activateCloudsync(
         return "ok";
       }
       console.warn(
-        "[cloudsync] Anarlog Pro is required; sync remains disabled",
+        "[cloudsync] Upshot Pro is required; sync remains disabled",
       );
       return "ok";
     }

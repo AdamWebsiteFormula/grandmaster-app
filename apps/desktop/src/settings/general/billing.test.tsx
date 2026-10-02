@@ -305,7 +305,7 @@ describe("SettingsBilling", () => {
 
     await waitFor(() =>
       expect(mocks.openUrl).toHaveBeenCalledWith(
-        "https://anarlog.so/enterprise/",
+        "https://github.com/AdamWebsiteFormula/upshot",
         null,
       ),
     );
@@ -321,7 +321,7 @@ describe("SettingsBilling", () => {
       screen.queryByRole("button", { name: "Sign in for Pro" }),
     ).toBeNull();
 
-    fireEvent.click(screen.getByRole("button", { name: "Sign in to Anarlog" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sign in to Upshot" }));
 
     expect(mocks.openNew).toHaveBeenCalledWith({
       type: "settings",

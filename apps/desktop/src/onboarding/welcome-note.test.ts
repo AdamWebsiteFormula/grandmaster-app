@@ -68,8 +68,8 @@ it("creates a prerecorded demo note with normal meeting metadata", async () => {
 
   const [title, , initial] = mocks.createSession.mock.calls[0];
   const event = JSON.parse(initial.event_json);
-  expect(title).toBe("Welcome to Anarlog");
-  expect(event.meeting_link).toBe("https://anarlog.so/onboarding-demo/");
+  expect(title).toBe("Welcome to Upshot");
+  expect(event.meeting_link).toBe("https://github.com/AdamWebsiteFormula/upshot");
   expect(event.tracking_id).toBe("anarlog-onboarding-demo-v1");
   expect(() => JSON.parse(initial.raw_md)).not.toThrow();
 });
@@ -150,12 +150,12 @@ it("ignores a demo callback when listening already stopped", async () => {
 });
 
 it("auto-joins the hosted demo and optionally attaches a completion callback", () => {
-  expect(buildWelcomeNoteDemoUrl("https://anarlog.so/onboarding-demo/")).toBe(
-    "https://anarlog.so/onboarding-demo/?autojoin=1",
+  expect(buildWelcomeNoteDemoUrl("https://github.com/AdamWebsiteFormula/upshot")).toBe(
+    "https://github.com/AdamWebsiteFormula/upshot?autojoin=1",
   );
   expect(
-    buildWelcomeNoteDemoUrl("https://anarlog.so/onboarding-demo/", 43210),
+    buildWelcomeNoteDemoUrl("https://github.com/AdamWebsiteFormula/upshot", 43210),
   ).toBe(
-    "https://anarlog.so/onboarding-demo/?autojoin=1&completion_url=http%3A%2F%2F127.0.0.1%3A43210%2Fonboarding-demo%2Fcomplete",
+    "https://github.com/AdamWebsiteFormula/upshot?autojoin=1&completion_url=http%3A%2F%2F127.0.0.1%3A43210%2Fonboarding-demo%2Fcomplete",
   );
 });
