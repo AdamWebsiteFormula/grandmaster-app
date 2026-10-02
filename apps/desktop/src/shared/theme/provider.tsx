@@ -20,7 +20,7 @@ import { useSettingsThemeReady } from "./use-settings-theme-ready";
 
 import { useConfigValue } from "~/shared/config";
 
-let activeThemePreference: ThemePreference = "system";
+let activeThemePreference: ThemePreference = "dark";
 
 export function AppThemeProvider({ children }: { children: ReactNode }) {
   const theme = useConfigValue("theme") as ThemePreference;

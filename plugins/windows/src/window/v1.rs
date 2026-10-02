@@ -208,7 +208,7 @@ impl AppWindow {
                 .visible(false)
                 .decorations(true)
                 .hidden_title(true)
-                .theme(Some(tauri::Theme::Light))
+                .theme(Some(tauri::Theme::Dark))
                 .traffic_light_position(tauri::LogicalPosition::new(12.0, traffic_light_y))
                 .title_bar_style(tauri::TitleBarStyle::Overlay);
         }

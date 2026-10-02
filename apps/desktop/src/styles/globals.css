@@ -44,6 +44,24 @@ html[data-rounded-window] #root {
     system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-hand: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
 
+  /* One type ratio: 1.2 from a 16px base. See grandmaster/design-system.md. */
+  --text-xs: 0.694rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.833rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.2rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.44rem;
+  --text-xl--line-height: 2rem;
+  --text-2xl: 1.728rem;
+  --text-2xl--line-height: 2.25rem;
+  --text-3xl: 2.074rem;
+  --text-3xl--line-height: 2.5rem;
+  --text-4xl: 2.488rem;
+  --text-4xl--line-height: 2.75rem;
+
   /* Capsule radii still read as pills/circles; remap to a control squircle. */
   --radius-full: 0.5rem;
   --radius-pill: calc(infinity * 1px);
@@ -70,7 +88,7 @@ html[data-rounded-window] #root {
 
   --kbd-press-shadow-outer: rgba(0, 0, 0, 0.1);
   --kbd-press-shadow-inset: rgba(255, 255, 255, 0.8);
-  --selection-overlay: rgba(59, 130, 246, 0.3);
+  --selection-overlay: rgba(255, 106, 31, 0.25);
 
   --animate-shimmer: shimmer 2s infinite;
   --animate-logo-shimmer-sweep: logo-shimmer-sweep 2.4s ease-in-out infinite;

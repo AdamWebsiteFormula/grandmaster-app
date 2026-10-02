@@ -2,28 +2,28 @@
  * in note-typography.css and needs no dark overrides; the rules here cover
  * the remaining shared editor chrome. */
 .dark .prosemirror-editor {
-  caret-color: #d6d3d1;
+  caret-color: hsl(20 100% 56%);
 }
 
 .dark .ProseMirror td,
 .dark .ProseMirror th {
-  border-color: #57534e;
+  border-color: hsl(0 0% 20%);
 }
 
 .dark .ProseMirror th {
-  background-color: #292524;
+  background-color: hsl(0 0% 8%);
 }
 
 .dark .ProseMirror .ProseMirror-search-match {
-  background-color: rgb(113 63 18 / 0.45);
+  background-color: rgb(255 106 31 / 0.3);
 }
 
 .dark .ProseMirror .ProseMirror-active-search-match {
-  background-color: rgb(202 138 4);
+  background-color: rgb(255 106 31 / 0.7);
 }
 
 .dark .ProseMirror .is-editor-empty:first-child::before,
 .dark .ProseMirror .is-empty::before,
 .dark .ProseMirror .react-placeholder-widget {
-  color: #78716c;
+  color: hsl(0 0% 40%);
 }

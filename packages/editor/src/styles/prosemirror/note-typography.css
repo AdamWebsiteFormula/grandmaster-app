@@ -45,12 +45,12 @@
 /* Document hierarchy is proportional to the base size. */
 .note-typography h1 {
   font-weight: 700;
-  font-size: 1.25em;
+  font-size: 1.44em;
   line-height: 1.4;
 }
 .note-typography h2 {
   font-weight: 600;
-  font-size: 1.125em;
+  font-size: 1.2em;
   line-height: 1.4444;
 }
 .note-typography h3 {
@@ -68,8 +68,8 @@
 
 /* First-line session title. */
 .note-typography.note-title-editor > h1:first-child {
-  font-size: 1.5rem;
-  line-height: 1.875rem;
+  font-size: 1.728rem;
+  line-height: 2.25rem;
   margin-bottom: 1rem;
 }
 
@@ -369,13 +369,13 @@
 }
 
 .note-typography a {
-  color: var(--color-blue-600, #2563eb);
+  color: var(--color-primary, #ff6a1f);
   text-decoration-line: underline;
   text-underline-offset: 2px;
   cursor: text;
 
   &:hover {
-    color: color-mix(in oklab, var(--color-blue-600, #2563eb), transparent 20%);
+    color: color-mix(in oklab, var(--color-primary, #ff6a1f), transparent 20%);
     cursor: pointer;
   }
 

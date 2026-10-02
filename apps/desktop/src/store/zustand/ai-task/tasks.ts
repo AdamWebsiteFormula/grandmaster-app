@@ -370,6 +370,10 @@ export const createTasksSlice = <T extends TasksState & TasksActions>(
           if (result === STREAM_TIMEOUT) {
             workflowAbortController.abort();
             if (fullText.trim()) {
+              // Fork: make a silently truncated summary visible in the log.
+              console.warn(
+                `[ai-task] stream idle ${TASK_STREAM_IDLE_TIMEOUT_MS}ms; saving partial text (${fullText.length} chars)`,
+              );
               break;
             }
             throw new Error("AI generation did not return any text.");

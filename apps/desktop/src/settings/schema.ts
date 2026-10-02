@@ -103,7 +103,7 @@ export const SETTING_DEFINITIONS = {
   theme: {
     type: "string",
     path: ["general", "theme"],
-    default: "system" as string,
+    default: "dark" as string,
     synced: true,
   },
   app_icon: {

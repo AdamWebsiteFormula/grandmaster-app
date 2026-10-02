@@ -15,6 +15,6 @@ Every friction point Adam hit in the gate test. Goal: a judge goes from install 
 | 9 | Locked items in Settings (Teams, Sync, Dictation, Dictionary…) | Hide them (per blueprint) |
 | 10 | No obvious "New note / Record" button; only ⌘⇧N works | One visible "Record" button on the main screen |
 | 11 | Demo meeting is a stranger's video; unclear what to do; "Join & record" vanishes after one use | Replace with a short guided first recording, or explain the demo in one line |
-| 12 | Enhance summary ended mid-markdown ("**Settings →") | Check the finish/stop reason in ai-task/tasks.ts |
+| 12 | Enhance summary ended mid-markdown ("**Settings →") | Cause not proven (logs lost). Only silent-truncation path found: tasks.ts saves partial text after a 15 s stream pause, on purpose (upstream test tasks.test.ts:349). Added a console.warn there. If it repeats, grep the dev log for "[ai-task] stream idle" |
 | 13 | Permission row can show "allowed" for ~1 s before the real check | Fix per sops/features.md (onboarding/permissions.tsx:158) |
 | 14 | Dev only: macOS permission prompts named "Claude" | Not an issue in the release DMG |
