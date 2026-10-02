@@ -424,7 +424,7 @@ export function SelectProviderAndModel() {
                         <span>{provider.displayName}</span>
                       </div>
                       {locked ? (
-                        <span className="text-muted-foreground text-[11px]">
+                        <span className="text-muted-foreground text-xs">
                           <Trans>Upgrade to Pro to use this provider.</Trans>
                         </span>
                       ) : null}

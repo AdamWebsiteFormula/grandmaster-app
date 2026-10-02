@@ -320,7 +320,7 @@ export function AccessEntryRow({
       <ContactFacehash name={label} size={24} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs font-medium">{label}</p>
-        <p className="text-muted-foreground truncate text-[10px]">
+        <p className="text-muted-foreground truncate text-xs">
           {contactName && entry.userEmail
             ? entry.userEmail
             : entry.entryType === "grant"
@@ -427,7 +427,7 @@ function CapabilitySelect({
     >
       <SelectTrigger
         aria-label={ariaLabel}
-        className="text-muted-foreground h-7 w-auto min-w-[84px] shrink-0 gap-1 rounded-md border-0 bg-transparent px-1.5 text-[11px] shadow-none"
+        className="text-muted-foreground h-7 w-auto min-w-[84px] shrink-0 gap-1 rounded-md border-0 bg-transparent px-1.5 text-xs shadow-none"
       >
         <SelectValue />
       </SelectTrigger>

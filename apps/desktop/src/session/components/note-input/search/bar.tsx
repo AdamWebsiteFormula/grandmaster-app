@@ -249,7 +249,7 @@ export function SearchBar({
             </ToggleButton>
           )}
         </div>
-        <span className="text-muted-foreground text-[10px] whitespace-nowrap tabular-nums">
+        <span className="text-muted-foreground text-xs whitespace-nowrap tabular-nums">
           {displayCount}
         </span>
         <div className="flex items-center">

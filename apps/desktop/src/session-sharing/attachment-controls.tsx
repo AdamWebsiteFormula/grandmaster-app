@@ -49,7 +49,7 @@ export function SessionAttachmentControls({
             >
               {t`Share audio`}
             </label>
-            <p className="text-muted-foreground text-[11px]">
+            <p className="text-muted-foreground text-xs">
               {available || included
                 ? t`Let people with access play the recording.`
                 : t`Audio is not available on this device.`}

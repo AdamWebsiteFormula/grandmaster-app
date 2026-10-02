@@ -120,7 +120,7 @@ function PermissionGroup({
 }) {
   return (
     <div>
-      <h3 className="text-muted-foreground mb-3 text-xs font-semibold tracking-wide uppercase">
+      <h3 className="text-muted-foreground mb-3 text-xs font-semibold">
         {title}
       </h3>
       <div className="flex flex-col gap-4">{children}</div>

@@ -133,7 +133,7 @@ export function SessionShareDraftContent({
                   />
 
                   <div className="mt-2 pt-2">
-                    <h4 className="text-muted-foreground mb-1 px-1.5 text-[10px] font-medium">
+                    <h4 className="text-muted-foreground mb-1 px-1.5 text-xs font-medium">
                       <Trans>People with access</Trans>
                     </h4>
                     <div className="flex min-h-9 items-center gap-2 rounded-lg px-1.5 py-1">
@@ -144,12 +144,12 @@ export function SessionShareDraftContent({
                           <span className="text-muted-foreground">(You)</span>
                         </p>
                         {ownerEmail ? (
-                          <p className="text-muted-foreground truncate text-[10px]">
+                          <p className="text-muted-foreground truncate text-xs">
                             {ownerEmail}
                           </p>
                         ) : null}
                       </div>
-                      <span className="text-muted-foreground shrink-0 text-[11px]">
+                      <span className="text-muted-foreground shrink-0 text-xs">
                         <Trans>Full access</Trans>
                       </span>
                     </div>

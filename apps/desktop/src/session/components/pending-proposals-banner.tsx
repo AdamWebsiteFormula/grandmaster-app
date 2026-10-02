@@ -17,7 +17,7 @@ export function PendingProposalsBanner({ sessionId }: { sessionId: string }) {
   return (
     <div className="shrink-0 px-1 pt-1 pb-2">
       <div className="border-border/70 bg-card/80 flex items-center justify-between gap-3 rounded-[22px] border px-3 py-2">
-        <p className="text-foreground text-[13px] font-medium">
+        <p className="text-foreground text-sm font-medium">
           {proposals.length === 1 ? (
             <Trans>1 pending edit</Trans>
           ) : (

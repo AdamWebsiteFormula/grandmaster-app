@@ -321,7 +321,7 @@ function TranscriptList({
               behavior: "smooth",
             });
           }}
-          className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-[11px] font-medium"
+          className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-xs font-medium"
           style={{
             background:
               colorScheme === "dark" ? "rgb(46, 46, 43)" : "rgb(242, 242, 237)",
@@ -353,12 +353,12 @@ function TranscriptBubble({
     >
       <div className="max-w-[calc(100%-40px)] text-left">
         {(showsSpeakerLabel || overlapping) && (
-          <p className="mb-1 text-[10px] font-semibold text-white">
+          <p className="mb-1 text-xs font-semibold text-white">
             {showsSpeakerLabel ? bubble.speakerLabel : ""}
           </p>
         )}
         <p
-          className="rounded-[11px] px-2.5 py-2 text-[13px] leading-5 text-white"
+          className="rounded-[11px] px-2.5 py-2 text-sm leading-5 text-white"
           style={{
             background: bubble.isSelf
               ? `rgba(0, 0, 0, ${colorScheme === "dark" ? 0.34 : 0.24})`

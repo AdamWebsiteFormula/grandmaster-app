@@ -293,17 +293,17 @@ export function SelectProviderAndModel() {
                         <ProviderIconSlot>{provider.icon}</ProviderIconSlot>
                         <span>{provider.displayName}</span>
                         {requiresPro ? (
-                          <span className="border-border text-muted-foreground rounded-full border px-2 py-0.5 text-[10px] tracking-wide uppercase">
+                          <span className="border-border text-muted-foreground rounded-full border px-2 py-0.5 text-xs">
                             <Trans>Pro</Trans>
                           </span>
                         ) : null}
                       </div>
                       {locked ? (
-                        <span className="text-muted-foreground text-[11px]">
+                        <span className="text-muted-foreground text-xs">
                           <Trans>Upgrade to Pro to use this provider.</Trans>
                         </span>
                       ) : "description" in provider && provider.description ? (
-                        <span className="text-muted-foreground text-[11px]">
+                        <span className="text-muted-foreground text-xs">
                           {provider.description}
                         </span>
                       ) : null}
@@ -367,7 +367,7 @@ export function SelectProviderAndModel() {
                   return (
                     <span key={model.id}>
                       {categoryLabel && (
-                        <div className="text-muted-foreground px-2 pt-2 pb-1 text-[11px] font-medium tracking-wide uppercase">
+                        <div className="text-muted-foreground px-2 pt-2 pb-1 text-xs font-medium">
                           {categoryLabel}
                         </div>
                       )}
@@ -878,7 +878,7 @@ function ModelSelectItem({
         title={label}
         className="min-w-0 flex-1"
       />
-      <div className="flex shrink-0 items-center gap-2 text-[11px]">
+      <div className="flex shrink-0 items-center gap-2 text-xs">
         <LocalModelBackendBadge model={model.id} />
         {isDeprecated && <DeprecatedBadge />}
         {model.mode !== "realtime" && <ModelModeBadge mode={model.mode} />}
@@ -939,7 +939,7 @@ function ModelSelectItem({
       {isDownloading ? (
         <span
           className={cn([
-            "rounded-full px-2 py-0.5 text-[11px] font-medium",
+            "rounded-full px-2 py-0.5 text-xs font-medium",
             "flex items-center gap-1",
             "from-muted to-accent text-muted-foreground bg-linear-to-t",
           ])}
@@ -955,7 +955,7 @@ function ModelSelectItem({
         <button
           type="button"
           className={cn([
-            "rounded-full px-2 text-[11px] font-medium",
+            "rounded-full px-2 text-xs font-medium",
             "pointer-events-none absolute top-1/2 right-1.5 -translate-y-1/2 opacity-0",
             "group-hover:pointer-events-auto group-hover:opacity-100",
             "group-focus-within:pointer-events-auto group-focus-within:opacity-100",
@@ -998,7 +998,7 @@ function DeprecatedBadge() {
     <span
       ref={ref}
       className={cn([
-        "shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-medium",
+        "shrink-0 rounded-md px-1.5 py-0.5 text-xs font-medium",
         "bg-amber-50 text-amber-800",
       ])}
     >
@@ -1021,7 +1021,7 @@ function ModelModeBadge({ mode }: { mode?: ModelEntry["mode"] }) {
         <span
           ref={ref}
           className={cn([
-            "shrink-0 cursor-help rounded-md px-1.5 py-0.5 text-[11px] font-medium",
+            "shrink-0 cursor-help rounded-md px-1.5 py-0.5 text-xs font-medium",
             isRealtime
               ? "bg-sky-50 text-sky-700"
               : "bg-muted text-muted-foreground",

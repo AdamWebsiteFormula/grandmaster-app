@@ -103,7 +103,7 @@ export function LocalFileModel({
           {filename || <Trans>Choose a .bin model</Trans>}
         </span>
         {modelInfo.data ? (
-          <span className="text-muted-foreground shrink-0 text-[11px]">
+          <span className="text-muted-foreground shrink-0 text-xs">
             {formatModelSize(modelInfo.data.sizeBytes)} · GGML ·{" "}
             <Trans>After recording</Trans>
           </span>

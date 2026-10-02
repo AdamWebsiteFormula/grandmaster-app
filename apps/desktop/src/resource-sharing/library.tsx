@@ -77,7 +77,7 @@ function AuthenticatedSharedResourceLibrarySection({
 
   return (
     <section className="border-border/60 mt-3 border-t pt-3">
-      <div className="text-muted-foreground mb-1 flex items-center gap-1.5 px-3 text-[11px] font-medium tracking-wide uppercase">
+      <div className="text-muted-foreground mb-1 flex items-center gap-1.5 px-3 text-xs font-medium">
         <CirclesThreePlus className="size-3.5" />
         <Trans>Shared with me</Trans>
       </div>
@@ -94,7 +94,7 @@ function AuthenticatedSharedResourceLibrarySection({
               <ResourceIcon resourceType={resource.resourceType} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm">{resource.title}</span>
-                <span className="text-muted-foreground block truncate text-[11px]">
+                <span className="text-muted-foreground block truncate text-xs">
                   {resource.workspaceName ?? resource.ownerEmail}
                 </span>
               </span>

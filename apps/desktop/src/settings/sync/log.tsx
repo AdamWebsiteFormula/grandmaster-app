@@ -38,7 +38,7 @@ export function SyncLog() {
           <h3 className="text-xs font-medium">
             <Trans>Sync log</Trans>
           </h3>
-          <p className="text-muted-foreground mt-0.5 text-[11px]">
+          <p className="text-muted-foreground mt-0.5 text-xs">
             <Trans>Recent CloudSync entries from the app log.</Trans>
           </p>
         </div>
@@ -74,7 +74,7 @@ export function SyncLog() {
               />
             </div>
           ) : logQuery.data.length ? (
-            <ol className="divide-border/60 max-h-64 divide-y overflow-y-auto font-mono text-[11px] leading-5">
+            <ol className="divide-border/60 max-h-64 divide-y overflow-y-auto font-mono text-xs leading-5">
               {logQuery.data.map((line, index) => (
                 <li
                   key={`${index}-${line}`}

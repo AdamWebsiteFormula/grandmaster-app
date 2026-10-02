@@ -179,7 +179,7 @@ export function LiveCaptionOverlay({
             data-tauri-drag-region="false"
             aria-label="Hide transcript"
             onClick={onHide}
-            className="h-5 rounded-full px-2 text-[11px] font-semibold text-white/90"
+            className="h-5 rounded-full px-2 text-xs font-semibold text-white/90"
             style={{
               background: "rgba(0, 0, 0, 0.42)",
               boxShadow: "inset 0 0 0 0.5px rgba(255, 255, 255, 0.18)",

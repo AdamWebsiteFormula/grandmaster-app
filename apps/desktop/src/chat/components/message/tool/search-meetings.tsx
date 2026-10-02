@@ -172,7 +172,7 @@ function RenderContent({ part }: { part: Part }) {
       return (
         <div className="flex flex-col gap-2">
           {details.length > 0 && (
-            <div className="text-muted-foreground flex flex-col gap-0.5 text-[11px]">
+            <div className="text-muted-foreground flex flex-col gap-0.5 text-xs">
               {details.map((detail) => (
                 <div key={detail}>{detail}</div>
               ))}
@@ -188,7 +188,7 @@ function RenderContent({ part }: { part: Part }) {
     return (
       <div className="flex flex-col gap-2">
         {details.length > 0 && (
-          <div className="text-muted-foreground flex flex-col gap-0.5 text-[11px]">
+          <div className="text-muted-foreground flex flex-col gap-0.5 text-xs">
             {details.map((detail) => (
               <div key={detail}>{detail}</div>
             ))}
@@ -223,7 +223,7 @@ function RenderContent({ part }: { part: Part }) {
   }
 
   return details.length > 0 ? (
-    <div className="text-muted-foreground flex flex-col gap-0.5 text-[11px]">
+    <div className="text-muted-foreground flex flex-col gap-0.5 text-xs">
       {details.map((detail) => (
         <div key={detail}>{detail}</div>
       ))}
@@ -256,7 +256,7 @@ function RenderMeeting({ result }: { result: MeetingSearchResult }) {
     >
       <span className="truncate font-medium">{result.title || "Untitled"}</span>
       {dateLabel && (
-        <span className="text-muted-foreground text-[11px] tabular-nums">
+        <span className="text-muted-foreground text-xs tabular-nums">
           {dateLabel}
         </span>
       )}

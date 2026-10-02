@@ -263,7 +263,7 @@ const ItemBase = memo(function ItemBase({
             {folderLabel ? (
               <div
                 className={cn([
-                  "pointer-events-none flex min-w-0 items-center gap-1 text-[11px] leading-4",
+                  "pointer-events-none flex min-w-0 items-center gap-1 text-xs leading-4",
                   isLive
                     ? "text-destructive-foreground/65"
                     : "text-muted-foreground",
@@ -296,7 +296,7 @@ const ItemBase = memo(function ItemBase({
             {tagLine ? (
               <div
                 className={cn([
-                  "pointer-events-none min-w-0 truncate text-[11px] leading-4",
+                  "pointer-events-none min-w-0 truncate text-xs leading-4",
                   isLive
                     ? "text-destructive-foreground/65"
                     : "text-muted-foreground",

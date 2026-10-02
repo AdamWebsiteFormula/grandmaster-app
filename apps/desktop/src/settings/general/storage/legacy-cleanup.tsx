@@ -198,10 +198,10 @@ export function LegacyMigrationCleanupRow() {
         >
           <DialogContent className="border-border/45 bg-card/95 w-[calc(100vw-48px)] max-w-[320px] gap-0 overflow-hidden rounded-[26px] p-0 shadow-[0_24px_70px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:rounded-[26px] [&>button:last-child]:hidden">
             <DialogHeader className="items-center gap-2 px-5 pt-6 text-center sm:text-center">
-              <DialogTitle className="text-foreground text-[13px] leading-5 font-semibold tracking-normal">
+              <DialogTitle className="text-foreground text-sm leading-5 font-semibold tracking-normal">
                 <Trans>Clean up legacy files?</Trans>
               </DialogTitle>
-              <DialogDescription className="text-foreground w-full text-center text-[13px] leading-[1.36]">
+              <DialogDescription className="text-foreground w-full text-center text-sm leading-[1.36]">
                 <Trans>
                   This will remove {status.fileCount} legacy files and free{" "}
                   {formatBytes(status.totalBytes)}. Your app data will not be

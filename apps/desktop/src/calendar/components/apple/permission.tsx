@@ -36,10 +36,10 @@ export function AppleCalendarPermissionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <GlassDialogContent>
         <DialogHeader className="items-center gap-2 text-center sm:text-center">
-          <DialogTitle className="text-foreground text-[13px] leading-5 font-semibold tracking-normal">
+          <DialogTitle className="text-foreground text-sm leading-5 font-semibold tracking-normal">
             <Trans>Apple Calendar access is off</Trans>
           </DialogTitle>
-          <DialogDescription className="text-foreground w-full text-center text-[13px] leading-[1.36]">
+          <DialogDescription className="text-foreground w-full text-center text-sm leading-[1.36]">
             <Trans>
               Turn on Upshot in System Settings → Privacy &amp; Security →
               Calendars, then return here.

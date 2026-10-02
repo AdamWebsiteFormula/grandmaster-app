@@ -343,7 +343,7 @@ export function OpenNoteDialog({
           {isQueryEmpty && filteredRecentSessions.length > 0 && (
             <div className="bg-accent mx-2 h-px" />
           )}
-          <div className="text-muted-foreground px-2 py-1.5 text-xs font-medium tracking-wider uppercase">
+          <div className="text-muted-foreground px-2 py-1.5 text-xs font-medium">
             <Trans>Go to</Trans>
           </div>
         </div>
@@ -470,7 +470,7 @@ export function OpenNoteDialog({
                           {!isQueryEmpty && filteredPages.length > 0 && (
                             <div className="bg-accent mx-2 h-px" />
                           )}
-                          <div className="text-muted-foreground px-2 py-1.5 text-xs font-medium tracking-wider uppercase">
+                          <div className="text-muted-foreground px-2 py-1.5 text-xs font-medium">
                             <Trans>Recent</Trans>
                           </div>
                         </div>
@@ -505,8 +505,8 @@ export function OpenNoteDialog({
                             filteredRecentSessions.length > 0) && (
                             <div className="bg-accent mx-2 h-px" />
                           )}
-                          <div className="text-muted-foreground px-2 py-1.5 text-xs font-medium tracking-wider uppercase">
-                            <Trans>All Notes</Trans>
+                          <div className="text-muted-foreground px-2 py-1.5 text-xs font-medium">
+                            <Trans>All notes</Trans>
                           </div>
                         </div>
                       }

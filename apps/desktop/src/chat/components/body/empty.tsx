@@ -141,7 +141,7 @@ function BetaChip({ isDarkAppearance }: { isDarkAppearance: boolean }) {
   return (
     <span
       className={cn([
-        "rounded-full border px-1.5 py-0.5 text-[10px] font-medium",
+        "rounded-full border px-1.5 py-0.5 text-xs font-medium",
         isDarkAppearance
           ? "border-border bg-accent text-accent-foreground"
           : "border-sky-200 bg-sky-100 text-sky-900",

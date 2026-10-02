@@ -215,7 +215,7 @@ export function ShareInviteForm({
                   {contact.name || contact.email}
                 </span>
                 {contact.name ? (
-                  <span className="text-muted-foreground block truncate text-[10px]">
+                  <span className="text-muted-foreground block truncate text-xs">
                     {contact.email}
                   </span>
                 ) : null}
@@ -239,7 +239,7 @@ export function ShareInviteSuggestions({
 
   return (
     <div className="mt-2">
-      <h4 className="text-muted-foreground px-1.5 text-[10px] font-medium">
+      <h4 className="text-muted-foreground px-1.5 text-xs font-medium">
         <Trans>Suggested attendees</Trans>
       </h4>
       <div className="mt-1 space-y-0.5">
@@ -273,13 +273,13 @@ export function ShareInviteRecipientRows({
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs font-medium">{label}</p>
           {recipient.name ? (
-            <p className="text-muted-foreground truncate text-[10px]">
+            <p className="text-muted-foreground truncate text-xs">
               {recipient.email}
             </p>
           ) : null}
         </div>
         {status ? (
-          <span className="text-muted-foreground shrink-0 text-[11px]">
+          <span className="text-muted-foreground shrink-0 text-xs">
             {status}
           </span>
         ) : null}

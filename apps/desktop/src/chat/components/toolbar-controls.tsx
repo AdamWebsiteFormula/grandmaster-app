@@ -209,8 +209,8 @@ function ChatGroups({
       >
         <AppFloatingPanel className={appFloatingMenuPanelClassName}>
           <div className="px-2 py-1.5">
-            <h4 className="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
-              Recent Chats
+            <h4 className="text-muted-foreground text-xs font-semibold">
+              Recent chats
             </h4>
           </div>
           {recentChatGroups.length > 0 ? (
@@ -288,7 +288,7 @@ function ChatGroupItem({
           >
             {chatGroup.title}
           </div>
-          <div className="text-muted-foreground mt-0.5 text-[11px]">
+          <div className="text-muted-foreground mt-0.5 text-xs">
             {formattedTime}
           </div>
         </div>

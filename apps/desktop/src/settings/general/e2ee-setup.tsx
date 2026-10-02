@@ -156,10 +156,10 @@ export function E2eeSetupDialog({
           <div className="bg-accent flex size-9 items-center justify-center rounded-full">
             <Key className="size-4" aria-hidden="true" />
           </div>
-          <DialogTitle className="text-foreground text-[13px] leading-5 font-semibold tracking-normal">
+          <DialogTitle className="text-foreground text-sm leading-5 font-semibold tracking-normal">
             <Trans>Protect cloud sync</Trans>
           </DialogTitle>
-          <DialogDescription className="text-foreground max-w-[260px] text-center text-[13px] leading-[1.36]">
+          <DialogDescription className="text-foreground max-w-[260px] text-center text-sm leading-[1.36]">
             <Trans>
               Your recovery key encrypts synced notes before they leave this
               device. Upshot cannot read or recover it.
@@ -177,7 +177,7 @@ export function E2eeSetupDialog({
                   will not be shown again.
                 </Trans>
               </p>
-              <code className="bg-muted block max-h-28 overflow-auto rounded-xl p-3 font-mono text-[11px] leading-5 break-all select-all">
+              <code className="bg-muted block max-h-28 overflow-auto rounded-xl p-3 font-mono text-xs leading-5 break-all select-all">
                 {recoveryKey}
               </code>
               <Button
@@ -202,7 +202,7 @@ export function E2eeSetupDialog({
                 )}
                 <Trans>Download recovery key (.txt)</Trans>
               </Button>
-              <p className="text-muted-foreground text-center text-[11px] leading-4">
+              <p className="text-muted-foreground text-center text-xs leading-4">
                 Clipboard copies clear after 60 seconds when supported.
               </p>
             </div>
@@ -250,7 +250,7 @@ export function E2eeSetupDialog({
               </Button>
               <Button
                 variant="ghost"
-                className="text-muted-foreground hover:text-foreground h-6 justify-self-center rounded-full px-3 text-[11px] font-normal shadow-none hover:bg-transparent"
+                className="text-muted-foreground hover:text-foreground h-6 justify-self-center rounded-full px-3 text-xs font-normal shadow-none hover:bg-transparent"
                 onClick={() => setOpen(false)}
                 disabled={pending}
               >

@@ -517,7 +517,7 @@ export function SpeakerParticipantPicker({
           <div className="py-1 pb-3">
             {groups.map((group) => (
               <div key={group.title}>
-                <div className="text-muted-foreground px-3 pt-2 pb-1 text-[11px] font-medium uppercase">
+                <div className="text-muted-foreground px-3 pt-2 pb-1 text-xs font-medium">
                   {group.title === "Participants" ? (
                     <Trans>Participants</Trans>
                   ) : (
@@ -538,7 +538,7 @@ export function SpeakerParticipantPicker({
             {createOption && (
               <div>
                 {!hasPeopleGroup && (
-                  <div className="text-muted-foreground px-3 pt-2 pb-1 text-[11px] font-medium uppercase">
+                  <div className="text-muted-foreground px-3 pt-2 pb-1 text-xs font-medium">
                     <Trans>People</Trans>
                   </div>
                 )}

@@ -564,7 +564,7 @@ function AppToast({ toast, size, stackDepth, stacked }: AppToastProps) {
             data-slot="app-toast-message"
             className={cn([
               "min-w-0 flex-1 font-semibold break-words whitespace-normal",
-              compact ? "text-[13px] leading-5" : "text-sm",
+              compact ? "text-sm leading-5" : "text-sm",
             ])}
           >
             {toast.message}
@@ -684,7 +684,7 @@ function AppToast({ toast, size, stackDepth, stacked }: AppToastProps) {
                   className={cn([
                     "border-border/60 bg-muted/50 text-muted-foreground hover:bg-muted focus-visible:ring-ring relative flex w-full items-center justify-between gap-3 border-t text-left transition-colors focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset",
                     compact
-                      ? "min-h-8 px-2.5 py-1.5 text-[11px]"
+                      ? "min-h-8 px-2.5 py-1.5 text-xs"
                       : "min-h-10 px-4 py-2 text-xs",
                   ])}
                 >
@@ -707,9 +707,7 @@ function AppToast({ toast, size, stackDepth, stacked }: AppToastProps) {
                       "absolute inset-x-0 bottom-0 h-0.5 origin-left",
                       toast.tone === "error"
                         ? "bg-destructive"
-                        : toast.tone === "success"
-                          ? "bg-emerald-500"
-                          : "bg-blue-500",
+                        : "bg-primary",
                     ])}
                     initial={false}
                     animate={{ scaleX: progress }}
@@ -732,12 +730,12 @@ function AppToast({ toast, size, stackDepth, stacked }: AppToastProps) {
 function AppToastToneIcon({ tone }: Readonly<{ tone: AppToastTone }>) {
   switch (tone) {
     case "success":
-      return <CheckCircle className="text-emerald-600" />;
+      return <CheckCircle className="text-primary" />;
     case "warning":
-      return <WarningCircle className="text-amber-600" />;
+      return <WarningCircle className="text-primary" />;
     case "error":
       return <WarningCircle className="text-destructive" />;
     case "info":
-      return <Info className="text-blue-600" />;
+      return <Info className="text-muted-foreground" />;
   }
 }

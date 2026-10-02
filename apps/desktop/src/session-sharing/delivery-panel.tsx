@@ -160,7 +160,7 @@ export function EmailRecapForm({
         <ShareRecapFormHeading id="email-recap-heading" onBack={onBack}>
           <Trans>Email meeting notes</Trans>
         </ShareRecapFormHeading>
-        <p className="text-muted-foreground mt-0.5 text-[11px] leading-4">
+        <p className="text-muted-foreground mt-0.5 text-xs leading-4">
           <Trans>
             Send the summary in the email. Replies go directly to you.
           </Trans>
@@ -227,7 +227,7 @@ export function SlackRecapForm({
           <ShareRecapFormHeading id="slack-recap-heading" onBack={onBack}>
             <Trans>Send to Slack</Trans>
           </ShareRecapFormHeading>
-          <p className="text-muted-foreground mt-0.5 text-[11px] leading-4">
+          <p className="text-muted-foreground mt-0.5 text-xs leading-4">
             <Trans>Connect Slack to choose a channel for this recap.</Trans>
           </p>
         </div>
@@ -266,7 +266,7 @@ export function SlackRecapForm({
         <ShareRecapFormHeading id="slack-recap-heading" onBack={onBack}>
           <Trans>Send to Slack</Trans>
         </ShareRecapFormHeading>
-        <p className="text-muted-foreground mt-0.5 text-[11px] leading-4">
+        <p className="text-muted-foreground mt-0.5 text-xs leading-4">
           <Trans>Post the meeting summary to a channel you can access.</Trans>
         </p>
       </div>
@@ -314,7 +314,7 @@ export function SlackRecapForm({
         </Button>
       </div>
       {channels.isError ? (
-        <p className="text-destructive text-[11px]">
+        <p className="text-destructive text-xs">
           <Trans>
             Could not load Slack channels. Reconnect Slack and try again.
           </Trans>

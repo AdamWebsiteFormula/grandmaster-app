@@ -86,7 +86,7 @@ export function VersionHistoryDialog({
                 >
                   <div className="min-w-0">
                     <p className="text-xs font-medium">{entry.label}</p>
-                    <p className="text-muted-foreground mt-0.5 text-[11px]">
+                    <p className="text-muted-foreground mt-0.5 text-xs">
                       {entry.at > 0
                         ? formatDistanceToNow(new Date(entry.at), {
                             addSuffix: true,

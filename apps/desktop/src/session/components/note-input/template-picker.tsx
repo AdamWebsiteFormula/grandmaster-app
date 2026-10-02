@@ -542,7 +542,7 @@ function TemplateSection({
   title,
   children,
   icon,
-  uppercase = true,
+  uppercase = false,
   showHeader = true,
 }: {
   title: string;
@@ -558,7 +558,7 @@ function TemplateSection({
           {icon}
           <p
             className={cn([
-              "text-muted-foreground font-mono text-[11px] font-medium tracking-wide",
+              "text-muted-foreground font-mono text-xs font-medium",
               uppercase && "uppercase",
             ])}
           >
@@ -624,7 +624,7 @@ function TemplateResultButton({
             onRegenerate();
           }}
           className={cn([
-            "text-muted-foreground hover:text-foreground inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium",
+            "text-muted-foreground hover:text-foreground inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium",
             isRegenerating ? "cursor-not-allowed opacity-70" : "cursor-pointer",
           ])}
         >

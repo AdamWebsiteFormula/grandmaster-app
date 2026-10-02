@@ -121,7 +121,7 @@ function ComposerSettingsCard() {
     >
       <div className="mb-3 flex items-center justify-between gap-3">
         <div data-tauri-drag-region className="min-w-0 flex-1 pr-4">
-          <p className="text-primary-foreground/38 text-[10px] font-semibold tracking-[0.24em] uppercase">
+          <p className="text-primary-foreground/38 text-xs font-semibold">
             {t`Composer`}
           </p>
           <p className="text-primary-foreground/72 truncate pt-1 text-sm">
@@ -206,7 +206,7 @@ function ComposerInput({
     >
       <div className="mb-3 flex items-start justify-between gap-4">
         <div data-tauri-drag-region className="min-w-0 flex-1 pr-4">
-          <p className="text-primary-foreground/38 text-[10px] font-semibold tracking-[0.24em] uppercase">
+          <p className="text-primary-foreground/38 text-xs font-semibold">
             {t`Composer`}
           </p>
           <p className="text-primary-foreground/90 truncate pt-1 text-[15px]">
@@ -259,7 +259,7 @@ function ComposerInput({
       />
 
       <div className="mt-3 flex items-center justify-between gap-3">
-        <div className="text-primary-foreground/40 flex items-center gap-2 text-[11px]">
+        <div className="text-primary-foreground/40 flex items-center gap-2 text-xs">
           <span className="bg-primary-foreground/8 rounded-full px-2 py-1">
             {t`Esc to dismiss`}
           </span>

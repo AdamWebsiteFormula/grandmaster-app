@@ -141,7 +141,7 @@ export function TabContentEdit({ tab }: { tab: EditTab }) {
       <div className="flex h-full flex-col">
         <div className="border-border flex items-start justify-between gap-3 border-b px-4 py-3">
           <div className="min-w-0 flex-1">
-            <div className="text-foreground text-[13px] font-medium">
+            <div className="text-foreground text-sm font-medium">
               {sessionTitle ?? <Trans>Untitled session</Trans>}
             </div>
             <div className="text-muted-foreground text-[12px]">
@@ -177,7 +177,7 @@ export function TabContentEdit({ tab }: { tab: EditTab }) {
           </div>
         </div>
         {error ? (
-          <div className="border-red-200 bg-red-50 px-4 py-2 text-[13px] text-red-600">
+          <div className="border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
             {error}
           </div>
         ) : null}

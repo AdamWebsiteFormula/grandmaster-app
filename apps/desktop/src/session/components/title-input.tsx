@@ -448,7 +448,7 @@ const TitleInputInner = memo(
               "border-none bg-transparent focus:outline-hidden",
               "placeholder:text-muted-foreground text-left",
               variant === "breadcrumb"
-                ? "h-5 appearance-none p-0 text-sm leading-5 text-neutral-700 focus:underline dark:text-white"
+                ? "h-5 appearance-none p-0 text-sm leading-5 text-foreground focus:underline"
                 : "text-xl font-semibold",
               variant === "breadcrumb" &&
                 (isTitleFocused

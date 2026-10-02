@@ -525,7 +525,7 @@ export function NotificationSettingsView() {
                                             >
                                               {bundleIdToName(bundleId)}
                                               {isDefault && (
-                                                <span className="text-[10px] opacity-70">
+                                                <span className="text-xs opacity-70">
                                                   <Trans>(default)</Trans>
                                                 </span>
                                               )}

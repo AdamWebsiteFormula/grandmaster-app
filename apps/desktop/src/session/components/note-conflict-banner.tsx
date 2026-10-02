@@ -45,7 +45,7 @@ export function NoteConflictBanner({ sessionId }: { sessionId: string }) {
                 className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
                 aria-hidden="true"
               />
-              <p className="text-foreground text-[13px] leading-5 font-medium">
+              <p className="text-foreground text-sm leading-5 font-medium">
                 <Trans>
                   This note was edited on another device at the same time. The
                   later edit was kept.

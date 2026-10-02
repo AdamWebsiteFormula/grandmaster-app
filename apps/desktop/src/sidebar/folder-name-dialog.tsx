@@ -79,7 +79,7 @@ export function FolderNameDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <GlassDialogContent>
         <DialogHeader className="items-center gap-2 text-center sm:text-center">
-          <DialogTitle className="text-foreground text-[13px] leading-5 font-semibold tracking-normal">
+          <DialogTitle className="text-foreground text-sm leading-5 font-semibold tracking-normal">
             {title}
           </DialogTitle>
           <DialogDescription className="sr-only">

@@ -42,7 +42,7 @@ export function ToolCardHeader({
   return (
     <div
       className={cn([
-        "flex items-center gap-2.5 px-3.5 py-2 text-[13px]",
+        "flex items-center gap-2.5 px-3.5 py-2 text-sm",
         failed ? "bg-red-50 text-red-700" : "bg-muted/80 text-muted-foreground",
       ])}
     >
@@ -75,7 +75,7 @@ export function ToolCardFooterError({ text }: { text: string }) {
   return (
     <div className="flex items-center gap-2 border-t border-red-200 bg-red-50 px-3.5 py-2.5">
       <XCircle className="h-4 w-4 shrink-0 text-red-500" />
-      <p className="text-[13px] text-red-600">{text}</p>
+      <p className="text-sm text-red-600">{text}</p>
     </div>
   );
 }
@@ -83,7 +83,7 @@ export function ToolCardFooterError({ text }: { text: string }) {
 function ToolCardFooterRaw({ text }: { text: string }) {
   return (
     <div className="border-border/80 bg-muted/80 border-t px-3.5 py-2.5">
-      <p className="text-muted-foreground text-[13px] whitespace-pre-wrap">
+      <p className="text-muted-foreground text-sm whitespace-pre-wrap">
         {text}
       </p>
     </div>
@@ -136,7 +136,7 @@ export function MarkdownPreview({ children }: { children: string }) {
       <div className="max-h-64 overflow-y-auto px-3 py-2.5">
         <Streamdown
           icons={streamdownIcons}
-          className="text-muted-foreground text-[13px] leading-relaxed"
+          className="text-muted-foreground text-sm leading-relaxed"
           linkSafety={{ enabled: false }}
         >
           {children}

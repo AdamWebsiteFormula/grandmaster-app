@@ -35,7 +35,7 @@ export function FolderInstructionsField({
         "focus-visible:ring-ring focus-visible:ring-1 focus-visible:outline-hidden",
         rows > 2
           ? "px-3 py-2.5 text-sm leading-5"
-          : "px-1.5 py-1 text-[11px] leading-4",
+          : "px-1.5 py-1 text-xs leading-4",
       ])}
       onChange={(event) => setValue(event.target.value)}
       onBlur={() => {

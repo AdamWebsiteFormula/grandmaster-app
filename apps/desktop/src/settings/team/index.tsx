@@ -1251,7 +1251,7 @@ function WorkspacePanel({
       >
         <GlassDialogContent>
           <DialogHeader className="items-center gap-2 text-center sm:text-center">
-            <DialogTitle className="text-foreground text-[13px] leading-5 font-semibold tracking-normal">
+            <DialogTitle className="text-foreground text-sm leading-5 font-semibold tracking-normal">
               <Trans>Add members</Trans>
             </DialogTitle>
             <DialogDescription className="sr-only">

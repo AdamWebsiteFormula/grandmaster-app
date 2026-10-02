@@ -34,10 +34,10 @@ export function TrialStartedDialog({
       <GlassDialogContent>
         <DialogHeader className="items-center gap-2 text-center sm:text-center">
           <TrialDialogIcon state="started" />
-          <DialogTitle className="text-foreground text-[13px] leading-5 font-semibold tracking-normal">
+          <DialogTitle className="text-foreground text-sm leading-5 font-semibold tracking-normal">
             {t`Your Pro trial just started`}
           </DialogTitle>
-          <DialogDescription className="text-foreground w-full text-center text-[13px] leading-[1.36]">
+          <DialogDescription className="text-foreground w-full text-center text-sm leading-[1.36]">
             {hasPaymentMethod
               ? t`Your ${days}-day Pro trial starts now. Pro will continue automatically when it ends.`
               : t`Your ${days}-day Pro trial starts now. Add a payment method before it ends to keep Pro.`}

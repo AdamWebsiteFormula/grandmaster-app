@@ -106,7 +106,7 @@ export function ChatMessageInput({
           <div
             data-chat-history-indicator
             className={cn([
-              "text-muted-foreground/80 pb-1 text-[11px] leading-none",
+              "text-muted-foreground/80 pb-1 text-xs leading-none",
               isFloating ? "px-4" : "px-2",
             ])}
           >

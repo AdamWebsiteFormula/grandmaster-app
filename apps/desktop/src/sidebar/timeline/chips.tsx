@@ -106,7 +106,7 @@ export function TimelineNowChip({
       onClick={onClick}
     >
       {direction === "up" ? <DirectionIcon size={12} /> : null}
-      <Sun size={13} className="shrink-0 text-yellow-400" />
+      <Sun size={13} className="text-primary shrink-0" />
       <span>{children}</span>
       {direction === "down" ? <DirectionIcon size={12} /> : null}
     </button>

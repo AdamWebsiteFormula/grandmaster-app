@@ -253,7 +253,7 @@ function HeaderViewEnhancedActive({
               ]
             : [
                 "focus-visible:text-foreground focus-visible:bg-white",
-                "dark:focus-visible:text-primary dark:focus-visible:bg-white",
+                "dark:focus-visible:text-foreground dark:focus-visible:bg-accent",
               ],
         ]),
       )}

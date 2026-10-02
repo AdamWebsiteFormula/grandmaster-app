@@ -62,7 +62,7 @@ function useHighlightedContent(
       segment.isMatch ? (
         <span
           key={`${baseKey}-match-${index}`}
-          className={isActive ? "bg-yellow-500" : "bg-yellow-200/50"}
+          className={isActive ? "bg-primary/60" : "bg-primary/20"}
         >
           {segment.text}
         </span>

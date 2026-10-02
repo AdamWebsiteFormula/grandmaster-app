@@ -822,7 +822,7 @@ export function SettingsSync() {
                 {statusView.description}
               </p>
               {statusView.detail && (
-                <p className="text-muted-foreground mt-1 font-mono text-[11px] leading-4 break-words">
+                <p className="text-muted-foreground mt-1 font-mono text-xs leading-4 break-words">
                   {statusView.detail}
                 </p>
               )}
@@ -980,7 +980,7 @@ export function SettingsSync() {
                         : undefined
                     }
                   />
-                  <p className="text-muted-foreground text-[11px]">{t`Last seen ${formatDistanceToNow(new Date(device.lastSeenAt))}`}</p>
+                  <p className="text-muted-foreground text-xs">{t`Last seen ${formatDistanceToNow(new Date(device.lastSeenAt))}`}</p>
                 </div>
                 {!current && (
                   <>
@@ -1043,7 +1043,7 @@ export function SettingsSync() {
                         : undefined
                     }
                   />
-                  <p className="text-muted-foreground text-[11px]">
+                  <p className="text-muted-foreground text-xs">
                     {device.status === "sealed"
                       ? t`Connecting — waiting for this device to finish`
                       : current

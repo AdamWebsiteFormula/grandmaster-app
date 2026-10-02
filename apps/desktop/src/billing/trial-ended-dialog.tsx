@@ -48,10 +48,10 @@ export function TrialEndedDialog({
       <GlassDialogContent>
         <DialogHeader className="items-center gap-2 text-center sm:text-center">
           <TrialDialogIcon state="ended" />
-          <DialogTitle className="text-foreground text-[13px] leading-5 font-semibold tracking-normal">
+          <DialogTitle className="text-foreground text-sm leading-5 font-semibold tracking-normal">
             {t`Your Pro trial has ended`}
           </DialogTitle>
-          <DialogDescription className="text-foreground w-full text-center text-[13px] leading-[1.36]">
+          <DialogDescription className="text-foreground w-full text-center text-sm leading-[1.36]">
             {supportsFreeLocalTranscription
               ? t`Your notes and recordings are safe. Free local transcription still works. Upgrade anytime to keep Pro features.`
               : t`Your notes and recordings are safe. Upgrade anytime to keep cloud transcription and Pro features, or configure your own transcription provider.`}

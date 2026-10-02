@@ -30,7 +30,7 @@ export const ToolUpdatePromptTemplate = defineTool({
   renderBody: (input) =>
     typeof input?.content === "string" ? (
       <ToolCardBody>
-        <pre className="border-border bg-muted text-muted-foreground max-h-48 overflow-auto rounded-md border p-3 font-mono text-[11px] whitespace-pre-wrap">
+        <pre className="border-border bg-muted text-muted-foreground max-h-48 overflow-auto rounded-md border p-3 font-mono text-xs whitespace-pre-wrap">
           {input.content}
         </pre>
       </ToolCardBody>

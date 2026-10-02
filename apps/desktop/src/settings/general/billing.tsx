@@ -230,7 +230,7 @@ function useBillingActions(
 }
 
 const pillChipClassName =
-  "rounded-pill px-2 py-0.5 text-[10px] font-medium transition-colors [corner-shape:round] disabled:opacity-50";
+  "rounded-pill px-2 py-0.5 text-xs font-medium transition-colors [corner-shape:round] disabled:opacity-50";
 const pillButtonClassName =
   "rounded-pill px-3 py-1.5 text-xs font-medium transition-colors [corner-shape:round] disabled:opacity-50";
 
@@ -812,7 +812,7 @@ function PlanStatusChip({
   return (
     <span
       className={cn([
-        "rounded-pill px-2 py-0.5 text-[10px] font-medium [corner-shape:round]",
+        "rounded-pill px-2 py-0.5 text-xs font-medium [corner-shape:round]",
         emphasis
           ? "bg-primary text-primary-foreground"
           : "bg-muted text-muted-foreground",

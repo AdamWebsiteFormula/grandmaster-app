@@ -166,7 +166,7 @@ function EditableDateForm({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="text-muted-foreground size-7 shrink-0 rounded-full hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-950/50 dark:hover:text-green-300"
+                    className="text-muted-foreground size-7 shrink-0 rounded-full hover:bg-primary/10 hover:text-primary"
                     onClick={() => void form.handleSubmit()}
                     disabled={!canSubmit}
                     aria-label={t`Save date`}

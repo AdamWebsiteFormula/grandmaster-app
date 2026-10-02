@@ -751,7 +751,7 @@ function ProviderBadge({ badge }: { badge: string }) {
       className={cn([
         "text-muted-foreground normal-case",
         isAfterRecording
-          ? "bg-background/40 cursor-help rounded-md px-1.5 py-0.5 text-[11px] font-medium"
+          ? "bg-background/40 cursor-help rounded-md px-1.5 py-0.5 text-xs font-medium"
           : "border-border rounded-full border px-2 text-xs font-light",
       ])}
     >

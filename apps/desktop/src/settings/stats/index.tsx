@@ -119,7 +119,7 @@ export function SettingsInsights() {
             >
               <div className="min-w-[620px]">
                 <div
-                  className="text-muted-foreground mb-2 ml-10 grid auto-cols-fr grid-flow-col gap-[3px] text-[10px]"
+                  className="text-muted-foreground mb-2 ml-10 grid auto-cols-fr grid-flow-col gap-[3px] text-xs"
                   aria-hidden="true"
                 >
                   {columns.map((day, index) => (
