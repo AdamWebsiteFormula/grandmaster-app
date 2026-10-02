@@ -262,7 +262,9 @@ function selectedProviderLabel(
 }
 
 export function anarlogProOpenRouterBaseUrl(sttBaseUrl: string) {
-  return `${sttBaseUrl.replace(/\/+$/, "")}/openrouter`;
+  const url = new URL(sttBaseUrl);
+  url.pathname = `${url.pathname.replace(/\/+$/, "")}/openrouter`;
+  return url.toString();
 }
 
 function isProCloudBatchTarget(

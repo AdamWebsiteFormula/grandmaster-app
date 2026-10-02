@@ -5,6 +5,7 @@ import { beginCloudsyncActivity, endCloudsyncActivity } from "@anlg/plugin-db";
 
 import { BatchResponseProcessingError } from "./batch-response-processing-error";
 import {
+  anarlogProOpenRouterBaseUrl,
   canRunBatchTranscription,
   EMPTY_CURRENT_CAPTURE_TRANSCRIPT_ERROR_MESSAGE,
   getBatchFallbackTarget,
@@ -214,6 +215,19 @@ describe("getBatchProvider", () => {
     ["local_file", "local-file", "whispercpp"],
   ] as const)("maps %s/%s to %s", (provider, model, expected) => {
     expect(getBatchProvider(provider, model)).toBe(expected);
+  });
+});
+
+describe("anarlogProOpenRouterBaseUrl", () => {
+  test.each([
+    ["https://api.anarlog.so/stt", "https://api.anarlog.so/stt/openrouter"],
+    ["https://api.anarlog.so/stt/", "https://api.anarlog.so/stt/openrouter"],
+    [
+      "https://proxy.example.com/stt?region=eu",
+      "https://proxy.example.com/stt/openrouter?region=eu",
+    ],
+  ])("%s -> %s", (input, expected) => {
+    expect(anarlogProOpenRouterBaseUrl(input)).toBe(expected);
   });
 });
 
