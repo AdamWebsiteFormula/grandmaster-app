@@ -27,7 +27,7 @@
   "bundle": {
     "publisher": "Fastrepl",
     "active": true,
-    "createUpdaterArtifacts": true,
+    "createUpdaterArtifacts": false,
     "targets": "all",
     "linux": {
       "deb": {
@@ -74,6 +74,7 @@
     },
     "macOS": {
       "minimumSystemVersion": "15.0",
+      "signingIdentity": "-",
       "frameworks": [
         "../../../crates/cloudsync/vendor/cloudsync/macos/aarch64/cloudsync.dylib"
       ],
@@ -112,7 +113,7 @@
     "updater": {
       "active": false,
       "dialog": true,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFFNUI0ODhBNzhBMTEwQQpSV1FLRVlxbmlMVGxDdXJvaUVTTnlwNEF5R1Bodzh3WThMZUpNMVk4K0hhbnV4TDZ1TFFucC9Gbwo="
+      "pubkey": ""
     }
   }
 }

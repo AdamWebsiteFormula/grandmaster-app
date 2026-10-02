@@ -80,11 +80,16 @@ describe("providerFetch", () => {
     "http://192.168.1.10:8000/v1/models",
     "https://localhost.example.com/v1/models",
     "https://127.0.0.1.example.com/v1/models",
-  ])("leaves other endpoints unchanged: %s", async (url) => {
+    "https://api.anthropic.com/v1/models",
+  ])("suppresses the injected origin for remote %s too", async (url) => {
     const init = { headers: { Authorization: "Bearer remote-key" } };
     await providerFetch(url, init);
-    expect(vi.mocked(tauriFetch).mock.calls[0]).toEqual([url, init]);
-    expect(vi.mocked(tauriFetch).mock.calls[0][1]).toBe(init);
+    const sent = vi.mocked(tauriFetch).mock.calls[0][1];
+    expect(new Headers(sent?.headers).get("Origin")).toBe("");
+    expect(new Headers(sent?.headers).get("Authorization")).toBe(
+      "Bearer remote-key",
+    );
+    expect(init.headers).toEqual({ Authorization: "Bearer remote-key" });
   });
 
   it.each(["custom", "openai"])(

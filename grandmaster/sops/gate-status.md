@@ -5,12 +5,18 @@
 - 1b process-compose v1.122.0: done (~/.local/bin, checksum ok)
 - 1c MetalToolchain: done
 - 1d pnpm install --frozen-lockfile: done (node v26.8.1)
-- 1e pnpm dev:desktop: compiling (CARGO_TARGET_DIR=~/anarlog-target). Fixes so far:
+- 1e pnpm dev:desktop: done, app runs (12:33). Window opened hidden / off the top of the screen (y=-363); shown via second-instance launch. Note for design lane: check window placement. Fixes needed:
   - Xcode 27 SwiftPM defaults to swiftbuild; swift-rs 1.0.7 expects the native layout. Fix: shim ~/.local/share/grandmaster-shims/swift adds --build-system native (no repo change). Must be first on PATH for dev and release.
   - cmake missing: CMake 4.4.4 Kitware tarball in ~/.local/opt, linked in ~/.local/bin; CMAKE_POLICY_VERSION_MINIMUM=3.5.
   - macOS 27 SDK: plugins/permissions/swift/check-permissions.swift needs `import ApplicationServices` (1 line).
 - 2 SOPs (rebrand, design, models, features): done in grandmaster/sops/
 - 3a analytics POSTHOG: done (option_env!, no-op without key)
 - 3b VITE_API_URL: build-time env only, no code change
-- 3c-d updater off / signingIdentity "-": pending (after dev test, to avoid a dev restart)
-- 3e sidecars: script ready (cargo xtask copies from src-tauri/target, so it is reproduced with CARGO_TARGET_DIR)
+- 3c updater off: done (createUpdaterArtifacts false; pubkey "" because tauri-plugin-updater 2.10 requires the field; build uses base tauri.conf.json only, stable/nightly configs unused)
+- 3d signingIdentity "-": done (bundle.macOS)
+- 3e sidecars + release build + ad-hoc sign + DMG: done (12:5x). ~/grandmaster-release/Anarlog-Dev_1.4.28_aarch64.dmg (212 MB, UDZO), SHA-256 94c146354f33b6467289fc671f17a028a0bc26e7974abbd10e8364affd508846. MacOS/: anarlog-dev, anarlog-cli, char-chrome-native-host, check-permissions; Frameworks/cloudsync.dylib; mlx metallib present. codesign --verify --deep --strict: valid on disk (app and app inside DMG).
+- Dev onboarding: permissions granted (mic, system audio, accessibility), sign-in skipped.
+- Anthropic key bug: fixed. Key valid (curl 200). Tauri http sends the webview Origin, and api.anthropic.com answers 401 "CORS requests must set 'anthropic-dangerous-direct-browser-access'". Fix: apps/desktop/src/ai/provider-fetch.ts strips Origin for all hosts (was localhost only); provider-fetch.test.ts updated; 36/36 tests pass. Covers key check and Enhance (useLLMConnection uses providerFetch).
+- DMG rebuilt with that fix (13:19): SHA-256 295877a00d673cce46afb33f7e814268b1222fdbb0a3c437c4cfb56e1f77dc10, valid on disk.
+- Gate test: Apple Speech being selected; Anthropic key re-entry pending.
+- Second-account DMG test: waiting on Adam
