@@ -354,7 +354,7 @@ describe("SettingsBilling", () => {
     expect(screen.queryByRole("button", { name: /Current/ })).toBeNull();
   });
 
-  it("shows trial and team seat usage in plan limits", async () => {
+  it("preserves existing trial days beyond the new trial duration in plan limits", async () => {
     mocks.billing = {
       canStartTrial: { data: false, isPending: false },
       hasPaymentMethod: true,
@@ -362,7 +362,7 @@ describe("SettingsBilling", () => {
       isTrialing: true,
       isPaused: false,
       plan: "trial",
-      trialDaysRemaining: 3,
+      trialDaysRemaining: 18,
       trialEnd: new Date("2025-10-01T00:00:00Z"),
     };
     mocks.workspaces.data = [
@@ -383,7 +383,7 @@ describe("SettingsBilling", () => {
     expect(await screen.findByText("Team seats")).toBeTruthy();
     expect(screen.getByText("Plan limits")).toBeTruthy();
     expect(screen.getByText("Pro trial")).toBeTruthy();
-    expect(screen.getByText("3 days left")).toBeTruthy();
+    expect(screen.getByText("18 days left")).toBeTruthy();
     expect(screen.getByText("Ends Oct 1, 2025")).toBeTruthy();
     expect(screen.getByText("Acme")).toBeTruthy();
     expect(screen.getByText("2 of 5 used")).toBeTruthy();

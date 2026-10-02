@@ -17,5 +17,5 @@ test("web checkout sends the card-required shared trial policy to Stripe", () =>
       },
     },
   });
-  assert.equal(PRO_TRIAL_DAYS, 21);
+  assert.equal(PRO_TRIAL_DAYS, 14);
 });

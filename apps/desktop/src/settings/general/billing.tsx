@@ -506,10 +506,7 @@ function PlanLimitsSection({
   const rows: ReactNode[] = [];
 
   if (billing.isTrialing && billing.trialDaysRemaining != null) {
-    const remaining = Math.min(
-      Math.max(billing.trialDaysRemaining, 0),
-      PRO_TRIAL_DAYS,
-    );
+    const remaining = Math.max(billing.trialDaysRemaining, 0);
     rows.push(
       <UsageLimitRow
         key="trial"
