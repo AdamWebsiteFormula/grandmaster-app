@@ -26,6 +26,7 @@ import type { Part } from "./types";
 
 import { hasRenderableContent } from "~/chat/message-content";
 import type { AnlgUIMessage } from "~/chat/types";
+import { copyTextToClipboard } from "~/session/components/note-input/header-shared";
 import { isSafeImageSrc } from "~/shared/safe-image";
 
 function getMessageText(message: AnlgUIMessage): string {
@@ -70,7 +71,13 @@ export function NormalMessage({
   const handleCopy = useCallback(async () => {
     const text = getMessageText(message);
     try {
-      await navigator.clipboard.writeText(text);
+      // Fork: write HTML too, so a drafted follow-up email pastes into Gmail
+      // or Outlook formatted, not with ** and # (journey-after P2 "Draft
+      // follow-up email"; Granola follow-up emails; ux-audit-oct3 C).
+      const copiedOk = await copyTextToClipboard(text, undefined, {
+        html: true,
+      });
+      if (!copiedOk) return;
       if (copiedResetTimeoutRef.current !== null) {
         window.clearTimeout(copiedResetTimeoutRef.current);
       }

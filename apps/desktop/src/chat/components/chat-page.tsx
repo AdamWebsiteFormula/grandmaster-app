@@ -9,6 +9,7 @@ import { type FormEvent, type KeyboardEvent, useEffect, useState } from "react";
 import { ArrowUp, CaretRight, ChatCircle } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
+import { useOptionalAuth } from "~/auth";
 import { ChatModelMenu } from "~/chat/components/input/model-menu";
 import {
   chatPageRecipes,
@@ -17,8 +18,10 @@ import {
 } from "~/chat/components/recipes";
 import { queueChatPrompt } from "~/chat/pending-prompt";
 import { type ChatGroupRecord, useChatGroups } from "~/chat/store/queries";
+import { usePersonalContact } from "~/contacts/queries";
 import { useShell } from "~/contexts/shell";
 import { StandardContentWrapper } from "~/shared/main";
+import { useOwnerUserId } from "~/shared/owner-user";
 import {
   ensureUpshotSessionLoaded,
   useUpshotAccount,
@@ -46,6 +49,12 @@ export function firstNameFromEmail(email: string | null | undefined) {
   return first[0].toUpperCase() + first.slice(1).toLowerCase();
 }
 
+/** "Adam Willingham" → "Adam"; null for an empty profile name. */
+export function firstNameFromProfile(name: string | null | undefined) {
+  const first = name?.trim().split(/\s+/)[0] ?? "";
+  return first || null;
+}
+
 /** Granola's compact ages: "now", "12m", "23h", "2d", then a date. */
 export function compactAge(fromMs: number, nowMs = Date.now()) {
   const minutes = Math.max(0, differenceInMinutes(nowMs, fromMs));
@@ -62,7 +71,20 @@ export function ChatPage() {
   const { t } = useLingui();
   const { chat } = useShell();
   const email = useUpshotAccount((state) => state.session?.email ?? null);
-  const firstName = firstNameFromEmail(email);
+  // Fork: the Profile name first, as the Settings header does
+  // (sidebar/settings.tsx), then the email rule (journey-after P3 "Chat page
+  // greeting"; NN/g #2).
+  const auth = useOptionalAuth();
+  const localOwnerUserId = useOwnerUserId();
+  const profile = usePersonalContact(
+    auth?.session?.user.id ?? localOwnerUserId ?? "",
+  );
+  const firstName =
+    firstNameFromProfile(profile.data?.name) ?? firstNameFromEmail(email);
+  // Fork: while a chat is open in the right panel, its own field is the
+  // composer; never two "Ask anything" fields (journey-after P1 "Chat page";
+  // Granola's Chat page; NN/g #4, #5). Same rule as home-composer.tsx.
+  const chatOpen = chat.mode !== "FloatingClosed";
   const groups = useChatGroups(chat.scope);
   const [value, setValue] = useState("");
   const [showAll, setShowAll] = useState(false);
@@ -75,7 +97,8 @@ export function ChatPage() {
   const ask = (prompt: string) => {
     const text = prompt.trim();
     if (!text) return;
-    chat.startNewChat();
+    // A recipe picked while a chat is open continues that chat.
+    if (!chatOpen) chat.startNewChat();
     queueChatPrompt(text);
     chat.sendEvent({ type: "OPEN_RIGHT_PANEL" });
     setValue("");
@@ -113,38 +136,42 @@ export function ChatPage() {
       className="scrollbar-soft h-full overflow-y-auto"
     >
       <div className="mx-auto flex w-full max-w-[560px] flex-col gap-8 px-8 pt-24 pb-10">
-        <h1 className="text-foreground text-center text-xl font-medium tracking-[-0.02em] text-balance">
-          {firstName ? t`Hi ${firstName}, ask anything` : t`Ask anything`}
-        </h1>
+        {chatOpen ? null : (
+          <h1 className="text-foreground font-display text-center text-2xl font-semibold tracking-[-0.01em] text-balance">
+            {firstName ? t`Hi ${firstName}, ask anything` : t`Ask anything`}
+          </h1>
+        )}
 
-        <form
-          onSubmit={onSubmit}
-          className={cn([
-            "bg-card border-input flex min-h-[88px] flex-col gap-2 rounded-2xl border p-3",
-            "focus-within:ring-ring focus-within:ring-2",
-          ])}
-        >
-          <textarea
-            value={value}
-            rows={2}
-            onChange={(event) => setValue(event.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder={t`Ask about your meetings…`}
-            aria-label={t`Ask anything`}
-            className="text-foreground placeholder:text-muted-foreground min-h-10 w-full resize-none bg-transparent text-sm outline-none"
-          />
-          <div className="flex items-center justify-between gap-2">
-            <ChatModelMenu />
-            <button
-              type="submit"
-              aria-label={t`Send`}
-              disabled={!value.trim()}
-              className="bg-foreground text-background inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-opacity hover:opacity-90 disabled:cursor-default disabled:opacity-45"
-            >
-              <ArrowUp className="size-4" weight="bold" />
-            </button>
-          </div>
-        </form>
+        {chatOpen ? null : (
+          <form
+            onSubmit={onSubmit}
+            className={cn([
+              "bg-card border-input flex min-h-[88px] flex-col gap-2 rounded-2xl border p-3",
+              "focus-within:ring-ring focus-within:ring-2",
+            ])}
+          >
+            <textarea
+              value={value}
+              rows={2}
+              onChange={(event) => setValue(event.target.value)}
+              onKeyDown={onKeyDown}
+              placeholder={t`Ask about your meetings…`}
+              aria-label={t`Ask anything`}
+              className="text-foreground placeholder:text-muted-foreground min-h-10 w-full resize-none bg-transparent text-sm outline-none"
+            />
+            <div className="flex items-center justify-between gap-2">
+              <ChatModelMenu />
+              <button
+                type="submit"
+                aria-label={t`Send`}
+                disabled={!value.trim()}
+                className="bg-foreground text-background inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-opacity hover:opacity-90 disabled:cursor-default disabled:opacity-45"
+              >
+                <ArrowUp className="size-4" weight="bold" />
+              </button>
+            </div>
+          </form>
+        )}
 
         {/* Fork: Recents appears with the first chat; an empty list only
             pushes Recipes down (redline-oct3; Granola's Chat page). */}
@@ -228,7 +255,9 @@ function RecentChatRow({
   onOpen: (groupId: string) => void;
 }) {
   const { t } = useLingui();
-  const time = group.createdAt;
+  // Fork: age from the last message, so a continued chat reads fresh
+  // (journey-after P3 "Chat page › Recents").
+  const time = group.updatedAt || group.createdAt;
   const timeMs = time ? new Date(time).getTime() : Number.NaN;
   const age = Number.isNaN(timeMs) ? "" : (compactAge(timeMs) ?? t`now`);
   const title = group.title || t`Untitled chat`;

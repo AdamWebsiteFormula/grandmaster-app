@@ -10,6 +10,7 @@ import {
   FileText,
   Microphone,
   PictureInPicture,
+  Sparkle,
   Trash,
   Waveform,
 } from "@anlg/ui/components/icons";
@@ -42,6 +43,10 @@ import { ShowInFolder } from "./misc";
 import { useAudioPlayer } from "~/audio-player";
 import { openFloatingMeetingPanel } from "~/meeting-float/host";
 import { isFloatingBarSupported } from "~/meeting-float/support";
+import {
+  useGenerateSummaryAction,
+  useGenerateSummaryOffer,
+} from "~/session/components/note-input/generate-summary-offer";
 import { useCopyTranscript } from "~/session/components/note-input/header-transcript";
 import { useRegenerateTranscript } from "~/session/components/note-input/transcript/actions";
 import {
@@ -81,6 +86,10 @@ export function OverflowButton({
   const { canCopyTranscript, copyTranscript } = useCopyTranscript(sessionId);
   const { uploadAudio, uploadTranscript } = useUploadFile(sessionId);
   const regenerateTranscript = useRegenerateTranscript(sessionId);
+  // Fork: Generate summary also lives in ⋯, so a note with no summary always
+  // has a way to make one (Granola 101: enhance after the meeting; NN/g #3).
+  const summaryOffer = useGenerateSummaryOffer(sessionId);
+  const { generate: generateSummary } = useGenerateSummaryAction(sessionId);
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const floatingBarEnabled = useConfigValue("floating_bar_enabled");
   const floatingBarSupported = isFloatingBarSupported();
@@ -138,6 +147,10 @@ export function OverflowButton({
     setOpen(false);
     requestDeleteRecording();
   };
+  const handleGenerateSummary = () => {
+    setOpen(false);
+    void generateSummary();
+  };
   const handleOpenStandaloneWindow = () => {
     setOpen(false);
     void openStandaloneNoteWindow(sessionId);
@@ -174,6 +187,20 @@ export function OverflowButton({
                 each action has one home (redline-oct3, H2). Then the note,
                 the recording in one submenu, and Delete note last in red
                 after a separator (Granola's note menu; Apple HIG, Menus). */}
+            {summaryOffer.visible && (
+              <>
+                <DropdownMenuItem
+                  onClick={handleGenerateSummary}
+                  className="cursor-pointer"
+                >
+                  <Sparkle />
+                  <span>
+                    <Trans>Generate summary</Trans>
+                  </span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem
               onClick={openVersionHistory}
               className="cursor-pointer"

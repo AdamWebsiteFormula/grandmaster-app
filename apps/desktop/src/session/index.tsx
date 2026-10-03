@@ -191,7 +191,7 @@ function TabContentNoteInner({
   });
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
 
-  const { skipReason } = useAutoEnhance(tab);
+  useAutoEnhance(tab);
   const isTranscribing = shouldShowTranscriptTabSpinner(sessionMode);
   const isLiveSessionActive = sessionMode === "active";
   const editorTabs = React.useMemo(
@@ -282,7 +282,6 @@ function TabContentNoteInner({
               editorTabs={editorTabs}
               onSelectView={handleTabChange}
               isTranscribing={isTranscribing}
-              skipReason={skipReason}
               tab={tab}
             />
           )

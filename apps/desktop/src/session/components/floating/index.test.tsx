@@ -9,18 +9,38 @@ import type { EditorView } from "~/store/zustand/tabs/schema";
 const hoisted = vi.hoisted(() => ({
   sendEvent: vi.fn(),
   queueChatPrompt: vi.fn(),
-  openNew: vi.fn(),
   chatMode: "FloatingClosed",
   sessionMode: "inactive",
+  hasTranscript: true,
+  rawNote: "",
+  canResume: true,
+  recordingBarProps: vi.fn(),
 }));
 
 vi.mock("./recording-bar", () => ({
-  RecordingBar: () => null,
+  RecordingBar: (props: unknown) => {
+    hoisted.recordingBarProps(props);
+    return null;
+  },
 }));
 
 vi.mock("~/stt/contexts", () => ({
   useListener: (selector: (state: unknown) => unknown) =>
     selector({ getSessionMode: () => hoisted.sessionMode }),
+}));
+
+vi.mock("~/session/components/resume-recording", () => ({
+  useCanResumeRecording: () => hoisted.canResume,
+}));
+
+vi.mock("~/session/components/shared", () => ({
+  useHasTranscript: () => hoisted.hasTranscript,
+  hasStoredNoteContent: (value: unknown) =>
+    typeof value === "string" && value.trim().length > 0,
+}));
+
+vi.mock("~/session/queries", () => ({
+  useSession: () => ({ raw_md: hoisted.rawNote }),
 }));
 
 vi.mock("~/contexts/shell", () => ({
@@ -31,16 +51,6 @@ vi.mock("~/contexts/shell", () => ({
 
 vi.mock("~/chat/pending-prompt", () => ({
   queueChatPrompt: hoisted.queueChatPrompt,
-}));
-
-vi.mock("~/shared/config", () => ({
-  useConfigValue: (key: string) =>
-    key === "ai_language" ? "en" : key === "spoken_languages" ? '["de"]' : "",
-}));
-
-vi.mock("~/store/zustand/tabs", () => ({
-  useTabs: (selector: (state: unknown) => unknown) =>
-    selector({ openNew: hoisted.openNew }),
 }));
 
 const ENHANCED: EditorView = { type: "enhanced", id: "note-1" };
@@ -73,9 +83,103 @@ describe("FloatingActionButton (note bar)", () => {
   beforeEach(() => {
     hoisted.sendEvent.mockClear();
     hoisted.queueChatPrompt.mockClear();
-    hoisted.openNew.mockClear();
     hoisted.chatMode = "FloatingClosed";
     hoisted.sessionMode = "inactive";
+    hoisted.hasTranscript = true;
+    hoisted.rawNote = "";
+    hoisted.canResume = false;
+    hoisted.recordingBarProps.mockClear();
+  });
+
+  // Fork tests: journey-meeting P1 (Resume), P2 (narrow pane), P3 (chip,
+  // shadow).
+  it("offers Resume after Stop when the note has a transcript or audio", () => {
+    hoisted.canResume = true;
+    renderBar({ allowListening: true });
+    expect(hoisted.recordingBarProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ showResume: true }),
+    );
+    const stack = document.querySelector("[data-note-bar-stack]")!;
+    expect(stack.className).toContain("right-4");
+  });
+
+  it("offers no Resume on a blank note, while another note records, or in a standalone window", () => {
+    hoisted.canResume = true;
+    hoisted.hasTranscript = false;
+    renderBar({ allowListening: true, audioExists: false });
+    expect(hoisted.recordingBarProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ showResume: false }),
+    );
+    cleanup();
+
+    hoisted.hasTranscript = true;
+    hoisted.canResume = false;
+    renderBar({ allowListening: true });
+    expect(hoisted.recordingBarProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ showResume: false }),
+    );
+    cleanup();
+
+    hoisted.canResume = true;
+    renderBar({ allowListening: false });
+    expect(hoisted.recordingBarProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ showResume: false }),
+    );
+  });
+
+  it("offers Resume from saved audio alone", () => {
+    hoisted.canResume = true;
+    hoisted.hasTranscript = false;
+    renderBar({ allowListening: true, audioExists: true });
+    expect(hoisted.recordingBarProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ showResume: true }),
+    );
+  });
+
+  it("hides only the Ask field in a narrow pane while recording", () => {
+    hoisted.sessionMode = "active";
+    renderBar();
+
+    const bar = document.querySelector("[data-note-bar]")!;
+    expect(bar.className).not.toContain("@max-[760px]:hidden");
+    expect(document.querySelector("[data-note-ask]")!.className).toContain(
+      "@max-[760px]:hidden",
+    );
+    expect(
+      document.querySelector("[data-note-bar-stack]")!.className,
+    ).toContain("@max-[760px]:w-auto");
+    expect(
+      screen.getByRole("button", { name: "Show transcript" }),
+    ).toBeTruthy();
+  });
+
+  it("keeps the Ask field in a narrow pane when not recording", () => {
+    renderBar();
+    expect(document.querySelector("[data-note-ask]")!.className).not.toContain(
+      "@max-[760px]:hidden",
+    );
+  });
+
+  it("hides the follow-up email chip on a blank note", () => {
+    hoisted.hasTranscript = false;
+    renderBar();
+    expect(
+      screen.queryByRole("button", { name: "Draft follow-up email" }),
+    ).toBeNull();
+    cleanup();
+
+    hoisted.rawNote = "Agenda";
+    renderBar();
+    expect(
+      screen.getByRole("button", { name: "Draft follow-up email" }),
+    ).toBeTruthy();
+  });
+
+  it("gives the note bar pills a light-only shadow", () => {
+    renderBar();
+    const ask = document.querySelector("[data-note-ask]")!;
+    expect(ask.className).toContain("shadow-sm");
+    expect(ask.className).toContain("dark:shadow-none");
   });
 
   afterEach(() => {
@@ -157,17 +261,25 @@ describe("FloatingActionButton (note bar)", () => {
     expect(onSelectView).toHaveBeenLastCalledWith(ENHANCED);
   });
 
-  it("shows the spoken language instead of the email chip on the transcript", () => {
+  // redline2-oct3 R2: the bar is the same on Summary and Transcript.
+  it("keeps the email chip on the transcript; the language lives in the toolbar", () => {
     renderBar({ currentView: TRANSCRIPT });
 
     expect(
-      screen.queryByRole("button", { name: "Draft follow-up email" }),
-    ).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "English +1" }));
-    expect(hoisted.openNew).toHaveBeenCalledWith({
-      type: "settings",
-      state: { tab: "app" },
-    });
+      screen.getByRole("button", { name: "Draft follow-up email" }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "English +1" })).toBeNull();
+  });
+
+  // redline2-oct3 R2: the bars button names its real action.
+  it("names the transcript toggle's action in a tooltip", async () => {
+    renderBar();
+
+    fireEvent.focus(screen.getByRole("button", { name: "Show transcript" }));
+    expect(
+      (await screen.findAllByText("Show transcript")).length,
+    ).toBeGreaterThan(0);
+    expect(screen.getByRole("tooltip").textContent).toBe("Show transcript");
   });
 
   it("hides the transcript toggle when there is no transcript", () => {
@@ -184,6 +296,58 @@ describe("FloatingActionButton (note bar)", () => {
 
     expect(document.querySelector("[data-note-bar]")?.className).toContain(
       "hidden",
+    );
+  });
+
+  // Fork tests: installed-build review Oct 3 (P2: chat covered "Resume
+  // reco…"; P2: follow-up chip clipped at ~920 px).
+  it("hides Resume while the floating chat covers the bottom, and brings it back after", () => {
+    hoisted.canResume = true;
+    hoisted.chatMode = "FloatingOpen";
+    renderBar({ allowListening: true });
+    expect(hoisted.recordingBarProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ showResume: false }),
+    );
+    cleanup();
+
+    hoisted.chatMode = "RightPanelOpen";
+    renderBar({ allowListening: true });
+    expect(hoisted.recordingBarProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ showResume: true }),
+    );
+    cleanup();
+
+    hoisted.chatMode = "FloatingClosed";
+    renderBar({ allowListening: true });
+    expect(hoisted.recordingBarProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ showResume: true }),
+    );
+  });
+
+  it("keeps the recording bar while the chat is open", () => {
+    hoisted.sessionMode = "active";
+    hoisted.chatMode = "FloatingOpen";
+    renderBar({ allowListening: true });
+    expect(hoisted.recordingBarProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ sessionId: "session-1" }),
+    );
+  });
+
+  it("drops the follow-up chip to its icon when the Ask field narrows, never clipping it", () => {
+    hoisted.canResume = true;
+    hoisted.rawNote = "Launch review";
+    renderBar({ allowListening: true });
+
+    const form = document.querySelector("[data-note-ask]")!;
+    expect(form.className).toContain("@container/ask");
+    const chip = screen.getByRole("button", { name: "Draft follow-up email" });
+    expect(chip.getAttribute("title")).toBe("Draft follow-up email");
+    const label = screen.getByText("Draft follow-up email", {
+      selector: "span",
+    });
+    expect(label.className).toContain("@max-[22rem]/ask:sr-only");
+    expect(screen.getByText("⌘ J").className).toContain(
+      "@max-[15rem]/ask:hidden",
     );
   });
 

@@ -39,6 +39,11 @@ type SettingsNavItem =
       icon: Icon;
       requiresPro?: boolean;
       keywords?: string;
+      /**
+       * A section or sub-page of this page (settings/sections.ts). It shows
+       * in the sidebar only while searching, and in the ⌘K navigator.
+       */
+      parent?: SettingsTab;
     }
   | {
       id: "automations" | "calendar" | "contacts" | "folders" | "templates";
@@ -89,6 +94,11 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
   const workspaces = useMyWorkspacesWithMirror();
   const hasExistingWorkspace = (workspaces.data?.length ?? 0) > 0;
 
+  // Fork: eight sidebar pages instead of fifteen (grandmaster/sops/
+  // settings-ia-oct3.md Q3): Granola's Settings lists Preferences, Profile,
+  // Calendar, Notifications, Connectors; Apple HIG "Settings" asks for few,
+  // logically grouped settings. Moved pages stay as search and ⌘K entries
+  // with a parent, so their old tab ids and keywords keep working.
   const groups: SettingsNavGroup[] = [
     {
       label: t`App`,
@@ -97,7 +107,28 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           id: "app",
           label: t`General`,
           icon: Gear,
-          keywords: t`language, region, time zone, timezone, spoken languages, login, startup, Dock, menu bar, storage, export location`,
+          keywords: t`preferences, language, region, time zone, timezone, spoken languages, login, startup, Dock, menu bar, storage, export location`,
+        },
+        {
+          id: "appearance",
+          label: t`Appearance`,
+          icon: Sun,
+          keywords: t`theme, dark, light, mode, Match my Mac, 24-hour, time format, clock`,
+          parent: "app",
+        },
+        {
+          id: "privacy",
+          label: i18n._(privacyMessages.title),
+          icon: ShieldCheck,
+          keywords: t`Touch ID, lock, password, telemetry, data`,
+          parent: "app",
+        },
+        {
+          id: "permissions",
+          label: t`Permissions`,
+          icon: Lock,
+          keywords: t`microphone, system audio, accessibility, calendar access`,
+          parent: "app",
         },
         // Fork: a local profile page, as Granola's Settings › Profile
         // (granola-compare-oct3 section 8). No account needed.
@@ -105,7 +136,18 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           id: "profile",
           label: t`Profile`,
           icon: User,
-          keywords: t`name, job title, company, email, LinkedIn, photo`,
+          // Fork: account words find Profile (journey-account-settings P2;
+          // macOS System Settings matches controls inside each page).
+          keywords: t`name, job title, company, email, LinkedIn, photo, account, sign in, sign out, log in, log out, delete account`,
+        },
+        // Fork: stats are not settings and Granola's Settings has none, so
+        // Insights opens from Profile.
+        {
+          id: "insights",
+          label: t`Insights`,
+          icon: ChartLineUp,
+          keywords: t`stats, statistics, activity, badges`,
+          parent: "profile",
         },
         // Fork: Upshot's plan page, where Granola keeps Settings › Billing
         // (docs.granola.ai/help-center/managing-your-account/subscriptions-and-billing).
@@ -113,16 +155,10 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           id: "plan",
           label: t`Plan`,
           icon: CreditCard,
-          keywords: t`Pro, upgrade, subscription, billing, price`,
+          keywords: t`Pro, upgrade, subscription, billing, price, cancel, manage subscription, invoice, receipt, payment, card, monthly, yearly, usage`,
         },
         { id: "account", label: t`Account`, icon: User },
         { id: "billing", label: t`Billing`, icon: CreditCard },
-        {
-          id: "insights",
-          label: t`Insights`,
-          icon: ChartLineUp,
-          keywords: t`stats, statistics, activity, badges`,
-        },
         {
           id: "team",
           label: t`Teams`,
@@ -135,28 +171,29 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           icon: ArrowsClockwise,
           requiresPro: true,
         },
-        {
-          id: "appearance",
-          label: t`Appearance`,
-          icon: Sun,
-          keywords: t`theme, dark, light, mode, 24-hour, time format, clock`,
-        },
-        {
-          id: "notifications",
-          label: t`Notifications`,
-          icon: Bell,
-          keywords: t`sound, alerts, reminders, Do Not Disturb, meeting detected`,
-        },
       ],
     },
     {
-      label: "AI",
+      label: t`Meetings`,
       items: [
+        {
+          id: "meetings",
+          label: t`Meetings`,
+          icon: VideoCamera,
+          keywords: t`microphone, mic, audio, recording, auto-join, summaries, summary length, speakers, retention, floating bar, auto stop, disclosure, notice, meeting chat`,
+        },
         {
           id: "transcription",
           label: t`Transcription`,
           icon: Waveform,
           keywords: t`model, download, speech to text, on-device, local, provider, language`,
+        },
+        {
+          id: "dictionary",
+          label: t`Dictionary`,
+          icon: BookOpen,
+          keywords: t`words, terms, names, vocabulary, spelling, jargon`,
+          parent: "transcription",
         },
         {
           id: "dictation",
@@ -165,23 +202,6 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           requiresPro: true,
         },
         { id: "intelligence", label: t`Intelligence`, icon: Sparkle },
-        {
-          id: "dictionary",
-          label: t`Dictionary`,
-          icon: BookOpen,
-          keywords: t`words, terms, names, vocabulary, spelling, jargon`,
-        },
-      ],
-    },
-    {
-      label: t`Workspace`,
-      items: [
-        {
-          id: "meetings",
-          label: t`Meetings`,
-          icon: VideoCamera,
-          keywords: t`microphone, mic, audio, recording, auto-join, summaries, summary length, speakers, retention`,
-        },
         // Fork: Calendar settings stay inside Settings, as in Granola; the
         // page links to the month view (granola-compare-oct3 section 8).
         {
@@ -190,7 +210,42 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           icon: CalendarDots,
           keywords: t`events, schedule, Apple Calendar, visible calendars, week start`,
         },
-        // The month view keeps its ⌘K entry; the sidebar row above opens
+        {
+          id: "notifications",
+          label: t`Notifications`,
+          icon: Bell,
+          keywords: t`sound, alerts, reminders, Do Not Disturb, meeting detected`,
+        },
+        {
+          id: "connectors",
+          label: t`Connectors`,
+          icon: PlugsConnected,
+          keywords: t`integrations, Glaido, MCP, CLI, webhooks, export, import`,
+        },
+        {
+          id: "imports",
+          label: t`Imports`,
+          icon: DownloadSimple,
+          keywords: t`import, Granola, transcript, file, migrate`,
+          parent: "connectors",
+        },
+        {
+          id: "developers",
+          label: t`Developers`,
+          icon: Code,
+          keywords: t`CLI, MCP, API, webhooks, Glaido, skills`,
+          parent: "connectors",
+        },
+        { id: "crm", label: t`CRM`, icon: Buildings },
+      ],
+    },
+    {
+      // Fork: workspaces, not settings. They stay in ⌘K and out of the
+      // Settings sidebar, as Granola's Settings lists only settings pages
+      // (redline-oct3 Settings).
+      label: t`Workspace`,
+      items: [
+        // The month view keeps its ⌘K entry; the Calendar row above opens
         // the settings page.
         {
           id: "calendar",
@@ -201,20 +256,11 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           navigatorOnly: true,
         },
         {
-          id: "connectors",
-          label: t`Connectors`,
-          icon: PlugsConnected,
-          keywords: t`integrations, Glaido, MCP, CLI, webhooks, export, import`,
-        },
-        {
           id: "folders",
           label: t`Folders`,
           icon: FolderSimple,
           destination: { type: "folders" },
           keywords: t`folder`,
-          // Fork: Folders and Templates are workspaces, not settings; they
-          // stay in ⌘K and leave the Settings sidebar, as Granola's
-          // Settings lists only settings pages (redline-oct3 Settings).
           navigatorOnly: true,
         },
         {
@@ -237,41 +283,6 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           icon: Lightning,
           destination: { type: "automations" },
           requiresPro: true,
-        },
-      ],
-    },
-    {
-      label: t`Data`,
-      items: [
-        {
-          id: "imports",
-          label: t`Imports`,
-          icon: DownloadSimple,
-          keywords: t`import, Granola, transcript, file, migrate`,
-        },
-        { id: "crm", label: t`CRM`, icon: Buildings },
-      ],
-    },
-    {
-      label: t`Advanced`,
-      items: [
-        {
-          id: "privacy",
-          label: i18n._(privacyMessages.title),
-          icon: ShieldCheck,
-          keywords: t`Touch ID, lock, password, telemetry, data`,
-        },
-        {
-          id: "permissions",
-          label: t`Permissions`,
-          icon: Lock,
-          keywords: t`microphone, system audio, accessibility, calendar access`,
-        },
-        {
-          id: "developers",
-          label: t`Developers`,
-          icon: Code,
-          keywords: t`CLI, MCP, API, webhooks, Glaido, skills`,
         },
       ],
     },

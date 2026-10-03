@@ -10,12 +10,18 @@ const mocks = vi.hoisted(() => ({
   seconds: 0,
   requestMainListenerControl: vi.fn(),
   stop: vi.fn(),
+  resume: vi.fn(),
+}));
+
+vi.mock("~/stt/useStartListeningWithBatchOverride", () => ({
+  useStartListeningWithBatchOverride: () => mocks.resume,
 }));
 
 vi.mock("~/stt/contexts", () => ({
   useListener: (selector: (state: unknown) => unknown) =>
     selector({
       getSessionMode: () => mocks.mode,
+      canStartLiveSession: () => true,
       live: {
         amplitude: { mic: 0, speaker: 0 },
         muted: mocks.muted,
@@ -40,6 +46,7 @@ describe("RecordingBar", () => {
     mocks.seconds = 0;
     mocks.requestMainListenerControl.mockClear();
     mocks.stop.mockClear();
+    mocks.resume.mockClear();
   });
 
   afterEach(() => {
@@ -91,6 +98,47 @@ describe("RecordingBar", () => {
     );
   });
 
+  // Fork tests: journey-meeting P1 (Resume), P2 (live region), P3 (shadow).
+  it("offers Resume recording where Stop was once recording stops", () => {
+    mocks.mode = "inactive";
+    render(<RecordingBar sessionId="session-1" showResume />);
+
+    const resume = screen.getByRole("button", { name: "Resume recording" });
+    expect(resume.className).toContain("h-8");
+    expect(resume.className).toContain("left-4");
+    fireEvent.click(resume);
+    expect(mocks.resume).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks the main window to resume from a standalone window", () => {
+    mocks.mode = "inactive";
+    mocks.isMainWebviewWindow = false;
+    render(<RecordingBar sessionId="session-1" showResume />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Resume recording" }));
+    expect(mocks.requestMainListenerControl).toHaveBeenCalledWith(
+      "start",
+      "session-1",
+    );
+  });
+
+  it("announces only the label, not the ticking timer and meters", () => {
+    const view = render(<RecordingBar sessionId="session-1" />);
+
+    const bar = view.container.querySelector("[data-recording-bar]")!;
+    expect(bar.getAttribute("role")).toBeNull();
+    expect(screen.getByRole("status").textContent).toBe("Recording");
+    expect(screen.getByRole("timer")).toBeTruthy();
+  });
+
+  it("separates the pill from the note with a light-only shadow", () => {
+    const view = render(<RecordingBar sessionId="session-1" />);
+
+    const bar = view.container.querySelector("[data-recording-bar]")!;
+    expect(bar.className).toContain("shadow-sm");
+    expect(bar.className).toContain("dark:shadow-none");
+  });
+
   it.each(["finalizing", "running_batch"])(
     "shows Finishing transcript without Stop while %s",
     (mode) => {
@@ -109,6 +157,12 @@ describe("formatElapsed", () => {
   it("pads minutes and seconds", () => {
     expect(formatElapsed(0)).toBe("00:00");
     expect(formatElapsed(59)).toBe("00:59");
-    expect(formatElapsed(3600)).toBe("60:00");
+  });
+
+  // Fork: journey-meeting P3, h:mm:ss past an hour.
+  it("shows hours past an hour", () => {
+    expect(formatElapsed(3599)).toBe("59:59");
+    expect(formatElapsed(3600)).toBe("1:00:00");
+    expect(formatElapsed(4512)).toBe("1:15:12");
   });
 });

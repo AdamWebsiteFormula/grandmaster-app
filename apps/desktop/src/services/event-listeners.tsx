@@ -1,6 +1,7 @@
 import { type UnlistenFn } from "@tauri-apps/api/event";
 
 import { events as notificationEvents } from "@anlg/plugin-notification";
+import { commands as openerCommands } from "@anlg/plugin-opener2";
 import type {
   CaptureConfigUpdate,
   IdentityAssignment,
@@ -133,6 +134,36 @@ async function shouldAutoStartNotificationSession(
 
   const startTime = new Date(String(startedAt)).getTime();
   return !Number.isNaN(startTime) && startTime <= Date.now();
+}
+
+// Fork: "Take notes" on a meeting reminder opens the call link and starts
+// notes, as Granola's reminder does ("Open[s] the URL for the video call" and
+// "start[s] transcribing", docs.granola.ai/help-center/taking-notes/notifications).
+// Journey-first-run P2. Only web links are opened.
+export function getOpenableMeetingLink(
+  value: string | null | undefined,
+): string | null {
+  const link = value?.trim();
+  if (!link) return null;
+  try {
+    const url = new URL(link);
+    return url.protocol === "https:" || url.protocol === "http:"
+      ? url.toString()
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+async function openCalendarEventMeetingLink(eventId: string) {
+  const rows = await liveQueryClient.execute<{ meeting_link: string | null }>(
+    `SELECT meeting_link FROM events WHERE id = ? AND deleted_at IS NULL LIMIT 1`,
+    [eventId],
+  );
+  const link = getOpenableMeetingLink(rows[0]?.meeting_link);
+  if (link) {
+    await openerCommands.openUrl(link, null);
+  }
 }
 
 async function createNotificationSession(
@@ -656,6 +687,19 @@ function useNotificationEvents() {
             return;
           }
 
+          const isReminderTakeNotes =
+            payload.type === "notification_accept" &&
+            payload.source?.type === "calendar_event" &&
+            eventId !== null;
+          if (isReminderTakeNotes) {
+            void openCalendarEventMeetingLink(eventId).catch((error) => {
+              console.error(
+                "[notification] failed to open meeting link",
+                error,
+              );
+            });
+          }
+
           void createNotificationSession(eventId, triggerAppIds)
             .then(({ sessionId, autoStart }) => {
               openNewRef.current({
@@ -663,7 +707,7 @@ function useNotificationEvents() {
                 id: sessionId,
                 state: {
                   view: null,
-                  autoStart: autoStart ? true : null,
+                  autoStart: autoStart || isReminderTakeNotes ? true : null,
                   scheduledAutoStart: null,
                 },
               });

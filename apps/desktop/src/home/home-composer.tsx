@@ -59,7 +59,9 @@ export function HomeComposer() {
             "has-[input:focus-visible]:ring-ring has-[input:focus-visible]:ring-2",
           ])}
         >
-          <div className="flex min-w-0 items-center gap-1 overflow-hidden px-1 py-1">
+          {/* Fork: chips that do not fit wrap onto a hidden second line, so a
+              narrow window shows only whole chips (no cut-off labels). */}
+          <div className="flex h-9 min-w-0 flex-wrap items-center gap-1 overflow-hidden px-1 py-1">
             {hasHistory ? (
               <div className="ml-2 shrink-0">
                 <ChatGroups
@@ -78,10 +80,10 @@ export function HomeComposer() {
                 key={label}
                 type="button"
                 onClick={() => ask(prompt)}
-                className="text-muted-foreground hover:bg-accent hover:text-foreground inline-flex h-7 min-w-0 shrink cursor-pointer items-center gap-1.5 rounded-lg px-2 text-xs transition-colors"
+                className="text-muted-foreground hover:bg-accent hover:text-foreground inline-flex h-7 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-2 text-xs transition-colors"
               >
                 <Icon size={14} className="shrink-0" aria-hidden="true" />
-                <span className="truncate">{label}</span>
+                <span>{label}</span>
               </button>
             ))}
           </div>

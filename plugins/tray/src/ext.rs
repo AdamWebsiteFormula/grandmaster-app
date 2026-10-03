@@ -30,7 +30,7 @@ use crate::menu_items::{
 };
 use crate::menu_items::{
     MenuItemHandler, TrayCheckUpdate, TrayHide, TrayOpen, TrayQuitCompletely, TraySettings,
-    TrayShowEvents, TrayStart, TrayVersion, build_agenda_item,
+    TrayShowEvents, TrayStart, TrayStopRecording, TrayVersion, build_agenda_item,
 };
 use tauri_plugin_store2::Store2PluginExt;
 
@@ -41,6 +41,12 @@ static IS_DEGRADED: AtomicBool = AtomicBool::new(false);
 static IS_UPDATE_AVAILABLE: AtomicBool = AtomicBool::new(false);
 static SHOW_EVENTS: AtomicBool = AtomicBool::new(true);
 static START_DISABLED: AtomicBool = AtomicBool::new(false);
+
+// Fork: read by the app menu's Quit, which asks first while recording
+// (journey-meeting P2).
+pub(crate) fn is_recording() -> bool {
+    IS_RECORDING.load(Ordering::SeqCst)
+}
 static ANIMATION_TASK: Mutex<Option<JoinHandle<()>>> = Mutex::new(None);
 static SCHEDULE: Mutex<Vec<TrayScheduleEvent>> = Mutex::new(Vec::new());
 static SCHEDULE_TASK: Mutex<Option<JoinHandle<()>>> = Mutex::new(None);
@@ -420,10 +426,13 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
         menu.append(&PredefinedMenuItem::separator(app)?)?;
 
         menu.append(&TrayOpen::build(app)?)?;
-        menu.append(&TrayStart::build_with_disabled(
-            app,
-            START_DISABLED.load(Ordering::SeqCst),
-        )?)?;
+        // Fork: Stop recording replaces the disabled New note while a
+        // recording runs (journey-meeting P3; Apple HIG, The menu bar).
+        if START_DISABLED.load(Ordering::SeqCst) {
+            menu.append(&TrayStopRecording::build(app)?)?;
+        } else {
+            menu.append(&TrayStart::build_with_disabled(app, false)?)?;
+        }
         menu.append(&TraySettings::build(app)?)?;
         menu.append(&PredefinedMenuItem::separator(app)?)?;
         menu.append(&TrayVersion::build(app)?)?;

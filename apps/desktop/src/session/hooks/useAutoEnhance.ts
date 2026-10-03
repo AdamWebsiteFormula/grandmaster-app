@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useLingui } from "@lingui/react/macro";
+import { useEffect } from "react";
 
 import { toast } from "@anlg/ui/components/ui/toast";
 
@@ -6,8 +7,8 @@ import { getEnhancerService } from "~/services/enhancer";
 import { type Tab, useTabs } from "~/store/zustand/tabs";
 
 export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
+  const { t } = useLingui();
   const sessionId = tab.id;
-  const [skipReason, setSkipReason] = useState<string | null>(null);
 
   useEffect(() => {
     const service = getEnhancerService();
@@ -15,11 +16,18 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
     return service.on((event) => {
       if (event.sessionId !== sessionId) return;
       if (event.type === "auto-enhance-skipped") {
-        setSkipReason(event.reason);
         if (event.reasonCode === "transcript_too_short") {
           toast.warning("Summary wasn't generated", {
             id: `auto-summary-too-short-${sessionId}`,
             description: event.reason,
+          });
+        }
+        // Fork: a failed automatic summary says so and how to recover,
+        // instead of nothing (journey-meeting P2; NN/g #1, #9).
+        if (event.reasonCode === "error") {
+          toast.error(t`Summary wasn't generated`, {
+            id: `auto-summary-failed-${sessionId}`,
+            description: t`Upshot couldn't reach Upshot AI. Open the Summary and click Generate summary.`,
           });
         }
       }
@@ -37,17 +45,11 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
         }
       }
       if (event.type === "auto-enhance-no-model") {
-        setSkipReason("No AI model configured");
+        toast.error(t`Summary wasn't generated`, {
+          id: `auto-summary-failed-${sessionId}`,
+          description: t`Upshot AI is getting ready. Try again in a minute.`,
+        });
       }
     });
-  }, [sessionId]);
-
-  useEffect(() => {
-    if (skipReason) {
-      const timer = setTimeout(() => setSkipReason(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [skipReason]);
-
-  return { skipReason };
+  }, [sessionId, t]);
 }

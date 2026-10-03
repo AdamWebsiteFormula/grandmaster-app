@@ -1,3 +1,7 @@
+import { useLingui } from "@lingui/react/macro";
+import { useEffect } from "react";
+
+import { CaretLeft } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
 import {
@@ -5,29 +9,32 @@ import {
   SettingsApp,
   SettingsMeetings,
   SettingsNotifications,
-  SettingsPermissions,
 } from "./general";
 import { SettingsTodo } from "./todo";
 
 import { STT } from "~/settings/ai/stt";
-import { SettingsAppearance } from "~/settings/appearance";
 import { SettingsCalendar } from "~/settings/calendar";
 import { SettingsConnectors } from "~/settings/connectors";
 import { SettingsCrm } from "~/settings/crm";
 import { SettingsDevelopers } from "~/settings/developers";
 import { SettingsDictation } from "~/settings/dictation";
-import { SettingsDictionary } from "~/settings/dictionary";
 import { SettingsBilling } from "~/settings/general/billing";
 import { SettingsHydrationBoundary } from "~/settings/hydration-boundary";
 import { SettingsImports } from "~/settings/imports";
 import { SettingsPlan } from "~/settings/plan";
-import { SettingsPrivacy } from "~/settings/privacy";
 import { SettingsProfile } from "~/settings/profile";
+import {
+  isSettingsSection,
+  isSettingsSubpage,
+  scrollToSettingsSection,
+  SETTINGS_SECTIONS,
+  SETTINGS_SUBPAGES,
+} from "~/settings/sections";
 import { SettingsInsights } from "~/settings/stats";
 import { SettingsSync } from "~/settings/sync";
 import { SettingsTeam } from "~/settings/team";
 import { StandardContentWrapper } from "~/shared/main";
-import { type Tab } from "~/store/zustand/tabs";
+import { type SettingsTab, type Tab, useTabs } from "~/store/zustand/tabs";
 
 export function TabContentSettings({
   tab,
@@ -45,7 +52,7 @@ export function TabContentSettings({
 
 function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
   const requestedTab = tab.state.tab as string | undefined;
-  const activeTab =
+  const legacyTab =
     requestedTab === "data"
       ? "imports"
       : requestedTab === "personalization"
@@ -53,6 +60,13 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
         : requestedTab === "audio"
           ? "meetings"
           : (tab.state.tab ?? "app");
+  // Fork: old ids for pages that became sections open the page that holds
+  // them and scroll there (grandmaster/sops/settings-ia-oct3.md).
+  const activeTab: string = isSettingsSection(legacyTab)
+    ? SETTINGS_SECTIONS[legacyTab]
+    : legacyTab;
+
+  useEffect(() => scrollToSettingsSection(legacyTab), [legacyTab]);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -78,8 +92,6 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
         return <SettingsApp />;
       case "meetings":
         return <SettingsMeetings />;
-      case "appearance":
-        return <SettingsAppearance />;
       case "notifications":
         return <SettingsNotifications />;
       case "sync":
@@ -90,14 +102,8 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
         return <SettingsImports />;
       case "crm":
         return <SettingsCrm />;
-      case "permissions":
-        return <SettingsPermissions />;
-      case "privacy":
-        return <SettingsPrivacy />;
       case "developers":
         return <SettingsDevelopers />;
-      case "dictionary":
-        return <SettingsDictionary />;
       case "dictation":
         return <SettingsDictation />;
       case "transcription":
@@ -126,10 +132,44 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
           {/* Fork: one centered column about 680 px wide, as Granola's
               Settings (granola-compare-oct3 section 8; Baymard line length). */}
           <div className="mx-auto w-full max-w-[680px] min-w-0">
+            {isSettingsSubpage(activeTab) ? (
+              <SettingsBackButton parent={SETTINGS_SUBPAGES[activeTab]} />
+            ) : null}
             {renderContent()}
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+// Fork: a sub-page (Imports, Developers, Insights) opens from a row on its
+// parent page, so it gets a back button, as macOS System Settings detail
+// panes do (grandmaster/sops/settings-ia-oct3.md Q3).
+function SettingsBackButton({ parent }: { parent: SettingsTab }) {
+  const { t } = useLingui();
+  const currentTab = useTabs((state) => state.currentTab);
+  const updateSettingsTabState = useTabs(
+    (state) => state.updateSettingsTabState,
+  );
+  const label = parent === "profile" ? t`Profile` : t`Connectors`;
+
+  return (
+    <button
+      type="button"
+      aria-label={t`Back to ${label}`}
+      onClick={() => {
+        if (currentTab?.type === "settings") {
+          updateSettingsTabState(currentTab, { tab: parent });
+        }
+      }}
+      className={cn([
+        "text-muted-foreground hover:text-foreground mb-3 -ml-1 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-sm transition-colors",
+        "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
+      ])}
+    >
+      <CaretLeft aria-hidden className="size-3.5" />
+      {label}
+    </button>
   );
 }

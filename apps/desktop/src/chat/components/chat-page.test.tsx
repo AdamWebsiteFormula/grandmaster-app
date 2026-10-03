@@ -10,6 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   chat: {
     scope: "general",
+    mode: "FloatingClosed" as string,
     sendEvent: vi.fn(),
     startNewChat: vi.fn(),
     selectChat: vi.fn(),
@@ -22,7 +23,16 @@ const mocks = vi.hoisted(() => ({
     ownerUserId: string;
   }[],
   email: null as string | null,
+  profileName: null as string | null,
   queueChatPrompt: vi.fn(),
+}));
+
+vi.mock("~/auth", () => ({ useOptionalAuth: () => null }));
+vi.mock("~/shared/owner-user", () => ({ useOwnerUserId: () => "me" }));
+vi.mock("~/contacts/queries", () => ({
+  usePersonalContact: () => ({
+    data: mocks.profileName === null ? null : { name: mocks.profileName },
+  }),
 }));
 
 vi.mock("~/contexts/shell", () => ({
@@ -52,6 +62,7 @@ import {
   ChatPage,
   compactAge,
   firstNameFromEmail,
+  firstNameFromProfile,
   TabContentChat,
 } from "./chat-page";
 
@@ -71,6 +82,8 @@ describe("ChatPage", () => {
     vi.clearAllMocks();
     mocks.groups = [];
     mocks.email = null;
+    mocks.profileName = null;
+    mocks.chat.mode = "FloatingClosed";
   });
   afterEach(cleanup);
 
@@ -176,6 +189,63 @@ describe("ChatPage", () => {
     });
   });
 
+  // Fork: journey-after P3 "Chat page greeting".
+  it("greets by the Profile name before the email", () => {
+    mocks.profileName = "Taylor Brooks";
+    mocks.email = "info@project-go.com";
+    render(<ChatPage />);
+    expect(
+      screen.getByRole("heading", { name: "Hi Taylor, ask anything" }),
+    ).toBeTruthy();
+  });
+
+  it("falls back to the email rule with an empty Profile name", () => {
+    mocks.profileName = "   ";
+    mocks.email = "adam@project-go.com";
+    render(<ChatPage />);
+    expect(
+      screen.getByRole("heading", { name: "Hi Adam, ask anything" }),
+    ).toBeTruthy();
+  });
+
+  // Fork: journey-after P1 "Chat page": one composer at a time.
+  it("hides the greeting and composer while a chat is open", () => {
+    mocks.chat.mode = "RightPanelOpen";
+    mocks.groups = [group(1, 1)];
+    render(<ChatPage />);
+
+    expect(screen.queryByRole("textbox", { name: "Ask anything" })).toBeNull();
+    expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
+    expect(screen.getByRole("heading", { name: "Recents" })).toBeTruthy();
+    expect(screen.getByRole("group", { name: "Recipes" })).toBeTruthy();
+  });
+
+  it("continues the open chat when a recipe is picked", () => {
+    mocks.chat.mode = "RightPanelOpen";
+    render(<ChatPage />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Prep me for my next meeting" }),
+    );
+    expect(mocks.chat.startNewChat).not.toHaveBeenCalled();
+    expect(mocks.queueChatPrompt).toHaveBeenCalledWith(
+      "Prep me for my next meeting",
+    );
+  });
+
+  // Fork: journey-after P3 "Chat page › Recents".
+  it("ages a recent chat from its last message", () => {
+    const created = new Date(Date.now() - 48 * 3_600_000).toISOString();
+    const updated = new Date(Date.now() - 2 * 3_600_000).toISOString();
+    mocks.groups = [
+      { ...group(1, 48), createdAt: created, updatedAt: updated },
+    ];
+    render(<ChatPage />);
+    expect(
+      screen.getByRole("button", { name: /Chat 1/ }).textContent,
+    ).toContain("2h");
+  });
+
   it("sends the typed question on Enter", () => {
     render(<ChatPage />);
 
@@ -187,6 +257,12 @@ describe("ChatPage", () => {
 });
 
 describe("chat page helpers", () => {
+  it("takes a first name from a Profile name", () => {
+    expect(firstNameFromProfile("Adam Willingham")).toBe("Adam");
+    expect(firstNameFromProfile("  ")).toBeNull();
+    expect(firstNameFromProfile(undefined)).toBeNull();
+  });
+
   it("takes a first name from an email", () => {
     expect(firstNameFromEmail("adam@project-go.com")).toBe("Adam");
     expect(firstNameFromEmail("jane_doe@x.com")).toBe("Jane");

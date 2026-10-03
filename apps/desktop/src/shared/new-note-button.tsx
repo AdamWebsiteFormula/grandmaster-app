@@ -26,7 +26,13 @@ export function NewNoteButton({
       data-tauri-drag-region="false"
       onClick={newNoteAndListen}
       // Fork: say that it records and name the shortcut (UX audit Oct 3, A).
-      title={t`New note and start recording (⌘N)`}
+      // While recording it goes back to that note, so it says so
+      // (journey-meeting P3; NN/g #4 consistency).
+      title={
+        recording
+          ? t`Go to the note being recorded`
+          : t`New note and start recording (⌘N)`
+      }
       className={cn([
         recording
           ? "bg-secondary text-secondary-foreground hover:bg-accent"
@@ -38,8 +44,14 @@ export function NewNoteButton({
         className,
       ])}
     >
-      <Plus className="size-3.5" weight="bold" />
-      <Trans>New note</Trans>
+      {recording ? (
+        <Trans>Back to recording</Trans>
+      ) : (
+        <>
+          <Plus className="size-3.5" weight="bold" />
+          <Trans>New note</Trans>
+        </>
+      )}
     </button>
   );
 }

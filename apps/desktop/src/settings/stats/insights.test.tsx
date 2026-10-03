@@ -97,7 +97,12 @@ describe("personal insights page", () => {
     expect(screen.queryByText("A little more history will help")).toBeNull();
     mocks.activity.error = null;
     rerender(<SettingsInsights />);
-    expect(screen.getByText("A little more history will help")).toBeTruthy();
+    // journey-account-settings P2: no history at all is one empty card.
+    expect(
+      screen.getByText(
+        "None yet. Your meetings show up here once you record one.",
+      ),
+    ).toBeTruthy();
     expect(
       screen.queryByRole("region", { name: "Conversations by weekday" }),
     ).toBeNull();

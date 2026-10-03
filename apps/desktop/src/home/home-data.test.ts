@@ -203,6 +203,26 @@ describe("groupRecentNotes", () => {
     expect(hasMore).toBe(false);
   });
 
+  it("hides empty notes on request and keeps untitled ones with content", () => {
+    const base = { event_json: null, attendees: 0, created_at: at(3, 9) };
+    const rows = [
+      { ...base, id: "empty", title: "" },
+      { ...base, id: "typed", title: "", has_content: 1 },
+      { ...base, id: "recorded", title: "", has_transcript: 1 },
+      { ...base, id: "named", title: "Plan" },
+    ];
+    const ids = (hideEmpty: boolean) =>
+      groupRecentNotes(rows, NOW, 20, { hideEmpty }).groups.flatMap((group) =>
+        group.notes.map((note) => note.id),
+      );
+    expect(ids(false)).toContain("empty");
+    expect(ids(true).sort()).toEqual(["named", "recorded", "typed"]);
+    const typed = groupRecentNotes(rows, NOW).groups[0].notes.find(
+      (note) => note.id === "typed",
+    );
+    expect(typed).toMatchObject({ hasContent: true, hasTranscript: false });
+  });
+
   it("returns no groups without notes", () => {
     expect(groupRecentNotes([], NOW)).toEqual({ groups: [], hasMore: false });
   });
@@ -212,6 +232,10 @@ const PARTICIPANT_TABLES = `
   CREATE TABLE humans (id TEXT PRIMARY KEY, name TEXT, deleted_at TEXT);
   CREATE TABLE session_participants (id TEXT PRIMARY KEY, session_id TEXT, human_id TEXT, display_name TEXT, email TEXT, source TEXT, created_at TEXT, deleted_at TEXT);
   CREATE TABLE transcripts (id TEXT PRIMARY KEY, session_id TEXT, started_at_ms INTEGER, ended_at_ms INTEGER, words_json TEXT, deleted_at TEXT);
+  CREATE TABLE session_attachments (id TEXT PRIMARY KEY, session_id TEXT, deleted_at TEXT);
+`;
+const DOCUMENTS_TABLE = `
+  CREATE TABLE session_documents (id TEXT PRIMARY KEY, session_id TEXT, deleted_at TEXT, kind TEXT DEFAULT 'summary', body TEXT DEFAULT '', body_format TEXT DEFAULT 'prosemirror_json');
 `;
 
 describe("home SQL", () => {
@@ -220,12 +244,12 @@ describe("home SQL", () => {
     try {
       db.exec(`
         CREATE TABLE sessions (id TEXT PRIMARY KEY, title TEXT, created_at TEXT, event_json TEXT, deleted_at TEXT, locked INTEGER DEFAULT 0, owner_user_id TEXT DEFAULT 'me');
-        CREATE TABLE session_documents (id TEXT PRIMARY KEY, session_id TEXT, deleted_at TEXT);
+        ${DOCUMENTS_TABLE}
         ${PARTICIPANT_TABLES}
         CREATE TABLE action_items (id TEXT PRIMARY KEY, session_id TEXT, source_type TEXT, source_id TEXT, source_order INTEGER, status TEXT, text TEXT, updated_at TEXT, deleted_at TEXT);
         INSERT INTO sessions VALUES ('s1', 'Design review', '2026-10-02T10:00:00Z', '', NULL, 1, 'me');
         INSERT INTO sessions VALUES ('s2', 'Gone', '2026-10-03T10:00:00Z', '', '2026-10-03T11:00:00Z', 0, 'me');
-        INSERT INTO session_documents VALUES ('doc1', 's1', NULL);
+        INSERT INTO session_documents (id, session_id, deleted_at) VALUES ('doc1', 's1', NULL);
         INSERT INTO humans VALUES ('me', 'Adam', NULL);
         INSERT INTO humans VALUES ('h-ana', 'Ana Ruiz', NULL);
         INSERT INTO session_participants VALUES ('p1', 's1', 'me', '', '', 'calendar', '1', NULL);
@@ -311,6 +335,7 @@ describe("home SQL", () => {
       db.exec(`
         CREATE TABLE sessions (id TEXT PRIMARY KEY, title TEXT, created_at TEXT, event_json TEXT, deleted_at TEXT, locked INTEGER DEFAULT 0, folder_path TEXT DEFAULT '', owner_user_id TEXT DEFAULT 'me');
         ${PARTICIPANT_TABLES}
+        ${DOCUMENTS_TABLE}
         INSERT INTO sessions VALUES ('a', 'In folder', '2026-10-02T10:00:00Z', '', NULL, 0, 'Work', 'me');
         INSERT INTO sessions VALUES ('b', 'Nested', '2026-10-03T10:00:00Z', '', NULL, 0, 'Work/Hiring', 'me');
         INSERT INTO sessions VALUES ('c', 'Sibling prefix', '2026-10-03T11:00:00Z', '', NULL, 0, 'Workshop', 'me');
@@ -323,6 +348,61 @@ describe("home SQL", () => {
         .prepare(FOLDER_SESSIONS_SQL)
         .all("Work", "Work/", "Work/", 10) as Array<{ id: string }>;
       expect(rows.map((row) => row.id)).toEqual(["b", "a"]);
+    } finally {
+      db.close();
+    }
+  });
+
+  it("flags transcripts and note content, ignoring empty note bodies", () => {
+    const db = new DatabaseSync(":memory:");
+    const doc = (text: string) =>
+      JSON.stringify({
+        type: "doc",
+        content: [
+          text
+            ? { type: "paragraph", content: [{ type: "text", text }] }
+            : { type: "paragraph" },
+        ],
+      });
+    try {
+      db.exec(`
+        CREATE TABLE sessions (id TEXT PRIMARY KEY, title TEXT, created_at TEXT, event_json TEXT, deleted_at TEXT, locked INTEGER DEFAULT 0, owner_user_id TEXT DEFAULT 'me');
+        ${PARTICIPANT_TABLES}
+        ${DOCUMENTS_TABLE}
+        INSERT INTO sessions (id, title, created_at, event_json) VALUES
+          ('blank', '', '2026-10-03T01:00:00Z', ''),
+          ('typed', '', '2026-10-03T02:00:00Z', ''),
+          ('spaces', '', '2026-10-03T03:00:00Z', ''),
+          ('summary', '', '2026-10-03T04:00:00Z', ''),
+          ('audio', '', '2026-10-03T05:00:00Z', ''),
+          ('heard', '', '2026-10-03T06:00:00Z', ''),
+          ('chat', '', '2026-10-03T07:00:00Z', '');
+        INSERT INTO session_documents (id, session_id, kind, body) VALUES
+          ('blank', 'blank', 'note', '${doc("")}'),
+          ('typed', 'typed', 'note', '${doc("Call Ana")}'),
+          ('spaces', 'spaces', 'note', '${doc("   ")}'),
+          ('summary-doc', 'summary', 'summary', ''),
+          ('chat-doc', 'chat', 'meeting_chat', 'hi');
+        INSERT INTO session_attachments VALUES ('a1', 'audio', NULL);
+        INSERT INTO transcripts VALUES ('t1', 'heard', 0, NULL, '[]', NULL);
+      `);
+      const rows = db.prepare(RECENT_SESSIONS_SQL).all(20) as Array<{
+        id: string;
+        has_transcript: number;
+        has_content: number;
+      }>;
+      const flags = Object.fromEntries(
+        rows.map((row) => [row.id, [row.has_transcript, row.has_content]]),
+      );
+      expect(flags).toEqual({
+        blank: [0, 0],
+        typed: [0, 1],
+        spaces: [0, 0],
+        summary: [0, 1],
+        audio: [0, 1],
+        heard: [1, 0],
+        chat: [0, 0],
+      });
     } finally {
       db.close();
     }

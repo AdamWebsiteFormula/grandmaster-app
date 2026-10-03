@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { useCallback, useMemo } from "react";
 
 import { parseWebTemplates, type WebTemplate } from "./codec";
@@ -165,7 +166,8 @@ export function useTemplateTab(tab: Extract<Tab, { type: "templates" }>) {
 
   const createDefaultTemplate = useCallback(async () => {
     const id = await createTemplate({
-      title: "New Template",
+      // Fork: sentence case (journey-after P3 "Templates").
+      title: t`New template`,
       description: "",
       sections: [],
     });

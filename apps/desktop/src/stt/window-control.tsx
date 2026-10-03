@@ -138,7 +138,12 @@ function MainListenerControlRequestRunner({
         if (live.sessionId !== request.sessionId || !isStartingOrActive) {
           await startListeningRef.current();
         }
-      } else if (live.sessionId === request.sessionId) {
+      } else if (
+        live.sessionId === request.sessionId ||
+        // Fork: the tray's Stop recording doesn't know the note, so an
+        // empty id stops the live one (journey-meeting P3).
+        (request.sessionId === "" && isStartingOrActive)
+      ) {
         stopRef.current();
       }
 

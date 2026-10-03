@@ -14,8 +14,8 @@ import {
 import { cn } from "@anlg/utils";
 
 import {
-  normalizeUpshotModel,
   pickUpshotModels,
+  resolveUpshotModelPick,
   UPSHOT_AUTO_MODEL,
 } from "~/ai/upshot-models";
 import { useModelRegistry } from "~/settings/ai/shared/use-model-registry";
@@ -49,9 +49,9 @@ export function ChatModelMenu({
     () => pickUpshotModels(registry.providers.openrouter),
     [registry],
   );
-  const saved = normalizeUpshotModel(useConfigValue("current_llm_model"));
+  const savedModel = useConfigValue("current_llm_model");
   const setModel = useSetSettingValue("current_llm_model");
-  const selected = isPro ? saved : UPSHOT_AUTO_MODEL;
+  const selected = resolveUpshotModelPick(savedModel, models, isPro);
   const label = models.find((model) => model.id === selected)?.name ?? t`Auto`;
 
   return (

@@ -68,7 +68,34 @@ export function RecordingNotice() {
           }
         />
       )}
+      <AutoStartSwitch />
     </div>
+  );
+}
+
+// Fork: auto start is off by default and offered here, next to the notice,
+// so recording never starts without the user knowing (Granola, How
+// transcription works; Apple HIG Privacy: ask in context). Same key as
+// Settings › Meetings "Start when meeting begins". Journey-first-run P1.
+function AutoStartSwitch() {
+  const autoStart = useConfigValue("auto_start_scheduled_meetings");
+
+  return (
+    <SettingSwitchRow
+      title={<Trans>Start recording when a scheduled meeting begins</Trans>}
+      description={
+        <Trans>
+          Upshot starts taking notes when a calendar meeting with a call link
+          begins. Off: click the reminder instead.
+        </Trans>
+      }
+      checked={autoStart}
+      onChange={(checked) =>
+        void setSettingValues({ auto_start_scheduled_meetings: checked }).catch(
+          (error) => console.error("Failed to save auto start", error),
+        )
+      }
+    />
   );
 }
 

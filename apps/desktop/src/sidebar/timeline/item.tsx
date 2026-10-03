@@ -38,6 +38,7 @@ import { DEVICE_AUTH_REASON } from "~/lock/auth";
 import { isLockedFlag } from "~/lock/flag";
 import { revealLockedNote, setSessionLocked } from "~/lock/notes";
 import { useAppLock } from "~/lock/store";
+import { openMoveToFolderDialog } from "~/session/components/folder-picker";
 import { useDeleteSession } from "~/session/hooks/useDeleteSession";
 import { useIsSessionEnhancing } from "~/session/hooks/useEnhancedNotes";
 import {
@@ -861,6 +862,13 @@ export function useSessionContextMenu({
         text: platform() === "macos" ? t`Show in Finder` : t`Show in folder`,
         action: handleShowInFolder,
       },
+      // Fork: move a note from its row, as Granola rows offer Add to folder
+      // (journey-after P2 "Add note to folder from Home"; NN/g #7).
+      {
+        id: "move-to-folder",
+        text: t`Move to folder…`,
+        action: () => openMoveToFolderDialog(sessionId),
+      },
     ];
     if (authAvailable) {
       menu.push({
@@ -885,6 +893,7 @@ export function useSessionContextMenu({
     handleShowInFolder,
     handleToggleLock,
     noteLocked,
+    sessionId,
     t,
   ]);
 

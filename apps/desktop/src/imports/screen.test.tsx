@@ -1,12 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
-  act,
   cleanup,
   fireEvent,
   render,
   screen,
   waitFor,
-  within,
 } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -204,11 +202,13 @@ describe("MeetingImportScreen", () => {
     expect(screen.getByText("Circleback")).toBeTruthy();
     expect(screen.getByText("Granola")).toBeTruthy();
     expect(screen.getByText("Slack Huddles")).toBeTruthy();
-    expect(screen.getByText("Zoom")).toBeTruthy();
+    // Fork: journey-after P1 "Imports": Nango rows need an account Upshot
+    // doesn't have, so Zoom is not offered.
+    expect(screen.queryByText("Zoom")).toBeNull();
     expect(screen.queryByText("Avoma")).toBeNull();
     expect(screen.queryByText("Fireflies.ai")).toBeNull();
     expect(screen.queryByText("Krisp")).toBeNull();
-    expect(screen.getAllByRole("button", { name: "Connect" })).toHaveLength(3);
+    expect(screen.getAllByRole("button", { name: "Connect" })).toHaveLength(2);
   });
 
   it("offers file import from the connected provider menu", async () => {
@@ -293,65 +293,31 @@ describe("MeetingImportScreen", () => {
     });
   });
 
-  it("connects Zoom through Nango OAuth instead of file-only import", async () => {
+  // Fork: journey-after P1 "Imports". Zoom, Teams, Notion, Fathom, Meet and
+  // Webex used Nango through the upstream Anarlog account: a dead end.
+  it("never offers Nango sign-in rows, even when installed", async () => {
+    mocks.signedIn = false;
+    mockDetected(["zoom", "google-meet", "granola"]);
+
+    renderImports();
+
+    expect(await screen.findByText("Granola")).toBeTruthy();
+    expect(screen.queryByText("Zoom")).toBeNull();
+    expect(screen.queryByText("Google Meet")).toBeNull();
+    expect(screen.queryByText("Sign in to connect")).toBeNull();
+    expect(screen.getAllByRole("button", { name: "Connect" })).toHaveLength(1);
+    expect(mocks.connectNangoImport).not.toHaveBeenCalled();
+    expect(mocks.signIn).not.toHaveBeenCalled();
+  });
+
+  it("falls back to file imports when only Nango apps are installed", async () => {
     mockDetected(["zoom"]);
 
     renderImports();
 
-    fireEvent.click(await screen.findByRole("button", { name: "Connect" }));
-
-    await waitFor(() => {
-      expect(mocks.connectNangoImport).toHaveBeenCalledOnce();
-    });
-    expect(mocks.connectConnectedImport).not.toHaveBeenCalled();
-    expect(
-      await screen.findByRole("button", { name: "Sync now" }),
-    ).toBeTruthy();
+    expect(await screen.findByText(/No meeting apps found/i)).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Connect" })).toBeNull();
-    expect(screen.getByText("Connected")).toBeTruthy();
-    expect(
-      screen.queryByText(/Direct connection is not available yet/i),
-    ).toBeNull();
-  });
-
-  it("keeps each provider's sync warnings and errors in its own row", async () => {
-    mockDetected(["google-meet", "zoom"]);
-    mocks.connections = [
-      { connection_id: "meet-1", integration_id: "google-meet" },
-      { connection_id: "zoom-1", integration_id: "zoom" },
-    ];
-    mocks.sync.mockImplementation(async (providerId: string) => {
-      if (providerId === "zoom") throw new Error("Zoom sync failed");
-      return {
-        result: {
-          discovered: 0,
-          imported: 0,
-          matched: 0,
-          conflicts: 0,
-          errors: 0,
-        },
-        warnings: ["Meet transcripts unavailable"],
-      };
-    });
-    renderImports();
-    const meet = within(
-      await screen.findByRole("group", { name: "Google Meet" }),
-    );
-    const zoom = within(screen.getByRole("group", { name: "Zoom" }));
-    expect(meet.queryByText("Meet transcripts unavailable")).toBeNull();
-    const meetToggle = meet.getByRole("button", { name: "Google Meet" });
-    expect(meetToggle.getAttribute("aria-expanded")).toBe("false");
-    fireEvent.click(meetToggle);
-    fireEvent.click(zoom.getByRole("button", { name: "Zoom" }));
-    expect(meetToggle.getAttribute("aria-expanded")).toBe("true");
-    expect(await meet.findByText("Meet transcripts unavailable")).toBeTruthy();
-    expect(await zoom.findByText("Zoom sync failed")).toBeTruthy();
-    expect(meet.queryByText("Zoom sync failed")).toBeNull();
-    expect(zoom.queryByText("Meet transcripts unavailable")).toBeNull();
-    fireEvent.click(meetToggle);
-    expect(meetToggle.getAttribute("aria-expanded")).toBe("false");
-    expect(meet.queryByText("Meet transcripts unavailable")).toBeNull();
-    expect(screen.queryByText("Everything is already here.")).toBeNull();
+    expect(mocks.connectNangoImport).not.toHaveBeenCalled();
   });
 
   it("shows a completed file import even when all counts are zero", async () => {
@@ -388,91 +354,6 @@ describe("MeetingImportScreen", () => {
     await waitFor(() => expect(mocks.selectFiles).toHaveBeenCalledOnce());
     expect(mocks.importMeetingFiles).not.toHaveBeenCalled();
     expect(screen.queryByRole("status")).toBeNull();
-  });
-
-  it("replaces file import counts when a newer sync finishes", async () => {
-    mockDetected(["zoom"]);
-    mocks.connections = [{ connection_id: "zoom-1", integration_id: "zoom" }];
-    mocks.importMeetingFiles.mockResolvedValue({
-      discovered: 2,
-      imported: 2,
-      matched: 0,
-      conflicts: 0,
-      errors: 0,
-    });
-    renderImports();
-    const button = await screen.findByRole("button", { name: "Sync now" });
-    await waitFor(() => expect(button.hasAttribute("disabled")).toBe(false));
-    fireEvent.pointerDown(screen.getByRole("button", { name: "More options" }));
-    fireEvent.click(await screen.findByRole("menuitem", { name: "Use files" }));
-    fireEvent.click(screen.getByRole("button", { name: "Zoom" }));
-    expect(
-      await screen.findByText("Last import: 2 added, 0 unchanged"),
-    ).toBeTruthy();
-    mocks.sync.mockResolvedValue({
-      result: {
-        discovered: 3,
-        imported: 1,
-        matched: 2,
-        conflicts: 0,
-        errors: 0,
-      },
-      warnings: [],
-    });
-    fireEvent.click(button);
-    expect(
-      await screen.findByText("Last import: 1 added, 2 unchanged"),
-    ).toBeTruthy();
-    expect(screen.queryByText("Last import: 2 added, 0 unchanged")).toBeNull();
-  });
-
-  it("shows sync progress and blocks repeat clicks until syncing finishes", async () => {
-    mockDetected(["zoom"]);
-    mocks.connections = [{ connection_id: "zoom-1", integration_id: "zoom" }];
-    renderImports();
-    const button = await screen.findByRole("button", { name: "Sync now" });
-    await waitFor(() => expect(button.hasAttribute("disabled")).toBe(false));
-    let finish!: (value: unknown) => void;
-    mocks.sync.mockImplementationOnce(
-      () =>
-        new Promise((resolve) => {
-          finish = resolve;
-        }),
-    );
-    fireEvent.click(button);
-    await waitFor(() =>
-      expect(
-        screen.getByRole("progressbar", { name: "Sync now" }),
-      ).toBeTruthy(),
-    );
-    expect(button.hasAttribute("disabled")).toBe(true);
-    expect(button.getAttribute("aria-busy")).toBe("true");
-    expect(
-      screen
-        .getByRole("button", { name: "More options" })
-        .hasAttribute("disabled"),
-    ).toBe(true);
-    fireEvent.click(button);
-    expect(mocks.sync).toHaveBeenCalledTimes(2);
-    await act(async () =>
-      finish({
-        result: {
-          discovered: 0,
-          imported: 0,
-          matched: 0,
-          conflicts: 0,
-          errors: 0,
-        },
-        warnings: [],
-      }),
-    );
-    await waitFor(() => expect(screen.queryByRole("progressbar")).toBeNull());
-    expect(button.hasAttribute("disabled")).toBe(false);
-    expect(
-      screen
-        .getByRole("button", { name: "More options" })
-        .hasAttribute("disabled"),
-    ).toBe(false);
   });
 
   it("connects Plaud by running the local CLI instead of file-only import", async () => {

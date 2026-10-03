@@ -24,6 +24,9 @@ vi.mock("~/stt/window-control", () => ({
   requestMainListenerControl: vi.fn(),
 }));
 vi.mock("~/shared/hooks/usePermissions", () => ({ usePermission: vi.fn() }));
+vi.mock("~/session/components/resume-recording", () => ({
+  ResumeRecordingButton: () => null,
+}));
 
 const LOUD = 0.05;
 
@@ -202,12 +205,36 @@ describe("CaptureHealthBanner", () => {
     expect(open).toHaveBeenCalledTimes(1);
   });
 
-  it("shows a soft hint without a button when authorized", () => {
+  // Fork: journey-meeting P3, the soft hint can be dismissed and hides itself.
+  it("shows a soft hint with only a Dismiss button when authorized", () => {
     render(<CaptureHealthBanner notice="quiet" onOpenSettings={vi.fn()} />);
 
     expect(screen.getByRole("status").textContent).toBe(
       "No sound from the other side yet",
     );
-    expect(screen.queryByRole("button")).toBeNull();
+    const buttons = screen.getAllByRole("button");
+    expect(buttons).toHaveLength(1);
+    expect(buttons[0].getAttribute("aria-label")).toBe("Dismiss");
+    expect(buttons[0].className).toContain("size-6");
+
+    fireEvent.click(buttons[0]);
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+
+  it("hides the soft hint after a minute", () => {
+    vi.useFakeTimers();
+    try {
+      render(<CaptureHealthBanner notice="quiet" onOpenSettings={vi.fn()} />);
+      act(() => {
+        vi.advanceTimersByTime(59_000);
+      });
+      expect(screen.queryByRole("status")).not.toBeNull();
+      act(() => {
+        vi.advanceTimersByTime(1_000);
+      });
+      expect(screen.queryByRole("status")).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

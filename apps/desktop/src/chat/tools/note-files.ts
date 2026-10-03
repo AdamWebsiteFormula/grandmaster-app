@@ -6,7 +6,7 @@ import type { ToolDependencies } from "./types";
 
 import {
   loadActiveSessionIds,
-  loadSessionContentSnapshot,
+  loadReadableSessionContentSnapshot,
   type SessionContentSnapshot,
 } from "~/session/content-queries";
 import { loadSessionSummariesByFolder } from "~/session/queries";
@@ -129,7 +129,7 @@ function buildNoteSections(
 }
 
 async function loadNoteFile(sessionId: string): Promise<LoadedNoteFile | null> {
-  const snapshot = await loadSessionContentSnapshot(sessionId);
+  const snapshot = await loadReadableSessionContentSnapshot(sessionId);
   if (!snapshot) return null;
   const meetingChatMarkdown = formatMeetingChatRecordsAsMarkdown(
     await loadMeetingChatRecords(sessionId),
@@ -526,6 +526,7 @@ export const buildFindRelatedMeetingsTool = (deps: ToolDependencies) =>
 
 export const noteFileTestInternals = {
   buildNoteSections,
+  loadNoteFile,
   queryTerms,
   searchNote,
 };

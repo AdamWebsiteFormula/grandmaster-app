@@ -5,7 +5,7 @@ import { resolveCurrentSessionId } from "./current-session";
 import type { ToolDependencies } from "./types";
 
 import { usePendingEditStore } from "~/chat/tools/pending-edit-store";
-import { loadSessionContentSnapshot } from "~/session/content-queries";
+import { loadReadableSessionContentSnapshot } from "~/session/content-queries";
 import {
   applySessionProposal,
   declineSessionProposal,
@@ -45,7 +45,7 @@ export const buildEditMemoTool = (
         };
       }
 
-      const snapshot = await loadSessionContentSnapshot(sessionId);
+      const snapshot = await loadReadableSessionContentSnapshot(sessionId);
       if (!snapshot) {
         return { status: "error", message: "Session not found." };
       }

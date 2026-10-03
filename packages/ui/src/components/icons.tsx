@@ -179,6 +179,7 @@ import {
   TextSquareIcon,
   TextStrikethroughIcon,
   TextUnderlineIcon,
+  TranslateIcon,
   TrashIcon,
   TrendingUpIcon,
   TriangleAlertIcon,
@@ -771,6 +772,7 @@ export const TextUnderline = /* @__PURE__ */ createIcon(
   TextUnderlineIcon,
   "TextUnderline",
 );
+export const Translate = /* @__PURE__ */ createIcon(TranslateIcon, "Translate");
 export const Trash = /* @__PURE__ */ createIcon(TrashIcon, "Trash");
 export const TrendUp = /* @__PURE__ */ createIcon(TrendingUpIcon, "TrendUp");
 export const Trophy = /* @__PURE__ */ createIcon(TrophyIcon, "Trophy");

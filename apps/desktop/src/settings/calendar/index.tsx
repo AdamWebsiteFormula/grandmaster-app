@@ -2,16 +2,24 @@
 // Permissions, Visible calendars with a color dot and a switch per calendar;
 // granola-compare-oct3 section 8). It reuses the Apple Calendar rows the
 // month view already reads; the month view stays one click away.
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { ArrowUpRight, Check, Kanban, Key } from "@anlg/ui/components/icons";
+import {
+  ArrowUpRight,
+  CalendarDots,
+  Check,
+  Key,
+} from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 import { Switch } from "@anlg/ui/components/ui/switch";
+import { toast } from "@anlg/ui/components/ui/toast";
 
 import { useAppleCalendarSelection } from "~/calendar/components/apple/calendar-selection";
+import { NoCalendarsYet } from "~/calendar/components/apple/permission";
 import type { CalendarItem } from "~/calendar/components/calendar-selection";
 import { SyncProvider } from "~/calendar/components/context";
+import { useTurnOnCalendarsByDefault } from "~/calendar/default-calendars";
 import { allowReconnectedCalendarConnections } from "~/services/calendar";
 import { WeekStartSelector } from "~/settings/general/week-start";
 import { SettingsPageTitle } from "~/settings/page-title";
@@ -35,6 +43,9 @@ function SettingsCalendarContent() {
   const authorized = calendar.status === "authorized";
   const denied = calendar.status === "denied";
   const hasCalendars = groups.some((group) => group.calendars.length > 0);
+  // Fork: the first time calendars arrive on this Mac, they start on, as in
+  // onboarding (Granola setup "Select all"), so Coming up isn't empty.
+  useTurnOnCalendarsByDefault(isLoading);
 
   // Read the calendar list once access is there and nothing is loaded yet.
   const askedForSync = useRef(false);
@@ -79,7 +90,11 @@ function SettingsCalendarContent() {
                 Calendars.
               </Trans>
             ) : (
-              <Trans>Allow access to see upcoming meetings.</Trans>
+              // Fork: say why before asking (Apple HIG, Privacy).
+              <Trans>
+                Upshot needs calendar access to show your upcoming meetings and
+                name your notes.
+              </Trans>
             )
           }
           controlWidth="content"
@@ -108,8 +123,10 @@ function SettingsCalendarContent() {
             )
           }
         </SettingRow>
+        {/* Fork: a calendar glyph for the month view, not Kanban
+            (journey-account-settings P3; Granola screen 16). */}
         <SettingRow
-          icon={Kanban}
+          icon={CalendarDots}
           title={<Trans>Month view</Trans>}
           description={<Trans>See your events and notes by day.</Trans>}
           controlWidth="content"
@@ -148,14 +165,14 @@ function SettingsCalendarContent() {
             </Button>
           }
         >
-          {!hasCalendars ? (
+          {!hasCalendars && isLoading ? (
             <p role="status" className="text-muted-foreground text-sm">
-              {isLoading ? (
-                <Trans>Loading calendars…</Trans>
-              ) : (
-                <Trans>No calendars found.</Trans>
-              )}
+              <Trans>Loading calendars…</Trans>
             </p>
+          ) : !hasCalendars ? (
+            // Fork: access is on but nothing came back; the header already
+            // has Refresh, so only the way to add an account shows here.
+            <NoCalendarsYet />
           ) : (
             groups.flatMap((group) => [
               ...(groups.length > 1
@@ -190,6 +207,7 @@ export function VisibleCalendarRow({
   calendar: CalendarItem;
   onToggle: (enabled: boolean) => void | Promise<unknown>;
 }) {
+  const { t } = useLingui();
   const titleId = useId();
   // Optimistic: the write goes through the database queue, and the live
   // query re-emits after it lands. A newer toggle wins over a stale failure.
@@ -207,7 +225,13 @@ export function VisibleCalendarRow({
         className="size-2.5 shrink-0 rounded-full"
         style={{ backgroundColor: calendar.color || "#888" }}
       />
-      <span id={titleId} className="min-w-0 flex-1 truncate text-sm">
+      {/* Fork: a long name shows in full on hover; a failed toggle says
+          so (journey-account-settings P3; NN/g #9). */}
+      <span
+        id={titleId}
+        title={calendar.title}
+        className="min-w-0 flex-1 truncate text-sm"
+      >
         {calendar.title}
       </span>
       <Switch
@@ -217,7 +241,10 @@ export function VisibleCalendarRow({
           const seq = ++toggleSeq.current;
           setPending(next);
           void Promise.resolve(onToggle(next)).catch(() => {
-            if (toggleSeq.current === seq) setPending(null);
+            if (toggleSeq.current !== seq) return;
+            setPending(null);
+            const title = calendar.title;
+            toast.error(t`Couldn't update ${title}. Try again.`);
           });
         }}
       />

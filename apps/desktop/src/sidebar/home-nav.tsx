@@ -35,6 +35,10 @@ export function SidebarHomeNav() {
   const persistedIcons = useFolderIcons();
   const iconOverrides = useFolderSelection((state) => state.iconOverrides);
   const setSelectedPath = useFolderSelection((state) => state.setSelectedPath);
+  // Fork: the folder you're in is the selected row (two cues), as Home and
+  // Chat are (journey-after P2 "Folders"; design-system.md; NN/g #1).
+  const activeFolder = useFolderSelection((state) => state.selectedPath);
+  const onFolders = currentTab?.type === "folders";
 
   const goHome = () => {
     const { tabs, select, openCurrent } = useTabs.getState();
@@ -93,6 +97,7 @@ export function SidebarHomeNav() {
       </NavItem>
       <NavItem
         icon={<FolderSimple size={16} />}
+        active={onFolders && !activeFolder}
         onClick={() => openFolder(null)}
       >
         <Trans>Folders</Trans>
@@ -112,6 +117,7 @@ export function SidebarHomeNav() {
                     className="size-4 text-sm"
                   />
                 }
+                active={onFolders && activeFolder === folder}
                 onClick={() => openFolder(folder)}
               >
                 {/* Fork: full name on hover (ux-audit-oct3 B, WCAG 1.3.1). */}

@@ -2,7 +2,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { StandaloneOnboardingScreen } from "./index";
+import { StandaloneOnboardingScreen, TabContentOnboarding } from "./index";
+
+const tabMocks = vi.hoisted(() => ({ openCurrent: vi.fn() }));
+vi.mock("~/store/zustand/tabs", () => ({
+  useTabs: (select: (state: { openCurrent: () => void }) => unknown) =>
+    select({ openCurrent: tabMocks.openCurrent }),
+}));
 
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => "macos" }));
 vi.mock("@anlg/plugin-sfx", () => ({
@@ -19,6 +25,12 @@ vi.mock("~/shared/window-shell", () => ({
   ),
 }));
 vi.mock("./account", () => ({ LoginSection: () => null }));
+const detectMocks = vi.hoisted(() => ({
+  detectImportSources: vi.fn(async (): Promise<unknown[]> => [{ id: "zoom" }]),
+}));
+vi.mock("~/imports/detection", () => ({
+  detectImportSources: detectMocks.detectImportSources,
+}));
 vi.mock("./calendar", () => ({
   CalendarSection: ({ onContinue }: { onContinue: () => void }) => (
     <button onClick={onContinue}>Calendar done</button>
@@ -50,7 +62,11 @@ vi.mock("./transcription", () => ({
 }));
 vi.mock("./final", () => ({
   FinalDescription: () => null,
-  FinalSection: () => null,
+  FinalSection: ({
+    onContinue,
+  }: {
+    onContinue: (sessionId: string) => void;
+  }) => <button onClick={() => onContinue("welcome-session")}>Finish</button>,
   finishOnboarding: vi.fn(),
 }));
 
@@ -71,6 +87,7 @@ describe("StandaloneOnboardingScreen", () => {
       name: "Welcome to Upshot",
     });
     expect(title.className).toContain("text-2xl");
+    expect(title.className).toContain("font-display");
 
     const value = screen.getByText(
       "Record any call without a bot, and get clear notes from the newest AI models.",
@@ -155,5 +172,47 @@ describe("StandaloneOnboardingScreen", () => {
 
     expect(screen.getByText("Meeting history imported")).toBeTruthy();
     expect(screen.queryByText("Meeting history skipped")).toBeNull();
+  });
+
+  it("lands on Home, not the Welcome note, after Open Upshot", () => {
+    tabMocks.openCurrent.mockClear();
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <TabContentOnboarding tab={{ type: "onboarding" } as never} />
+      </QueryClientProvider>,
+    );
+    fireEvent.click(screen.getByText("Permissions done"));
+    fireEvent.click(screen.getByText("Transcription done"));
+    fireEvent.click(screen.getByText("Calendar done"));
+    fireEvent.click(screen.getByText("Import done"));
+    fireEvent.click(screen.getByText("Finish"));
+
+    expect(tabMocks.openCurrent).toHaveBeenCalledWith({ type: "empty" });
+  });
+
+  it("leaves the imports step out of the count when no meeting app is found", async () => {
+    detectMocks.detectImportSources.mockResolvedValueOnce([]);
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <StandaloneOnboardingScreen onFinish={vi.fn()} />
+      </QueryClientProvider>,
+    );
+
+    expect(await screen.findByText("Step 1 of 4")).toBeTruthy();
+    fireEvent.click(screen.getByText("Permissions done"));
+    fireEvent.click(screen.getByText("Transcription done"));
+    fireEvent.click(screen.getByText("Calendar done"));
+    // Straight from calendar to the last step, counted as 4 of 4.
+    expect(screen.getByText("Step 4 of 4")).toBeTruthy();
+    expect(screen.queryByText("Import done")).toBeNull();
+  });
+
+  it("keeps the imports step when a meeting app is found", async () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <StandaloneOnboardingScreen onFinish={vi.fn()} />
+      </QueryClientProvider>,
+    );
+    expect(await screen.findByText("Step 1 of 5")).toBeTruthy();
   });
 });

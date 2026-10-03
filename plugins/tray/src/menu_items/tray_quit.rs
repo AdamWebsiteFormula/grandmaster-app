@@ -2,6 +2,7 @@ use tauri::{
     AppHandle, Result,
     menu::{MenuItem, MenuItemKind},
 };
+use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
 
 use super::MenuItemHandler;
 
@@ -17,6 +18,27 @@ impl MenuItemHandler for TrayQuit {
     }
 
     fn handle(app: &AppHandle<tauri::Wry>) {
-        app.exit(0);
+        // Fork: while recording, Quit asks first, like Quit completely
+        // (journey-meeting P2; Apple HIG Alerts; NN/g #5). The normal exit
+        // still runs the frontend flush, so the recording is saved.
+        if !crate::ext::is_recording() {
+            app.exit(0);
+            return;
+        }
+
+        let app_name = app.package_info().name.clone();
+        let app = app.clone();
+        app.dialog()
+            .message("Your recording stops and is saved.")
+            .title(format!("Quit {}?", app_name))
+            .buttons(MessageDialogButtons::OkCancelCustom(
+                "Quit".to_string(),
+                "Cancel".to_string(),
+            ))
+            .show(move |confirmed| {
+                if confirmed {
+                    app.exit(0);
+                }
+            });
     }
 }

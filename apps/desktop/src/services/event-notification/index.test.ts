@@ -20,7 +20,7 @@ vi.mock("~/db", () => ({
   liveQueryClient: { execute: mocks.execute },
 }));
 
-import { checkEventNotifications } from ".";
+import { checkEventNotifications, formatEventTimeRange } from ".";
 
 describe("checkEventNotifications", () => {
   beforeEach(() => {
@@ -30,6 +30,7 @@ describe("checkEventNotifications", () => {
     vi.spyOn(Date, "now").mockReturnValue(
       new Date("2026-05-15T12:00:00.000Z").getTime(),
     );
+    localStorage.clear();
   });
 
   afterEach(() => {
@@ -48,6 +49,7 @@ describe("checkEventNotifications", () => {
         recurrence_series_id: "series-1",
         title: "Design Review",
         is_all_day: 0,
+        meeting_link: "https://meet.google.com/abc-defg-hij",
       },
     ]);
 
@@ -57,6 +59,7 @@ describe("checkEventNotifications", () => {
       expect.objectContaining({
         source: { type: "calendar_event", event_id: "event-1" },
         message: "Starting in 2 minutes",
+        action_label: "Take notes",
         start_time: new Date("2026-05-15T12:02:00.000Z").getTime() / 1000,
       }),
     );
@@ -105,5 +108,103 @@ describe("checkEventNotifications", () => {
     await checkEventNotifications(true, new Map());
 
     expect(mocks.showNotification).not.toHaveBeenCalled();
+  });
+
+  const meeting = (overrides: Record<string, unknown> = {}) => ({
+    id: "event-1",
+    started_at: "2026-05-15T12:02:00.000Z",
+    ended_at: "2026-05-15T12:32:00.000Z",
+    tracking_id_event: "tracking-1",
+    recurrence_series_id: "",
+    title: "Design Review",
+    is_all_day: 0,
+    participants_json: null,
+    meeting_link: "",
+    location: "",
+    ...overrides,
+  });
+
+  test("stays quiet for a solo event with no call link", async () => {
+    mocks.execute.mockResolvedValueOnce([
+      meeting({
+        title: "Focus time",
+        participants_json: JSON.stringify([
+          { name: "Me", email: "me@example.com", is_current_user: true },
+        ]),
+      }),
+    ]);
+
+    await checkEventNotifications(true, new Map());
+
+    expect(mocks.showNotification).not.toHaveBeenCalled();
+  });
+
+  test("reminds when someone else is invited, and lists them with the time", async () => {
+    mocks.execute.mockResolvedValueOnce([
+      meeting({
+        location: "Room 4",
+        participants_json: JSON.stringify([
+          { name: "Me", email: "me@example.com", is_current_user: true },
+          { name: "Dana Lee", email: "dana@example.com" },
+          { email: "sam@example.com" },
+        ]),
+      }),
+    ]);
+
+    await checkEventNotifications(true, new Map());
+
+    const payload = mocks.showNotification.mock.calls[0]![0];
+    expect(payload.participants).toEqual([
+      { name: "Dana Lee", email: "dana@example.com", status: "Accepted" },
+      { name: null, email: "sam@example.com", status: "Accepted" },
+    ]);
+    expect(payload.event_details.what).toMatch(/^Design Review, /);
+    expect(payload.event_details.location).toBe("Room 4");
+  });
+
+  test("does not show the same reminder again after a relaunch", async () => {
+    const event = meeting({ meeting_link: "https://zoom.us/j/1" });
+    mocks.execute.mockResolvedValue([event]);
+
+    await checkEventNotifications(true, new Map());
+    // A relaunch starts with an empty in-memory map.
+    await checkEventNotifications(true, new Map());
+
+    expect(mocks.showNotification).toHaveBeenCalledTimes(1);
+  });
+
+  test("still reminds when storage is unavailable", async () => {
+    const getItem = vi
+      .spyOn(Storage.prototype, "getItem")
+      .mockImplementation(() => {
+        throw new Error("blocked");
+      });
+    const setItem = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new Error("blocked");
+      });
+    mocks.execute.mockResolvedValueOnce([
+      meeting({ meeting_link: "https://zoom.us/j/1" }),
+    ]);
+
+    await checkEventNotifications(true, new Map());
+
+    expect(mocks.showNotification).toHaveBeenCalledTimes(1);
+    getItem.mockRestore();
+    setItem.mockRestore();
+  });
+});
+
+describe("formatEventTimeRange", () => {
+  test("shows a range, or just the start when the end is missing", () => {
+    const start = new Date("2026-05-15T12:02:00.000Z");
+    const end = new Date("2026-05-15T12:32:00.000Z");
+    expect(formatEventTimeRange(start, end)).not.toBe(
+      formatEventTimeRange(start, null),
+    );
+    expect(formatEventTimeRange(start, start)).toBe(
+      formatEventTimeRange(start, null),
+    );
   });
 });

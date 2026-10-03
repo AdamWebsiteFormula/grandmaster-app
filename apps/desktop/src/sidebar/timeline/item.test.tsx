@@ -309,6 +309,20 @@ describe("TimelineItemComponent", () => {
     });
   });
 
+  // Fork: journey-after P2 "Add note to folder from Home".
+  it("moves a note to a folder from the context menu", async () => {
+    const { useMoveToFolderDialog } =
+      await import("~/session/components/folder-picker");
+    renderSession("session-move");
+
+    const item = findMenuItem("move-to-folder");
+    expect(item?.text).toBe("Move to folder\u2026");
+    item?.action?.();
+
+    expect(useMoveToFolderDialog.getState().sessionId).toBe("session-move");
+    useMoveToFolderDialog.setState({ sessionId: null });
+  });
+
   it("opens a session in a new window from the context menu", () => {
     renderSession("session-note-window");
 

@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { EventListeners } from "./event-listeners";
+import { EventListeners, getOpenableMeetingLink } from "./event-listeners";
 
 import {
   cancelAutoStopEndedNotification,
@@ -43,6 +43,8 @@ const {
   stopMock,
   updateCaptureConfigMock,
   getListenerStateMock,
+  executeMock,
+  openUrlMock,
 } = vi.hoisted(() => ({
   notificationListenMock: vi.fn(),
   updaterListenMock: vi.fn(),
@@ -61,6 +63,12 @@ const {
   stopMock: vi.fn(),
   updateCaptureConfigMock: vi.fn(),
   getListenerStateMock: vi.fn(),
+  executeMock: vi.fn(async (): Promise<unknown[]> => []),
+  openUrlMock: vi.fn(async () => ({ status: "ok", data: null })),
+}));
+
+vi.mock("@anlg/plugin-opener2", () => ({
+  commands: { openUrl: openUrlMock },
 }));
 
 vi.mock("@anlg/plugin-notification", () => ({
@@ -89,6 +97,7 @@ vi.mock("@anlg/plugin-windows", () => ({
 vi.mock("~/db", () => ({
   liveQueryClient: {
     subscribe: liveQuerySubscribeMock,
+    execute: executeMock,
   },
 }));
 
@@ -799,6 +808,60 @@ describe("EventListeners notification events", () => {
     },
   );
 
+  test("Take notes on an upcoming meeting reminder opens the call and starts notes", async () => {
+    vi.spyOn(Date, "now").mockReturnValue(
+      new Date("2026-05-15T12:00:00.000Z").getTime(),
+    );
+    getCalendarEventStartedAtMock.mockResolvedValue("2026-05-15T12:02:00.000Z");
+    executeMock.mockResolvedValueOnce([
+      { meeting_link: " https://meet.google.com/abc-defg-hij " },
+    ]);
+    const handler = await renderNotificationHandler();
+
+    handler({
+      payload: {
+        type: "notification_accept",
+        key: "event-evt-1",
+        source: { type: "calendar_event", event_id: "evt-1" },
+      },
+    });
+
+    await vi.waitFor(() =>
+      expect(openNewMock).toHaveBeenCalledWith({
+        type: "sessions",
+        id: "session-event",
+        state: { view: null, autoStart: true, scheduledAutoStart: null },
+      }),
+    );
+    expect(openUrlMock).toHaveBeenCalledWith(
+      "https://meet.google.com/abc-defg-hij",
+      null,
+    );
+  });
+
+  test("Take notes without a call link starts notes and opens nothing else", async () => {
+    getCalendarEventStartedAtMock.mockResolvedValue(null);
+    executeMock.mockResolvedValueOnce([{ meeting_link: "" }]);
+    const handler = await renderNotificationHandler();
+
+    handler({
+      payload: {
+        type: "notification_accept",
+        key: "event-evt-1",
+        source: { type: "calendar_event", event_id: "evt-1" },
+      },
+    });
+
+    await vi.waitFor(() =>
+      expect(openNewMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: expect.objectContaining({ autoStart: true }),
+        }),
+      ),
+    );
+    expect(openUrlMock).not.toHaveBeenCalled();
+  });
+
   test("cleans up an updater subscription that resolves after unmount", async () => {
     let resolveUpdater: ((unlisten: () => void) => void) | undefined;
     updaterListenMock.mockReturnValue(
@@ -816,4 +879,13 @@ describe("EventListeners notification events", () => {
     await vi.waitFor(() => expect(unlisten).toHaveBeenCalledOnce());
     expect(maybeEmitUpdatedMock).not.toHaveBeenCalled();
   });
+});
+
+test("opens only web meeting links", () => {
+  expect(getOpenableMeetingLink("https://zoom.us/j/1")).toBe(
+    "https://zoom.us/j/1",
+  );
+  expect(getOpenableMeetingLink("file:///etc/passwd")).toBeNull();
+  expect(getOpenableMeetingLink("not a link")).toBeNull();
+  expect(getOpenableMeetingLink("")).toBeNull();
 });

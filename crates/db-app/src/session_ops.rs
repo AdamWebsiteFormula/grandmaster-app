@@ -73,7 +73,9 @@ pub async fn list_sessions(
     input: ListSessions<'_>,
 ) -> Result<Vec<SessionListItem>, sqlx::Error> {
     let mut query = QueryBuilder::<Sqlite>::new(SESSION_LIST_COLUMNS);
-    query.push(" WHERE deleted_at IS NULL");
+    // Fork: agents (MCP, chat list_meetings) never list a locked note
+    // (grandmaster/sops/journey-after.md P1 "Locked notes").
+    query.push(" WHERE deleted_at IS NULL AND locked = 0");
 
     if let Some(search) = input.query.map(str::trim).filter(|query| !query.is_empty()) {
         query.push(" AND (instr(lower(title), lower(");
@@ -326,7 +328,8 @@ pub async fn list_session_proposals(
     offset: u32,
 ) -> Result<Vec<SessionProposalRow>, sqlx::Error> {
     let mut query = QueryBuilder::<Sqlite>::new(SESSION_PROPOSAL_COLUMNS);
-    query.push(" WHERE 1 = 1");
+    // Fork: proposals copy note text; skip locked notes (journey-after P1).
+    query.push(" WHERE session_id NOT IN (SELECT id FROM sessions WHERE locked != 0)");
     if let Some(session_id) = session_id {
         query.push(" AND session_id = ");
         query.push_bind(session_id);

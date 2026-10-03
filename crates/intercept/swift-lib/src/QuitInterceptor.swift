@@ -40,8 +40,13 @@ final class QuitInterceptor {
   // MARK: - Actions
 
   func performQuit() {
-    rustSetForceQuit()
     hidePanel()
+    // Fork: quit through the app so the 5 s note flush in shared/app-exit.ts
+    // still runs, instead of a force quit (journey-meeting P2; NN/g #5).
+    if rustRequestQuit() {
+      return
+    }
+    rustSetForceQuit()
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
       NSApplication.shared.terminate(nil)
     }

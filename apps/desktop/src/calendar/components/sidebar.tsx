@@ -28,6 +28,7 @@ import { cn } from "@anlg/utils";
 import { AppleCalendarSelection } from "./apple/calendar-selection";
 import {
   AppleCalendarPermissionDialog,
+  CalendarAccessNeeded,
   TroubleShootingLink,
 } from "./apple/permission";
 import { OAuthProviderContent } from "./oauth/provider-content";
@@ -470,6 +471,13 @@ function ProviderAccordionItem({
           />
         )}
       </div>
+      {appleNeedsPermission && provider.id === "apple" && (
+        <CalendarAccessNeeded
+          onAllow={handleAppleConnect}
+          isPending={calendar.isPending}
+          className="pb-3"
+        />
+      )}
       {!appleNeedsPermission && (
         <AccordionContent className="pb-3">
           {provider.id === "apple" && (
@@ -477,6 +485,7 @@ function ProviderAccordionItem({
               <AppleCalendarSelection
                 leftAction={
                   <TroubleShootingLink
+                    isAuthorized
                     isPending={calendar.isPending}
                     onOpen={calendar.open}
                     onRequest={calendar.request}

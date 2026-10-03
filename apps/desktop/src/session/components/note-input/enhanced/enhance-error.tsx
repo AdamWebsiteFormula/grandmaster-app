@@ -4,6 +4,8 @@ import { useMutation } from "@tanstack/react-query";
 import { ArrowsClockwise, WarningCircle } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 
+import { getEnhanceErrorKind, showModelNotReadyToast } from "./model-not-ready";
+
 import { useAITask } from "~/ai/contexts";
 import { useLanguageModel } from "~/ai/hooks";
 import { useAuth } from "~/auth";
@@ -38,8 +40,12 @@ export function EnhanceError({
   const templateId = useEnhancedNote(enhancedNoteId)?.templateId || undefined;
   const signInMutation = useMutation({ mutationFn: () => auth.signIn() });
 
+  const errorKind = getEnhanceErrorKind(error);
   const handleRetry = () => {
-    if (!model) return;
+    if (!model) {
+      showModelNotReadyToast();
+      return;
+    }
 
     const taskId = createTaskId(enhancedNoteId, "enhance");
     void generate(taskId, {
@@ -72,6 +78,15 @@ export function EnhanceError({
               Upshot could not generate this summary because you were not signed
               in. Sign in, then try again.
             </Trans>
+          ) : errorKind === "too_long" ? (
+            // Fork: Retry can't fix a 413, so say what can
+            // (journey-meeting P3; NN/g #9).
+            <Trans>
+              This meeting is too long for one summary. Try a shorter template,
+              or ask in chat.
+            </Trans>
+          ) : errorKind === "out_of_credit" ? (
+            <Trans>Upshot AI is paused for now. Try again later.</Trans>
           ) : isNetworkError(error) ? (
             // Fork: plain-language errors with the raw text kept small below (ux-audit-oct3 C, NN/g #9).
             <Trans>
@@ -82,13 +97,14 @@ export function EnhanceError({
             <Trans>Upshot couldn't write this summary. Click Retry.</Trans>
           )}
         </p>
-        {!isUnauthenticated && error?.message ? (
+        {!isUnauthenticated && errorKind === "other" && error?.message ? (
           <p className="text-muted-foreground text-xs break-words">
             {error.message}
           </p>
         ) : null}
       </div>
-      {isUnauthenticated ? (
+      {errorKind === "too_long" &&
+      !isUnauthenticated ? null : isUnauthenticated ? (
         <Button
           onClick={() => signInMutation.mutate()}
           disabled={signInMutation.isPending}
@@ -104,7 +120,6 @@ export function EnhanceError({
       ) : (
         <Button
           onClick={handleRetry}
-          disabled={!model}
           size="sm"
           className="gap-2"
           // Fork: one orange accent per screen (ux-audit-oct3 C, design-system).

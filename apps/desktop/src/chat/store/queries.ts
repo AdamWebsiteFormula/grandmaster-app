@@ -52,7 +52,7 @@ function useChatGroupsQuery(
       FROM chat_groups AS g
       WHERE g.deleted_at IS NULL
         AND ${chatGroupScopePredicate(chatScope)}
-      ORDER BY g.created_at DESC, g.id DESC
+      ORDER BY COALESCE(NULLIF(g.updated_at, ''), g.created_at) DESC, g.id DESC
       ${limit === undefined ? "" : "LIMIT ?"}
     `,
     params: limit === undefined ? [] : [limit],
@@ -165,8 +165,19 @@ export function createChatGroupWithMessage({
 
 export function upsertChatMessage(message: ChatMessageRecord): Promise<void> {
   return enqueueDatabaseWrite(chatWriteKey(message.chatGroupId), async () => {
+    const now = new Date().toISOString();
     await executeTransaction([
-      buildUpsertChatMessageStatement(message, new Date().toISOString()),
+      buildUpsertChatMessageStatement(message, now),
+      // Fork: a continued chat moves to the top of Recents with a fresh age,
+      // as in Granola's Recents (journey-after P3 "Chat page › Recents").
+      {
+        sql: `
+          UPDATE chat_groups
+          SET updated_at = ?
+          WHERE id = ? AND deleted_at IS NULL
+        `,
+        params: [now, message.chatGroupId],
+      },
     ]);
   });
 }

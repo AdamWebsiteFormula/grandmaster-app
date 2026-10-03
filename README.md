@@ -18,7 +18,7 @@
 - Pro picks this week's models from Anthropic, OpenAI and Google in the chat box ("Auto ⌄"), the way Granola does. The list is rebuilt from OpenRouter's catalog at launch, with a bundled fallback.
 - Warns you live when it can't hear the other side, with You and Them sound meters.
 - Keeps your audio on your Mac. Click any word in the transcript to hear it.
-- Imports your Granola meetings without an account.
+- Imports your Granola meetings through Granola's official MCP connection (you sign in to Granola; no Upshot account needed).
 - Answers questions about your meetings inside Glaido and other AI tools (built-in MCP server).
 
 ## Pro
@@ -68,6 +68,14 @@ Everything stays on your Mac until you press Enhance or use chat.
 
 **Delete your data:** delete a note in the app, or quit the app and delete the folder above.
 
+## Import from Granola
+
+1. In Upshot, open **Settings › Imports**. Granola is at the top of the list.
+2. Click **Connect** and sign in to your Granola account in the browser window that opens. This uses Granola's official MCP connection (docs.granola.ai/help-center/sharing/integrations/mcp).
+3. Back in Upshot, click **Sync now**. Your Granola meetings appear in Notes on Home.
+
+Other apps: Plaud imports through its CLI, and most other notetakers through their export files (**Choose files**).
+
 ## Support
 
 - **Report a bug or suggest a feature:** [open an issue](https://github.com/AdamWebsiteFormula/grandmaster-app/issues/new). Say what you did, what you expected and what happened, and add your macOS version and the Upshot version (Upshot › About Upshot).
@@ -77,5 +85,7 @@ Everything stays on your Mac until you press Enhance or use chat.
 ## Credits and licenses
 
 Upshot is a fork of [Anarlog](https://github.com/fastrepl/anarlog) (desktop v1.4.28), by Fastrepl, Inc. Anarlog is MIT licensed. See [LICENSE](LICENSE).
+
+Fonts: Geist and Geist Mono (Vercel) and Bricolage Grotesque, all under the SIL Open Font License 1.1 (license files in `apps/desktop/public/fonts/`).
 
 The sync library in `crates/cloudsync` is [sqlite-sync](https://github.com/sqliteai/sqlite-sync), licensed under the Elastic License 2.0 (ELv2). It ships unmodified. See [LICENSE.enterprise](LICENSE.enterprise) and [NOTICE](NOTICE).

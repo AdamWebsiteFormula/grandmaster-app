@@ -32,9 +32,11 @@ const mocks = vi.hoisted(() => ({
   upshot: {
     email: null as string | null,
     isSignedIn: false,
+    isLoading: false,
     plan: null as { pro: boolean } | null,
   },
   profileName: null as string | null,
+  avatar: null as string | null,
 }));
 
 const lingui = vi.hoisted(() => {
@@ -106,7 +108,10 @@ vi.mock("~/shared/owner-user", () => ({
 
 vi.mock("~/contacts/queries", () => ({
   usePersonalContact: () => ({
-    data: mocks.profileName ? { name: mocks.profileName } : null,
+    data:
+      mocks.profileName || mocks.avatar
+        ? { name: mocks.profileName, avatarDataUrl: mocks.avatar }
+        : null,
   }),
 }));
 
@@ -156,8 +161,14 @@ describe("SettingsNav", () => {
     mocks.updateTemplatesTabState.mockClear();
     mocks.workspaces = [];
     mocks.workspacesLoading = false;
-    mocks.upshot = { email: null, isSignedIn: false, plan: null };
+    mocks.upshot = {
+      email: null,
+      isSignedIn: false,
+      isLoading: false,
+      plan: null,
+    };
     mocks.profileName = null;
+    mocks.avatar = null;
   });
 
   const openedSettingsTab = () =>
@@ -172,7 +183,10 @@ describe("SettingsNav", () => {
     );
 
   it.each([
-    ["Permissions", "permissions"],
+    ["General", "app"],
+    ["Meetings", "meetings"],
+    ["Notifications", "notifications"],
+    ["Plan", "plan"],
     ["Transcription", "transcription"],
     ["Profile", "profile"],
     ["Calendar", "calendars"],
@@ -229,6 +243,9 @@ describe("SettingsNav", () => {
       expect(screen.queryByRole("button", { name: label })).toBeNull();
     }
 
+    fireEvent.change(screen.getByRole("textbox", { name: "Search settings" }), {
+      target: { value: "dictionary" },
+    });
     fireEvent.click(screen.getByRole("button", { name: /Dictionary/ }));
     expect(openedSettingsTab()).toEqual({ tab: "dictionary" });
     expect(mocks.upgradeToPro).not.toHaveBeenCalled();
@@ -254,6 +271,55 @@ describe("SettingsNav", () => {
     expect(hasProLock(/Teams/)).toBe(locked);
   });
 
+  // grandmaster/sops/settings-ia-oct3.md Q3: eight pages, in two groups.
+  it("lists eight pages, with moved pages only in search", () => {
+    render(<SettingsNav />);
+    const labels = screen
+      .getAllByRole("group")
+      .map((group) =>
+        Array.from(group.querySelectorAll("button")).map(
+          (button) => button.textContent,
+        ),
+      );
+    expect(labels).toEqual([
+      ["General", "Profile", "Plan"],
+      ["Meetings", "Transcription", "Calendar", "Notifications", "Connectors"],
+    ]);
+  });
+
+  it.each([
+    ["theme", "Appearance", "appearance"],
+    ["touch id", "Privacy", "privacy"],
+    ["accessibility", "Permissions", "permissions"],
+    ["jargon", "Dictionary", "dictionary"],
+    ["Granola", "Imports", "imports"],
+    ["webhooks", "Developers", "developers"],
+    ["badges", "Insights", "insights"],
+  ])("search %s finds the moved %s section", (query, label, tab) => {
+    render(<SettingsNav />);
+    fireEvent.change(screen.getByRole("textbox", { name: "Search settings" }), {
+      target: { value: query },
+    });
+    fireEvent.click(screen.getByRole("button", { name: label }));
+    expect(openedSettingsTab()).toEqual({ tab });
+  });
+
+  it.each([
+    ["appearance", "General"],
+    ["privacy", "General"],
+    ["dictionary", "Transcription"],
+    ["imports", "Connectors"],
+    ["insights", "Profile"],
+    ["stats", "Profile"],
+    ["audio", "Meetings"],
+  ])("marks the page that holds %s", (tab, page) => {
+    mocks.currentTab = { type: "settings", state: { tab } };
+    render(<SettingsNav />);
+    expect(
+      screen.getByRole("button", { name: page }).getAttribute("aria-current"),
+    ).toBe("page");
+  });
+
   it("filters nav items by item or group label", () => {
     render(<SettingsNav />);
     const input = screen.getByRole("textbox", { name: "Search settings" });
@@ -262,8 +328,8 @@ describe("SettingsNav", () => {
     expect(screen.getByText("Appearance")).toBeTruthy();
     expect(screen.queryByText("Meetings")).toBeNull();
 
-    fireEvent.change(input, { target: { value: "workspace" } });
-    expect(screen.getByText("Meetings")).toBeTruthy();
+    fireEvent.change(input, { target: { value: "meetings" } });
+    expect(screen.getByText("Transcription")).toBeTruthy();
     expect(screen.getByText("Connectors")).toBeTruthy();
     expect(screen.queryByText("Appearance")).toBeNull();
   });
@@ -302,11 +368,11 @@ describe("SettingsNav", () => {
     fireEvent.change(screen.getByRole("textbox", { name: "Search settings" }), {
       target: { value: "audio" },
     });
-    expect(screen.queryByText("Appearance")).toBeNull();
+    expect(screen.queryByText("General")).toBeNull();
 
     clear();
 
-    expect(screen.getByText("Appearance")).toBeTruthy();
+    expect(screen.getByText("General")).toBeTruthy();
   });
 
   it("matches what is inside a page, not only its name", () => {
@@ -323,6 +389,46 @@ describe("SettingsNav", () => {
 
     fireEvent.change(input, { target: { value: "touch id" } });
     expect(screen.getByText("Privacy")).toBeTruthy();
+  });
+
+  // journey-account-settings P2 "Settings search".
+  it.each([
+    ["sign in", "Profile"],
+    ["log out", "Profile"],
+    ["account", "Profile"],
+    ["cancel", "Plan"],
+    ["manage subscription", "Plan"],
+    ["invoice", "Plan"],
+    ["card", "Plan"],
+    ["usage", "Plan"],
+    ["floating bar", "Meetings"],
+    ["auto stop", "Meetings"],
+  ])("search %s finds %s", (query, page) => {
+    render(<SettingsNav />);
+    fireEvent.change(screen.getByRole("textbox", { name: "Search settings" }), {
+      target: { value: query },
+    });
+    expect(screen.getByRole("button", { name: page })).toBeTruthy();
+    expect(screen.queryByText("No results found.")).toBeNull();
+  });
+
+  // journey-account-settings P3 "Settings search, keyboard".
+  it("Return opens the top match", () => {
+    render(<SettingsNav />);
+    const input = screen.getByRole("textbox", { name: "Search settings" });
+    fireEvent.change(input, { target: { value: "invoice" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(openedSettingsTab()).toEqual({ tab: "plan" });
+  });
+
+  it("Return with no search or no match does nothing", () => {
+    render(<SettingsNav />);
+    const input = screen.getByRole("textbox", { name: "Search settings" });
+    fireEvent.keyDown(input, { key: "Enter" });
+    fireEvent.change(input, { target: { value: "zzzz" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(mocks.updateSettingsTabState).not.toHaveBeenCalled();
+    expect(mocks.openNew).not.toHaveBeenCalled();
   });
 
   it("keeps Esc from closing Settings while it clears the search", () => {
@@ -354,17 +460,20 @@ describe("SettingsNav", () => {
   describe("account header", () => {
     const header = () => screen.getByTestId("settings-account-header");
 
+    const badge = () => screen.getByTestId("settings-plan-badge");
+
     it("names the app and the plan when signed out", () => {
       render(<SettingsNav />);
       expect(header().textContent).toContain("Upshot");
-      expect(header().textContent).toContain("Free plan");
-      expect(header().textContent).toContain("U");
+      expect(badge().textContent).toBe("Free plan");
+      expect(header().querySelector("[aria-hidden]")?.textContent).toBe("U");
     });
 
     it("shows the profile name and email when signed in", () => {
       mocks.upshot = {
         email: "ada@example.com",
         isSignedIn: true,
+        isLoading: false,
         plan: { pro: true },
       };
       mocks.profileName = "Ada Lovelace";
@@ -378,6 +487,7 @@ describe("SettingsNav", () => {
       mocks.upshot = {
         email: "ada@example.com",
         isSignedIn: true,
+        isLoading: false,
         plan: { pro: true },
       };
       mocks.profileName = "Ada Lovelace";
@@ -389,16 +499,64 @@ describe("SettingsNav", () => {
       expect(screen.getByText("Ada Lovelace")).not.toBe(email);
     });
 
-    it("falls back to the email and plan without a profile name", () => {
+    it("uses the email's local part, never the plan, without a profile name", () => {
       mocks.upshot = {
         email: "judge@example.com",
         isSignedIn: true,
+        isLoading: false,
         plan: { pro: true },
       };
       render(<SettingsNav />);
+      const name = screen.getByText("judge");
+      expect(name.className).toContain("font-medium");
       expect(screen.getByText("judge@example.com")).toBeTruthy();
-      expect(screen.getByText("Pro plan")).toBeTruthy();
+      expect(screen.queryByText("Pro plan")).toBeNull();
+      expect(badge().textContent).toBe("Pro plan");
       expect(header().querySelector("[aria-hidden]")?.textContent).toBe("J");
+    });
+
+    it("badges a free plan for a signed-in free user", () => {
+      mocks.upshot = {
+        email: "ada@example.com",
+        isSignedIn: true,
+        isLoading: false,
+        plan: { pro: false },
+      };
+      mocks.profileName = "Ada Lovelace";
+      render(<SettingsNav />);
+      expect(badge().textContent).toBe("Free plan");
+    });
+
+    // journey-account-settings P2: no "Free" badge before the plan is known.
+    it("hides the badge while a signed-in plan loads or can't be read", () => {
+      mocks.upshot = {
+        email: "ada@example.com",
+        isSignedIn: true,
+        isLoading: true,
+        plan: null,
+      };
+      render(<SettingsNav />);
+      expect(screen.queryByTestId("settings-plan-badge")).toBeNull();
+      cleanup();
+      mocks.upshot = { ...mocks.upshot, isLoading: false };
+      render(<SettingsNav />);
+      expect(screen.queryByTestId("settings-plan-badge")).toBeNull();
+    });
+
+    it("hides the badge until the saved session has loaded", () => {
+      mocks.upshot = { ...mocks.upshot, isLoading: true };
+      render(<SettingsNav />);
+      expect(screen.queryByTestId("settings-plan-badge")).toBeNull();
+    });
+
+    // journey-account-settings P3: the Profile photo in the header.
+    it("shows the Profile photo when there is one", () => {
+      mocks.avatar = "data:image/jpeg;base64,photo";
+      mocks.profileName = "Ada Lovelace";
+      render(<SettingsNav />);
+      const avatar = screen.getByTestId("settings-account-avatar");
+      expect(avatar.getAttribute("src")).toBe("data:image/jpeg;base64,photo");
+      expect(header().textContent).not.toContain("A" + "Ada");
     });
 
     it("sits above the search field", () => {

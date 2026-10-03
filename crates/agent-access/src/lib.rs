@@ -291,6 +291,25 @@ pub struct Speaker {
     pub is_self: bool,
 }
 
+// Fork: a locked note stays private until it is unlocked in the app, so agents
+// (MCP for Glaido, chat tools, webhooks, Markdown export) never see it.
+// Missing and locked read the same, so a locked note's existence is not
+// confirmed either (journey-after P1 "Locked notes"; Apple Notes, "Lock your
+// notes": locked contents are not shown until unlocked).
+pub(crate) async fn load_unlocked_session(
+    pool: &SqlitePool,
+    meeting_id: &str,
+) -> Result<anlg_db_app::SessionRow> {
+    anlg_db_app::get_session(pool, meeting_id)
+        .await
+        .map_err(|source| Error::Database {
+            action: "load meeting",
+            source,
+        })?
+        .filter(|session| session.locked == 0)
+        .ok_or_else(|| Error::NotFound(format!("meeting '{meeting_id}'")))
+}
+
 pub async fn list_meetings(pool: &SqlitePool, input: ListMeetingsInput) -> Result<MeetingPage> {
     let limit = input
         .limit
@@ -395,7 +414,9 @@ pub async fn get_meeting(pool: &SqlitePool, input: GetMeetingInput) -> Result<Me
         source,
     })?;
 
-    let session = session.ok_or_else(|| Error::NotFound(format!("meeting '{meeting_id}'")))?;
+    let session = session
+        .filter(|session| session.locked == 0)
+        .ok_or_else(|| Error::NotFound(format!("meeting '{meeting_id}'")))?;
     let summaries = documents
         .into_iter()
         .filter(|document| matches!(document.kind.as_str(), "summary" | "template_output"))
@@ -426,16 +447,7 @@ pub async fn get_meeting_transcript(
     pool: &SqlitePool,
     input: GetMeetingTranscriptInput,
 ) -> Result<TranscriptPage> {
-    let exists = anlg_db_app::get_session(pool, &input.meeting_id)
-        .await
-        .map_err(|source| Error::Database {
-            action: "load meeting",
-            source,
-        })?
-        .is_some();
-    if !exists {
-        return Err(Error::NotFound(format!("meeting '{}'", input.meeting_id)));
-    }
+    load_unlocked_session(pool, &input.meeting_id).await?;
 
     let transcripts = load_transcripts(pool, &input.meeting_id).await?;
     Ok(paginate_transcripts(
@@ -453,13 +465,7 @@ pub async fn get_recurring_meeting_history(
     pool: &SqlitePool,
     input: GetRecurringMeetingHistoryInput,
 ) -> Result<MeetingPage> {
-    let meeting = anlg_db_app::get_session(pool, &input.meeting_id)
-        .await
-        .map_err(|source| Error::Database {
-            action: "load meeting",
-            source,
-        })?
-        .ok_or_else(|| Error::NotFound(format!("meeting '{}'", input.meeting_id)))?;
+    let meeting = load_unlocked_session(pool, &input.meeting_id).await?;
     let series_id = meeting.series_id.trim();
     let limit = input
         .limit
@@ -1345,5 +1351,115 @@ mod tests {
         .unwrap();
         assert_eq!(meeting.folder_path, None);
         assert_eq!(MeetingListItem::from(&meeting).folder_path, None);
+    }
+
+    // Fork: journey-after P1 "Locked notes". A locked note's notes, summary
+    // and transcript never leave through agent access (MCP, chat, export).
+    #[tokio::test]
+    async fn locked_meetings_are_hidden_from_every_read() {
+        let db = test_db().await;
+        sqlx::query(
+            "INSERT INTO sessions (id, title, started_at, series_id, locked)
+             VALUES
+             ('open', 'Open sync', '2026-07-13', 'series-1', 0),
+             ('secret', 'Secret sync', '2026-07-14', 'series-1', 1)",
+        )
+        .execute(db.pool())
+        .await
+        .unwrap();
+        sqlx::query(
+            "INSERT INTO session_documents (id, session_id, kind, body_format, body, title)
+             VALUES
+             ('secret', 'secret', 'note', 'markdown', 'Private salary talk', 'Notes'),
+             ('secret-summary', 'secret', 'summary', 'markdown', 'Private raise', 'Summary')",
+        )
+        .execute(db.pool())
+        .await
+        .unwrap();
+        sqlx::query(
+            "INSERT INTO transcripts (id, session_id, started_at_ms, words_json)
+             VALUES ('secret-transcript', 'secret', 0, '[{\"text\":\"confidential\"}]')",
+        )
+        .execute(db.pool())
+        .await
+        .unwrap();
+
+        let listed = list_meetings(db.pool(), ListMeetingsInput::default())
+            .await
+            .unwrap();
+        assert_eq!(
+            listed
+                .meetings
+                .iter()
+                .map(|meeting| meeting.id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["open"]
+        );
+        let by_query = list_meetings(
+            db.pool(),
+            ListMeetingsInput {
+                query: Some("secret".to_string()),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        assert!(by_query.meetings.is_empty());
+
+        let meeting = get_meeting(
+            db.pool(),
+            GetMeetingInput {
+                meeting_id: "secret".to_string(),
+            },
+        )
+        .await
+        .unwrap_err();
+        assert!(matches!(meeting, Error::NotFound(_)));
+
+        let transcript = get_meeting_transcript(
+            db.pool(),
+            GetMeetingTranscriptInput {
+                meeting_id: "secret".to_string(),
+                offset: None,
+                limit: None,
+            },
+        )
+        .await
+        .unwrap_err();
+        assert!(matches!(transcript, Error::NotFound(_)));
+
+        let export = get_meeting_export(db.pool(), "secret".to_string())
+            .await
+            .unwrap_err();
+        assert!(matches!(export, Error::NotFound(_)));
+        assert!(!export.to_string().contains("Private"));
+
+        let history = get_recurring_meeting_history(
+            db.pool(),
+            GetRecurringMeetingHistoryInput {
+                meeting_id: "open".to_string(),
+                limit: None,
+                offset: None,
+            },
+        )
+        .await
+        .unwrap();
+        assert_eq!(history.meetings.len(), 1);
+        assert_eq!(history.meetings[0].id, "open");
+
+        // Unlocking in the app (locked = 0) makes it readable again.
+        sqlx::query("UPDATE sessions SET locked = 0 WHERE id = 'secret'")
+            .execute(db.pool())
+            .await
+            .unwrap();
+        let unlocked = get_meeting(
+            db.pool(),
+            GetMeetingInput {
+                meeting_id: "secret".to_string(),
+            },
+        )
+        .await
+        .unwrap();
+        assert_eq!(unlocked.note.unwrap().markdown, "Private salary talk");
     }
 }

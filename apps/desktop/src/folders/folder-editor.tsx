@@ -31,6 +31,7 @@ import {
 import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
+import { FolderAskComposer } from "./folder-ask";
 import { FolderNotes } from "./folder-notes";
 import { useFolderNoteCount } from "./folder-stats";
 import { useFolderSelection } from "./selection";
@@ -285,7 +286,7 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
             <div className="relative max-w-full min-w-0">
               <span
                 aria-hidden="true"
-                className="invisible block px-1 py-0 text-2xl font-semibold whitespace-pre"
+                className="font-display invisible block px-1 py-0 text-2xl font-semibold tracking-[-0.01em] whitespace-pre"
               >
                 {(draft || t`Folder name`) + " "}
               </span>
@@ -308,7 +309,7 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
                   }
                 }}
                 placeholder={t`Folder name`}
-                className="absolute inset-0 h-auto w-full max-w-full min-w-0 border-0 px-1 py-0 text-center text-2xl font-semibold shadow-none focus-visible:ring-0 md:text-2xl"
+                className="font-display absolute inset-0 h-auto w-full max-w-full min-w-0 border-0 px-1 py-0 text-center text-2xl font-semibold tracking-[-0.01em] shadow-none focus-visible:ring-0 md:text-2xl"
               />
             </div>
             <p className="text-muted-foreground line-clamp-2 max-w-[60ch] text-sm text-pretty">
@@ -325,6 +326,8 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
               </p>
             ) : null}
           </header>
+
+          {noteCount ? <FolderAskComposer folderPath={folderPath} /> : null}
 
           <FolderNotes folderPath={folderPath} />
 
@@ -586,6 +589,11 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
                   ),
                 });
               }
+            } catch (error) {
+              // Fork: say it failed instead of an unhandled rejection
+              // (journey-after P2 "Folders › Delete"; NN/g #9).
+              console.error("[folders] delete failed", error);
+              toast.error(t`Couldn't delete the folder. Try again.`);
             } finally {
               setBusy(false);
             }

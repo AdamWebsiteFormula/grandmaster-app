@@ -21,6 +21,7 @@ vi.mock("~/ai/hooks", () => ({
 
 vi.mock("~/session/content-queries", () => ({
   loadSessionContentSnapshot: mocks.loadSessionContentSnapshot,
+  loadReadableSessionContentSnapshot: mocks.loadSessionContentSnapshot,
 }));
 
 vi.mock("./queries", () => ({
@@ -310,7 +311,9 @@ describe("contact summary", () => {
     });
 
     expect(mocks.loadSessionContentSnapshot).toHaveBeenCalledTimes(1);
-    expect(mocks.loadSessionContentSnapshot).toHaveBeenCalledWith("session-2");
+    expect(mocks.loadSessionContentSnapshot).toHaveBeenCalledWith("session-2", {
+      allowRevealed: false,
+    });
     const prompt = JSON.parse(mocks.generateText.mock.calls[0]?.[0].prompt);
     expect(prompt.existing_facts).toEqual([
       "Fact one.",

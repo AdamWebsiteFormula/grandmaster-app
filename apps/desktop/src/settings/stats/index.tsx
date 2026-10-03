@@ -1,8 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
 
-import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
-import { panelSquircle } from "@anlg/ui/lib/squircle";
 import { cn } from "@anlg/utils";
 
 import { summarizeActivity } from "./activity";
@@ -14,6 +12,7 @@ import { Tracker } from "./tremor/tracker";
 
 import { useNow, useTimezone, useWeekStartsOn } from "~/calendar/hooks";
 import { SettingsPageTitle } from "~/settings/page-title";
+import { SettingsGroup } from "~/settings/setting-row";
 
 // Any activity (level 1+) meets 3:1 against the panel (WCAG 2.2 SC 1.4.11);
 // level 0 is the empty cell.
@@ -24,10 +23,6 @@ const ACTIVITY_COLORS = [
   "bg-foreground/80",
   "bg-foreground",
 ];
-
-const STATS_BORDER = {
-  innerBorder: { width: 1, color: "var(--color-border)", opacity: 1 },
-};
 
 export function SettingsInsights() {
   const { t, i18n } = useLingui();
@@ -57,10 +52,12 @@ export function SettingsInsights() {
     timeZone: timezone,
   });
   const columns = stats.days.filter((_, index) => index % 7 === 0);
+  // Fork: the same words as Settings › Plan (journey-account-settings P2;
+  // NN/g #4 consistency).
   const metrics = [
-    { label: t`Conversations`, value: number.format(stats.conversations) },
+    { label: t`Meetings`, value: number.format(stats.conversations) },
     {
-      label: t`Hours transcribed`,
+      label: t`Hours recorded`,
       value: number.format(Math.round(stats.hours * 10) / 10),
     },
     { label: t`Active days`, value: number.format(stats.activeDays) },
@@ -84,16 +81,29 @@ export function SettingsInsights() {
         <p role="status" className="text-muted-foreground text-sm">
           <Trans>Loading your insights…</Trans>
         </p>
+      ) : stats.totalConversations === 0 ? (
+        // Fork: a new user gets one empty-state card, the same words as
+        // Settings › Plan, not zeros and an empty heatmap
+        // (journey-account-settings P2; NN/g "Designing empty states").
+        <SettingsGroup title={<Trans>Overview</Trans>}>
+          <p
+            data-testid="insights-empty"
+            className="text-muted-foreground text-sm"
+          >
+            <Trans>
+              None yet. Your meetings show up here once you record one.
+            </Trans>
+          </p>
+        </SettingsGroup>
       ) : (
         <>
-          <section className="flex flex-col gap-5" aria-label={t`Overview`}>
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-sm font-medium">
-                <Trans>Overview</Trans>
-              </h3>
-              <DateRangeFilter value={range} onChange={setRange} />
-            </div>
-            <dl className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-3">
+          {/* Fork: Overview in a SettingsGroup card, as every other page
+              (journey-account-settings P2; NN/g #4). */}
+          <SettingsGroup
+            title={<Trans>Overview</Trans>}
+            action={<DateRangeFilter value={range} onChange={setRange} />}
+          >
+            <dl className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-3">
               {metrics.map((metric) => (
                 <StatCard
                   key={metric.label}
@@ -102,7 +112,7 @@ export function SettingsInsights() {
                 />
               ))}
             </dl>
-          </section>
+          </SettingsGroup>
 
           <ConversationPatterns stats={stats} />
 
@@ -216,17 +226,10 @@ export function SettingsInsights() {
 }
 
 function StatCard({ label, value }: { label: string; value: string }) {
-  const ref = useSquircleRef<HTMLDivElement>(
-    undefined,
-    panelSquircle,
-    STATS_BORDER,
-  );
   return (
-    <div ref={ref} className="border-border rounded-[20px] border p-4">
+    <div className="flex min-w-0 flex-col gap-1">
       <dt className="text-muted-foreground text-xs">{label}</dt>
-      <dd className="mt-2 text-3xl font-medium tracking-tight tabular-nums">
-        {value}
-      </dd>
+      <dd className="text-2xl font-semibold tabular-nums">{value}</dd>
     </div>
   );
 }

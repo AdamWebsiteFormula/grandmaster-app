@@ -2,7 +2,8 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation } from "@tanstack/react-query";
 import { downloadDir, join } from "@tauri-apps/api/path";
 import { save } from "@tauri-apps/plugin-dialog";
-import { useMemo, useState } from "react";
+import { format as formatDateFns } from "date-fns";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { json2md } from "@anlg/editor/markdown";
 import { commands as analyticsCommands } from "@anlg/plugin-analytics";
@@ -32,7 +33,6 @@ import {
 } from "~/session/queries";
 import { getSessionEvent } from "~/session/utils";
 import { getStoredSettingValues } from "~/settings/queries";
-import { isAppStoreBuild } from "~/shared/app-store";
 import {
   GlassDialogCancelButton,
   GlassDialogContent,
@@ -82,9 +82,19 @@ export function ExportModal({
 }) {
   const { t } = useLingui();
   const [format, setFormat] = useState<FileFormat>("pdf");
-  const [includeMemo, setIncludeMemo] = useState(false);
-  const [includeSummary, setIncludeSummary] = useState(true);
+  const [includeMemo, setIncludeMemoState] = useState(false);
+  const [includeSummary, setIncludeSummaryState] = useState(true);
   const [includeTranscript, setIncludeTranscript] = useState(false);
+  // Once the user ticks a box, the summary-based default stops moving it.
+  const includeTouchedRef = useRef(false);
+  const setIncludeMemo = (value: boolean) => {
+    includeTouchedRef.current = true;
+    setIncludeMemoState(value);
+  };
+  const setIncludeSummary = (value: boolean) => {
+    includeTouchedRef.current = true;
+    setIncludeSummaryState(value);
+  };
 
   const session = useSession(sessionId);
   const sessionTitle = session?.title;
@@ -101,6 +111,15 @@ export function ExportModal({
       ? currentView.id
       : (enhancedNoteRecords[0]?.id ?? "");
   const enhancedNoteContent = useEnhancedNote(enhancedNoteId)?.content;
+  // Fork: with no summary yet, default to My notes and disable Summary, so an
+  // export never "succeeds" with only a title (journey-after P2 "Export, no
+  // summary"; NN/g #1, #5).
+  const hasSummary = enhancedNoteRecords.length > 0;
+  useEffect(() => {
+    if (includeTouchedRef.current) return;
+    setIncludeSummaryState(hasSummary);
+    setIncludeMemoState(!hasSummary);
+  }, [hasSummary]);
   const participants = useSessionParticipants(sessionId);
 
   const participantNames = useMemo(
@@ -365,16 +384,15 @@ export function ExportModal({
       const sanitizedTitle = (
         (sessionTitle ?? t`Untitled`).trim() || t`Untitled`
       ).replace(/[<>:"/\\|?*]/g, "_");
-      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-      const filename = `${sanitizedTitle}_${timestamp}.${format}`;
+      // Fork: Export… always shows the Save panel, with a readable name like
+      // "Weekly sync – Oct 3, 2026.pdf" (journey-after P2 "Export…"; Apple
+      // HIG, File management: Export shows a save panel).
+      const filename = `${sanitizedTitle.slice(0, 100)} – ${formatDateFns(new Date(), "MMM d, yyyy")}.${format}`;
       const defaultPath = await join(directory, filename);
-      // App Store sandbox grants must be reacquired after relaunch.
-      const path = isAppStoreBuild()
-        ? await save({
-            defaultPath,
-            filters: [{ name: format.toUpperCase(), extensions: [format] }],
-          })
-        : defaultPath;
+      const path = await save({
+        defaultPath,
+        filters: [{ name: format.toUpperCase(), extensions: [format] }],
+      });
       if (!path) return null;
 
       if (format === "pdf") {
@@ -413,7 +431,7 @@ export function ExportModal({
   });
 
   const hasAnyContentSelected =
-    includeMemo || includeSummary || includeTranscript;
+    includeMemo || (includeSummary && hasSummary) || includeTranscript;
   const isTranscriptPending = includeTranscript && isTranscriptLoading;
   if (!open) {
     return null;
@@ -439,7 +457,9 @@ export function ExportModal({
               <Trans>File format</Trans>
             </legend>
             <div className="flex justify-center gap-4">
-              {(["pdf", "txt", "md", "org"] as const).map((f) => (
+              {/* Fork: no "Org" (Emacs jargon for this audience;
+                  journey-after P3 "Export format", NN/g #2). */}
+              {(["pdf", "txt", "md"] as const).map((f) => (
                 <label
                   key={f}
                   className="flex cursor-pointer items-center gap-1.5 text-sm"
@@ -451,11 +471,7 @@ export function ExportModal({
                     onChange={() => setFormat(f)}
                     className="accent-primary"
                   />
-                  {f === "md"
-                    ? "Markdown"
-                    : f === "org"
-                      ? "Org"
-                      : f.toUpperCase()}
+                  {f === "md" ? "Markdown" : f.toUpperCase()}
                 </label>
               ))}
             </div>
@@ -487,21 +503,40 @@ export function ExportModal({
                     setIncludeTranscript,
                   ],
                 ] as const
-              ).map(([id, label, checked, setter]) => (
-                <label
-                  key={id}
-                  className="flex cursor-pointer items-center gap-1.5 text-sm"
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={(e) => setter(e.target.checked)}
-                    className="accent-primary"
-                  />
-                  {label}
-                </label>
-              ))}
+              ).map(([id, label, checked, setter]) => {
+                const unavailable = id === "summary" && !hasSummary;
+                return (
+                  <label
+                    key={id}
+                    className={
+                      unavailable
+                        ? "flex cursor-default items-center gap-1.5 text-sm opacity-60"
+                        : "flex cursor-pointer items-center gap-1.5 text-sm"
+                    }
+                  >
+                    <input
+                      type="checkbox"
+                      checked={unavailable ? false : checked}
+                      disabled={unavailable}
+                      aria-describedby={
+                        unavailable ? "export-no-summary" : undefined
+                      }
+                      onChange={(e) => setter(e.target.checked)}
+                      className="accent-primary"
+                    />
+                    {label}
+                  </label>
+                );
+              })}
             </div>
+            {hasSummary ? null : (
+              <p
+                id="export-no-summary"
+                className="text-muted-foreground text-xs"
+              >
+                <Trans>No summary yet</Trans>
+              </p>
+            )}
           </fieldset>
         </div>
 

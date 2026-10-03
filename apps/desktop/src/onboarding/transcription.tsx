@@ -1,4 +1,4 @@
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -35,7 +35,28 @@ type Phase =
   | { kind: "checking" }
   | { kind: "downloading"; percent: number | null }
   | { kind: "ready" }
-  | { kind: "failed"; reason: string };
+  | { kind: "failed"; reason: string | null };
+
+// Fork: say why setup failed, so offline and server errors don't look the
+// same (NN/g #9, WCAG 3.3.1; journey-first-run P2).
+const NETWORK_ERROR_PATTERN =
+  /network|offline|internet|connection|timed? ?out|dns|resolve|unreachable|socket|request failed/i;
+
+export function isOfflineFailure(
+  reason: string | null,
+  online = typeof navigator === "undefined" ? true : navigator.onLine,
+): boolean {
+  return !online || (reason !== null && NETWORK_ERROR_PATTERN.test(reason));
+}
+
+// Fork: show the download size, so a slow network can be judged (NN/g #1;
+// Apple HIG Progress indicators; journey-first-run P3).
+export function formatDownloadSize(bytes: number | null | undefined) {
+  if (!bytes || bytes <= 0) return null;
+  const mb = bytes / 1_000_000;
+  if (mb >= 1_000) return `${(mb / 1_000).toFixed(1)} GB`;
+  return `${Math.max(1, Math.round(mb))} MB`;
+}
 
 export function pickTranscriptionModel(keys: string[]): Choice | null {
   if (keys.includes(APPLE_SPEECH.model)) return APPLE_SPEECH;
@@ -49,8 +70,10 @@ export function TranscriptionSetupSection({
   // Fork: reports whether setup failed, so the step says "skipped".
   onContinue: (failed?: boolean) => void;
 }) {
+  const { t } = useLingui();
   const currentProvider = useConfigValue("current_stt_provider");
   const [choice, setChoice] = useState<Choice | null>(null);
+  const [sizeLabel, setSizeLabel] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>({ kind: "checking" });
   const [stalled, setStalled] = useState(false);
   const startedRef = useRef(false);
@@ -68,13 +91,18 @@ export function TranscriptionSetupSection({
           ? pickTranscriptionModel(supported.data.map((m) => m.key))
           : null;
       if (!picked) {
-        setPhase({
-          kind: "failed",
-          reason: "No on-device engine is available on this Mac.",
-        });
+        // null: the no-engine case, shown with its own translated line.
+        setPhase({ kind: "failed", reason: null });
         return;
       }
       setChoice(picked);
+      if (supported.status === "ok") {
+        setSizeLabel(
+          formatDownloadSize(
+            supported.data.find((m) => m.key === picked.model)?.size_bytes,
+          ),
+        );
+      }
 
       // Respect a provider the user already chose (for example, re-onboarding).
       if (!currentProvider) {
@@ -144,7 +172,17 @@ export function TranscriptionSetupSection({
     await startDownload(choice.model);
   };
 
-  const name = choice?.name ?? "on-device transcription";
+  const name = choice?.name ?? t`on-device transcription`;
+  const failureDetail =
+    phase.kind !== "failed"
+      ? null
+      : isOfflineFailure(phase.reason)
+        ? t`You're offline. Connect to the internet, then click Try again.`
+        : phase.reason === null
+          ? t`No on-device engine is available on this Mac.`
+          : phase.reason;
+  const stalledOffline =
+    stalled && phase.kind === "downloading" && isOfflineFailure(null);
 
   return (
     <div className="flex flex-col gap-4">
@@ -155,11 +193,22 @@ export function TranscriptionSetupSection({
         <StepRow
           status="active"
           label={
-            phase.percent === null ? (
-              <Trans>Downloading {name}…</Trans>
+            sizeLabel === null ? (
+              phase.percent === null ? (
+                <Trans>Downloading {name}…</Trans>
+              ) : (
+                <Trans>
+                  Downloading {name}… {Math.round(phase.percent)}%
+                </Trans>
+              )
+            ) : phase.percent === null ? (
+              <Trans>
+                Downloading {name} (about {sizeLabel})…
+              </Trans>
             ) : (
               <Trans>
-                Downloading {name}… {Math.round(phase.percent)}%
+                Downloading {name} (about {sizeLabel})…{" "}
+                {Math.round(phase.percent)}%
               </Trans>
             )
           }
@@ -178,6 +227,16 @@ export function TranscriptionSetupSection({
             </Trans>
           }
         />
+      )}
+      {failureDetail && (
+        <p className="text-muted-foreground text-xs" role="alert">
+          {failureDetail}
+        </p>
+      )}
+      {stalledOffline && (
+        <p className="text-muted-foreground text-xs" role="status">
+          {t`You're offline. Connect to the internet, then click Try again.`}
+        </p>
       )}
 
       <div className="flex flex-wrap items-center gap-3">

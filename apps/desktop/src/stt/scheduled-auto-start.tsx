@@ -201,10 +201,23 @@ function isIgnoredScheduledMeeting(
   );
 }
 
+// Fork: an event's link opens once, even while its note waits to be opened.
+const autoJoinedEventIds = new Set<string>();
+
+export function resetAutoJoinedEventsForTest() {
+  autoJoinedEventIds.clear();
+}
+
+function isSessionTabOpen(sessionId: string): boolean {
+  return useTabs
+    .getState()
+    .tabs.some((tab) => tab.type === "sessions" && tab.id === sessionId);
+}
+
 export async function startScheduledMeeting(
   row: ScheduledMeetingRow,
   autoJoin: boolean,
-): Promise<"started" | "ignored" | "blocked" | "ineligible"> {
+): Promise<"started" | "ignored" | "blocked" | "ineligible" | "not_open"> {
   if (listenerStore.getState().live.status === "active") {
     return "ignored";
   }
@@ -253,8 +266,16 @@ export async function startScheduledMeeting(
   // Joining and listening are independent: the link opens as soon as the
   // meeting is due, while listening still has to wait for the session tab,
   // the STT connection, and capture readiness (and may be abandoned).
-  if (autoJoin) {
+  if (autoJoin && !autoJoinedEventIds.has(currentRow.id)) {
+    autoJoinedEventIds.add(currentRow.id);
     void openerCommands.openUrl(currentRow.meeting_link, null);
+  }
+
+  // Fork: record a scheduled meeting only when its note is already open, as
+  // Granola does; otherwise the "Take notes" notification asks first
+  // (journey-meeting P2; Granola docs "How transcription works"; NN/g #3).
+  if (!isSessionTabOpen(sessionId)) {
+    return "not_open";
   }
 
   useTabs.getState().openNew({
@@ -403,7 +424,9 @@ export function ScheduledMeetingAutoStart() {
         .then((outcome) => {
           // A blocked start is transient (another session finalizing, a start
           // already in flight), so leave it eligible for the next tick.
-          if (outcome === "blocked") {
+          // Fork: a note opened later in the grace window still starts
+          // (journey-meeting P2).
+          if (outcome === "blocked" || outcome === "not_open") {
             scheduleTick(TICK_MS);
             return;
           }

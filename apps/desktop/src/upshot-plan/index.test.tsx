@@ -24,8 +24,11 @@ vi.mock("@anlg/plugin-store2", () => ({
 
 import {
   openUpgrade,
+  refreshUpshotPlan,
+  stopWaitingForCheckout,
   useUpgradeDialog,
   useUpshotAccount,
+  useUpshotPlan,
   useUpshotPlanStore,
   useUpshotPro,
 } from "./index";
@@ -61,7 +64,9 @@ describe("useUpshotPro", () => {
       email: null,
       fetchedAt: 0,
       error: null,
+      errorStatus: null,
     });
+    localStorage.clear();
     useUpgradeDialog.setState({ open: false, error: null });
   });
 
@@ -130,6 +135,134 @@ describe("useUpshotPro", () => {
   });
 });
 
+// journey-account-settings P2 "plan cache", P3 "switching accounts".
+describe("plan cache and fetch", () => {
+  beforeEach(() => {
+    mocks.saved = null;
+    mocks.fetch.mockReset();
+    resetUpshotAccountForTests();
+    useUpshotPlanStore.setState({
+      plan: null,
+      email: null,
+      fetchedAt: 0,
+      error: null,
+      errorStatus: null,
+    });
+    localStorage.clear();
+  });
+
+  const PRO = {
+    pro: true,
+    status: "active",
+    current_period_end: null,
+    interval: "year",
+  };
+
+  it("keeps the last plan per email on this Mac", async () => {
+    signedIn();
+    respondWith({ "/billing/status": PRO });
+    renderHook(() => useUpshotPro());
+    await waitFor(() =>
+      expect(useUpshotPlanStore.getState().plan?.pro).toBe(true),
+    );
+    const saved = JSON.parse(localStorage.getItem("upshot-plan-cache")!);
+    expect(saved.state).toEqual({ plan: PRO, email: "judge@example.com" });
+  });
+
+  it("offline at launch, a cached Pro plan still shows Pro, not loading", async () => {
+    localStorage.setItem(
+      "upshot-plan-cache",
+      JSON.stringify({
+        state: { plan: PRO, email: "judge@example.com" },
+        version: 1,
+      }),
+    );
+    await useUpshotPlanStore.persist.rehydrate();
+    signedIn();
+    mocks.fetch.mockRejectedValue(new TypeError("offline"));
+    const { result } = renderHook(() => useUpshotPlan());
+    await waitFor(() => expect(mocks.fetch).toHaveBeenCalled());
+    await waitFor(() => expect(result.current.error).not.toBeNull());
+    expect(result.current.plan?.pro).toBe(true);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.errorStatus).toBe(0);
+  });
+
+  it("a cached plan for another email is never shown", async () => {
+    localStorage.setItem(
+      "upshot-plan-cache",
+      JSON.stringify({
+        state: { plan: PRO, email: "someone@example.com" },
+        version: 1,
+      }),
+    );
+    await useUpshotPlanStore.persist.rehydrate();
+    signedIn();
+    mocks.fetch.mockRejectedValue(new TypeError("offline"));
+    const { result } = renderHook(() => useUpshotPlan());
+    await waitFor(() => expect(result.current.error).not.toBeNull());
+    expect(result.current.plan).toBeNull();
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it("is loading until the first answer, with no cache", async () => {
+    signedIn();
+    let answer!: (response: Response) => void;
+    mocks.fetch.mockImplementation(
+      () =>
+        new Promise<Response>((resolve) => {
+          answer = resolve;
+        }),
+    );
+    const { result } = renderHook(() => useUpshotPlan());
+    await waitFor(() => expect(mocks.fetch).toHaveBeenCalled());
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.plan).toBeNull();
+    answer(Response.json(PRO));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.plan?.pro).toBe(true);
+  });
+
+  it("a sign-in during an older account's fetch gets its own plan", async () => {
+    const answers: Array<(response: Response) => void> = [];
+    mocks.fetch.mockImplementation(
+      () =>
+        new Promise<Response>((resolve) => {
+          answers.push(resolve);
+        }),
+    );
+    const session = (email: string) => ({
+      access_token: `token-${email}`,
+      refresh_token: "refresh",
+      expires_at: Date.now() / 1000 + 3600,
+      email,
+    });
+    useUpshotAccount.setState({
+      session: session("a@example.com"),
+      loaded: true,
+    });
+    const first = refreshUpshotPlan(true);
+    await waitFor(() => expect(answers).toHaveLength(1));
+    useUpshotAccount.setState({ session: session("b@example.com") });
+    const second = refreshUpshotPlan(true);
+    await waitFor(() => expect(answers).toHaveLength(2));
+    answers[1](Response.json(PRO));
+    await second;
+    answers[0](Response.json({ ...PRO, pro: false, status: null }));
+    await first;
+    expect(useUpshotPlanStore.getState()).toMatchObject({
+      email: "b@example.com",
+      plan: { pro: true },
+    });
+  });
+
+  it("Stop waiting clears a pending checkout", () => {
+    useUpshotAccount.setState({ checkoutPendingSince: Date.now() });
+    stopWaitingForCheckout();
+    expect(useUpshotAccount.getState().checkoutPendingSince).toBeNull();
+  });
+});
+
 describe("openUpgrade", () => {
   beforeEach(() => {
     mocks.saved = null;
@@ -137,6 +270,37 @@ describe("openUpgrade", () => {
     mocks.openUrl.mockClear();
     resetUpshotAccountForTests();
     useUpgradeDialog.setState({ open: false, error: null });
+  });
+
+  // journey-account-settings P2 "already_pro".
+  it("already Pro on the Worker opens the You're on Upshot Pro state", async () => {
+    signedIn();
+    mocks.fetch.mockImplementation(async (url: string) =>
+      new URL(url).pathname === "/billing/checkout"
+        ? Response.json(
+            {
+              error: {
+                message: "You already have Upshot Pro.",
+                code: "already_pro",
+              },
+            },
+            { status: 409 },
+          )
+        : Response.json({
+            pro: true,
+            status: "active",
+            current_period_end: null,
+            interval: "year",
+          }),
+    );
+    await openUpgrade("year");
+    expect(useUpgradeDialog.getState()).toMatchObject({
+      open: true,
+      error: null,
+      alreadyPro: true,
+    });
+    expect(useUpshotPlanStore.getState().plan?.pro).toBe(true);
+    expect(mocks.openUrl).not.toHaveBeenCalled();
   });
 
   it("opens the account dialog when signed out", async () => {

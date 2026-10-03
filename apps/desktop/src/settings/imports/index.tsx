@@ -7,8 +7,10 @@ import { Button } from "@anlg/ui/components/ui/button";
 import { MeetingImportScreen } from "~/imports/screen";
 import { SettingsPageTitle } from "~/settings/page-title";
 
-const IMPORTS_DOCUMENTATION_URL =
-  "https://github.com/AdamWebsiteFormula/grandmaster-app";
+// Fork: Help opens the README's import section, not the repository root
+// (journey-account-settings P3; NN/g #10).
+export const IMPORTS_DOCUMENTATION_URL =
+  "https://github.com/AdamWebsiteFormula/grandmaster-app#import-from-granola";
 
 export function SettingsImports() {
   return (

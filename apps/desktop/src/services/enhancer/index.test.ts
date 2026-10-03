@@ -204,6 +204,26 @@ describe("EnhancerService", () => {
     vi.useRealTimers();
   });
 
+  // Fork test: journey-meeting P3, going online retries waiting summaries.
+  it("resumes pending summaries as soon as the app is back online", async () => {
+    const service = new EnhancerService(createDeps());
+    service.start();
+    await vi.waitFor(() =>
+      expect(mocks.loadPendingAutoEnhanceJobs).toHaveBeenCalled(),
+    );
+    mocks.loadPendingAutoEnhanceJobs.mockClear();
+
+    window.dispatchEvent(new Event("online"));
+
+    await vi.waitFor(() =>
+      expect(mocks.loadPendingAutoEnhanceJobs).toHaveBeenCalledTimes(1),
+    );
+    service.dispose();
+    mocks.loadPendingAutoEnhanceJobs.mockClear();
+    window.dispatchEvent(new Event("online"));
+    expect(mocks.loadPendingAutoEnhanceJobs).not.toHaveBeenCalled();
+  });
+
   it("returns no_model without touching session storage", async () => {
     const service = new EnhancerService(createDeps({ getModel: () => null }));
 
@@ -348,6 +368,23 @@ describe("EnhancerService", () => {
     expect(mocks.replaceSummaryDocumentTemplate).toHaveBeenCalledBefore(
       ai.generate,
     );
+  });
+
+  // Fork test: journey-meeting P2, a template switch keeps the old body.
+  it("regenerates a target note that already has a summary, keeping its body until written", async () => {
+    snapshot = createSnapshot({ notes: [createNote({ content: "Old" })] });
+    const ai = createMockAITaskStore(() => ({ status: "success" }));
+    const service = new EnhancerService(createDeps({ aiTaskStore: ai.store }));
+
+    const result = await service.enhance("session-1", {
+      targetNoteId: "note-1",
+      templateId: "template-1",
+      templateTitle: "Customer review",
+    });
+
+    expect(result).toEqual({ type: "started", noteId: "note-1" });
+    expect(ai.generate).toHaveBeenCalledOnce();
+    expect(snapshot.enhancedNotes[0].content).toBe("Old");
   });
 
   it("lets explicit Auto override the memo and global templates", async () => {
@@ -498,7 +535,7 @@ describe("EnhancerService", () => {
       eligible: false,
       characterCount: 24,
       reason:
-        "Too little was said for a summary. Record a bit longer, then click Generate summary.",
+        "Too little was said for a full summary. Click Generate summary in My notes to make one from your notes anyway.",
       wordCount: 5,
     });
     snapshot = createSnapshot({ wordCount: 40 });
@@ -895,6 +932,21 @@ describe("EnhancerService", () => {
         reasonCode: "transcript_too_short",
       }),
     );
+  });
+
+  it("enhances a short transcript from typed notes when asked by hand", async () => {
+    snapshot = createSnapshot({ wordCount: 5, notes: [createNote()] });
+    const ai = createMockAITaskStore();
+    const service = new EnhancerService(createDeps({ aiTaskStore: ai.store }));
+    const event = vi.fn();
+    service.on(event);
+
+    await expect(
+      service.enhance("session-1", { allowShortTranscript: true }),
+    ).resolves.toEqual({ type: "started", noteId: "note-1" });
+
+    expect(ai.generate).toHaveBeenCalledTimes(1);
+    expect(event).not.toHaveBeenCalled();
   });
 
   it("still enhances sessions without any transcript", async () => {

@@ -38,6 +38,19 @@ const {
   windowShowMock: vi.fn(() => Promise.resolve({ status: "ok", data: null })),
 }));
 
+const summaryOffer = vi.hoisted(() => ({
+  visible: false,
+  generate: vi.fn(() => Promise.resolve()),
+}));
+
+vi.mock("~/session/components/note-input/generate-summary-offer", () => ({
+  useGenerateSummaryOffer: () => ({ visible: summaryOffer.visible }),
+  useGenerateSummaryAction: () => ({
+    generate: summaryOffer.generate,
+    pending: false,
+  }),
+}));
+
 vi.mock("@tauri-apps/plugin-os", () => ({
   platform: platformMock,
 }));
@@ -241,7 +254,25 @@ describe("OverflowButton", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    summaryOffer.visible = false;
     arrange({});
+  });
+
+  // Fork tests: installed-build review Oct 3 (P1: nothing in ⋯ made a
+  // summary after Stop).
+  it("offers Generate summary when the note has no summary", () => {
+    summaryOffer.visible = true;
+    renderOverflow({ currentView: { type: "raw" } as EditorView });
+
+    fireEvent.click(screen.getByRole("button", { name: "Generate summary" }));
+    expect(summaryOffer.generate).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves Generate summary out once a summary exists or while recording", () => {
+    renderOverflow();
+    expect(
+      screen.queryByRole("button", { name: "Generate summary" }),
+    ).toBeNull();
   });
 
   it.each<

@@ -218,7 +218,10 @@ describe("HomeView", () => {
       screen.queryByRole("button", { name: "Start recording" }),
     ).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Connect calendar" }));
-    expect(mocks.openNew).toHaveBeenCalledWith({ type: "calendar" });
+    expect(mocks.openNew).toHaveBeenCalledWith({
+      type: "settings",
+      state: { tab: "calendars" },
+    });
   });
 
   it("hides Follow-ups when there are none", () => {
@@ -256,6 +259,7 @@ describe("HomeView", () => {
       timeMs: number,
       people: string[] = [],
       durationMs = 0,
+      hasTranscript = durationMs > 0,
     ) => ({
       id,
       title,
@@ -263,6 +267,8 @@ describe("HomeView", () => {
       attendees: people.length + 1,
       people,
       durationMs,
+      hasTranscript,
+      hasContent: true,
       locked: false,
       trackingId: null,
     });
@@ -271,7 +277,11 @@ describe("HomeView", () => {
         key: "today",
         kind: "today",
         dayMs: time(0),
-        notes: [note("a", "Standup", time(9), [], 32 * 60_000)],
+        notes: [
+          note("a", "Standup", time(9), [], 32 * 60_000),
+          note("plain", "Ideas", time(8)),
+          note("live", "Draft", time(7), [], 0, true),
+        ],
       },
       {
         key: "yesterday",
@@ -303,16 +313,29 @@ describe("HomeView", () => {
     expect(screen.getByText("Standup")).toBeTruthy();
     expect(screen.getAllByText("9:00 AM")).toHaveLength(2);
     expect(screen.getByText("11:00 AM")).toBeTruthy();
-    expect(screen.getByText("Untitled")).toBeTruthy();
+    // Untitled notes with content read "Untitled note" in muted text.
+    expect(
+      screen.getByText("Untitled note").parentElement?.className,
+    ).toContain("text-muted-foreground");
+    expect(screen.getByText("Standup").parentElement?.className).toContain(
+      "text-foreground",
+    );
     // Second line: duration · attendees, either part alone when the other
     // is missing.
     expect(screen.getByText("32 min")).toBeTruthy();
     expect(screen.getByText("Bbaird & Jimharbaugh104")).toBeTruthy();
     expect(screen.getByText("1 hr 5 min · Ana, Bo & 2 others")).toBeTruthy();
-    // Attendee initials when people were there, a document glyph otherwise.
+    // Every row has a second line, even when nothing is known.
+    expect(screen.getByText("No transcript")).toBeTruthy();
+    expect(screen.getByText("Note")).toBeTruthy();
+    // Attendee initials only when people were there; no glyph otherwise.
     expect(screen.getByText("B")).toBeTruthy();
     expect(screen.getByText("A")).toBeTruthy();
-    expect(container.querySelectorAll("[data-note-glyph]")).toHaveLength(1);
+    expect(container.querySelectorAll("[data-note-avatar]")).toHaveLength(2);
+    // A row without attendees keeps an empty slot so titles line up.
+    const plain = screen.getByText("Ideas").closest("button")!;
+    expect(plain.querySelector("svg")).toBeNull();
+    expect(plain.querySelector("span.size-8")?.textContent).toBe("");
     expect(screen.queryByText("S")).toBeNull();
     expect(screen.getByText("11:00 AM").className).toContain("text-sm");
     expect(screen.queryByRole("button", { name: /Blank note/ })).toBeNull();
@@ -425,5 +448,41 @@ describe("HomeView", () => {
 
     expect(screen.getByRole("img", { name: "Locked" })).toBeTruthy();
     expect(screen.getByTitle("Board prep")).toBeTruthy();
+  });
+
+  it("sets the page title in the display face on a centered 640 px column", () => {
+    const { container } = render(<HomeView />);
+    const title = screen.getByRole("heading", { name: "Coming up" });
+    expect(title.className).toContain("font-display");
+    expect(title.className).toContain("font-semibold");
+    expect(title.className).toContain("tracking-[-0.01em]");
+    expect(container.querySelector(".max-w-\\[640px\\].mx-auto")).toBeTruthy();
+  });
+
+  it("leaves no leading slot when no row has attendees", () => {
+    mocks.recent.groups = [
+      {
+        key: "today",
+        kind: "today",
+        dayMs: time(0),
+        notes: [
+          {
+            id: "a",
+            title: "Ideas",
+            timeMs: time(9),
+            attendees: 1,
+            people: [],
+            durationMs: 0,
+            hasTranscript: false,
+            hasContent: true,
+            locked: false,
+            trackingId: null,
+          },
+        ],
+      },
+    ];
+    render(<HomeView />);
+    const row = screen.getByText("Ideas").closest("button")!;
+    expect(row.querySelector("span.size-8")).toBeNull();
   });
 });

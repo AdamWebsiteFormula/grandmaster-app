@@ -3,6 +3,9 @@ import Cocoa
 @_silgen_name("rust_set_force_quit")
 func rustSetForceQuit()
 
+@_silgen_name("rust_request_quit")
+func rustRequestQuit() -> Bool
+
 @_cdecl("_setup_force_quit_handler")
 public func _setupForceQuitHandler() {
   QuitInterceptor.shared.setup()

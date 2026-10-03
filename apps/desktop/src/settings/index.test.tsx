@@ -8,20 +8,22 @@ vi.mock("~/settings/hydration-boundary", () => ({
 
 vi.mock("./general", () => ({
   SettingsAccount: () => <div>Account settings</div>,
-  SettingsApp: () => null,
+  SettingsApp: () => <div>General settings</div>,
   SettingsMeetings: () => null,
   SettingsNotifications: () => null,
-  SettingsPermissions: () => null,
 }));
 
 vi.mock("./todo", () => ({ SettingsTodo: () => null }));
 vi.mock("~/settings/ai/llm", () => ({ LLM: () => null }));
-vi.mock("~/settings/ai/stt", () => ({ STT: () => null }));
-vi.mock("~/settings/appearance", () => ({ SettingsAppearance: () => null }));
-vi.mock("~/settings/developers", () => ({ SettingsDevelopers: () => null }));
-vi.mock("~/settings/dictionary", () => ({ SettingsDictionary: () => null }));
-vi.mock("~/settings/imports", () => ({ SettingsImports: () => null }));
-vi.mock("~/settings/privacy", () => ({ SettingsPrivacy: () => null }));
+vi.mock("~/settings/ai/stt", () => ({
+  STT: () => <div>Transcription settings</div>,
+}));
+vi.mock("~/settings/developers", () => ({
+  SettingsDevelopers: () => <div>Developer settings</div>,
+}));
+vi.mock("~/settings/imports", () => ({
+  SettingsImports: () => <div>Import settings</div>,
+}));
 vi.mock("~/settings/general/billing", () => ({
   SettingsBilling: () => <div>Billing settings</div>,
 }));
@@ -47,6 +49,7 @@ vi.mock("~/shared/main", () => ({
 
 import { TabContentSettings } from "./index";
 
+import type { SettingsTab } from "~/store/zustand/tabs";
 import { createSettingsTab } from "~/store/zustand/tabs/test-utils";
 
 describe("TabContentSettings", () => {
@@ -59,10 +62,22 @@ describe("TabContentSettings", () => {
     ["calendars", "Calendar settings"],
     ["connectors", "Connectors settings"],
     ["profile", "Profile settings"],
+    // Fork: old ids of pages that became sections open their new page
+    // (grandmaster/sops/settings-ia-oct3.md).
+    ["appearance", "General settings"],
+    ["privacy", "General settings"],
+    ["permissions", "General settings"],
+    ["dictionary", "Transcription settings"],
+    ["personalization", "Transcription settings"],
+    ["imports", "Import settings"],
+    ["data", "Import settings"],
+    ["developers", "Developer settings"],
   ] as const)("opens the %s destination", (destination, heading) => {
     render(
       <TabContentSettings
-        tab={createSettingsTab({ state: { tab: destination } })}
+        // Legacy ids ("data", "personalization") are not SettingsTab
+        // members; restored tabs can still carry them.
+        tab={createSettingsTab({ state: { tab: destination as SettingsTab } })}
       />,
     );
     expect(screen.getByText(heading)).toBeTruthy();
@@ -77,5 +92,25 @@ describe("TabContentSettings", () => {
     const column = screen.getByText("Personal insights").parentElement;
     expect(column?.className).toContain("max-w-[680px]");
     expect(column?.className).toContain("mx-auto");
+  });
+
+  it.each([
+    ["insights", "Back to Profile"],
+    ["imports", "Back to Connectors"],
+    ["developers", "Back to Connectors"],
+  ] as const)("gives the %s sub-page a back button", (destination, name) => {
+    render(
+      <TabContentSettings
+        tab={createSettingsTab({ state: { tab: destination } })}
+      />,
+    );
+    expect(screen.getByRole("button", { name })).toBeTruthy();
+  });
+
+  it("gives sidebar pages no back button", () => {
+    render(
+      <TabContentSettings tab={createSettingsTab({ state: { tab: "app" } })} />,
+    );
+    expect(screen.queryByRole("button", { name: /^Back to/ })).toBeNull();
   });
 });

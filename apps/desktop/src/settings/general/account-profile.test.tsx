@@ -17,6 +17,15 @@ const mocks = vi.hoisted(() => ({
     error: null as Error | null,
   },
   query: vi.fn(),
+  upshotEmail: null as string | null,
+}));
+vi.mock("~/upshot-plan", () => ({
+  useUpshotAccount: (
+    selector: (state: { session: { email: string } | null }) => unknown,
+  ) =>
+    selector({
+      session: mocks.upshotEmail ? { email: mocks.upshotEmail } : null,
+    }),
 }));
 vi.mock("~/auth", () => ({
   useAuth: () => ({
@@ -87,6 +96,32 @@ beforeEach(() => {
   mocks.authId = "account-1";
   mocks.contact = { data: null, isLoading: false, error: null };
   mocks.save.mockResolvedValue(undefined);
+  mocks.upshotEmail = null;
+});
+
+// journey-account-settings P3 "Settings › Profile".
+it("defaults the email to the Upshot account and labels About you and LinkedIn", () => {
+  mocks.upshotEmail = "judge@example.com";
+  render(view());
+  expect((screen.getByLabelText("Email") as HTMLInputElement).value).toBe(
+    "judge@example.com",
+  );
+  expect(
+    screen.getByLabelText("About you").getAttribute("aria-describedby"),
+  ).toBeTruthy();
+  expect(screen.getByText("Only on this Mac.")).toBeTruthy();
+  const linkedin = screen.getByLabelText("LinkedIn");
+  const prefixId = linkedin.getAttribute("aria-describedby")!;
+  expect(document.getElementById(prefixId)?.textContent).toBe(
+    "linkedin.com/in/",
+  );
+});
+
+it("falls back to the upstream email when signed out of Upshot", () => {
+  render(view());
+  expect((screen.getByLabelText("Email") as HTMLInputElement).value).toBe(
+    "login@example.com",
+  );
 });
 afterEach(cleanup);
 
@@ -100,7 +135,7 @@ it("saves the contact fields and photo to the signed-in personal card", async ()
     ["Email", "contact@example.com"],
     ["Phone", "+123"],
     ["LinkedIn", "ada"],
-    ["Notes", "My notes"],
+    ["About you", "My notes"],
   ]) {
     fireEvent.change(screen.getByLabelText(label), { target: { value } });
   }
@@ -251,7 +286,7 @@ it("does not replace newer edits when an earlier save finishes", async () => {
 
 it("submits edits immediately even when navigating away without blur", async () => {
   const { unmount } = render(view());
-  fireEvent.change(screen.getByLabelText("Notes"), {
+  fireEvent.change(screen.getByLabelText("About you"), {
     target: { value: "Keep this note" },
   });
   unmount();

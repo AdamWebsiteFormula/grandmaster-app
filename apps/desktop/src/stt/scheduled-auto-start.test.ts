@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   getScheduledAutoStartAction,
   hasPendingAutoStart,
+  resetAutoJoinedEventsForTest,
   SCHEDULED_AUTO_START_GRACE_MS,
   type ScheduledMeetingRow,
   ScheduledMeetingAutoStart,
@@ -135,6 +136,17 @@ function currentMeeting(
     }),
     ...overrides,
   });
+}
+
+function openNoteTab(id: string): Tab {
+  return {
+    type: "sessions",
+    id,
+    slotId: id,
+    active: false,
+    pinned: false,
+    state: { view: null, autoStart: null },
+  } as Tab;
 }
 
 function select(rows: ScheduledMeetingRow[], firedEventIds: string[] = []) {
@@ -295,7 +307,48 @@ describe("startScheduledMeeting", () => {
     mocks.subscribeMeetings.mockReset().mockResolvedValue(async () => {});
     mocks.subscribeListener.mockReset().mockReturnValue(() => {});
     mocks.subscribeTabs.mockReset().mockReturnValue(() => {});
+    // The event's note is open in a background tab, so it may record.
+    mocks.tabs = [openNoteTab("session-a")];
+    resetAutoJoinedEventsForTest();
+  });
+
+  test("does not record when the event's note is not open (Granola rule)", async () => {
     mocks.tabs = [];
+
+    await expect(startScheduledMeeting(meeting("a", 0), false)).resolves.toBe(
+      "not_open",
+    );
+
+    expect(mocks.openNew).not.toHaveBeenCalled();
+  });
+
+  test("opens the meeting link once while the note stays closed", async () => {
+    mocks.tabs = [];
+
+    await startScheduledMeeting(meeting("a", 0), true);
+    await startScheduledMeeting(meeting("a", 0), true);
+
+    expect(mocks.openUrl).toHaveBeenCalledTimes(1);
+    expect(mocks.openNew).not.toHaveBeenCalled();
+  });
+
+  test("records a note opened later in the grace window", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+    mocks.tabs = [];
+    render(createElement(ScheduledMeetingAutoStart));
+    mocks.subscribeMeetings.mock.calls[0][2].onData([meeting("a", 0)]);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(mocks.openNew).not.toHaveBeenCalled();
+
+    mocks.tabs = [openNoteTab("session-a")];
+    await vi.advanceTimersByTimeAsync(15_000);
+
+    expect(mocks.openNew).toHaveBeenCalledWith({
+      type: "sessions",
+      id: "session-a",
+      state: { view: null, autoStart: true, scheduledAutoStart: true },
+    });
   });
 
   test("opens the meeting link and arms the session when the meeting is due", async () => {

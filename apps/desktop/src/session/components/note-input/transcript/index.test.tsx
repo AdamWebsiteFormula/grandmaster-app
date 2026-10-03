@@ -294,8 +294,21 @@ describe("Transcript", () => {
     useIncompleteCaptureMock.mockReturnValue({ audioDeleted: true });
     render(<Transcript sessionId={sessionId} scrollRef={createRef()} />);
     expect(screen.getByTestId("transcript-viewer")).not.toBeNull();
-    expect(screen.getByRole("status").textContent).toContain(
-      "Audio was deleted according to your retention setting",
+    // Fork: journey-meeting P3, short translated copy.
+    expect(screen.getByRole("status").textContent).toBe(
+      "Part of this meeting wasn't transcribed. Its audio was deleted, per your retention setting.",
+    );
+  });
+
+  it("says audio is kept so Upshot can try again", () => {
+    listenerState.getSessionMode = () => "inactive";
+    transcripts = [{ id: transcriptId, hasWords: true }];
+    useIncompleteCaptureMock.mockReturnValue({
+      audioKeptForTranscription: true,
+    });
+    render(<Transcript sessionId={sessionId} scrollRef={createRef()} />);
+    expect(screen.getByRole("status").textContent).toBe(
+      "Part of this meeting wasn't transcribed. The audio is kept so Upshot can try again.",
     );
   });
 });

@@ -1,7 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useMemo, useState } from "react";
 
-import { ChatCircle, MagnifyingGlass, X } from "@anlg/ui/components/icons";
+import { MagnifyingGlass, Translate, X } from "@anlg/ui/components/icons";
 import { Badge } from "@anlg/ui/components/ui/badge";
 import { Button } from "@anlg/ui/components/ui/button";
 import { cn } from "@anlg/utils";
@@ -115,7 +115,7 @@ export function SpokenLanguagesView({
   return (
     <div>
       <div className="mb-3 flex items-center gap-3">
-        <SettingIconTile icon={ChatCircle} />
+        <SettingIconTile icon={Translate} />
         <div className="min-w-0">
           <h3 className="text-sm font-medium">
             <Trans>Additional spoken languages</Trans>

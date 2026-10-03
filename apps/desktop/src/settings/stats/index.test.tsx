@@ -40,6 +40,14 @@ describe("merged insights page", () => {
   });
 
   it("waits for activity before showing the badge collection", () => {
+    mocks.activity.data = [
+      {
+        session_id: "a",
+        created_at: "2026-09-04T12:00:00Z",
+        started_at_ms: Date.parse("2026-09-04T12:00:00Z"),
+        duration_ms: 3_600_000,
+      },
+    ];
     mocks.activity.isLoading = true;
     const { rerender } = render(<SettingsInsights />);
     expect(screen.getByRole("status").textContent).toContain("Loading");
@@ -66,14 +74,13 @@ describe("merged insights page", () => {
     render(<SettingsInsights />);
     const overview = screen.getByRole("region", { name: "Overview" });
     expect(
-      within(overview).getByText("Conversations").nextElementSibling
-        ?.textContent,
+      within(overview).getByText("Meetings").nextElementSibling?.textContent,
     ).toBe("2");
+    expect(within(overview).getByText("Hours recorded")).toBeTruthy();
     expect(screen.getByText("Conversations: 2")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "7 days" }));
     expect(
-      within(overview).getByText("Conversations").nextElementSibling
-        ?.textContent,
+      within(overview).getByText("Meetings").nextElementSibling?.textContent,
     ).toBe("1");
     expect(screen.getByText("Conversations: 1")).toBeTruthy();
     expect(
@@ -100,6 +107,19 @@ describe("merged insights page", () => {
     mocks.activity.error = new Error("Database unavailable");
     render(<SettingsInsights />);
     expect(screen.getByRole("alert").textContent).toContain("Couldn’t load");
-    expect(screen.queryByText("Conversations")).toBeNull();
+    expect(screen.queryByText("Meetings")).toBeNull();
+  });
+
+  // journey-account-settings P2 "Settings › Insights".
+  it("a new user gets one empty card, no zeros, heatmap or badges", () => {
+    render(<SettingsInsights />);
+    const overview = screen.getByRole("region", { name: "Overview" });
+    expect(within(overview).getByTestId("insights-empty").textContent).toBe(
+      "None yet. Your meetings show up here once you record one.",
+    );
+    expect(overview.querySelector("[data-settings-card]")).not.toBeNull();
+    expect(screen.queryByText("0")).toBeNull();
+    expect(screen.queryByRole("region", { name: "Your badges" })).toBeNull();
+    expect(screen.queryByRole("group", { name: "Date range" })).toBeNull();
   });
 });

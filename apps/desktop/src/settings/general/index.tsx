@@ -23,12 +23,15 @@ import { StorageSettingsView } from "./storage";
 import { SummaryLengthSelector } from "./summary-length";
 import { TimezoneSelector } from "./timezone";
 
-import { SettingsPageTitle } from "~/settings/page-title";
+import { AppearanceSection } from "~/settings/appearance";
+import { SettingsPageTitle, SettingsSectionTitle } from "~/settings/page-title";
+import { PrivacySection } from "~/settings/privacy";
 import {
   type StoredSettingValues,
   useSetSettingValues,
   useStoredSettingValuesQuery,
 } from "~/settings/queries";
+import { settingsSectionId } from "~/settings/sections";
 import { SettingsGroup } from "~/settings/setting-row";
 import { isAppStoreBuild } from "~/shared/app-store";
 import { resolveConfigValue, resolveConfigValues } from "~/shared/config";
@@ -209,7 +212,9 @@ function SettingsSectionContent({
         }
         description={
           section === "app" ? (
-            <Trans>Startup, language and where exports go.</Trans>
+            <Trans>
+              Startup, appearance, language, privacy and permissions.
+            </Trans>
           ) : (
             <Trans>How Upshot records and summarizes your meetings.</Trans>
           )
@@ -244,6 +249,11 @@ function SettingsSectionContent({
               />
             )}
           </form.Subscribe>
+
+          {/* Fork: Appearance, Privacy and Permissions are sections of
+              General, as Granola's Preferences holds General, Appearance and
+              Data & sharing (grandmaster/sops/settings-ia-oct3.md). */}
+          <AppearanceSection />
 
           <SettingsGroup title={<Trans>Language &amp; region</Trans>}>
             <form.Field name="ai_language">
@@ -285,6 +295,21 @@ function SettingsSectionContent({
           </SettingsGroup>
 
           <StorageSettingsView />
+
+          <PrivacySection />
+
+          <section
+            id={settingsSectionId("permissions")}
+            aria-labelledby="settings-permissions-title"
+            className="flex min-w-0 scroll-mt-6 flex-col gap-2"
+          >
+            <div className="flex min-h-6 items-center px-1">
+              <SettingsSectionTitle id="settings-permissions-title">
+                <Trans>Permissions</Trans>
+              </SettingsSectionTitle>
+            </div>
+            <Permissions />
+          </section>
         </>
       )}
 
@@ -359,25 +384,15 @@ function SettingsSectionContent({
 }
 
 export function SettingsNotifications() {
+  // Fork: gap-8 between groups, as every other page (journey-account-
+  // settings P3; NN/g #4).
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <SettingsPageTitle
         title={<Trans>Notifications</Trans>}
         description={<Trans>Choose when Upshot alerts you.</Trans>}
       />
       <NotificationSettingsView />
-    </div>
-  );
-}
-
-export function SettingsPermissions() {
-  return (
-    <div className="flex flex-col gap-8">
-      <SettingsPageTitle
-        title={<Trans>Permissions</Trans>}
-        description={<Trans>What Upshot can use on this Mac.</Trans>}
-      />
-      <Permissions />
     </div>
   );
 }

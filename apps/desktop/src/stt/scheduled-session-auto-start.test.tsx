@@ -2,7 +2,10 @@ import { act, cleanup, render } from "@testing-library/react";
 import { StrictMode } from "react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 
-import { ScheduledSessionAutoStart } from "./scheduled-session-auto-start";
+import {
+  MANUAL_START_ENGINE_GRACE_MS,
+  ScheduledSessionAutoStart,
+} from "./scheduled-session-auto-start";
 
 import { useAppLock } from "~/lock/store";
 
@@ -10,6 +13,9 @@ const mocks = vi.hoisted(() => ({
   beginScheduledAutoStart: vi.fn(),
   canStart: true,
   liveStatus: "inactive",
+  liveSessionId: null as string | null,
+  showRecordingDidNotStartToast: vi.fn(),
+  showStillRecordingToast: vi.fn(),
   readDueScheduledSessionMeeting: vi.fn(),
   finishScheduledAutoStart: vi.fn(),
   inFlight: false,
@@ -61,8 +67,13 @@ vi.mock("~/stt/contexts", () => ({
   useListener: (selector: (state: any) => unknown) =>
     selector({
       canStartLiveSession: () => mocks.canStart,
-      live: { status: mocks.liveStatus },
+      live: { status: mocks.liveStatus, sessionId: mocks.liveSessionId },
     }),
+}));
+
+vi.mock("~/stt/recording-request-toasts", () => ({
+  showRecordingDidNotStartToast: mocks.showRecordingDidNotStartToast,
+  showStillRecordingToast: mocks.showStillRecordingToast,
 }));
 
 vi.mock("~/session/queries", () => ({
@@ -89,6 +100,9 @@ vi.mock("~/stt/useStartListening", () => ({
 beforeEach(() => {
   mocks.canStart = true;
   mocks.liveStatus = "inactive";
+  mocks.liveSessionId = null;
+  mocks.showRecordingDidNotStartToast.mockReset();
+  mocks.showStillRecordingToast.mockReset();
   mocks.readDueScheduledSessionMeeting.mockReset().mockResolvedValue({
     id: "event-1",
   });
@@ -289,6 +303,96 @@ test.each([
   } finally {
     vi.useRealTimers();
   }
+  expect(mocks.showRecordingDidNotStartToast).not.toHaveBeenCalled();
+});
+
+// Fork tests: journey-meeting P1 and P2.
+test("a manual start records after a short wait when the engine isn't ready", async () => {
+  vi.useFakeTimers();
+  mocks.connectionReady = false;
+
+  try {
+    render(
+      <ScheduledSessionAutoStart
+        sessionId="session-1"
+        requiresCalendarEligibility={false}
+      />,
+    );
+    await vi.advanceTimersByTimeAsync(MANUAL_START_ENGINE_GRACE_MS - 1);
+    expect(mocks.startListening).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(mocks.startListening).toHaveBeenCalledTimes(1);
+    expect(mocks.showRecordingDidNotStartToast).not.toHaveBeenCalled();
+  } finally {
+    vi.useRealTimers();
+  }
+});
+
+test("a scheduled start still waits for the engine", async () => {
+  vi.useFakeTimers();
+  mocks.connectionReady = false;
+
+  try {
+    render(<ScheduledSessionAutoStart sessionId="session-1" />);
+    await vi.advanceTimersByTimeAsync(MANUAL_START_ENGINE_GRACE_MS * 2);
+    expect(mocks.startListening).not.toHaveBeenCalled();
+  } finally {
+    vi.useRealTimers();
+  }
+});
+
+test("a manual start that can't begin says so after 30 s instead of vanishing", async () => {
+  vi.useFakeTimers();
+  mocks.canStart = false;
+
+  try {
+    render(
+      <ScheduledSessionAutoStart
+        sessionId="session-1"
+        requiresCalendarEligibility={false}
+      />,
+    );
+    await vi.advanceTimersByTimeAsync(30_000);
+
+    expect(mocks.startListening).not.toHaveBeenCalled();
+    expect(mocks.showRecordingDidNotStartToast).toHaveBeenCalledWith(
+      "session-1",
+    );
+  } finally {
+    vi.useRealTimers();
+  }
+});
+
+test("a manual start while another note records says which one", () => {
+  mocks.canStart = false;
+  mocks.liveStatus = "active";
+  mocks.liveSessionId = "session-live";
+
+  render(
+    <ScheduledSessionAutoStart
+      sessionId="session-1"
+      requiresCalendarEligibility={false}
+    />,
+  );
+
+  expect(mocks.startListening).not.toHaveBeenCalled();
+  expect(mocks.showStillRecordingToast).toHaveBeenCalledWith("session-live");
+});
+
+test("a scheduled start while another note records stays quiet", () => {
+  mocks.canStart = false;
+  mocks.liveStatus = "active";
+  mocks.liveSessionId = "session-live";
+
+  render(<ScheduledSessionAutoStart sessionId="session-1" />);
+
+  expect(mocks.showStillRecordingToast).not.toHaveBeenCalled();
 });
 
 test.each([

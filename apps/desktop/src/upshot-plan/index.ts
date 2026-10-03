@@ -10,6 +10,7 @@
 // Worker writes the plan, the app only reads GET /billing/status.
 import { useEffect } from "react";
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 import { commands as openerCommands } from "@anlg/plugin-opener2";
 
@@ -21,6 +22,7 @@ import {
 } from "./session";
 
 export {
+  deleteUpshotAccount,
   signInUpshot,
   signOutUpshot,
   upshotAuthFetch,
@@ -52,53 +54,88 @@ type PlanState = {
   email: string | null;
   fetchedAt: number;
   error: string | null;
+  /** HTTP status of the last failure; 0 means offline. */
+  errorStatus: number | null;
 };
 
-export const useUpshotPlanStore = create<PlanState>(() => ({
-  plan: null,
-  email: null,
-  fetchedAt: 0,
-  error: null,
-}));
+// Fork: the last plan per email is kept on this Mac and shown at launch, so
+// a paying user never sees "Free" while /billing/status loads or when the
+// Worker is unreachable (journey-account-settings P2; NN/g #1). The Worker
+// still checks Pro on every picked-model request.
+export const useUpshotPlanStore = create<PlanState>()(
+  persist(
+    () => ({
+      plan: null as UpshotPlanStatus | null,
+      email: null as string | null,
+      fetchedAt: 0,
+      error: null as string | null,
+      errorStatus: null as number | null,
+    }),
+    {
+      name: "upshot-plan-cache",
+      version: 1,
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ plan: state.plan, email: state.email }),
+    },
+  ),
+);
 
-let inFlight: Promise<void> | null = null;
+// Fork: one fetch per email, so a sign-in during an older account's fetch
+// gets its own plan (journey-account-settings P3).
+let inFlight: { email: string; promise: Promise<void> } | null = null;
 
 /** Fetch GET /billing/status for the signed-in user (deduplicated). */
 export function refreshUpshotPlan(force = false): Promise<void> {
   const session = useUpshotAccount.getState().session;
   if (!session) {
-    useUpshotPlanStore.setState({ plan: null, email: null, error: null });
+    useUpshotPlanStore.setState({
+      plan: null,
+      email: null,
+      error: null,
+      errorStatus: null,
+    });
     return Promise.resolve();
   }
+  const email = session.email;
   const current = useUpshotPlanStore.getState();
   if (
     !force &&
-    current.email === session.email &&
+    current.email === email &&
     Date.now() - current.fetchedAt < FRESH_MS
   ) {
     return Promise.resolve();
   }
-  inFlight ??= upshotAuthedRequest<UpshotPlanStatus>("/billing/status")
+  if (inFlight?.email === email) return inFlight.promise;
+  const stillSignedIn = () =>
+    useUpshotAccount.getState().session?.email === email;
+  const promise = upshotAuthedRequest<UpshotPlanStatus>("/billing/status")
     .then((plan) => {
+      if (!stillSignedIn()) return;
       useUpshotPlanStore.setState({
         plan,
-        email: session.email,
+        email,
         fetchedAt: Date.now(),
         error: null,
+        errorStatus: null,
       });
       if (plan.pro) useUpshotAccount.setState({ checkoutPendingSince: null });
     })
     .catch((error: unknown) => {
-      useUpshotPlanStore.setState({
-        email: session.email,
+      if (!stillSignedIn()) return;
+      useUpshotPlanStore.setState((state) => ({
+        // Keep the last known plan only when it belongs to this account.
+        plan: state.email === email ? state.plan : null,
+        email,
         fetchedAt: Date.now(),
         error: error instanceof Error ? error.message : String(error),
-      });
+        errorStatus: error instanceof UpshotRequestError ? error.status : 0,
+      }));
     })
     .finally(() => {
-      inFlight = null;
+      if (inFlight?.promise === promise) inFlight = null;
     });
-  return inFlight;
+  inFlight = { email, promise };
+  return promise;
 }
 
 /** The signed-in user's plan; signed out reads as free. */
@@ -109,10 +146,13 @@ export function useUpshotPlan(): {
   isLoading: boolean;
   checkoutPending: boolean;
   error: string | null;
+  errorStatus: number | null;
+  sessionEnded: boolean;
 } {
   const session = useUpshotAccount((state) => state.session);
   const loaded = useUpshotAccount((state) => state.loaded);
   const pendingSince = useUpshotAccount((state) => state.checkoutPendingSince);
+  const sessionEnded = useUpshotAccount((state) => state.sessionEnded);
   const planState = useUpshotPlanStore();
   const checkoutPending =
     pendingSince !== null && Date.now() - pendingSince < PENDING_CHECKOUT_MS;
@@ -146,14 +186,24 @@ export function useUpshotPlan(): {
   }, [email, checkoutPending]);
 
   const current = email !== null && planState.email === email;
+  const plan = current ? planState.plan : null;
   return {
-    plan: current ? planState.plan : null,
+    plan,
     email,
     isSignedIn: !!session,
-    isLoading: !loaded || (!!session && !current),
+    // Loading only until a plan or an error is known for this account.
+    isLoading:
+      !loaded || (!!session && (!current || (!plan && !planState.error))),
     checkoutPending,
     error: current ? planState.error : null,
+    errorStatus: current ? planState.errorStatus : null,
+    sessionEnded: !session && sessionEnded,
   };
+}
+
+/** Fork: "Stop waiting" after a checkout canceled in the browser (journey-account-settings P3). */
+export function stopWaitingForCheckout(): void {
+  useUpshotAccount.setState({ checkoutPendingSince: null });
 }
 
 /** Whether this user has Upshot Pro. */
@@ -173,6 +223,8 @@ type UpgradeDialogState = {
   /** Go on to checkout after sign-in (false for a plain "Sign in"). */
   checkout: boolean;
   error: string | null;
+  /** The Worker said this account already has Pro: open on that state. */
+  alreadyPro: boolean;
 };
 
 export const useUpgradeDialog = create<UpgradeDialogState>(() => ({
@@ -181,7 +233,13 @@ export const useUpgradeDialog = create<UpgradeDialogState>(() => ({
   interval: "month",
   checkout: true,
   error: null,
+  alreadyPro: false,
 }));
+
+/** The Worker's 409 for an account that already has Pro. */
+export function isAlreadyPro(error: unknown): boolean {
+  return error instanceof UpshotRequestError && error.code === "already_pro";
+}
 
 /** Open the account dialog to sign in or sign up only. */
 export function openUpshotSignIn(): void {
@@ -191,6 +249,7 @@ export function openUpshotSignIn(): void {
     interval: "month",
     checkout: false,
     error: null,
+    alreadyPro: false,
   });
 }
 
@@ -228,18 +287,34 @@ export async function openUpgrade(interval: PlanInterval = "month") {
       interval,
       checkout: true,
       error: null,
+      alreadyPro: false,
     });
     return;
   }
   try {
     await startCheckout(interval);
   } catch (error) {
+    // Fork: already Pro (a second Mac, or a stale plan) is a success, not
+    // an error (journey-account-settings P2; NN/g #5, #9).
+    if (isAlreadyPro(error)) {
+      await refreshUpshotPlan(true);
+      useUpgradeDialog.setState({
+        open: true,
+        mode: "signup",
+        interval,
+        checkout: true,
+        error: null,
+        alreadyPro: true,
+      });
+      return;
+    }
     useUpgradeDialog.setState({
       open: true,
       mode: "signup",
       interval,
       checkout: true,
       error: error instanceof Error ? error.message : String(error),
+      alreadyPro: false,
     });
   }
 }

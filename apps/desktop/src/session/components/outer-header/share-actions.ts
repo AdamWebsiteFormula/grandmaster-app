@@ -12,6 +12,7 @@ import {
   useEnhancedNote,
   useEnhancedNoteRecords,
   useSession,
+  useSessionParticipants,
 } from "~/session/queries";
 import type { EditorView } from "~/store/zustand/tabs/schema";
 
@@ -57,16 +58,53 @@ function stripLeadingTitle(markdown: string, title: string): string {
   return markdown;
 }
 
+// Fork: plain addresses only, so nothing else can ride in the mailto
+// (journey-meeting P2).
+const MAILTO_ADDRESS = /^[^\s@,;?&#%"<>]+@[^\s@,;?&#%"<>]+\.[^\s@,;?&#%"<>]+$/;
+
+/** Attendees' unique, valid addresses, without the note's owner. */
+export function getAttendeeEmails(
+  participants: readonly { email: string; human_id?: string | null }[],
+  selfHumanId?: string | null,
+): string[] {
+  const seen = new Set<string>();
+  const emails: string[] = [];
+  for (const participant of participants) {
+    if (selfHumanId && participant.human_id === selfHumanId) continue;
+    const email = participant.email.trim();
+    const key = email.toLowerCase();
+    if (!MAILTO_ADDRESS.test(email) || seen.has(key)) continue;
+    seen.add(key);
+    emails.push(email);
+  }
+  return emails;
+}
+
+// Fork: the note's attendees, for the mail draft's To line, as Granola's
+// follow-up composer fills recipients (journey-meeting P2; Granola docs
+// "Follow-up emails").
+export function useAttendeeEmails(sessionId: string): string[] {
+  const participants = useSessionParticipants(sessionId);
+  const selfHumanId = useSession(sessionId)?.user_id ?? null;
+  return useMemo(
+    () => getAttendeeEmails(participants, selfHumanId),
+    [participants, selfHumanId],
+  );
+}
+
 export function buildNotesMailto({
   title,
   body,
   truncatedNote,
   limit = MAILTO_BODY_LIMIT,
+  to = [],
 }: {
   title: string;
   body: string;
   truncatedNote: string;
   limit?: number;
+  // Fork: recipients, filled from the attendees (journey-meeting P2).
+  to?: readonly string[];
 }): { url: string; truncated: boolean } {
   let mailBody = body;
   const truncated = body.length > limit;
@@ -74,7 +112,8 @@ export function buildNotesMailto({
     const cut = body.lastIndexOf("\n", limit);
     mailBody = `${body.slice(0, cut > limit / 2 ? cut : limit).trimEnd()}\n\n…\n\n${truncatedNote}`;
   }
-  const url = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(mailBody)}`;
+  const recipients = to.map((address) => encodeURIComponent(address)).join(",");
+  const url = `mailto:${recipients}?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(mailBody)}`;
   return { url, truncated };
 }
 
@@ -111,6 +150,7 @@ export function useNoteShareActions(
   const { t } = useLingui();
   const title = useSession(sessionId)?.title?.trim() ?? "";
   const markdown = useCurrentNotesMarkdown(sessionId, currentView);
+  const attendeeEmails = useAttendeeEmails(sessionId);
   const canShareNotes = markdown.trim().length > 0;
 
   const copyNotes = useCallback(
@@ -133,6 +173,7 @@ export function useNoteShareActions(
       title: subject,
       body,
       truncatedNote: t`Full notes copied to clipboard. Paste them here.`,
+      to: attendeeEmails,
     });
     if (truncated) {
       await copyTextToClipboard(body);
@@ -144,7 +185,7 @@ export function useNoteShareActions(
       console.error("[share] failed to open mail", error);
       toast.error(t`Couldn't open your mail app. Try again.`);
     }
-  }, [markdown, t, title]);
+  }, [attendeeEmails, markdown, t, title]);
 
   return { canShareNotes, copyNotes, sendNotesViaEmail };
 }

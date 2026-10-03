@@ -78,7 +78,8 @@ export function MeetingSettingsView({
         <>
           <SettingSwitchRow
             icon={Megaphone}
-            title={<Trans>Post recording disclosure in meeting chat</Trans>}
+            // Fork: the same words as onboarding (first-run helper, Oct 3).
+            title={<Trans>Post a short notice in the meeting chat</Trans>}
             description={
               <Trans>
                 Tell participants when recording starts; this does not confirm

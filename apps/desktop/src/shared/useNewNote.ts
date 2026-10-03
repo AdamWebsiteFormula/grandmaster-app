@@ -5,6 +5,7 @@ import { createSession } from "~/session/queries";
 import { folderIdForNewNote, useSidebarNotes } from "~/sidebar/note-filter";
 import { listenerStore } from "~/store/zustand/listener/instance";
 import { useTabs } from "~/store/zustand/tabs";
+import { showStillRecordingToast } from "~/stt/recording-request-toasts";
 
 function createNoteSession() {
   const { noteFilter, folderFilter } = useSidebarNotes.getState();
@@ -85,11 +86,17 @@ export function openSessionAndListen(
   } = {},
 ) {
   const { openNew, openCurrent } = useTabs.getState();
-  const { status } = listenerStore.getState().live;
+  const { status, sessionId: liveSessionId } = listenerStore.getState().live;
   const open = behavior === "new" ? openNew : openCurrent;
 
   if (status === "active") {
     open({ type: "sessions", id: sessionId });
+    // Fork: say the other note is still recording instead of opening this
+    // one silently (journey-meeting P2; NN/g #1; Granola docs: stop between
+    // back-to-back meetings).
+    if (liveSessionId && liveSessionId !== sessionId) {
+      showStillRecordingToast(liveSessionId);
+    }
     return;
   }
 

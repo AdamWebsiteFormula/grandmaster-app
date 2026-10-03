@@ -11,7 +11,10 @@ export type DeletedSessionData = {
   deletedAt: number;
 };
 
-export const UNDO_TIMEOUT_MS = 5000;
+// Fork: 10 seconds (Granola's undo lasts about 10 s), and the timer pauses
+// while the toast is hovered or focused (journey-after P2 "Delete note /
+// undo"; WCAG 2.2 SC 2.2.1 Timing Adjustable; NN/g #3 user control).
+export const UNDO_TIMEOUT_MS = 10000;
 
 type PendingDeletion = {
   data: DeletedSessionData;
@@ -19,6 +22,10 @@ type PendingDeletion = {
   onDeleteConfirm: (() => void | Promise<unknown>) | null;
   addedAt: number;
   batchId: string | null;
+  /** When the deletion becomes final while the timer runs. */
+  deadline?: number;
+  /** Time left while paused; null while the timer runs. */
+  pausedRemainingMs?: number | null;
 };
 
 interface UndoDeleteState {
@@ -32,6 +39,8 @@ interface UndoDeleteState {
   confirmDeletion: (sessionId: string) => void | Promise<unknown>;
   clearBatch: (batchId: string) => void;
   confirmBatch: (batchId: string) => void;
+  pauseDeletions: (sessionIds: string[]) => void;
+  resumeDeletions: (sessionIds: string[]) => void;
 }
 
 export const useUndoDelete = create<UndoDeleteState>((set, get) => ({
@@ -58,9 +67,53 @@ export const useUndoDelete = create<UndoDeleteState>((set, get) => ({
           onDeleteConfirm: onConfirm ?? null,
           addedAt: Date.now(),
           batchId: batchId ?? null,
+          deadline: Date.now() + UNDO_TIMEOUT_MS,
+          pausedRemainingMs: null,
         },
       },
     }));
+  },
+
+  pauseDeletions: (sessionIds) => {
+    const now = Date.now();
+    set((state) => {
+      const next = { ...state.pendingDeletions };
+      for (const sessionId of sessionIds) {
+        const pending = next[sessionId];
+        if (!pending || pending.pausedRemainingMs != null) continue;
+        if (pending.timeoutId) clearTimeout(pending.timeoutId);
+        next[sessionId] = {
+          ...pending,
+          timeoutId: null,
+          pausedRemainingMs: Math.max(
+            0,
+            (pending.deadline ?? pending.addedAt + UNDO_TIMEOUT_MS) - now,
+          ),
+        };
+      }
+      return { pendingDeletions: next };
+    });
+  },
+
+  resumeDeletions: (sessionIds) => {
+    const now = Date.now();
+    set((state) => {
+      const next = { ...state.pendingDeletions };
+      for (const sessionId of sessionIds) {
+        const pending = next[sessionId];
+        if (!pending || pending.pausedRemainingMs == null) continue;
+        const remaining = pending.pausedRemainingMs;
+        next[sessionId] = {
+          ...pending,
+          timeoutId: setTimeout(() => {
+            get().confirmDeletion(sessionId);
+          }, remaining),
+          deadline: now + remaining,
+          pausedRemainingMs: null,
+        };
+      }
+      return { pendingDeletions: next };
+    });
   },
 
   clearDeletion: (sessionId) => {

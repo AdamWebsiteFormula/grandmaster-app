@@ -1,10 +1,12 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
 
+import { commands as openerCommands } from "@anlg/plugin-opener2";
 import { type PermissionStatus } from "@anlg/plugin-permissions";
 import {
   ArrowLeft,
   ArrowRight,
+  CalendarSlash,
   Check,
   WarningCircle,
 } from "@anlg/ui/components/icons";
@@ -22,6 +24,104 @@ import {
   GlassDialogCancelButton,
   GlassDialogContent,
 } from "~/shared/ui/glass-dialog";
+
+// Fork: Google and Outlook calendars reach Upshot through the Mac's Internet
+// Accounts (support.apple.com/guide/calendar/add-or-delete-calendar-accounts-icl4308d6701/mac).
+// The pane's id matches InternetAccountsSettingsExtension.appex on macOS 15
+// and 26; if it fails to open, System Settings opens instead.
+export const INTERNET_ACCOUNTS_URL =
+  "x-apple.systempreferences:com.apple.Internet-Accounts-Settings.extension";
+const SYSTEM_SETTINGS_APP = "/System/Applications/System Settings.app";
+
+export async function openInternetAccounts() {
+  const result = await openerCommands.openUrl(INTERNET_ACCOUNTS_URL, null);
+  if (result.status === "error") {
+    await openerCommands.openPath(SYSTEM_SETTINGS_APP, null);
+  }
+}
+
+// Fork: three calendar states, each with one next step (NN/g empty states,
+// nngroup.com/articles/empty-state-interface-design; Apple HIG, ask for
+// permission in context, developer.apple.com/design/human-interface-guidelines/privacy).
+export function NoCalendarsYet({
+  onRefresh,
+  isLoading,
+  showAddAccount = true,
+  className,
+}: {
+  onRefresh?: () => void;
+  isLoading?: boolean;
+  showAddAccount?: boolean;
+  className?: string;
+}) {
+  return (
+    <div
+      role="status"
+      className={cn(["flex flex-col items-start gap-3", className])}
+    >
+      <div className="text-muted-foreground flex items-start gap-2 text-sm">
+        <CalendarSlash className="mt-0.5 size-4 shrink-0" aria-hidden />
+        <p>
+          <Trans>
+            No calendars yet. Add your Google or Outlook account to your Mac,
+            and its calendars show up here.
+          </Trans>
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {showAddAccount ? (
+          <Button
+            size="sm"
+            className="h-8 px-3"
+            onClick={() => void openInternetAccounts()}
+          >
+            <Trans>Add an account</Trans>
+          </Button>
+        ) : null}
+        {onRefresh ? (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 px-3"
+            disabled={isLoading}
+            onClick={onRefresh}
+          >
+            <Trans>Refresh</Trans>
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+export function CalendarAccessNeeded({
+  onAllow,
+  isPending,
+  className,
+}: {
+  onAllow: () => void;
+  isPending?: boolean;
+  className?: string;
+}) {
+  return (
+    <div className={cn(["flex flex-col items-start gap-3", className])}>
+      <p className="text-muted-foreground text-sm">
+        <Trans>
+          Upshot needs calendar access to show your upcoming meetings and name
+          your notes.
+        </Trans>
+      </p>
+      <Button
+        size="sm"
+        className="h-8 px-3"
+        disabled={isPending}
+        onClick={onAllow}
+      >
+        <Trans>Allow access</Trans>
+      </Button>
+    </div>
+  );
+}
 
 export function AppleCalendarPermissionDialog({
   open,
@@ -51,7 +151,7 @@ export function AppleCalendarPermissionDialog({
             <Trans>Cancel</Trans>
           </GlassDialogCancelButton>
           <Button
-            className="bg-primary text-primary-foreground hover:brightness-90 h-8 rounded-full px-4 text-xs font-medium shadow-sm dark:bg-white dark:text-black dark:hover:bg-white/90"
+            className="bg-primary text-primary-foreground h-8 rounded-full px-4 text-xs font-medium shadow-sm hover:brightness-90 dark:bg-white dark:text-black dark:hover:bg-white/90"
             onClick={() => {
               onOpenSettings();
               onOpenChange(false);
@@ -176,12 +276,14 @@ export function TroubleShootingLink({
   onReset,
   onOpen,
   isPending,
+  isAuthorized = false,
   className,
 }: {
   onRequest: () => void;
   onReset: () => void;
   onOpen: () => void;
   isPending: boolean;
+  isAuthorized?: boolean;
   className?: string;
 }) {
   const [showActions, setShowActions] = useState(false);
@@ -195,6 +297,16 @@ export function TroubleShootingLink({
         >
           <Trans>Having trouble?</Trans>
         </button>
+      ) : isAuthorized ? (
+        // Fork: access is on, so the list is stale, not blocked (EventKit
+        // store made before the grant; capacitor-calendar issue #219).
+        <div>
+          <Trans>Quit and reopen Upshot, then click Refresh.</Trans>{" "}
+          <ActionLink onClick={() => setShowActions(false)}>
+            <ArrowLeft className="inline-block size-3 underline" />
+            <Trans>Back</Trans>
+          </ActionLink>
+        </div>
       ) : (
         <div>
           {/* Fork: plain words for what each link does (UX audit Oct 3, A:

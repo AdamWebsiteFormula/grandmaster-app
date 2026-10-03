@@ -50,9 +50,21 @@ type PendingAutoStop = {
   networkHoldUntilMs?: number;
 };
 
-function getMicDetectedNotificationTitle(event: NearbyEvent | null): string {
+// Fork: name what was detected and which app, as Granola does: "Meeting
+// detected", "Call detected" (FaceTime, WhatsApp), "Huddle detected" (Slack),
+// and the body "shows the name of the app"
+// (docs.granola.ai/help-center/taking-notes/notifications). Journey-first-run P3.
+const CALL_APP_PATTERN = /facetime|whatsapp/i;
+const HUDDLE_APP_PATTERN = /slack/i;
+
+export function getMicDetectedNotificationTitle(
+  event: NearbyEvent | null,
+  appName: string | null = null,
+): string {
   if (!event) {
-    return "Are you in a meeting?";
+    if (appName && CALL_APP_PATTERN.test(appName)) return "Call detected";
+    if (appName && HUDDLE_APP_PATTERN.test(appName)) return "Huddle detected";
+    return "Meeting detected";
   }
 
   if (event.participantNames.length === 1) {
@@ -64,6 +76,12 @@ function getMicDetectedNotificationTitle(event: NearbyEvent | null): string {
   }
 
   return `Are you in ${event.title} right now?`;
+}
+
+export function getMicDetectedNotificationMessage(
+  appName: string | null,
+): string {
+  return appName ? `${appName} is using your microphone` : "";
 }
 
 export const useHandleDetectEvents = (store: ListenerStore) => {
@@ -407,10 +425,16 @@ export const useHandleDetectEvents = (store: ListenerStore) => {
                 return;
               }
 
+              const firstAppName = displayApps[0]
+                ? getNotificationAppName(displayApps[0])
+                : null;
               await notificationCommands.showNotification({
                 key: payload.key,
-                title: getMicDetectedNotificationTitle(nearbyEvent),
-                message: "",
+                title: getMicDetectedNotificationTitle(
+                  nearbyEvent,
+                  firstAppName,
+                ),
+                message: getMicDetectedNotificationMessage(firstAppName),
                 timeout: { secs: 15, nanos: 0 },
                 source: {
                   type: "mic_detected",

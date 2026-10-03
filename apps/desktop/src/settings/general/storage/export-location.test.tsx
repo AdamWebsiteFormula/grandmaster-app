@@ -121,6 +121,19 @@ describe("ExportLocationRow", () => {
     },
   );
 
+  it("puts the description under the title and the folder beside its button", async () => {
+    renderRow();
+    const folder = await screen.findByText("~/Downloads");
+    const title = screen.getByRole("heading", { name: "Export location" });
+    const description = screen.getByText(
+      "Save PDF, text, Markdown, and Org exports to this folder.",
+    );
+    expect(description.parentElement).toBe(title.parentElement);
+    const choose = screen.getByRole("button", { name: "Choose folder" });
+    expect(folder.parentElement).toBe(choose.parentElement);
+    expect(folder.getAttribute("title")).toBe("/Users/test/Downloads");
+  });
+
   it("waits for settings to load before allowing a change", () => {
     mocks.settings.mockReturnValue({ isLoading: true });
     renderRow();

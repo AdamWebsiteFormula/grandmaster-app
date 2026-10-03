@@ -580,26 +580,28 @@ function TemplateListItem({
   onDuplicate: (template: UserTemplate) => void;
   onDelete: (id: string) => void;
 }) {
+  const { t } = useLingui();
+  // Fork: menu and tile words go through t (journey-after P3 "Templates").
   const contextMenu = useMemo(
     () => [
       {
         id: `favorite-template-${template.id}`,
-        text: template.pinned ? "Unfavorite" : "Favorite",
+        text: template.pinned ? t`Unfavorite` : t`Favorite`,
         action: () => onToggleFavorite(template.id),
       },
       { separator: true as const },
       {
         id: `duplicate-template-${template.id}`,
-        text: "Duplicate",
+        text: t`Duplicate`,
         action: () => onDuplicate(template),
       },
       {
         id: `delete-template-${template.id}`,
-        text: "Delete",
+        text: t`Delete`,
         action: () => onDelete(template.id),
       },
     ],
-    [onDelete, onDuplicate, onToggleFavorite, template],
+    [onDelete, onDuplicate, onToggleFavorite, t, template],
   );
   const showContextMenu = useNativeContextMenu(contextMenu);
 
@@ -620,7 +622,7 @@ function TemplateListItem({
         <TemplateIconGlyph icon={template.icon} className="size-4 text-sm" />
         <div className="min-w-0 flex-1">
           <div className="truncate font-medium">
-            {template.title?.trim() || "Untitled"}
+            {template.title?.trim() || t`Untitled template`}
           </div>
         </div>
       </div>

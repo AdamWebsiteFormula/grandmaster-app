@@ -1,21 +1,23 @@
 import { useLingui } from "@lingui/react/macro";
 import { platform } from "@tauri-apps/plugin-os";
 
-import { LockKey } from "@anlg/ui/components/icons";
+import { CircleNotch, LockKey } from "@anlg/ui/components/icons";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 
 import { DEVICE_AUTH_REASON } from "~/lock/auth";
 import { useAppLock } from "~/lock/store";
 import { privacyMessages } from "~/settings/general/app-settings";
-import { SettingsPageTitle } from "~/settings/page-title";
 import {
   useSetSettingValues,
   useStoredSettingValuesQuery,
 } from "~/settings/queries";
+import { settingsSectionId } from "~/settings/sections";
 import { SettingsGroup, SettingSwitchRow } from "~/settings/setting-row";
 import { resolveConfigValue } from "~/shared/config";
 
-export function SettingsPrivacy() {
+// Fork: Privacy is a section of General, as Granola keeps "Data & sharing"
+// in Preferences (grandmaster/sops/settings-ia-oct3.md Q3).
+export function PrivacySection() {
   const { i18n, t } = useLingui();
   const settingsQuery = useStoredSettingValuesQuery();
   const setSettingValues = useSetSettingValues();
@@ -32,8 +34,17 @@ export function SettingsPrivacy() {
   if (settingsQuery.error) {
     throw settingsQuery.error;
   }
+  // Fork: the General page's spinner, not a blank page, while settings
+  // load (journey-account-settings P3; NN/g #1).
   if (settingsQuery.isLoading || !settingsQuery.data) {
-    return null;
+    return (
+      <div className="flex min-h-48 items-center justify-center">
+        <CircleNotch
+          aria-label={t`Loading settings`}
+          className="text-muted-foreground size-5 animate-spin"
+        />
+      </div>
+    );
   }
 
   const lockAppEnabled = resolveConfigValue("lock_app", settingsQuery.data);
@@ -45,13 +56,16 @@ export function SettingsPrivacy() {
       : t`Require Touch ID or your password when opening Upshot.`;
 
   return (
-    <div className="flex flex-col gap-8">
-      <SettingsPageTitle
+    <>
+      {/* Fork: the usage-data and error-report switches did nothing (no
+          telemetry keys ship in Upshot), so they are gone; say so plainly
+          instead (ux-audit-oct3 E, NN/g #1, #2). The note is the group's
+          footer, with no negative margin (journey-account-settings P3). */}
+      <SettingsGroup
+        id={settingsSectionId("privacy")}
         title={i18n._(privacyMessages.title)}
-        description={t`Lock Upshot and choose what it shares.`}
-      />
-
-      <SettingsGroup>
+        footer={t`Upshot sends no usage data or crash reports.`}
+      >
         <SettingSwitchRow
           icon={LockKey}
           title={t`Lock app`}
@@ -72,13 +86,6 @@ export function SettingsPrivacy() {
           }}
         />
       </SettingsGroup>
-
-      {/* Fork: the usage-data and error-report switches did nothing (no
-          telemetry keys ship in Upshot), so they are gone; say so plainly
-          instead (ux-audit-oct3 E, NN/g #1, #2). */}
-      <p className="text-muted-foreground -mt-6 px-1 text-xs">
-        {t`Upshot sends no usage data or crash reports.`}
-      </p>
-    </div>
+    </>
   );
 }

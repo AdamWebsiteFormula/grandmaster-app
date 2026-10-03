@@ -11,6 +11,7 @@ const hoisted = vi.hoisted(() => ({
   enhancedHasProseMirror: true,
   enhancedEditorProps: [] as Record<string, unknown>[],
   focusAtTrailingEmptyLine: vi.fn(),
+  focusTitle: vi.fn(),
   flushPendingChanges: vi.fn(),
   onBeforeTabChange: vi.fn(),
   rawEditorProps: [] as Record<string, unknown>[],
@@ -95,6 +96,33 @@ vi.mock("./meta-chips", () => ({
   ),
   NoteMetaChips: () => <div data-testid="meta-chips">chips</div>,
 }));
+
+vi.mock("./generate-summary-offer", () => ({
+  GenerateSummaryOffer: () => <div data-testid="generate-summary-offer" />,
+}));
+
+vi.mock("~/session/components/title-input", async () => {
+  const React = await vi.importActual<typeof import("react")>("react");
+
+  return {
+    TitleInput: React.forwardRef(
+      (props: { variant?: string }, ref: React.Ref<unknown>) => {
+        React.useImperativeHandle(ref, () => ({
+          focus: hoisted.focusTitle,
+          focusAtEnd: hoisted.focusTitle,
+          focusAtPixelWidth: hoisted.focusTitle,
+        }));
+        return (
+          <input
+            aria-label="Note title"
+            placeholder="Untitled"
+            data-variant={props.variant}
+          />
+        );
+      },
+    ),
+  };
+});
 
 vi.mock("./transcript-toolbar", () => ({
   TranscriptToolbar: () => <div data-testid="transcript-toolbar" />,
@@ -238,6 +266,7 @@ describe("NoteInput tab selection", () => {
     hoisted.enhancedHasProseMirror = true;
     hoisted.enhancedEditorProps = [];
     hoisted.focusAtTrailingEmptyLine.mockClear();
+    hoisted.focusTitle.mockClear();
     hoisted.flushPendingChanges.mockClear();
     hoisted.onBeforeTabChange.mockClear();
     hoisted.rawEditorProps = [];
@@ -430,6 +459,48 @@ describe("NoteInput tab selection", () => {
     expect(column.className).toContain("note-meta-chips-host");
     expect(column.contains(screen.getByTestId("meta-chips"))).toBe(true);
     expect(column.contains(screen.getByTestId("raw-editor"))).toBe(true);
+  });
+
+  // Fork tests: installed-build review Oct 3 (P1: an empty note had no
+  // title field; P1: no Generate summary in My notes).
+  it("shows the title field with a placeholder above the chips in My notes", () => {
+    renderNoteInput({ showMetaChips: true });
+
+    const title = screen.getByRole("textbox", { name: "Note title" });
+    expect(title.getAttribute("placeholder")).toBe("Untitled");
+    expect(title.getAttribute("data-variant")).toBe("note");
+    const anchor = title.closest("[data-note-title-anchor]") as HTMLElement;
+    expect(anchor.style.marginBottom).toBe(
+      "var(--note-meta-chips-space, 3rem)",
+    );
+    const chips = screen.getByTestId("meta-chips-layer");
+    expect(
+      anchor.compareDocumentPosition(chips) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("moves from the top of My notes back up to the title", () => {
+    renderNoteInput({ showMetaChips: true });
+
+    const onNavigateToTitle = hoisted.rawEditorProps[
+      hoisted.rawEditorProps.length - 1
+    ]?.onNavigateToTitle as (pixelWidth?: number) => void;
+    onNavigateToTitle(12);
+    expect(hoisted.focusTitle).toHaveBeenCalledWith(12);
+  });
+
+  it("offers Generate summary in My notes, not on the Summary", () => {
+    renderNoteInput({ showMetaChips: true });
+    expect(screen.getByTestId("generate-summary-offer")).not.toBeNull();
+    cleanup();
+
+    hoisted.editorTabs = [{ type: "enhanced", id: "note-1" }, { type: "raw" }];
+    renderNoteInput({
+      currentTab: { type: "enhanced", id: "note-1" },
+      showMetaChips: true,
+    });
+    expect(screen.queryByTestId("generate-summary-offer")).toBeNull();
+    expect(screen.queryByRole("textbox", { name: "Note title" })).toBeNull();
   });
 
   it("keeps the chip row off other note surfaces", () => {

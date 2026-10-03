@@ -5,7 +5,7 @@ import { resolveCurrentSessionId } from "./current-session";
 import type { ToolDependencies } from "./types";
 
 import { waitForApproval } from "~/chat/components/message/tool/pending-approval-store";
-import { loadSessionContentSnapshot } from "~/session/content-queries";
+import { loadReadableSessionContentSnapshot } from "~/session/content-queries";
 import { moveSessionContents } from "~/session/move-contents";
 
 async function describeMove(
@@ -14,8 +14,8 @@ async function describeMove(
 ): Promise<string | undefined> {
   try {
     const [source, target] = await Promise.all([
-      loadSessionContentSnapshot(sourceMeetingId),
-      loadSessionContentSnapshot(targetMeetingId),
+      loadReadableSessionContentSnapshot(sourceMeetingId),
+      loadReadableSessionContentSnapshot(targetMeetingId),
     ]);
     if (!source || !target) {
       return undefined;

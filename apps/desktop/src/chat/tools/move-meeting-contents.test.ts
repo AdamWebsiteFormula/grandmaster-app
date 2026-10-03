@@ -11,6 +11,7 @@ vi.mock("~/session/move-contents", () => ({
 
 vi.mock("~/session/content-queries", () => ({
   loadSessionContentSnapshot: mocks.loadSessionContentSnapshot,
+  loadReadableSessionContentSnapshot: mocks.loadSessionContentSnapshot,
 }));
 
 import { buildMoveMeetingContentsTool } from "./move-meeting-contents";

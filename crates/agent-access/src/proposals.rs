@@ -99,13 +99,9 @@ pub async fn create_proposal(pool: &SqlitePool, input: CreateProposalInput) -> R
         return Err(Error::Invalid("proposal content is empty".to_string()));
     }
     let source = normalize_source(input.source.as_deref());
-    let session = anlg_db_app::get_session(pool, &input.meeting_id)
-        .await
-        .map_err(|source| Error::Database {
-            action: "load meeting",
-            source,
-        })?
-        .ok_or_else(|| Error::NotFound(format!("meeting '{}'", input.meeting_id)))?;
+    // Fork: a proposal copies the note's current text, so a locked note is
+    // refused (journey-after P1 "Locked notes").
+    let session = crate::load_unlocked_session(pool, &input.meeting_id).await?;
 
     let target = resolve_target(pool, &session.id, kind, input.target_id.as_deref()).await?;
     let id = uuid::Uuid::new_v4().to_string();
@@ -134,16 +130,7 @@ pub async fn create_proposal(pool: &SqlitePool, input: CreateProposalInput) -> R
 
 pub async fn list_proposals(pool: &SqlitePool, input: ListProposalsInput) -> Result<ProposalPage> {
     if let Some(meeting_id) = input.meeting_id.as_deref() {
-        let exists = anlg_db_app::get_session(pool, meeting_id)
-            .await
-            .map_err(|source| Error::Database {
-                action: "load meeting",
-                source,
-            })?
-            .is_some();
-        if !exists {
-            return Err(Error::NotFound(format!("meeting '{meeting_id}'")));
-        }
+        crate::load_unlocked_session(pool, meeting_id).await?;
     }
 
     let status = match input
@@ -323,14 +310,23 @@ async fn resolve_target(
 }
 
 async fn load_proposal(pool: &SqlitePool, proposal_id: &str) -> Result<Proposal> {
-    anlg_db_app::get_session_proposal(pool, proposal_id)
+    let proposal = anlg_db_app::get_session_proposal(pool, proposal_id)
         .await
         .map_err(|source| Error::Database {
             action: "load proposal",
             source,
         })?
         .map(Proposal::from)
-        .ok_or_else(|| Error::NotFound(format!("proposal '{proposal_id}'")))
+        .ok_or_else(|| Error::NotFound(format!("proposal '{proposal_id}'")))?;
+    // Fork: a proposal holds the note's text; hide it while the note is
+    // locked (journey-after P1 "Locked notes").
+    crate::load_unlocked_session(pool, &proposal.meeting_id)
+        .await
+        .map_err(|error| match error {
+            Error::NotFound(_) => Error::NotFound(format!("proposal '{proposal_id}'")),
+            other => other,
+        })?;
+    Ok(proposal)
 }
 
 fn normalize_kind(kind: &str) -> Result<&'static str> {
@@ -511,5 +507,76 @@ mod tests {
         .await
         .unwrap_err();
         assert!(matches!(missing, Error::NotFound(_)));
+    }
+
+    // Fork: journey-after P1 "Locked notes". Proposals carry the note's text,
+    // so a locked note can't get new ones and old ones are hidden.
+    #[tokio::test]
+    async fn locked_meeting_proposals_are_hidden() {
+        let db = test_db().await;
+        seed_meeting(&db).await;
+        let created = create_proposal(
+            db.pool(),
+            CreateProposalInput {
+                meeting_id: "meeting-1".to_string(),
+                kind: "summary".to_string(),
+                target_id: None,
+                content: "Ship Wednesday".to_string(),
+                source: None,
+            },
+        )
+        .await
+        .unwrap();
+        sqlx::query("UPDATE sessions SET locked = 1 WHERE id = 'meeting-1'")
+            .execute(db.pool())
+            .await
+            .unwrap();
+
+        let create = create_proposal(
+            db.pool(),
+            CreateProposalInput {
+                meeting_id: "meeting-1".to_string(),
+                kind: "memo".to_string(),
+                target_id: None,
+                content: "Agenda".to_string(),
+                source: None,
+            },
+        )
+        .await
+        .unwrap_err();
+        assert!(matches!(create, Error::NotFound(_)));
+
+        let all = list_proposals(
+            db.pool(),
+            ListProposalsInput {
+                status: Some("all".to_string()),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        assert!(all.proposals.is_empty());
+
+        let scoped = list_proposals(
+            db.pool(),
+            ListProposalsInput {
+                meeting_id: Some("meeting-1".to_string()),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap_err();
+        assert!(matches!(scoped, Error::NotFound(_)));
+
+        let fetched = get_proposal(
+            db.pool(),
+            GetProposalInput {
+                proposal_id: created.id.clone(),
+            },
+        )
+        .await
+        .unwrap_err();
+        assert!(matches!(fetched, Error::NotFound(_)));
+        assert!(!fetched.to_string().contains("Ship"));
     }
 }

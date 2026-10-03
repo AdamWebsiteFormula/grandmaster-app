@@ -106,7 +106,8 @@ export function Timeline({
             "h-7 w-7 rounded-full",
             "border-border bg-card border",
             "hover:bg-accent transition-all hover:scale-110",
-            "shrink-0 shadow-xs select-none",
+            // Fork: no shadow on black (journey-meeting P3; design-system.md).
+            "shrink-0 select-none",
           ])}
         >
           {state === "playing" ? (
@@ -139,8 +140,9 @@ export function Timeline({
                     "h-6 rounded-md px-1.5",
                     "border-border bg-card border",
                     "hover:bg-accent transition-colors",
-                    "text-muted-foreground font-mono text-xs select-none",
-                    "shadow-xs",
+                    // Fork: Geist Mono is for keys and code only; no shadow
+                    // on black (journey-meeting P3; design-system.md).
+                    "text-muted-foreground text-xs tabular-nums select-none",
                   ])}
                 >
                   {playbackRate}x
@@ -156,7 +158,7 @@ export function Timeline({
                     key={rate}
                     onSelect={() => setPlaybackRate(rate)}
                     className={cn([
-                      "block w-full rounded-none px-3 py-1 text-left font-mono text-xs select-none",
+                      "block w-full rounded-none px-3 py-1 text-left text-xs tabular-nums select-none",
                       "hover:bg-accent focus:bg-accent transition-colors",
                       rate === playbackRate
                         ? "text-foreground font-semibold"
@@ -182,8 +184,14 @@ export function Timeline({
   );
 }
 
-function formatTime(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+// Fork: h:mm:ss past an hour, "1:15:12" not "75:12" (journey-meeting P3;
+// Apple HIG, clear durations).
+export function formatTime(seconds: number): string {
+  const safe = Number.isFinite(seconds) ? Math.max(0, Math.floor(seconds)) : 0;
+  const hours = Math.floor(safe / 3600);
+  const mins = Math.floor((safe % 3600) / 60);
+  const secs = (safe % 60).toString().padStart(2, "0");
+  return hours > 0
+    ? `${hours}:${mins.toString().padStart(2, "0")}:${secs}`
+    : `${mins.toString().padStart(2, "0")}:${secs}`;
 }

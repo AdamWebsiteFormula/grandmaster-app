@@ -267,6 +267,8 @@ export type RecentSessionRow = {
   participant_names?: string | null;
   duration_ms?: number | null;
   locked?: number | boolean | null;
+  has_transcript?: number | boolean | null;
+  has_content?: number | boolean | null;
 };
 
 export type RecentNote = {
@@ -278,6 +280,10 @@ export type RecentNote = {
   people: string[];
   /** Recorded length across the note's transcripts; 0 when none. */
   durationMs: number;
+  /** At least one transcript, even an empty one. */
+  hasTranscript: boolean;
+  /** Written or generated note text, or an attachment such as audio. */
+  hasContent: boolean;
   locked: boolean;
   trackingId: string | null;
 };
@@ -332,6 +338,54 @@ const DURATION_SQL = `(
         AND transcript.deleted_at IS NULL
     )`;
 
+// Fork (redline2-oct3, Home): flags for the row's second line and for
+// hiding empty notes. A raw note counts once its ProseMirror body has text
+// or any node beyond empty paragraphs (session/queries/deletion.ts reads
+// the same note as content); summaries, template outputs and any attachment
+// (recorded audio is cataloged there) count too.
+const NOTE_FLAGS_SQL = `
+    EXISTS (
+      SELECT 1 FROM transcripts AS transcript
+      WHERE transcript.session_id = session.id
+        AND transcript.deleted_at IS NULL
+    ) AS has_transcript,
+    (
+      EXISTS (
+        SELECT 1 FROM session_documents AS document
+        WHERE (document.session_id = session.id OR document.id = session.id)
+          AND document.deleted_at IS NULL
+          AND document.kind <> 'meeting_chat'
+          AND (
+            document.kind <> 'note'
+            OR CASE
+              WHEN document.body_format = 'prosemirror_json'
+                AND json_valid(document.body)
+              THEN EXISTS (
+                SELECT 1 FROM json_tree(document.body) AS node
+                WHERE (
+                  node.key = 'text' AND node.type = 'text'
+                  AND TRIM(node.atom, ' ' || char(9, 10, 13, 160)) <> ''
+                ) OR (
+                  node.key = 'type'
+                  AND node.atom NOT IN ('doc', 'paragraph', 'text', 'hardBreak')
+                )
+              )
+              ELSE TRIM(document.body) NOT IN ('', '&nbsp;')
+            END
+          )
+      )
+      OR EXISTS (
+        SELECT 1 FROM session_attachments AS attachment
+        WHERE attachment.session_id = session.id
+          AND attachment.deleted_at IS NULL
+      )
+    ) AS has_content`;
+
+/** No title, no note text, no transcript, no audio: nothing to open. */
+export function isEmptyNote(note: RecentNote): boolean {
+  return !note.title && !note.hasTranscript && !note.hasContent;
+}
+
 function parseNames(value: string | null | undefined): string[] {
   if (!value) return [];
   try {
@@ -343,6 +397,10 @@ function parseNames(value: string | null | undefined): string[] {
     return [];
   }
 }
+function flag(value: number | boolean | null | undefined): boolean {
+  return value === true || Number(value) === 1;
+}
+
 // Notes for future calendar events are dropped in JS, so fetch a margin.
 const RECENT_FETCH_MARGIN = 50;
 
@@ -360,7 +418,8 @@ export const RECENT_SESSIONS_SQL = `
         AND participant.deleted_at IS NULL
     ) AS attendees,
     ${PARTICIPANT_NAMES_SQL} AS participant_names,
-    ${DURATION_SQL} AS duration_ms
+    ${DURATION_SQL} AS duration_ms,
+    ${NOTE_FLAGS_SQL}
   FROM sessions AS session
   WHERE session.deleted_at IS NULL
   ORDER BY session.created_at DESC, session.id
@@ -371,6 +430,7 @@ export function groupRecentNotes(
   rows: RecentSessionRow[],
   nowMs: number,
   limit = RECENT_PAGE_SIZE,
+  { hideEmpty = false }: { hideEmpty?: boolean } = {},
 ): { groups: RecentGroup[]; hasMore: boolean } {
   const todayStart = startOfLocalDay(nowMs);
   const yesterdayStart = startOfLocalDay(nowMs, -1);
@@ -382,10 +442,14 @@ export function groupRecentNotes(
       attendees: Number(row.attendees ?? 0),
       people: parseNames(row.participant_names),
       durationMs: Math.max(0, Number(row.duration_ms ?? 0) || 0),
-      locked: row.locked === true || Number(row.locked) === 1,
+      hasTranscript: flag(row.has_transcript),
+      hasContent: flag(row.has_content),
+      locked: flag(row.locked),
       trackingId: getSessionEvent(row)?.tracking_id ?? null,
     }))
     .filter((note) => note.timeMs > 0 && note.timeMs <= nowMs)
+    // Display filter only; the note itself is kept (redline2-oct3, Home).
+    .filter((note) => !hideEmpty || !isEmptyNote(note))
     .sort((a, b) => b.timeMs - a.timeMs);
 
   const groups: RecentGroup[] = [];
@@ -429,7 +493,8 @@ export const FOLDER_SESSIONS_SQL = `
         AND participant.deleted_at IS NULL
     ) AS attendees,
     ${PARTICIPANT_NAMES_SQL} AS participant_names,
-    ${DURATION_SQL} AS duration_ms
+    ${DURATION_SQL} AS duration_ms,
+    ${NOTE_FLAGS_SQL}
   FROM sessions AS session
   WHERE session.deleted_at IS NULL
     AND (
@@ -440,7 +505,12 @@ export const FOLDER_SESSIONS_SQL = `
   LIMIT ?
 `;
 
-function useGroupedNotes(sql: string, params: unknown[], limit: number) {
+function useGroupedNotes(
+  sql: string,
+  params: unknown[],
+  limit: number,
+  hideEmpty = false,
+) {
   const { data, isLoading } = useLiveQuery<
     RecentSessionRow,
     RecentSessionRow[]
@@ -451,10 +521,10 @@ function useGroupedNotes(sql: string, params: unknown[], limit: number) {
     [data, pendingDeletions],
   );
   const { groups, hasMore } = useMemo(
-    () => groupRecentNotes(rows, Date.now(), limit),
-    [rows, limit],
+    () => groupRecentNotes(rows, Date.now(), limit, { hideEmpty }),
+    [rows, limit, hideEmpty],
   );
-  return { isLoading, hasNotes: rows.length > 0, groups, hasMore };
+  return { isLoading, hasNotes: groups.length > 0, groups, hasMore };
 }
 
 export function useRecentNotes(limit = RECENT_PAGE_SIZE) {
@@ -462,6 +532,7 @@ export function useRecentNotes(limit = RECENT_PAGE_SIZE) {
     RECENT_SESSIONS_SQL,
     [limit + RECENT_FETCH_MARGIN],
     limit,
+    true,
   );
 }
 

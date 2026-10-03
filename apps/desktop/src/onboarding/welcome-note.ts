@@ -12,13 +12,16 @@ import { listenerStore } from "~/store/zustand/listener/instance";
 
 const PENDING_WELCOME_SESSION_KEY = "anarlog.pending-welcome-session";
 
-const WELCOME_NOTE = `Welcome to Upshot 👋
+// Fork: New note lives on Home, so the note says where it is (journey-first-run
+// P1). The privacy line matches README "Privacy" (journey-first-run P2: FTC
+// "clear and conspicuous" disclosures).
+export const WELCOME_NOTE = `Welcome to Upshot 👋
 
 
 Upshot takes notes for your meetings. No bot joins your call.
 
 
-**Record:** click **New note** at the top right. Upshot starts listening right away. It hears you through your microphone and the other people through your Mac's sound.
+**Record:** on Home, click **New note** at the top right, or press **⌘N**. Upshot starts listening right away. It hears you through your microphone and the other people through your Mac's sound.
 
 
 **Take notes:** jot a few words while you talk, or nothing at all.
@@ -30,7 +33,7 @@ Upshot takes notes for your meetings. No bot joins your call.
 **See an example:** open **Example: Product sync** on Home for a finished summary and transcript.
 
 
-Your notes, transcripts and audio stay on this Mac.`;
+Audio, notes and transcripts are stored on this Mac. When Upshot writes a summary, the note and transcript go to Upshot AI, which keeps nothing.`;
 
 let pendingWelcomeSession: Promise<string> | null = null;
 

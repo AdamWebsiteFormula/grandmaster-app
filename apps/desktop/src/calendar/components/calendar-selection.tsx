@@ -39,6 +39,8 @@ interface CalendarSelectionProps {
   className?: string;
   isLoading?: boolean;
   disableHoverTone?: boolean;
+  /** Fork: what to show when access is on but no calendars came back. */
+  emptyState?: React.ReactNode;
 }
 
 export function CalendarSelection({
@@ -48,8 +50,13 @@ export function CalendarSelection({
   className,
   isLoading,
   disableHoverTone,
+  emptyState,
 }: CalendarSelectionProps) {
   const { t } = useLingui();
+
+  if (groups.length === 0 && emptyState && !isLoading) {
+    return <div className={className}>{emptyState}</div>;
+  }
 
   if (groups.length === 0) {
     return (

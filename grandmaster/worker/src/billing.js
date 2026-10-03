@@ -90,7 +90,11 @@ async function upsertRow(env, row) {
     },
     body: JSON.stringify(row),
   });
+  // Fork: 409 is a foreign-key miss: the user deleted their account, and
+  // the row cascaded away (journey-account-settings P3 "account removal").
+  if (response.status === 409) return "orphan";
   if (!response.ok) throw new Error(`Supabase upsert ${response.status}`);
+  return "saved";
 }
 
 // ---------- Stripe ----------
@@ -302,8 +306,7 @@ async function syncSubscription(env, subscriptionId, userIdHint) {
   ) {
     return "stale";
   }
-  await upsertRow(env, rowFromSubscription(userId, subscription));
-  return "saved";
+  return upsertRow(env, rowFromSubscription(userId, subscription));
 }
 
 /** The subscription id on an invoice, for API 2022-11-15 and newer. */
@@ -403,6 +406,111 @@ function page(options) {
   });
 }
 
+// ---------- One subscription per customer ----------
+
+export const ALREADY_PRO = "already_pro";
+
+/**
+ * Whether Stripe already has a live subscription for this customer: a paid
+ * checkout whose webhook hasn't reached Supabase yet. A Stripe outage
+ * doesn't block checkout (the row check above still runs).
+ */
+async function hasLiveSubscription(env, row) {
+  if (!row?.stripe_customer_id) return false;
+  const query = new URLSearchParams({
+    customer: row.stripe_customer_id,
+    status: "all",
+    limit: "10",
+  });
+  const list = await stripe(env, "GET", `/subscriptions?${query}`).catch(
+    () => null,
+  );
+  return (list?.data ?? []).some((subscription) =>
+    isProStatus(subscription?.status),
+  );
+}
+
+/**
+ * Expire this user's earlier open Checkout Sessions, so "Reopen checkout"
+ * twice (or on two Macs) can't be paid twice
+ * (docs.stripe.com/api/checkout/sessions/expire). Known customers are
+ * filtered by Stripe; new ones by client_reference_id. Best effort.
+ */
+async function expireOpenSessions(env, user, row) {
+  const query = new URLSearchParams({ status: "open", limit: "100" });
+  if (row?.stripe_customer_id) query.set("customer", row.stripe_customer_id);
+  const list = await stripe(env, "GET", `/checkout/sessions?${query}`).catch(
+    () => null,
+  );
+  const mine = (list?.data ?? []).filter(
+    (session) =>
+      session?.id &&
+      (row?.stripe_customer_id || session.client_reference_id === user.id),
+  );
+  await Promise.all(
+    mine.map((session) =>
+      stripe(
+        env,
+        "POST",
+        `/checkout/sessions/${encodeURIComponent(session.id)}/expire`,
+        new URLSearchParams(),
+      ).catch(() => null),
+    ),
+  );
+}
+
+// ---------- Account deletion ----------
+
+/**
+ * POST /account/delete. Fork: in-app account deletion (journey-account-
+ * settings P3; Apple App Store Review Guideline 5.1.1(v)). Billing stops
+ * first: deleting the Stripe customer cancels its subscriptions at once
+ * (docs.stripe.com/api/customers/delete). Then the Supabase user goes
+ * (DELETE /auth/v1/admin/users/{id} with the secret key), and
+ * public.subscriptions follows by ON DELETE CASCADE. If billing can't be
+ * stopped, the account stays, so nobody is charged for a deleted account.
+ */
+export async function handleDeleteAccount(request, env) {
+  if (await rateLimited(request, env, "billing")) {
+    return json(429, "Too many requests. Try again in a minute.");
+  }
+  const user = await getUser(request, env);
+  if (!user) return json(401, "Sign in to continue.");
+  if (!env.SUPABASE_SECRET_KEY) {
+    return json(503, "Account deletion is not available right now.");
+  }
+  let row;
+  try {
+    row = await rowForUser(env, user.id, user.token);
+  } catch {
+    return json(503, "Account deletion is not available right now.");
+  }
+  if (row?.stripe_customer_id) {
+    const response = await fetch(
+      `${STRIPE}/customers/${encodeURIComponent(row.stripe_customer_id)}`,
+      {
+        method: "DELETE",
+        headers: { authorization: `Bearer ${env.STRIPE_SECRET_KEY}` },
+      },
+    ).catch(() => null);
+    // 404: the customer is already gone, which is the goal.
+    if (!response || (!response.ok && response.status !== 404)) {
+      return json(
+        502,
+        "Could not cancel your subscription, so your account was kept. Try again.",
+      );
+    }
+  }
+  const response = await fetch(
+    `${env.SUPABASE_URL}/auth/v1/admin/users/${encodeURIComponent(user.id)}`,
+    { method: "DELETE", headers: { apikey: env.SUPABASE_SECRET_KEY } },
+  ).catch(() => null);
+  if (!response?.ok && response?.status !== 404) {
+    return json(502, "Could not delete your account. Try again.");
+  }
+  return ok({ deleted: true });
+}
+
 // ---------- Routes ----------
 
 export async function handleBilling(request, env, pathname) {
@@ -477,9 +585,18 @@ export async function handleBilling(request, env, pathname) {
     if (interval !== "month" && interval !== "year") {
       return json(400, "Invalid request");
     }
+    // Fork: already Pro is not an error; the code lets the app show "You're
+    // on Upshot Pro" (journey-account-settings P2; NN/g #5, #9).
     if (isProStatus(row?.status)) {
-      return json(409, "You already have Upshot Pro.");
+      return json(409, "You already have Upshot Pro.", ALREADY_PRO);
     }
+    // Fork: one subscription per customer, even when the webhook hasn't
+    // landed yet (journey-account-settings P3; Stripe, "Limit customers to
+    // one subscription", docs.stripe.com/payments/checkout/limit-subscriptions).
+    if (await hasLiveSubscription(env, row)) {
+      return json(409, "You already have Upshot Pro.", ALREADY_PRO);
+    }
+    await expireOpenSessions(env, user, row);
     try {
       const session = await stripe(
         env,

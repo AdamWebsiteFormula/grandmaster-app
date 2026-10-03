@@ -23,13 +23,13 @@ function SummaryTitleSpace({ title }: { title: string }) {
     >
       {title ? (
         // Fork: on the type scale, not an arbitrary size (ux-audit-oct3 C, design-system).
-        <h1 className="text-foreground text-2xl font-medium tracking-[-0.02em]">
+        <h1 className="text-foreground font-display text-2xl font-semibold tracking-[-0.01em]">
           {title}
         </h1>
       ) : (
         <span
           aria-hidden="true"
-          className="text-muted-foreground animate-pulse text-2xl font-medium tracking-[-0.02em]"
+          className="text-muted-foreground font-display animate-pulse text-2xl font-semibold tracking-[-0.01em]"
         >
           <Trans>Generating title…</Trans>
         </span>

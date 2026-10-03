@@ -249,7 +249,9 @@ export function TemplateForm({
             variant="ghost"
             onClick={setSelectedTemplateId}
             aria-pressed={isDefault}
-            title={isDefault ? "Remove as default" : "Set as default"}
+            // Fork: translated, sentence case (journey-after P3 "Templates";
+            // design-system Words).
+            title={isDefault ? t`Remove as default` : t`Set as default`}
             className={cn([
               "text-muted-foreground hover:text-foreground shrink-0",
               isDefault
@@ -260,10 +262,10 @@ export function TemplateForm({
             {isDefault ? (
               <>
                 <Check className="size-3.5" weight="bold" />
-                Current default
+                {t`Current default`}
               </>
             ) : (
-              "Set as default"
+              t`Set as default`
             )}
           </Button>
           <Button
@@ -271,15 +273,19 @@ export function TemplateForm({
             size="icon"
             variant="ghost"
             onClick={() => toggleTemplateFavorite(id)}
+            // Fork: a filled neutral heart, not red; red is for errors and
+            // recording-stop (journey-after P3 "Templates"; design-system
+            // "The one accent").
             className={cn([
               "text-muted-foreground hover:text-foreground",
-              template.pinned && "text-destructive hover:text-destructive",
+              template.pinned && "text-foreground",
             ])}
+            aria-pressed={Boolean(template.pinned)}
             title={
-              template.pinned ? "Unfavorite template" : "Favorite template"
+              template.pinned ? t`Unfavorite template` : t`Favorite template`
             }
             aria-label={
-              template.pinned ? "Unfavorite template" : "Favorite template"
+              template.pinned ? t`Unfavorite template` : t`Favorite template`
             }
           >
             <Heart

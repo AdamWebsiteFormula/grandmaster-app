@@ -2,6 +2,8 @@ import { Trans } from "@lingui/react/macro";
 
 import { Button } from "@anlg/ui/components/ui/button";
 
+import { showModelNotReadyToast } from "./model-not-ready";
+
 import { useAITask } from "~/ai/contexts";
 import { useLanguageModel } from "~/ai/hooks";
 import { useEnhancedNote } from "~/session/queries";
@@ -24,7 +26,10 @@ export function ConfigError({
   const templateId = useEnhancedNote(enhancedNoteId)?.templateId || undefined;
 
   const handleGenerate = () => {
-    if (!model) return;
+    if (!model) {
+      showModelNotReadyToast();
+      return;
+    }
     void generate(createTaskId(enhancedNoteId, "enhance"), {
       model,
       taskType: "enhance",
@@ -47,12 +52,7 @@ export function ConfigError({
           </Trans>
         </p>
       </div>
-      <Button
-        onClick={handleGenerate}
-        disabled={!model}
-        size="sm"
-        variant="secondary"
-      >
+      <Button onClick={handleGenerate} size="sm" variant="secondary">
         <Trans>Try again</Trans>
       </Button>
     </div>

@@ -212,6 +212,9 @@ describe("enhancer SQLite storage", () => {
     expect(statement.params).toContain("template_output");
     expect(statement.params).toContain("Customer review");
     expect(statement.expectedRowsAffected).toBe(1);
+    // Fork: journey-meeting P2, the old body stays until the new one is written.
+    expect(statement.sql).not.toMatch(/\bbody\s*=/);
+    expect(statement.sql).not.toMatch(/body_format\s*=/);
   });
 
   it("hydrates a title only while template and placeholder title still match", async () => {

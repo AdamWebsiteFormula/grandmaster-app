@@ -57,6 +57,25 @@ describe("transcript renderer utils", () => {
     expect(new Set(colors).size).toBe(6);
   });
 
+  // Fork test: journey-meeting P3, the common remote "Them" is never orange.
+  it.each(["light", "dark"] as const)(
+    "keeps the remote speaker away from the orange accent hue in %s mode",
+    (mode) => {
+      const hue = chroma(
+        getSegmentColor(
+          { channel: "RemoteParty", speaker_index: 0, speaker_human_id: null },
+          mode,
+        ),
+      ).oklch()[2];
+      const accentHue = 41;
+      const distance = Math.min(
+        Math.abs(hue - accentHue),
+        360 - Math.abs(hue - accentHue),
+      );
+      expect(distance).toBeGreaterThan(60);
+    },
+  );
+
   it("uses a brighter speaker color for dark mode", () => {
     const key: SegmentKey = {
       channel: "RemoteParty",
@@ -117,7 +136,7 @@ function createWord(
   };
 }
 
-// granola-compare-oct3 §2: bubbles and centered timestamps.
+// granola-compare-oct3 §2: bubbles; redline2-oct3 R2: a time on every bubble.
 describe("transcript bubble layout", () => {
   const mic = (speaker_human_id: string | null = null): SegmentKey => ({
     channel: "DirectMic",
@@ -147,7 +166,7 @@ describe("transcript bubble layout", () => {
     expect(formatTranscriptTimestamp(3_725_000)).toBe("1:02:05");
   });
 
-  it("labels the first bubble, then about every 30 seconds, and starts runs on speaker change", () => {
+  it("gives every bubble its start time and starts runs on speaker change", () => {
     const layouts = getSegmentBubbleLayouts(
       [
         at(remote(0), 0),
@@ -162,10 +181,10 @@ describe("transcript bubble layout", () => {
 
     expect(layouts.map((layout) => layout.timestamp)).toEqual([
       "00:01",
-      null,
+      "00:21",
       "00:41",
-      null,
-      null,
+      "01:00",
+      "01:02",
       "01:11",
     ]);
     expect(layouts.map((layout) => layout.startsRun)).toEqual([
@@ -174,7 +193,7 @@ describe("transcript bubble layout", () => {
       true,
       true,
       false,
-      true,
+      false,
     ]);
     expect(layouts.map((layout) => layout.isSelf)).toEqual([
       false,

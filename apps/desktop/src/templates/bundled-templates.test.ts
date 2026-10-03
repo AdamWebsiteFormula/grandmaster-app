@@ -9,7 +9,7 @@ describe("BUNDLED_TEMPLATES", () => {
 
   it("parses every template with the codec", () => {
     expect(parsed).toHaveLength(BUNDLED_TEMPLATES.length);
-    expect(parsed.length).toBeGreaterThanOrEqual(10);
+    expect(parsed.length).toBeGreaterThanOrEqual(9);
   });
 
   it("gives each template a unique slug and title", () => {
@@ -33,14 +33,10 @@ describe("BUNDLED_TEMPLATES", () => {
     },
   );
 
-  it("includes a follow-up email template with next steps", () => {
-    const email = parsed.find((t) => t.slug === "follow-up-email");
-    expect(email?.sections.map((s) => s.title)).toEqual([
-      "Subject",
-      "Greeting and thanks",
-      "Decisions",
-      "Next steps",
-      "Sign-off",
-    ]);
+  // Fork: journey-meeting P2, follow-up emails are drafted in chat by the
+  // bottom bar's chip, not by a notes template.
+  it("has no follow-up email notes template", () => {
+    expect(parsed.some((t) => t.slug === "follow-up-email")).toBe(false);
+    expect(parsed.some((t) => /email/i.test(t.title))).toBe(false);
   });
 });

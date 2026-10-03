@@ -3,8 +3,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { BatchState } from "./batch";
 
+const sticks = vi.hoisted(() => ({ props: vi.fn() }));
+
 vi.mock("@anlg/ui/components/ui/dancing-sticks", () => ({
-  DancingSticks: () => null,
+  DancingSticks: (props: unknown) => {
+    sticks.props(props);
+    return null;
+  },
 }));
 
 vi.mock("~/stt/contexts", () => ({
@@ -23,6 +28,15 @@ vi.mock("~/settings/queries", () => ({
 
 describe("BatchState", () => {
   afterEach(cleanup);
+
+  // Fork test: journey-meeting P3, tokens only (works in both themes).
+  it("colors the bars with the muted text token, not a hex", () => {
+    render(<BatchState requestedLiveTranscription={false} />);
+
+    expect(sticks.props).toHaveBeenCalledWith(
+      expect.objectContaining({ color: "hsl(var(--muted-foreground))" }),
+    );
+  });
 
   it("identifies intentional batch transcription", () => {
     render(<BatchState requestedLiveTranscription={false} />);

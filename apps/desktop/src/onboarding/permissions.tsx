@@ -13,6 +13,7 @@ import {
   Microphone,
   SpeakerHigh,
 } from "@anlg/ui/components/icons";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 import { cn } from "@anlg/utils";
 
@@ -41,6 +42,7 @@ function PermissionBlock({
   error,
   onAction,
   actionLabel,
+  deniedTitle,
   opensSettingsWhenDenied = true,
   isNext = false,
 }: {
@@ -55,6 +57,7 @@ function PermissionBlock({
   error?: string | null;
   onAction: () => void;
   actionLabel?: string;
+  deniedTitle?: string;
   opensSettingsWhenDenied?: boolean;
   isNext?: boolean;
 }) {
@@ -66,7 +69,8 @@ function PermissionBlock({
   const title = isAuthorized
     ? enabledLabel
     : isDeniedInSettings
-      ? t`Turn on ${permissionName.toLowerCase()} in System Settings`
+      ? (deniedTitle ??
+        t`Turn on ${permissionName.toLowerCase()} in System Settings`)
       : (actionLabel ?? enableLabel);
   const body = isAuthorized ? enabledBody : enableBody;
 
@@ -227,6 +231,8 @@ function PermissionsSectionContent({
     systemAudio.confirmedStatus === "authorized";
   const hasMeetingDetails =
     !accessibility || accessibility.confirmedStatus === "authorized";
+  const hasDeniedRecordingPermission =
+    mic.status === "denied" || systemAudio.status === "denied";
 
   // Design: one accent per screen, so only the next pending row is orange.
   const nextPending = [
@@ -250,7 +256,17 @@ function PermissionsSectionContent({
         "onboarding",
         "open_settings",
       );
-      perm.open();
+      // Fork: say so when System Settings fails to open (NN/g #9;
+      // journey-first-run P3).
+      const showOpenError = () =>
+        toast.error(
+          t`Couldn't open System Settings. Open it from the Apple menu.`,
+        );
+      try {
+        void Promise.resolve(perm.open()).catch(showOpenError);
+      } catch {
+        showOpenError();
+      }
     } else {
       trackPermissionRequested(
         permission,
@@ -301,6 +317,9 @@ function PermissionsSectionContent({
           }
           Icon={SpeakerHigh}
           permissionName={t`System audio`}
+          // Fork: the macOS pane's real name, so people find it (Granola
+          // Setup guide; journey-first-run P3).
+          deniedTitle={t`Turn on Upshot in Screen & System Audio Recording`}
           status={systemAudio.status}
           isPending={systemAudio.isPending}
           error={systemAudio.error}
@@ -356,6 +375,24 @@ function PermissionsSectionContent({
           </button>
         )}
       </div>
+
+      {/* Fork: a reflexive Don't Allow must not lock people out of the app
+          (Apple HIG Privacy: respect the choice; NN/g #3; journey-first-run
+          P2). Recording asks again until both are on. */}
+      {!isComplete && hasDeniedRecordingPermission && (
+        <div className="mt-4 flex flex-col items-start gap-1">
+          <OnboardingButton
+            variant="ghost"
+            className="px-0"
+            onClick={() => onContinue?.()}
+          >
+            {t`Set up later`}
+          </OnboardingButton>
+          <p className="text-muted-foreground text-xs">
+            {t`Upshot can't record until both are on. You can turn them on later in Settings › Permissions.`}
+          </p>
+        </div>
+      )}
 
       {isComplete && (
         <div className="mt-4 flex flex-col items-start gap-2">

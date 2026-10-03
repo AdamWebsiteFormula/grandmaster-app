@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
       }) => void),
   listen: vi.fn(),
   toastError: vi.fn(),
+  currentTab: null as null | { type: string },
 }));
 
 vi.mock("@anlg/plugin-local-stt", () => ({
@@ -38,8 +39,11 @@ vi.mock("~/shared/config", () => ({
 }));
 
 vi.mock("~/store/zustand/tabs", () => ({
-  useTabs: (selector: (state: { currentTab: null }) => unknown) =>
-    selector({ currentTab: null }),
+  useTabs: Object.assign(
+    (selector: (state: { currentTab: unknown }) => unknown) =>
+      selector({ currentTab: mocks.currentTab }),
+    { getState: () => ({ currentTab: mocks.currentTab }) },
+  ),
 }));
 
 vi.mock("~/stt/capabilities", () => ({
@@ -47,12 +51,13 @@ vi.mock("~/stt/capabilities", () => ({
   isOnDeviceSttModel: () => false,
 }));
 
-import { NotificationProvider } from "./notifications";
+import { isOnboardingVisible, NotificationProvider } from "./notifications";
 
 describe("NotificationProvider", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.downloadHandler = null;
+    mocks.currentTab = null;
     mocks.listen.mockImplementation(async (handler) => {
       mocks.downloadHandler = handler;
       return vi.fn();
@@ -85,8 +90,38 @@ describe("NotificationProvider", () => {
     });
 
     expect(mocks.toastError).toHaveBeenCalledWith(
-      "Couldn’t download Soniqo Parakeet Batch",
+      "Couldn’t download Parakeet",
       { description: "download server rejected the model" },
     );
+  });
+
+  it("stays quiet during onboarding, which shows the error in place", async () => {
+    mocks.currentTab = { type: "onboarding" };
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <NotificationProvider>
+          <div />
+        </NotificationProvider>
+      </QueryClientProvider>,
+    );
+    await waitFor(() => {
+      expect(mocks.downloadHandler).not.toBeNull();
+    });
+
+    act(() => {
+      mocks.downloadHandler?.({
+        payload: {
+          model: "soniqo-parakeet-batch",
+          status: { failed: "network error" },
+        },
+      });
+    });
+
+    expect(mocks.toastError).not.toHaveBeenCalled();
+  });
+
+  it("knows the standalone onboarding route", () => {
+    expect(isOnboardingVisible("/app/onboarding", undefined)).toBe(true);
+    expect(isOnboardingVisible("/app/main", "sessions")).toBe(false);
   });
 });

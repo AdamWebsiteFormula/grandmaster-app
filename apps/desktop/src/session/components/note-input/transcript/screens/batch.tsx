@@ -30,7 +30,8 @@ export function BatchState({
       <div className="mb-5">
         <DancingSticks
           amplitude={Math.min(Math.hypot(amplitude.mic, amplitude.speaker), 1)}
-          color="#a3a3a3"
+          // Fork: a token, not a hex (journey-meeting P3; design-system.md).
+          color="hsl(var(--muted-foreground))"
           height={36}
           width={80}
           stickWidth={3}

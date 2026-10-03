@@ -74,7 +74,7 @@ Ratios are dark / light, after the fix unless marked "was".
 | Onboarding signed-in line (`account/after-login.tsx`) | emerald-600 | 19.2 | 16.8 (was 3.52) | 1.4.3 | `text-foreground` |
 | Plan: segmented control, "save 21%", features, test-mode note | measured | 5.65–8.26 | 5.05–8.73 | 1.4.3 | Pass (light muted fix) |
 | Upgrade dialog labels and hints | muted on dialog | 5.12 | 5.73 | 1.4.3 | Pass |
-| Switch (off) thumb on track | muted-fg on muted | 6.14 | 5.27 | 1.4.11 | Pass |
+| Switch (off) track on its surface (`switch.tsx`) | `--input` track on card / muted / accent / popover; thumb `--background` on track | 3.59 / 3.29 / 3.02 / 3.45; thumb 3.95 (was 1.62–1.77, border on muted) | 3.97 / 3.65 / 3.50 / 3.97; thumb 3.82 | 1.4.11 | Off track `bg-input`, thumb `bg-background` in both states; dialogs get the 46% input (3.18) |
 | Recording bar meter | foreground fill on track | ~9 | ~12 | 1.4.11 | Pass |
 | Floating bar, light: speaker label and bubbles (`overlay/bar.tsx`) | white on pale bar | 5.52 over a white desktop | 13.65 / 8.59 (was 1.24 / 1.97) | 1.4.3 | Dark ink `rgb(31,28,26)` when the bar is light |
 | Dictation partial text and empty hint (`overlay/dictation.tsx`) | content at 60% | — | — | 1.4.3 | Full color; partial text is italic instead of faded |

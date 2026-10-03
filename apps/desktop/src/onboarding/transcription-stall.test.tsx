@@ -21,7 +21,11 @@ vi.mock("@anlg/plugin-local-stt", () => ({
 vi.mock("~/settings/queries", () => ({ setSettingValues: vi.fn() }));
 vi.mock("~/shared/config", () => ({ useConfigValue: () => "apple_speech" }));
 
-import { TranscriptionSetupSection } from "./transcription";
+import {
+  formatDownloadSize,
+  isOfflineFailure,
+  TranscriptionSetupSection,
+} from "./transcription";
 
 let downloaded = false;
 
@@ -78,4 +82,68 @@ it("still offers Try again when a download stalls", async () => {
     });
   }
   expect(screen.getByText("Try again")).toBeTruthy();
+});
+
+async function settle() {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(0);
+  });
+}
+
+it("says you're offline when the download fails for lack of a network", async () => {
+  mocks.downloadModel.mockResolvedValue({
+    status: "error",
+    error: "error sending request: dns error",
+  });
+  render(<TranscriptionSetupSection onContinue={() => {}} />);
+  await settle();
+
+  expect(
+    screen.getByText(
+      "You're offline. Connect to the internet, then click Try again.",
+    ),
+  ).toBeTruthy();
+  expect(screen.getByText("Try again")).toBeTruthy();
+});
+
+it("shows the reason in a small line for other failures", async () => {
+  mocks.downloadModel.mockResolvedValue({
+    status: "error",
+    error: "Checksum mismatch",
+  });
+  render(<TranscriptionSetupSection onContinue={() => {}} />);
+  await settle();
+
+  const reason = screen.getByText("Checksum mismatch");
+  expect(reason.className).toContain("text-xs");
+  expect(reason.className).toContain("text-muted-foreground");
+});
+
+it("explains when this Mac has no on-device engine", async () => {
+  mocks.listSupportedModels.mockResolvedValue({ status: "ok", data: [] });
+  render(<TranscriptionSetupSection onContinue={() => {}} />);
+  await settle();
+
+  expect(
+    screen.getByText("No on-device engine is available on this Mac."),
+  ).toBeTruthy();
+});
+
+it("shows the download size while downloading", async () => {
+  mocks.listSupportedModels.mockResolvedValue({
+    status: "ok",
+    data: [{ key: "soniqo-parakeet-streaming", size_bytes: 640_000_000 }],
+  });
+  render(<TranscriptionSetupSection onContinue={() => {}} />);
+  await settle();
+
+  expect(screen.getByText("Downloading Parakeet (about 640 MB)…")).toBeTruthy();
+});
+
+it("formats sizes and spots network failures", () => {
+  expect(formatDownloadSize(null)).toBeNull();
+  expect(formatDownloadSize(1_600_000_000)).toBe("1.6 GB");
+  expect(isOfflineFailure("Checksum mismatch", true)).toBe(false);
+  expect(isOfflineFailure("Checksum mismatch", false)).toBe(true);
+  expect(isOfflineFailure("connection reset", true)).toBe(true);
 });

@@ -55,6 +55,9 @@ vi.mock("@tauri-apps/plugin-process", () => ({
   relaunch: mocks.relaunch,
 }));
 
+const toastMocks = vi.hoisted(() => ({ error: vi.fn() }));
+vi.mock("@anlg/ui/components/ui/toast", () => ({ toast: toastMocks }));
+
 vi.mock("~/shared/hooks/usePermissions", () => ({
   usePermission: mocks.usePermission,
   usePermissionGuidance: () => mocks.guidance,
@@ -308,5 +311,61 @@ describe("PermissionsSection", () => {
     expect(
       screen.queryByRole("button", { name: "Turned it on? Restart Upshot" }),
     ).toBeNull();
+  });
+
+  it("names the Screen & System Audio Recording pane when system audio is denied", () => {
+    render(<PermissionsSection />);
+
+    expect(
+      screen.getByRole("button", {
+        name: "Turn on Upshot in Screen & System Audio Recording",
+      }),
+    ).toBeTruthy();
+  });
+
+  it("says so when System Settings fails to open", async () => {
+    mocks.permissions.microphone.open.mockRejectedValueOnce(new Error("no"));
+    render(<PermissionsSection />);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Turn on microphone in System Settings",
+      }),
+    );
+
+    await vi.waitFor(() =>
+      expect(toastMocks.error).toHaveBeenCalledWith(
+        "Couldn't open System Settings. Open it from the Apple menu.",
+      ),
+    );
+  });
+
+  it("offers Set up later when mic or system audio was denied", () => {
+    const onContinue = vi.fn();
+    mocks.permissions.microphone.status = "authorized";
+    mocks.permissions.microphone.confirmedStatus = "authorized";
+    render(<PermissionsSection onContinue={onContinue} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Set up later" }));
+    expect(onContinue).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByText(/You can turn them on later in Settings › Permissions/),
+    ).toBeTruthy();
+  });
+
+  it("has no Set up later before anything was denied, or once both are on", () => {
+    Object.values(mocks.permissions).forEach((permission) => {
+      permission.status = "neverRequested";
+      permission.confirmedStatus = "neverRequested";
+    });
+    const view = render(<PermissionsSection />);
+    expect(screen.queryByRole("button", { name: "Set up later" })).toBeNull();
+
+    mocks.permissions.microphone.status = "authorized";
+    mocks.permissions.microphone.confirmedStatus = "authorized";
+    mocks.permissions.systemAudio.status = "authorized";
+    mocks.permissions.systemAudio.confirmedStatus = "authorized";
+    view.rerender(<PermissionsSection />);
+    expect(screen.queryByRole("button", { name: "Set up later" })).toBeNull();
   });
 });

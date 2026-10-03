@@ -119,6 +119,21 @@ describe("ChatModelMenu", () => {
     expect(mocks.openNew).toHaveBeenCalledTimes(2);
   });
 
+  // Fork: journey-after P3 "Auto model menu": a pick that left the catalog
+  // shows as Auto, with Auto checked.
+  it("shows Auto, checked, when the saved model left the catalog", () => {
+    mocks.isPro = true;
+    mocks.model = "anthropic/claude-sonnet-5";
+    render(<ChatModelMenu />);
+
+    expect(screen.getByRole("button", { name: "Model, Auto" })).toBeTruthy();
+    expect(
+      screen.getByRole("menuitem", { name: "Auto" }).querySelector("svg"),
+    ).toBeTruthy();
+    mocks.model = "Auto";
+    mocks.isPro = false;
+  });
+
   it("lets Pro users pick a model and go back to Auto", () => {
     mocks.isPro = true;
     mocks.model = "openai/gpt-6.1-sol";

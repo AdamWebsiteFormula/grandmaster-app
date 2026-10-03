@@ -10,6 +10,7 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  toastError: vi.fn(),
   createNamedFolder: vi.fn(),
   deleteLocalFolderMaterial: vi.fn(),
   deleteNamedFolder: vi.fn(),
@@ -41,6 +42,16 @@ const mocks = vi.hoisted(() => ({
   folderNoteCalls: [] as Array<[string, number]>,
   noteCount: 0 as number | null,
   openCurrent: vi.fn(),
+}));
+
+vi.mock("~/contexts/shell", () => ({
+  useShell: () => ({
+    chat: {
+      mode: "FloatingClosed",
+      startNewChat: vi.fn(),
+      sendEvent: vi.fn(),
+    },
+  }),
 }));
 
 vi.mock("./folder-stats", () => ({
@@ -104,6 +115,10 @@ vi.mock("@lingui/react/macro", () => ({
         "",
       ),
   }),
+}));
+
+vi.mock("@anlg/ui/components/ui/toast", () => ({
+  toast: { error: mocks.toastError, success: vi.fn(), message: vi.fn() },
 }));
 
 vi.mock("~/session/queries", () => ({
@@ -359,6 +374,38 @@ describe("Folders workspace", () => {
     });
   });
 
+  // Fork: journey-after P2 "Folders › Delete": a failure is said, not
+  // swallowed, and the dialog stays open for a retry.
+  it("says when deleting the folder fails", async () => {
+    mocks.folders = ["Work", "Personal"];
+    mocks.deleteNamedFolder.mockRejectedValueOnce(new Error("disk full"));
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    renderFoldersWorkspace();
+
+    fireEvent.pointerDown(
+      screen.getByRole("button", { name: "Folder actions" }),
+      { button: 0, ctrlKey: false },
+    );
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Delete" }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete folder" }));
+
+    await waitFor(() => {
+      expect(mocks.toastError).toHaveBeenCalledWith(
+        "Couldn't delete the folder. Try again.",
+      );
+    });
+    expect(screen.getByText("Delete “Work”?")).toBeTruthy();
+    expect(
+      screen
+        .getByRole("button", { name: "Delete folder" })
+        .hasAttribute("disabled"),
+    ).toBe(false);
+    consoleError.mockRestore();
+  });
+
   it("saves a folder icon from the header picker", async () => {
     mocks.folders = ["Work"];
 
@@ -470,6 +517,21 @@ describe("Folders workspace", () => {
 
     expect(screen.getByText("Client calls for Acme")).toBeTruthy();
     expect(screen.getByText("12 notes · 1 file")).toBeTruthy();
+    // Fork: journey-after P2 "Folder page": ask about this folder.
+    expect(
+      screen.getByRole("textbox", { name: "Ask about this folder" }),
+    ).toBeTruthy();
+  });
+
+  it("hides the folder composer while the folder has no notes", () => {
+    mocks.folders = ["Work"];
+    mocks.noteCount = 0;
+
+    renderFoldersWorkspace();
+
+    expect(
+      screen.queryByRole("textbox", { name: "Ask about this folder" }),
+    ).toBeNull();
   });
 
   it("says when a folder has no notes yet", () => {

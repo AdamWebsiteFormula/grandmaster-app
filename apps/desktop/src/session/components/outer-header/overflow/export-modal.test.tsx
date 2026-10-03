@@ -71,6 +71,13 @@ function renderModal() {
   );
 }
 
+const doc = (text: string) =>
+  JSON.stringify({
+    type: "doc",
+    content: [{ type: "paragraph", content: [{ type: "text", text }] }],
+  });
+const doc1 = { id: "summary-1", content: doc("First summary text") };
+
 describe("ExportModal destination", () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -79,18 +86,17 @@ describe("ExportModal destination", () => {
     mocks.exportPdf.mockResolvedValue({ status: "ok", data: null });
     mocks.writeTextFile.mockResolvedValue({ status: "ok", data: null });
     mocks.isAppStoreBuild.mockReturnValue(false);
-    mocks.enhancedNotes = [];
+    // The Save panel returns the path it was given, as if the user clicked Save.
+    mocks.save.mockImplementation(
+      async ({ defaultPath }: { defaultPath: string }) => defaultPath,
+    );
+    mocks.enhancedNotes = [doc1];
   });
   afterEach(cleanup);
 
   it("falls back to the first summary when exporting from My notes", async () => {
-    const doc = (text: string) =>
-      JSON.stringify({
-        type: "doc",
-        content: [{ type: "paragraph", content: [{ type: "text", text }] }],
-      });
     mocks.enhancedNotes = [
-      { id: "summary-1", content: doc("First summary text") },
+      doc1,
       { id: "summary-2", content: doc("Second summary text") },
     ];
     renderModal();
@@ -110,12 +116,12 @@ describe("ExportModal destination", () => {
     expect(mocks.exportPdf).not.toHaveBeenCalled();
   });
 
+  // Fork: journey-after P2 "Export…": always the Save panel, readable name.
   it.each([
     ["PDF", "pdf"],
     ["TXT", "txt"],
     ["Markdown", "md"],
-    ["Org", "org"],
-  ])("writes %s to the saved export folder", async (label, extension) => {
+  ])("saves %s through the Save panel", async (label, extension) => {
     mocks.settings.mockResolvedValue({
       values: { export_directory: "/Volumes/Work/Exports" },
     });
@@ -123,16 +129,52 @@ describe("ExportModal destination", () => {
     fireEvent.click(screen.getByRole("radio", { name: label }));
     fireEvent.click(screen.getByRole("button", { name: "Export" }));
     await waitFor(() => expect(mocks.onOpenChange).toHaveBeenCalledWith(false));
+    expect(mocks.save).toHaveBeenCalledWith({
+      defaultPath: expect.stringMatching(
+        new RegExp(
+          `^/Volumes/Work/Exports/Project review – [A-Z][a-z]{2} \\d{1,2}, \\d{4}\\.${extension}$`,
+        ),
+      ),
+      filters: [{ name: extension.toUpperCase(), extensions: [extension] }],
+    });
     const writer = extension === "pdf" ? mocks.exportPdf : mocks.writeTextFile;
     expect(writer).toHaveBeenCalledWith(
-      expect.stringMatching(
-        new RegExp(`^/Volumes/Work/Exports/Project review_.*\\.${extension}$`),
-      ),
+      mocks.save.mock.calls[0][0].defaultPath,
       extension === "pdf" ? expect.any(Object) : expect.any(String),
     );
     expect(mocks.revealItemInDir).toHaveBeenCalledWith(writer.mock.calls[0][0]);
     expect(mocks.downloadDir).not.toHaveBeenCalled();
-    expect(mocks.save).not.toHaveBeenCalled();
+  });
+
+  // Fork: journey-after P3 "Export format".
+  it("does not offer Org", () => {
+    renderModal();
+    expect(screen.queryByRole("radio", { name: "Org" })).toBeNull();
+  });
+
+  // Fork: journey-after P2 "Export, no summary".
+  it("defaults to My notes and disables Summary when there is no summary", async () => {
+    mocks.enhancedNotes = [];
+    renderModal();
+    const summary = screen.getByRole("checkbox", { name: "Summary" });
+    expect(summary.hasAttribute("disabled")).toBe(true);
+    expect((summary as HTMLInputElement).checked).toBe(false);
+    expect(summary.getAttribute("aria-describedby")).toBe("export-no-summary");
+    expect(screen.getByText("No summary yet")).toBeTruthy();
+    expect(
+      (screen.getByRole("checkbox", { name: "My notes" }) as HTMLInputElement)
+        .checked,
+    ).toBe(true);
+  });
+
+  it("keeps Summary as the default when the note has one", () => {
+    renderModal();
+    const summary = screen.getByRole("checkbox", {
+      name: "Summary",
+    }) as HTMLInputElement;
+    expect(summary.checked).toBe(true);
+    expect(summary.hasAttribute("disabled")).toBe(false);
+    expect(screen.queryByText("No summary yet")).toBeNull();
   });
 
   it.each([undefined, ""])(
@@ -176,8 +218,7 @@ describe("ExportModal destination", () => {
     expect(mocks.revealItemInDir).not.toHaveBeenCalled();
   });
 
-  it("uses the saved folder as the App Store save dialog default", async () => {
-    mocks.isAppStoreBuild.mockReturnValue(true);
+  it("uses the saved folder as the save dialog default", async () => {
     mocks.settings.mockResolvedValue({
       values: { export_directory: "/Users/test/Documents" },
     });
@@ -197,7 +238,6 @@ describe("ExportModal destination", () => {
   });
 
   it("leaves the export modal open when the native save dialog is canceled", async () => {
-    mocks.isAppStoreBuild.mockReturnValue(true);
     mocks.save.mockResolvedValue(null);
     renderModal();
     fireEvent.click(screen.getByRole("button", { name: "Export" }));

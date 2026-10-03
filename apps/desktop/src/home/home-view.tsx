@@ -24,7 +24,6 @@ import {
   CalendarBlank,
   CaretLeft,
   CaretRight,
-  FileText,
   Lock,
   Microphone,
 } from "@anlg/ui/components/icons";
@@ -60,9 +59,14 @@ import {
 import { useSessionContextMenu } from "~/sidebar/timeline/item";
 import { useTabs } from "~/store/zustand/tabs";
 
-// Fork: one column for the list and the composer below it (Granola's is
-// about 750 px wide in a 1440 px window).
-export const HOME_COLUMN_CLASS = "mx-auto w-full max-w-[760px] px-8";
+// Fork: one centered 640 px column for the list and the composer below it
+// (redline2-oct3, Home). The floating New note in main/body.tsx lines up
+// with its right edge.
+export const HOME_COLUMN_CLASS = "mx-auto w-full max-w-[640px] px-8";
+
+// Fork: Bricolage Grotesque for big titles only; rows stay in Geist.
+const DISPLAY_TITLE_CLASS =
+  "font-display text-foreground font-semibold tracking-[-0.01em]";
 
 export function HomeView() {
   const [limit, setLimit] = useState(RECENT_PAGE_SIZE);
@@ -103,10 +107,7 @@ export function HomeView() {
 
 function SectionTitle({ id, children }: { id: string; children: ReactNode }) {
   return (
-    <h2
-      id={id}
-      className="text-foreground mb-3 text-lg font-medium tracking-[-0.02em]"
-    >
+    <h2 id={id} className={cn([DISPLAY_TITLE_CLASS, "mb-3 text-lg"])}>
       {children}
     </h2>
   );
@@ -176,9 +177,9 @@ export function ComingUp({ days }: { days: ComingUpDay[] }) {
       <div className="mb-3 flex items-center justify-between gap-4">
         <h2
           id="home-coming-up"
-          // Fork: redline-oct3, page titles are medium with a slight negative
-          // track, as Granola sets "Coming up" (granola-screens/01).
-          className="text-foreground text-2xl font-medium tracking-[-0.02em]"
+          // Fork: the page title in the display face, as Granola sets
+          // "Coming up" apart from its rows (granola-screens/01).
+          className={cn([DISPLAY_TITLE_CLASS, "text-2xl"])}
         >
           <Trans>Coming up</Trans>
         </h2>
@@ -428,7 +429,9 @@ function EmptyWeek() {
         <Button
           type="button"
           variant="outline"
-          onClick={() => openNew({ type: "calendar" })}
+          onClick={() =>
+            openNew({ type: "settings", state: { tab: "calendars" } })
+          }
           className="h-7 shrink-0 gap-1.5 px-2.5 text-xs shadow-none"
         >
           <CalendarBlank className="size-3.5" />
@@ -547,6 +550,11 @@ export function RecentNotes({
   compactHeading?: boolean;
 }) {
   const { t } = useLingui();
+  // Fork: rows without attendees have no leading mark; while any row shows
+  // initials, the others keep an empty slot so titles line up.
+  const avatarSlot = groups.some((group) =>
+    group.notes.some((note) => note.people.length > 0),
+  );
   const groupLabel = (group: RecentGroup) =>
     group.kind === "today"
       ? t`Today`
@@ -580,7 +588,11 @@ export function RecentNotes({
             </h3>
             <ul className="flex flex-col">
               {group.notes.map((note) => (
-                <RecentNoteRow key={note.id} note={note} />
+                <RecentNoteRow
+                  key={note.id}
+                  note={note}
+                  avatarSlot={avatarSlot}
+                />
               ))}
             </ul>
           </div>
@@ -635,12 +647,18 @@ function useFormatDuration() {
   };
 }
 
-function RecentNoteRow({ note }: { note: RecentNote }) {
+function RecentNoteRow({
+  note,
+  avatarSlot,
+}: {
+  note: RecentNote;
+  avatarSlot: boolean;
+}) {
   const { t } = useLingui();
   const formatTime = useFormatTime();
   const peopleLine = usePeopleLine();
   const openNote = useOpenNote();
-  const title = note.title || t`Untitled`;
+  const title = note.title || t`Untitled note`;
   // Fork: same right-click menu as the old sidebar row (sidebar/timeline/item.tsx).
   const contextMenu = useSessionContextMenu({
     sessionId: note.id,
@@ -652,7 +670,11 @@ function RecentNoteRow({ note }: { note: RecentNote }) {
   const people = peopleLine(note);
   const initial = Array.from(note.people[0]?.trim() ?? "")[0] ?? "";
   const duration = formatDuration(note.durationMs);
-  const details = [duration, people].filter(Boolean).join(" · ");
+  // Fork: every row has a second line so rows share one height
+  // (redline2-oct3, Home).
+  const details =
+    [duration, people].filter(Boolean).join(" · ") ||
+    (note.hasTranscript ? t`Note` : t`No transcript`);
 
   const open = () => {
     if (!note.locked) {
@@ -672,30 +694,28 @@ function RecentNoteRow({ note }: { note: RecentNote }) {
         className="hover:bg-accent flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors"
       >
         {/* Fork: the first attendee's initial in a rounded square, as
-            Granola's meeting rows have; a plain note gets a quiet document
-            glyph instead of its own first letter (redline-oct3). */}
+            Granola's meeting rows have; no mark without attendees
+            (redline2-oct3, Home). */}
         {initial ? (
           <span
             aria-hidden="true"
+            data-note-avatar
             className="bg-muted text-muted-foreground border-border flex size-8 shrink-0 items-center justify-center rounded-lg border text-sm font-medium uppercase"
           >
             {initial}
           </span>
-        ) : (
-          <span
-            aria-hidden="true"
-            data-note-glyph
-            className="text-muted-foreground flex size-8 shrink-0 items-center justify-center"
-          >
-            <FileText className="size-4" />
-          </span>
-        )}
+        ) : avatarSlot ? (
+          <span aria-hidden="true" className="size-8 shrink-0" />
+        ) : null}
         <span className="flex min-w-0 flex-1 flex-col">
           {/* Fork: full title on hover and a lock mark on locked notes
               (ux-audit-oct3 B, WCAG 1.3.1). */}
           <span
             title={title}
-            className="text-foreground flex min-w-0 items-center gap-1.5 text-sm font-medium"
+            className={cn([
+              "flex min-w-0 items-center gap-1.5 text-sm font-medium",
+              note.title ? "text-foreground" : "text-muted-foreground",
+            ])}
           >
             <span className="min-w-0 truncate">{title}</span>
             {note.locked ? (
@@ -708,11 +728,9 @@ function RecentNoteRow({ note }: { note: RecentNote }) {
               </span>
             ) : null}
           </span>
-          {details ? (
-            <span className="text-muted-foreground truncate text-xs tabular-nums">
-              {details}
-            </span>
-          ) : null}
+          <span className="text-muted-foreground truncate text-xs tabular-nums">
+            {details}
+          </span>
         </span>
         {/* Fork: redline-oct3, row times at text-sm so they read at a
             glance (Granola's "3:00 PM" sits at body size). */}

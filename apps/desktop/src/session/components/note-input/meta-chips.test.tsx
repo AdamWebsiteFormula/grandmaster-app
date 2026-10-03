@@ -165,6 +165,22 @@ describe("NoteMetaChips", () => {
     expect(second.onSelectView).toHaveBeenLastCalledWith(ENHANCED);
   });
 
+  // redline2-oct3 R2: the bars chip says what it does next.
+  it("names the notes toggle's action in a tooltip", async () => {
+    renderChips();
+    fireEvent.focus(screen.getByRole("button", { name: "My notes" }));
+    expect(
+      (await screen.findAllByText("Show my notes")).length,
+    ).toBeGreaterThan(0);
+    cleanup();
+
+    renderChips({ currentTab: RAW });
+    fireEvent.focus(screen.getByRole("button", { name: "My notes" }));
+    expect((await screen.findAllByText("Show summary")).length).toBeGreaterThan(
+      0,
+    );
+  });
+
   it("hides the notes toggle when there is no summary yet", () => {
     renderChips({ currentTab: RAW, editorTabs: [RAW] });
 

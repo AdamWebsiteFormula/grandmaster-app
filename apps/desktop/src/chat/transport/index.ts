@@ -23,6 +23,7 @@ import { CONTEXT_TEXT_FIELD } from "../tools/context-text";
 import type { ChatToolContext } from "../tools/current-session";
 import type { AnlgUIMessage } from "../types";
 import {
+  describeChatStreamError,
   getMeetingIdsFromSearchOutput,
   hasContextText,
   isRecord,
@@ -309,20 +310,7 @@ export class CustomChatTransport implements ChatTransport<AnlgUIMessage> {
         trackAnalyticsEvent("chat_response_failed", {
           failure_stage: "response_stream",
         });
-        // Fork: show the message, not "AI_APICallError: …"; the name stays in
-        // the console (ux-audit-oct3 D, NN/g #9).
-        if (error instanceof Error) {
-          console.error(error.name);
-          return error.message;
-        }
-        if (isRecord(error) && typeof error.message === "string") {
-          return error.message;
-        }
-        try {
-          return JSON.stringify(error);
-        } catch {
-          return String(error);
-        }
+        return describeChatStreamError(error);
       },
     });
   };

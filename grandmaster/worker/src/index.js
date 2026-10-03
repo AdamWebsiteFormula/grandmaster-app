@@ -13,7 +13,7 @@
 // Nothing in a request or response is logged.
 
 import { handleAuth } from "./auth.js";
-import { handleBilling } from "./billing.js";
+import { handleBilling, handleDeleteAccount } from "./billing.js";
 import { json } from "./http.js";
 import { isProModelSlug, resolveModel, verifyPro } from "./model.js";
 
@@ -50,6 +50,10 @@ export default {
       ["/auth/signup", "/auth/login", "/auth/refresh"].includes(url.pathname)
     ) {
       return handleAuth(request, env, url.pathname);
+    }
+    // Fork: account deletion (journey-account-settings P3).
+    if (request.method === "POST" && url.pathname === "/account/delete") {
+      return handleDeleteAccount(request, env);
     }
     if (url.pathname.startsWith("/billing/")) {
       return handleBilling(request, env, url.pathname);
@@ -130,6 +134,15 @@ export default {
 
     if (upstream.status === 402) {
       return json(402, "Upshot AI is out of credit for now. Try again later.");
+    }
+    // Fork: any other provider error (429, 5xx, a model gone) gets a plain
+    // sentence instead of raw OpenRouter JSON (journey-after P2 "Chat provider
+    // error"; NN/g #9; OWASP LLM10).
+    if (!upstream.ok) {
+      console.error("upstream error", upstream.status);
+      return upstream.status === 429
+        ? json(429, "Upshot AI is busy. Try again in a minute.")
+        : json(502, "Upshot AI had a problem answering. Try again.");
     }
 
     return new Response(upstream.body, {

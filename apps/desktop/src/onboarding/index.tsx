@@ -1,5 +1,5 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { platform } from "@tauri-apps/plugin-os";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -18,6 +18,7 @@ import {
   getStepProgress,
   getStepStatus,
   type OnboardingStep,
+  type OnboardingStepOptions,
 } from "./config";
 import { FinalDescription, FinalSection, finishOnboarding } from "./final";
 import { ImportSection } from "./imports";
@@ -27,6 +28,7 @@ import { TranscriptionSetupSection } from "./transcription";
 
 import { trackAnalyticsEvent } from "~/analytics";
 import { useAuth } from "~/auth";
+import { detectImportSources } from "~/imports/detection";
 import { StandaloneWindowShell } from "~/shared/window-shell";
 import { type Tab, useTabs } from "~/store/zustand/tabs";
 
@@ -37,9 +39,11 @@ export function TabContentOnboarding({
 }) {
   const openCurrent = useTabs((state) => state.openCurrent);
 
+  // Fork: land on Home, where New note and both seeded notes are (Granola
+  // Setup guide: after setup you land on Home; journey-first-run P1).
   const handleFinish = useCallback(
-    (sessionId: string) => {
-      openCurrent({ type: "sessions", id: sessionId });
+    (_sessionId: string) => {
+      openCurrent({ type: "empty" });
     },
     [openCurrent],
   );
@@ -98,24 +102,33 @@ function OnboardingScreenContent({
   const [didTranscriptionFail, setDidTranscriptionFail] = useState(false);
   const permissionsContinuedRef = useRef(false);
   const currentPlatform = platform();
+  // Fork: detect meeting apps up front so the step count is right from the
+  // start (journey-first-run P3). Same query the import step uses.
+  const importSources = useQuery({
+    queryKey: ["meeting-import-sources"],
+    queryFn: detectImportSources,
+  });
+  const hideImports =
+    importSources.data?.length === 0 && currentStep !== "imports";
+  const stepOptions: OnboardingStepOptions = { hideImports };
 
   const goNext = useCallback(() => {
     trackAnalyticsEvent("onboarding_step_completed", {
       step: currentStep,
       platform: currentPlatform,
     });
-    const next = getNextStep(currentStep);
+    const next = getNextStep(currentStep, { hideImports });
     if (next) setCurrentStep(next);
-  }, [currentPlatform, currentStep]);
+  }, [currentPlatform, currentStep, hideImports]);
 
   const skipCurrentStep = useCallback(() => {
     trackAnalyticsEvent("onboarding_step_skipped", {
       step: currentStep,
       platform: currentPlatform,
     });
-    const next = getNextStep(currentStep);
+    const next = getNextStep(currentStep, { hideImports });
     if (next) setCurrentStep(next);
-  }, [currentPlatform, currentStep]);
+  }, [currentPlatform, currentStep, hideImports]);
 
   const continueImports = useCallback(() => {
     setDidSkipImports(false);
@@ -128,9 +141,9 @@ function OnboardingScreenContent({
   }, [skipCurrentStep]);
 
   const goBack = useCallback(() => {
-    const prev = getPrevStep(currentStep);
+    const prev = getPrevStep(currentStep, { hideImports });
     if (prev) setCurrentStep(prev);
-  }, [currentStep]);
+  }, [currentStep, hideImports]);
 
   // Fork: say "skipped" when the engine failed to set up, not "ready"
   // (UX audit Oct 3, A: NN/g #1).
@@ -144,7 +157,7 @@ function OnboardingScreenContent({
 
   // Back is shown on every step but the first.
   const backFor = (step: OnboardingStep) =>
-    getPrevStep(step) ? goBack : undefined;
+    getPrevStep(step, stepOptions) ? goBack : undefined;
 
   const continueCalendar = useCallback(() => {
     setDidSkipCalendar(false);
@@ -236,7 +249,8 @@ function OnboardingScreenContent({
           headerClassName,
         ])}
       >
-        <h1 className="text-foreground text-2xl leading-tight font-semibold">
+        {/* Fork: big titles use the display face (design-system.md Type). */}
+        <h1 className="text-foreground font-display text-2xl leading-tight font-semibold tracking-[-0.01em]">
           <Trans>Welcome to Upshot</Trans>
         </h1>
         {/* Fork: the value proposition in one sentence (matches the README hero). */}
@@ -267,8 +281,8 @@ function OnboardingScreenContent({
                 </Trans>
               )
             }
-            status={getStepStatus("permissions", currentStep)}
-            progress={getStepProgress("permissions")}
+            status={getStepStatus("permissions", currentStep, stepOptions)}
+            progress={getStepProgress("permissions", stepOptions)}
             skippable={false}
             onBack={backFor("permissions")}
             onNext={goNext}
@@ -293,8 +307,8 @@ function OnboardingScreenContent({
                 <Trans>Transcription set up</Trans>
               )
             }
-            status={getStepStatus("transcription", currentStep)}
-            progress={getStepProgress("transcription")}
+            status={getStepStatus("transcription", currentStep, stepOptions)}
+            progress={getStepProgress("transcription", stepOptions)}
             skippable={false}
             onBack={backFor("transcription")}
             onNext={goNext}
@@ -319,8 +333,8 @@ function OnboardingScreenContent({
                 <Trans>Account</Trans>
               )
             }
-            status={getStepStatus("login", currentStep)}
-            progress={getStepProgress("login")}
+            status={getStepStatus("login", currentStep, stepOptions)}
+            progress={getStepProgress("login", stepOptions)}
             onBack={backFor("login")}
             onNext={goNext}
             onSkip={() => {
@@ -330,7 +344,7 @@ function OnboardingScreenContent({
                 step: "login",
                 platform: currentPlatform,
               });
-              const next = getNextStep("login");
+              const next = getNextStep("login", stepOptions);
               if (next) setCurrentStep(next);
             }}
           >
@@ -352,8 +366,8 @@ function OnboardingScreenContent({
                 <Trans>Calendar connected</Trans>
               )
             }
-            status={getStepStatus("calendar", currentStep)}
-            progress={getStepProgress("calendar")}
+            status={getStepStatus("calendar", currentStep, stepOptions)}
+            progress={getStepProgress("calendar", stepOptions)}
             onBack={backFor("calendar")}
             onNext={continueCalendar}
             onSkip={skipCalendar}
@@ -376,8 +390,8 @@ function OnboardingScreenContent({
                 <Trans>Meeting history imported</Trans>
               )
             }
-            status={getStepStatus("imports", currentStep)}
-            progress={getStepProgress("imports")}
+            status={getStepStatus("imports", currentStep, stepOptions)}
+            progress={getStepProgress("imports", stepOptions)}
             onBack={backFor("imports")}
             onNext={continueImports}
             onSkip={skipImports}
@@ -388,8 +402,8 @@ function OnboardingScreenContent({
           <OnboardingSection
             title={<Trans>Ready to go</Trans>}
             description={<FinalDescription />}
-            status={getStepStatus("final", currentStep)}
-            progress={getStepProgress("final")}
+            status={getStepStatus("final", currentStep, stepOptions)}
+            progress={getStepProgress("final", stepOptions)}
             skippable={false}
             onBack={backFor("final")}
             onNext={() => void finishOnboarding(handleFinish)}

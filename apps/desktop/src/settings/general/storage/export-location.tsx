@@ -47,31 +47,62 @@ export function ExportLocationRow() {
   const disabled =
     settings.isLoading || !!settings.error || changeMutation.isPending;
 
+  const shownPath = displayPath(path, home);
+
+  // Fork: the standard Settings row (icon, title, description under the
+  // title) with the folder shown next to its button on the right, as macOS
+  // System Settings shows a value beside its control and Granola's rows keep
+  // the value on the right (redline2-oct3 Settings). The path opens the
+  // folder in Finder.
   return (
-    <div>
-      <div className="grid grid-cols-[minmax(0,1fr)_9rem] items-center gap-3">
-        <button
-          type="button"
-          className="hover:bg-accent -mx-2 flex min-w-0 items-center gap-3 rounded-lg px-2 py-1 text-left transition-colors"
-          disabled={settings.isLoading || !!settings.error || !path}
-          onClick={() => {
-            if (path) void openerCommands.openPath(path, null);
-          }}
-        >
-          <SettingIconTile icon={FolderSimple} />
-          <div className="min-w-0">
-            <p className="text-sm font-medium">
-              <Trans>Export location</Trans>
+    <div className="flex w-full min-w-0 items-center justify-between gap-4">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <SettingIconTile icon={FolderSimple} />
+        <div className="min-w-0 flex-1">
+          <h3 className="text-sm font-medium">
+            <Trans>Export location</Trans>
+          </h3>
+          <p className="text-muted-foreground mt-0.5 text-xs">
+            <Trans>
+              Save PDF, text, Markdown, and Org exports to this folder.
+            </Trans>
+          </p>
+          {directory && (
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="h-auto px-0 pt-1 text-xs"
+              disabled={disabled}
+              onClick={() => changeMutation.mutate("reset")}
+            >
+              <Trans>Reset to Downloads</Trans>
+            </Button>
+          )}
+          {(settings.error || downloads.error || changeMutation.error) && (
+            <p role="alert" className="text-destructive mt-1 text-xs">
+              <Trans>Could not update the export folder</Trans>
             </p>
-            <p className="text-muted-foreground truncate text-xs" title={path}>
-              {displayPath(path, home)}
-            </p>
-          </div>
-        </button>
+          )}
+        </div>
+      </div>
+      <div className="flex min-w-0 shrink-0 items-center gap-3">
+        {path ? (
+          <button
+            type="button"
+            className="text-muted-foreground hover:text-foreground max-w-40 truncate text-xs transition-colors"
+            title={path}
+            aria-label={t`Open ${shownPath} in Finder`}
+            disabled={settings.isLoading || !!settings.error}
+            onClick={() => void openerCommands.openPath(path, null)}
+          >
+            {shownPath}
+          </button>
+        ) : null}
         <Button
           type="button"
           variant="outline"
-          className="h-9 w-full justify-center"
+          className="h-9 justify-center"
           disabled={disabled}
           onClick={() => changeMutation.mutate("choose")}
         >
@@ -80,32 +111,6 @@ export function ExportLocationRow() {
           )}
           <Trans>Choose folder</Trans>
         </Button>
-      </div>
-      {/* Fork: helper text lines up under the title, not the icon: the
-          32 px tile plus its 12 px gap (redline-oct3 Settings). */}
-      <div className="pl-11">
-        <p className="text-muted-foreground mt-2 text-xs">
-          <Trans>
-            Save PDF, text, Markdown, and Org exports to this folder.
-          </Trans>
-        </p>
-        {directory && (
-          <Button
-            type="button"
-            variant="link"
-            size="sm"
-            className="px-0"
-            disabled={disabled}
-            onClick={() => changeMutation.mutate("reset")}
-          >
-            <Trans>Reset to Downloads</Trans>
-          </Button>
-        )}
-        {(settings.error || downloads.error || changeMutation.error) && (
-          <p role="alert" className="text-destructive mt-1 text-xs">
-            <Trans>Could not update the export folder</Trans>
-          </p>
-        )}
       </div>
     </div>
   );

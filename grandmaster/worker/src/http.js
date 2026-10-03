@@ -1,7 +1,10 @@
 // Small response helpers shared by the Worker routes.
 
-export function json(status, message) {
-  return new Response(JSON.stringify({ error: { message } }), {
+// Fork: an optional machine code lets the app react to an error, not just
+// show it (journey-account-settings P2 "already_pro"; NN/g #9).
+export function json(status, message, code) {
+  const error = code ? { message, code } : { message };
+  return new Response(JSON.stringify({ error }), {
     status,
     headers: {
       "content-type": "application/json",

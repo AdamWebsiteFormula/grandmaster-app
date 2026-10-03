@@ -13,7 +13,7 @@ import {
 import { useLanguageModel } from "~/ai/hooks";
 import { extractPlainText } from "~/search/contexts/engine/utils";
 import {
-  loadSessionContentSnapshot,
+  loadReadableSessionContentSnapshot,
   type SessionContentSnapshot,
 } from "~/session/content-queries";
 
@@ -253,7 +253,9 @@ export async function generateAndSaveContactSummary({
   const snapshots = (
     await Promise.all(
       (incremental?.newSessions ?? recentSessions).map((session) =>
-        loadSessionContentSnapshot(session.id),
+        loadReadableSessionContentSnapshot(session.id, {
+          allowRevealed: false,
+        }),
       ),
     )
   ).filter((snapshot): snapshot is SessionContentSnapshot => !!snapshot);

@@ -1,7 +1,8 @@
 import { useLingui } from "@lingui/react/macro";
 import { useCallback, useMemo, useState } from "react";
+import { create } from "zustand";
 
-import { CaretRight, Check, Folder, Plus } from "@anlg/ui/components/icons";
+import { CaretRight, Check, Folder, Plus, X } from "@anlg/ui/components/icons";
 import {
   Command,
   CommandEmpty,
@@ -10,12 +11,14 @@ import {
   CommandItem,
   CommandList,
 } from "@anlg/ui/components/ui/command";
+import { Dialog, DialogTitle } from "@anlg/ui/components/ui/dialog";
 import {
   AppFloatingPanel,
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@anlg/ui/components/ui/popover";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
 import { squircleFocusVisibleClassName } from "@anlg/ui/lib/squircle";
 import { cn } from "@anlg/utils";
@@ -32,6 +35,10 @@ import {
   useSession,
   useUpdateSession,
 } from "~/session/queries";
+import {
+  GlassDialogCancelButton,
+  GlassDialogContent,
+} from "~/shared/ui/glass-dialog";
 import { useTabs } from "~/store/zustand/tabs";
 import { TemplateIconGlyph } from "~/templates/template-icon";
 
@@ -134,6 +141,49 @@ export function FolderPicker({
   );
 }
 
+// Fork: "Move to folder…" from a note's right-click menu on Home and in the
+// sidebar opens this picker, as Granola rows offer Add to folder
+// (journey-after P2 "Add note to folder from Home"; granola-compare-oct3
+// "Home"; NN/g #7). The native menu can't hold React, so a store opens it.
+export const useMoveToFolderDialog = create<{ sessionId: string | null }>(
+  () => ({ sessionId: null }),
+);
+
+export function openMoveToFolderDialog(sessionId: string) {
+  useMoveToFolderDialog.setState({ sessionId });
+}
+
+export function MoveToFolderDialog() {
+  const { t } = useLingui();
+  const sessionId = useMoveToFolderDialog((state) => state.sessionId);
+  const close = useCallback(() => {
+    useMoveToFolderDialog.setState({ sessionId: null });
+  }, []);
+
+  return (
+    <Dialog
+      open={sessionId !== null}
+      onOpenChange={(open) => {
+        if (!open) close();
+      }}
+    >
+      {sessionId ? (
+        <GlassDialogContent className="gap-3">
+          <DialogTitle className="text-base leading-normal font-semibold">
+            {t`Move to folder`}
+          </DialogTitle>
+          <div className="border-border overflow-hidden rounded-xl border">
+            <FolderPickerContent sessionId={sessionId} onClose={close} />
+          </div>
+          <GlassDialogCancelButton className="self-end" onClick={close}>
+            {t`Cancel`}
+          </GlassDialogCancelButton>
+        </GlassDialogContent>
+      ) : null}
+    </Dialog>
+  );
+}
+
 function FolderPickerContent({
   sessionId,
   onClose,
@@ -184,10 +234,13 @@ function FolderPickerContent({
           await updateSession({ folder_id: normalized });
         } catch (error) {
           console.error("[folder-picker] failed to update folder", error);
+          // Fork: say it failed; the chip alone doesn't (journey-after P3
+          // "Add note to folder, error"; NN/g #9).
+          toast.error(t`Couldn't move the note. Try again.`);
         }
       })();
     },
-    [folderId, folderPaths, onClose, setSelectedPath, updateSession],
+    [folderId, folderPaths, onClose, setSelectedPath, t, updateSession],
   );
 
   const handleSeeAllFolders = useCallback(() => {
@@ -253,7 +306,26 @@ function FolderPickerContent({
                 >
                   <Plus className="size-4 shrink-0" />
                   <span className="min-w-0 flex-1 truncate">
-                    {t`Create "${folderName}"`}
+                    {/* Fork: curly quotes (journey-after P3 "Folder
+                        picker"; Apple HIG typography). */}
+                    {t`Create “${folderName}”`}
+                  </span>
+                </CommandItem>
+              </CommandGroup>
+            ) : null}
+            {/* Fork: a visible way out of a folder, not only "click the
+                checked one again" (journey-after P3 "Folder picker"; NN/g
+                #6 recognition over recall). */}
+            {currentPath && !trimmedQuery ? (
+              <CommandGroup>
+                <CommandItem
+                  value="remove-from-folder"
+                  onSelect={() => handleSelect("")}
+                  className="cursor-pointer"
+                >
+                  <X className="size-4 shrink-0" />
+                  <span className="min-w-0 flex-1 truncate">
+                    {t`Remove from folder`}
                   </span>
                 </CommandItem>
               </CommandGroup>

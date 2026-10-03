@@ -3,12 +3,14 @@ import { useCallback, useMemo } from "react";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 
 import { useSync } from "../context";
+import { NoCalendarsYet } from "./permission";
 
 import {
   type CalendarGroup,
   type CalendarItem,
   CalendarSelection,
 } from "~/calendar/components/calendar-selection";
+import { useTurnOnCalendarsByDefault } from "~/calendar/default-calendars";
 import { setCalendarEnabled, useCalendarRows } from "~/calendar/queries";
 
 const SUBSCRIBED_SOURCE_NAME = "Subscribed Calendars";
@@ -17,8 +19,10 @@ export function AppleCalendarSelection({
   calendarClassName,
   leftAction,
 }: { calendarClassName?: string; leftAction?: React.ReactNode } = {}) {
-  const { groups, handleRefresh, handleToggle, scheduleSync } =
+  const { groups, handleRefresh, handleToggle, isLoading, scheduleSync } =
     useAppleCalendarSelection();
+  // Fork: the month view turns calendars on once per Mac, as onboarding does.
+  useTurnOnCalendarsByDefault(isLoading);
 
   useMountEffect(() => {
     if (groups.length === 0) {
@@ -34,7 +38,11 @@ export function AppleCalendarSelection({
         groups={groups}
         onToggle={handleToggle}
         onRefresh={handleRefresh}
+        isLoading={isLoading}
         className={calendarClassName}
+        emptyState={
+          <NoCalendarsYet onRefresh={handleRefresh} isLoading={isLoading} />
+        }
       />
     </div>
   );

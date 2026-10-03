@@ -4,9 +4,39 @@ import {
   isUpshotModelSlug,
   normalizeUpshotModel,
   pickUpshotModels,
+  resolveUpshotModelPick,
 } from "./upshot-models";
 
 import fallback from "~/settings/ai/shared/models.fallback.json";
+
+// Fork: journey-after P3 "Auto model menu".
+describe("resolveUpshotModelPick", () => {
+  const models = [{ id: "anthropic/claude-sonnet-5.5", name: "Sonnet" }];
+
+  it("keeps a pick that is still in the catalog", () => {
+    expect(
+      resolveUpshotModelPick("anthropic/claude-sonnet-5.5", models, true),
+    ).toBe("anthropic/claude-sonnet-5.5");
+  });
+
+  it("falls back to Auto when the pick left the catalog", () => {
+    expect(
+      resolveUpshotModelPick("anthropic/claude-sonnet-5", models, true),
+    ).toBe("Auto");
+  });
+
+  it("keeps the pick until the catalog loads", () => {
+    expect(resolveUpshotModelPick("anthropic/claude-sonnet-5", [], true)).toBe(
+      "anthropic/claude-sonnet-5",
+    );
+  });
+
+  it("is always Auto for free users", () => {
+    expect(
+      resolveUpshotModelPick("anthropic/claude-sonnet-5.5", models, false),
+    ).toBe("Auto");
+  });
+});
 
 describe("Upshot AI models", () => {
   it("accepts only OpenAI, Anthropic and Google slugs", () => {

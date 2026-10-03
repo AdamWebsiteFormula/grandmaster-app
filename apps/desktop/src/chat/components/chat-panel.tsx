@@ -13,10 +13,12 @@ import { useChatAppearance } from "~/chat/hooks/use-chat-appearance";
 import { useChatActions } from "~/chat/store/use-chat-actions";
 import { chatFloatingPanelClassNames } from "~/chat/surface";
 import { useShell } from "~/contexts/shell";
+import { useFolderSelection } from "~/folders/selection";
 import { useSessionHasTranscript } from "~/session/queries";
 import { useOwnerUserId } from "~/shared/owner-user";
 import { folderIdForNewNote, useSidebarNotes } from "~/sidebar/note-filter";
 import { isBatchTranscriptionPending } from "~/store/zustand/listener/general-shared";
+import { useTabs } from "~/store/zustand/tabs";
 import { useListener } from "~/stt/contexts";
 
 export function ChatSessionHost({
@@ -31,10 +33,16 @@ export function ChatSessionHost({
   const folderFilter = useSidebarNotes((state) => state.folderFilter);
   const contextSessionId =
     chat.scope === "automations" ? undefined : currentSessionId;
+  // Fork: on a folder page, chat answers from that folder's notes, as
+  // Granola's space chat does (journey-after P2 "Folder page"; granola-screens/11).
+  const onFolderPage = useTabs((state) => state.currentTab?.type === "folders");
+  const pageFolder = useFolderSelection((state) => state.selectedPath);
   const folderId =
     chat.scope === "automations"
       ? undefined
-      : folderIdForNewNote(noteFilter, folderFilter);
+      : onFolderPage && pageFolder
+        ? pageFolder
+        : folderIdForNewNote(noteFilter, folderFilter);
   const ownerUserId = useOwnerUserId();
   const hasAvailableTranscript = useSessionHasTranscript(
     contextSessionId ?? "",

@@ -25,6 +25,7 @@ import {
 import { useAITaskTask } from "~/ai/hooks";
 import { getEnhancerService } from "~/services/enhancer";
 import { useEnhancedNoteActions } from "~/session/components/note-input/enhanced-actions";
+import { refuseTemplateSwitchOffline } from "~/session/components/note-input/template-switch-offline";
 import { useEnhancedNote } from "~/session/queries";
 import {
   type MenuItemDef,
@@ -194,6 +195,10 @@ function HeaderViewEnhancedActive({
   const handleSelectTemplate = useCallback(
     (selection: TemplateSelection) => {
       if (isGenerating) {
+        return;
+      }
+
+      if (refuseTemplateSwitchOffline(enhancedNoteId)) {
         return;
       }
 

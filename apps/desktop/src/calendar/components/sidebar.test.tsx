@@ -158,6 +158,21 @@ describe("CalendarSidebarContent", () => {
     expect(screen.queryByText("Apple Calendar access is off")).toBeNull();
   });
 
+  it("says why it needs access and offers Allow access", () => {
+    mocks.calendar.status = "neverRequested";
+    mocks.calendar.confirmedStatus = "neverRequested";
+
+    render(<CalendarSidebarContent />);
+
+    expect(
+      screen.getByText(
+        "Upshot needs calendar access to show your upcoming meetings and name your notes.",
+      ),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Allow access" }));
+    expect(mocks.calendar.request).toHaveBeenCalledOnce();
+  });
+
   it("offers reconnect and disconnect on the Apple Calendar row", async () => {
     mocks.calendar.status = "authorized";
     mocks.calendar.confirmedStatus = "authorized";

@@ -56,7 +56,7 @@ describe("MeetingSettingsView", () => {
     renderMeetingSettings();
 
     expect(
-      screen.queryByText("Post recording disclosure in meeting chat"),
+      screen.queryByText("Post a short notice in the meeting chat"),
     ).toBeNull();
     expect(screen.queryByText("Save meeting chat to your notes")).toBeNull();
     expect(screen.getByText("Show floating bar")).toBeTruthy();
@@ -68,7 +68,7 @@ describe("MeetingSettingsView", () => {
     renderMeetingSettings();
 
     expect(
-      screen.getByText("Post recording disclosure in meeting chat"),
+      screen.getByText("Post a short notice in the meeting chat"),
     ).toBeTruthy();
     expect(screen.getByText("Save meeting chat to your notes")).toBeTruthy();
     expect(
@@ -93,7 +93,7 @@ describe("MeetingSettingsView", () => {
 
     fireEvent.click(
       screen.getByRole("switch", {
-        name: "Post recording disclosure in meeting chat",
+        name: "Post a short notice in the meeting chat",
       }),
     );
 

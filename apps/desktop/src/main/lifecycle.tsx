@@ -1,6 +1,10 @@
 import { useRouteContext } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef } from "react";
 
+import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
+
+import { promptMoveToApplications } from "./move-to-applications";
+
 import { useLanguageModel, useLLMConnection } from "~/ai/hooks";
 import { AttachmentTransferLifecycle } from "~/attachment-sync/lifecycle";
 import { useAuth } from "~/auth";
@@ -36,10 +40,11 @@ export function useClassicMainLifecycle() {
     openNew({ type: "empty" });
   }, [openNew]);
 
+  // Fork: after the onboarding relaunch, land on Home like a normal finish
+  // (Granola Setup guide; journey-first-run P1). The welcome note is on Home.
   const openPendingWelcomeTab = useCallback(() => {
-    const welcomeSessionId = takePendingWelcomeSession();
-    if (welcomeSessionId) {
-      openNew({ type: "sessions", id: welcomeSessionId });
+    if (takePendingWelcomeSession()) {
+      openNew({ type: "empty" });
     }
   }, [openNew]);
 
@@ -47,6 +52,12 @@ export function useClassicMainLifecycle() {
     onEmpty: openDefaultEmptyTab,
     onInitialized: openPendingWelcomeTab,
     onZeroTabs: openDefaultEmptyTab,
+  });
+
+  useMountEffect(() => {
+    void promptMoveToApplications().catch((error: unknown) => {
+      console.error("[launch] move-to-Applications check failed", error);
+    });
   });
 }
 

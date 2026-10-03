@@ -58,8 +58,8 @@ Dark keeps the pure-black base; only the steps above it moved. The full audit, w
 
 - State indicators need 3:1 against what is next to them (WCAG 2.2 SC 1.4.11 Non-text Contrast, w3.org/WAI/WCAG22/Understanding/non-text-contrast.html). Field borders (`--input`, 42%) meet it. Hairlines (`--border`, 24%) are decoration, not state, so they only need to be seen: 1.8:1 on the 6% panel, up from 1.4:1 at 16%.
 - Steps follow the Radix scale roles (radix-ui.com/colors/docs/palette-composition/understanding-the-scale): app background, then component fills (muted 10%, accent 13%, selected 19%), then borders (24%, field borders 42%).
-- Raised is lighter (Apple HIG, Dark Mode, developer.apple.com/design/human-interface-guidelines/dark-mode). Settings › Plan cards are `bg-muted` (10%) on the 6% panel, and a toggle track inside a card moves up one step to `bg-accent` (13%).
-- Segmented controls: the selected segment is `bg-foreground text-background` (a solid pill, 14.8:1 on its track in dark, 15.4:1 in light), never `bg-background` on `bg-muted`, which is black on near-black. A note inside the selected pill (for example "save 21%") is `text-background/70`. Used in Settings › Plan, Insights date range and Billing period.
+- Raised is lighter (Apple HIG, Dark Mode, developer.apple.com/design/human-interface-guidelines/dark-mode). Settings › Plan cards are `bg-muted` (10%) on the 6% panel. A switch's off track is `bg-input` with a `bg-background` thumb in both states (3.0:1 or more on every surface, both themes; Apple HIG Toggles: the track fills when on).
+- Segmented controls: the selected segment is `bg-foreground text-background` (a solid pill, 14.8:1 on its track in dark, 15.4:1 in light), never `bg-background` on `bg-muted`, which is black on near-black. A note inside the selected pill (for example "save 21%") is `text-background/70`. Used in Settings › Plan, Insights date range, Billing period and General › Appearance › Theme (text segments only, no icons: sops/settings-ia-oct3.md).
 - The selected sidebar row has two cues: the `--sidebar-accent` fill and `font-medium text-foreground` (other rows are `text-muted-foreground`).
 
 ### The one accent
@@ -79,6 +79,7 @@ Adam picked orange on Oct 2 (the blueprint offered mint or violet). It matches t
 - Font: Geist. Variable `.woff2` files and the SIL OFL license live in `apps/desktop/public/fonts/`. `--font-sans` and `--font-mono` are set in `apps/desktop/src/styles/globals.css`.
 - Times and dates (clock times, ranges, durations, ages like "23h", timers, transcript timestamps) use Geist sans with `tabular-nums`, so digits line up without a second typeface. Changed Oct 3: Granola sets every time in its sans (Home rows, Coming up, Chat page Recents "23h"/"1d", transcript; Adam's Oct 3 Granola screenshots), and the Oct 3 fresh-eyes design review flagged mono times as reading like code. AM and PM may sit in small caps (`[font-variant-caps:all-small-caps]`).
 - Geist Mono is only for key chips (`Kbd`), code, logs and technical IDs.
+- Display font: Bricolage Grotesque (SIL OFL 1.1, `apps/desktop/public/fonts/bricolage/`), class `font-display`, weight 600, tracking -0.01em. Big titles only: page titles, the note title, the chat greeting, folder titles, "Coming up". Everything else stays Geist. Adam's pick on Oct 3 after the fresh-eyes review found no typographic voice; chosen over serif options so Upshot doesn't echo Granola's slab serif (Quadrant).
 - One ratio: 1.2 (minor third) from a 16 px base. Set in the desktop `@theme` as `--text-*`, so every Tailwind `text-*` class follows it.
 - Fonts and `--text-*` are also set in an unlayered `:root` block in `apps/desktop/src/styles/globals.css`. Keep it: `@anlg/ui/globals.css` loads later and would reset them to Tailwind defaults.
 - Note text never auto-hyphenates (`hyphens: manual` in `packages/editor/src/styles/prosemirror/base.css`).
@@ -119,7 +120,7 @@ Adam picked orange on Oct 2 (the blueprint offered mint or violet). It matches t
 ## Words
 
 - Sentence case everywhere. No all-caps, no letter-spaced labels.
-- No eyebrow labels (the small caps line above a heading). Delete them; the heading carries the meaning. The Settings nav has no group labels; space separates the groups.
+- No eyebrow labels (the small caps line above a heading). Delete them; the heading carries the meaning. The Settings nav has no group labels; space separates the groups. It has eight pages (General, Profile, Plan | Meetings, Transcription, Calendar, Notifications, Connectors); moved pages show in search only (sops/settings-ia-oct3.md).
 
 ## Build notes
 

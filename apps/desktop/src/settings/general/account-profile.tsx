@@ -20,6 +20,7 @@ import {
 } from "~/contacts/queries";
 import { SettingsGroup } from "~/settings/setting-row";
 import { useOwnerUserId } from "~/shared/owner-user";
+import { useUpshotAccount } from "~/upshot-plan";
 
 export function AccountProfile() {
   const auth = useAuth();
@@ -71,11 +72,14 @@ function ProfileForm({
       }),
   });
   const metadataName = auth.session?.user.user_metadata?.full_name;
+  // Fork: the email defaults to the Upshot account, not the upstream auth
+  // one (journey-account-settings P3; Granola screen 19).
+  const upshotEmail = useUpshotAccount((state) => state.session?.email);
   const form = useForm({
     defaultValues: {
       name:
         human?.name ?? (typeof metadataName === "string" ? metadataName : ""),
-      email: human?.email ?? auth.session?.user.email ?? "",
+      email: human?.email || upshotEmail || auth.session?.user.email || "",
       phone: formatProfilePhone(human?.phone ?? "", navigator.language),
       jobTitle: human?.jobTitle ?? "",
       linkedinUsername: human?.linkedinUsername ?? "",
@@ -87,6 +91,7 @@ function ProfileForm({
     },
     onSubmit: ({ value }) => save.mutate(value),
   });
+  const memoId = useId();
   const fields = [
     { name: "name", label: t`Name`, type: "text" },
     { name: "jobTitle", label: t`Job title`, type: "text" },
@@ -128,27 +133,42 @@ function ProfileForm({
             {(field) => (
               <ProfileFieldRow label={label}>
                 {(id) => (
-                  <Input
-                    id={id}
-                    type={type}
-                    value={field.state.value}
-                    className="bg-card h-8 w-full"
-                    onChange={(event) => field.handleChange(event.target.value)}
-                    onBlur={() => {
-                      if (name === "phone") {
-                        field.handleChange(
-                          formatProfilePhone(
-                            field.state.value,
-                            navigator.language,
-                          ),
-                        );
-                      }
-                      field.handleBlur();
-                    }}
-                    placeholder={
-                      name === "phone" ? "+1 202 555 0123" : undefined
+                  <PrefixedInput
+                    prefix={
+                      // Fork: LinkedIn takes the username after a muted
+                      // linkedin.com/in/ (journey-account-settings P3;
+                      // Granola screen 19).
+                      name === "linkedinUsername" ? "linkedin.com/in/" : null
                     }
-                  />
+                    inputId={id}
+                  >
+                    <Input
+                      id={id}
+                      type={type}
+                      aria-describedby={
+                        name === "linkedinUsername" ? `${id}-prefix` : undefined
+                      }
+                      value={field.state.value}
+                      className="bg-card h-8 w-full min-w-0"
+                      onChange={(event) =>
+                        field.handleChange(event.target.value)
+                      }
+                      onBlur={() => {
+                        if (name === "phone") {
+                          field.handleChange(
+                            formatProfilePhone(
+                              field.state.value,
+                              navigator.language,
+                            ),
+                          );
+                        }
+                        field.handleBlur();
+                      }}
+                      placeholder={
+                        name === "phone" ? "+1 202 555 0123" : undefined
+                      }
+                    />
+                  </PrefixedInput>
                 )}
               </ProfileFieldRow>
             )}
@@ -177,20 +197,32 @@ function ProfileForm({
             </div>
           )}
         </form.Field>
+        {/* Fork: "About you", with where it lives, until it feeds Enhance
+            (journey-account-settings P3; Granola screen 19). */}
         <form.Field name="memo">
           {(field) => (
-            <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium">
-                <Trans>Notes</Trans>
-              </span>
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-0.5">
+                <label htmlFor={memoId} className="text-sm font-medium">
+                  <Trans>About you</Trans>
+                </label>
+                <p
+                  id={`${memoId}-hint`}
+                  className="text-muted-foreground text-xs"
+                >
+                  <Trans>Only on this Mac.</Trans>
+                </p>
+              </div>
               <Textarea
+                id={memoId}
+                aria-describedby={`${memoId}-hint`}
                 value={field.state.value}
                 className="bg-card"
                 onChange={(event) => field.handleChange(event.target.value)}
                 onBlur={field.handleBlur}
                 rows={3}
               />
-            </label>
+            </div>
           )}
         </form.Field>
       </SettingsGroup>
@@ -210,6 +242,29 @@ function ProfileForm({
         </span>
       )}
     </form>
+  );
+}
+
+function PrefixedInput({
+  prefix,
+  inputId,
+  children,
+}: {
+  prefix: string | null;
+  inputId: string;
+  children: ReactNode;
+}) {
+  if (!prefix) return <>{children}</>;
+  return (
+    <div className="flex min-w-0 items-center gap-1">
+      <span
+        id={`${inputId}-prefix`}
+        className="text-muted-foreground shrink-0 text-sm"
+      >
+        {prefix}
+      </span>
+      {children}
+    </div>
   );
 }
 

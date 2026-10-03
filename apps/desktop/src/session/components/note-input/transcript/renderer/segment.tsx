@@ -1,3 +1,4 @@
+import { useLingui } from "@lingui/react/macro";
 import { Fragment, memo, useCallback, useMemo, useRef, useState } from "react";
 
 import {
@@ -5,6 +6,7 @@ import {
   PopoverAnchor,
   PopoverContent,
 } from "@anlg/ui/components/ui/popover";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
 import { SegmentHeader } from "./segment-header";
@@ -68,7 +70,7 @@ export const SegmentRenderer = memo(
     search,
     editMode = false,
     isSelf = false,
-    showSpeaker = true,
+    timeLabel = null,
   }: {
     segment: Segment;
     offsetMs: number;
@@ -80,11 +82,12 @@ export const SegmentRenderer = memo(
     audioExists: boolean;
     search: TranscriptSearchRenderState;
     editMode?: boolean;
-    /** Your own words: a right-aligned bubble with no speaker name. */
+    /** Your own words: a right-aligned bubble labeled "You". */
     isSelf?: boolean;
-    /** First bubble of a speaker run. */
-    showSpeaker?: boolean;
+    /** Start time shown after the name in the bubble's label. */
+    timeLabel?: string | null;
   }) => {
+    const { t } = useLingui();
     const lines = useMemo(
       () => groupWordsIntoLines(segment.words),
       [segment.words],
@@ -133,25 +136,27 @@ export const SegmentRenderer = memo(
           "data-[transcript-selected=true]:bg-primary/10 data-[transcript-selected=true]:ring-primary/30 data-[transcript-selected=true]:ring-1 data-[transcript-selected=true]:ring-inset",
         ])}
       >
-        {/* Fork: the name shows over the first bubble of someone else's
-            run, never over your own (Granola). Select and edit modes keep
-            it on every bubble for the checkbox and speaker reassignment. */}
-        {selectMode || editMode || (showSpeaker && !isSelf) ? (
-          <SegmentHeader
-            segment={segment}
-            transcriptId={transcriptId}
-            sessionId={sessionId}
-            label={speakerLabel}
-            selected={selected}
-          />
-        ) : null}
+        {/* Fork: every bubble has a small "Name · 00:14" label above it,
+            "You · 00:14" for your own, aligned with the bubble
+            (redline2-oct3, R2). */}
+        <SegmentHeader
+          segment={segment}
+          transcriptId={transcriptId}
+          sessionId={sessionId}
+          label={isSelf ? t`You` : speakerLabel}
+          timeLabel={timeLabel}
+          selected={selected}
+        />
 
         <div
           data-transcript-bubble
           className={cn([
             "w-fit max-w-[80%] min-w-0 rounded-2xl px-3 py-2",
             "border-border border dark:border-transparent",
-            isSelf ? "bg-accent" : "bg-muted",
+            // Fork: your bubbles use the 19%/90% step, others 10%/96%, so
+            // they differ by fill, not only by side (journey-meeting P3;
+            // Granola docs; WCAG 2.2 SC 1.4.1).
+            isSelf ? "bg-sidebar-accent" : "bg-muted",
           ])}
         >
           {editMode ? (
@@ -224,7 +229,7 @@ export const SegmentRenderer = memo(
       prev.seekAndPlay !== next.seekAndPlay ||
       prev.editMode !== next.editMode ||
       prev.isSelf !== next.isSelf ||
-      prev.showSpeaker !== next.showSpeaker
+      prev.timeLabel !== next.timeLabel
     ) {
       return false;
     }
@@ -265,6 +270,7 @@ const EditableSegmentText = memo(function EditableSegmentText({
   transcriptId: string;
   sessionId?: string;
 }) {
+  const { t } = useLingui();
   const editorRef = useRef<HTMLDivElement>(null);
   const [speakerChange, setSpeakerChange] = useState<{
     text: string;
@@ -296,9 +302,14 @@ const EditableSegmentText = memo(function EditableSegmentText({
         text: nextText,
       }).catch((error) => {
         console.error("[transcript] failed to update text", error);
+        // Fork: a failed save says so (journey-meeting P2; NN/g #9; WCAG 2.2
+        // SC 3.3.1 Error identification).
+        toast.error(t`Couldn't save your transcript edit. Try again.`, {
+          id: `transcript-edit-failed-${transcriptId}`,
+        });
       });
     },
-    [originalText, speakerChange, transcriptId, wordIds],
+    [originalText, speakerChange, t, transcriptId, wordIds],
   );
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {

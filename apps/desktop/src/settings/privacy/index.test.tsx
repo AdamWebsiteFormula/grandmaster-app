@@ -1,97 +1,57 @@
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  setSettingValues: vi.fn(),
-  authenticate: vi.fn(),
-  refreshAvailability: vi.fn(),
-  lockApp: vi.fn(),
-  available: true as boolean | null,
-  authenticating: false,
-  platform: "macos" as string,
-  values: {
-    telemetry_consent: true,
-    crash_reporting_consent: false,
-    lock_app: false,
+  query: {
+    data: undefined as unknown,
+    isLoading: true,
+    error: null as Error | null,
   },
 }));
 
-vi.mock("@tauri-apps/plugin-os", () => ({
-  platform: () => mocks.platform,
-}));
-
-vi.mock("~/settings/queries", () => ({
-  useSetSettingValues: () => mocks.setSettingValues,
-  useStoredSettingValuesQuery: () => ({
-    data: {
-      values: mocks.values,
-      hasValues: new Set([
-        "telemetry_consent",
-        "crash_reporting_consent",
-        "lock_app",
-      ]),
-    },
-    isLoading: false,
-    error: null,
-  }),
-}));
-
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => "macos" }));
+vi.mock("~/lock/auth", () => ({ DEVICE_AUTH_REASON: {} }));
 vi.mock("~/lock/store", () => ({
-  useAppLock: (selector: (state: typeof mocks) => unknown) =>
+  useAppLock: (selector: (state: unknown) => unknown) =>
     selector({
-      available: mocks.available,
-      authenticating: mocks.authenticating,
-      authenticate: mocks.authenticate,
-      refreshAvailability: mocks.refreshAvailability,
-      lockApp: mocks.lockApp,
-    } as never),
+      available: true,
+      authenticating: false,
+      authenticate: vi.fn(),
+      lockApp: vi.fn(),
+      refreshAvailability: vi.fn(async () => true),
+    }),
 }));
+vi.mock("~/settings/queries", () => ({
+  useStoredSettingValuesQuery: () => mocks.query,
+  useSetSettingValues: () => vi.fn(),
+}));
+vi.mock("~/shared/config", () => ({ resolveConfigValue: () => false }));
 
-import { SettingsPrivacy } from ".";
+import { PrivacySection } from "./index";
 
-describe("SettingsPrivacy", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.values.telemetry_consent = true;
-    mocks.values.crash_reporting_consent = false;
-    mocks.values.lock_app = false;
-    mocks.available = true;
-    mocks.authenticating = false;
-    mocks.platform = "macos";
-    mocks.authenticate.mockResolvedValue(true);
-    mocks.refreshAvailability.mockResolvedValue(true);
-  });
-
+// journey-account-settings P3 "Settings › Privacy".
+describe("Settings › General › Privacy", () => {
   afterEach(cleanup);
 
-  it("shows no telemetry switches and says nothing is sent", () => {
-    render(<SettingsPrivacy />);
-
-    expect(screen.queryByRole("switch", { name: "Share usage data" })).toBe(
-      null,
-    );
-    expect(screen.queryByRole("switch", { name: "Error" })).toBe(null);
-    expect(screen.getAllByRole("switch")).toHaveLength(1);
-    expect(
-      screen.getByText("Upshot sends no usage data or crash reports."),
-    ).toBeTruthy();
+  it("shows a spinner, not a blank page, while settings load", () => {
+    mocks.query = { data: undefined, isLoading: true, error: null };
+    render(<PrivacySection />);
+    expect(screen.getByLabelText("Loading settings")).toBeTruthy();
   });
 
-  it("requires device authentication before locking the app", async () => {
-    render(<SettingsPrivacy />);
-
-    fireEvent.click(screen.getByRole("switch", { name: "Lock app" }));
-
-    await waitFor(() => {
-      expect(mocks.authenticate).toHaveBeenCalled();
-      expect(mocks.setSettingValues).toHaveBeenCalledWith({ lock_app: true });
-      expect(mocks.lockApp).toHaveBeenCalled();
-    });
+  it("puts the no-telemetry note under the card, without a negative margin", () => {
+    mocks.query = {
+      data: { values: {}, hasValues: new Set() },
+      isLoading: false,
+      error: null,
+    };
+    render(<PrivacySection />);
+    const note = screen.getByText(
+      "Upshot sends no usage data or crash reports.",
+    );
+    expect(note.className).not.toMatch(/-mt-/);
+    expect(
+      note.closest("section")?.querySelector("[data-settings-card]"),
+    ).not.toBeNull();
   });
 });

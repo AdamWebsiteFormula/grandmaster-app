@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, cleanup, render } from "@testing-library/react";
+import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -27,9 +27,9 @@ vi.mock("~/store/zustand/tabs", () => ({
     selector({ openCurrent: mocks.openCurrent }),
 }));
 
-import { UndoDeleteToast } from "./undo-delete-toast";
+import { UndoDeleteGauge, UndoDeleteToast } from "./undo-delete-toast";
 
-import { useUndoDelete } from "~/store/zustand/undo-delete";
+import { UNDO_TIMEOUT_MS, useUndoDelete } from "~/store/zustand/undo-delete";
 
 describe("UndoDeleteToast", () => {
   beforeEach(() => {
@@ -81,6 +81,71 @@ describe("UndoDeleteToast", () => {
     );
     view.unmount();
     expect(mocks.dismiss).toHaveBeenCalledWith("undo-delete:session-1");
+  });
+
+  // Fork: journey-after P2 "Delete note / undo".
+  it("keeps the note restorable for 10 seconds", () => {
+    const onConfirm = vi.fn();
+    expect(UNDO_TIMEOUT_MS).toBe(10000);
+    act(() => {
+      useUndoDelete.getState().addDeletion(
+        {
+          session: { id: "session-1", title: "Design sync" },
+          tombstone: "tombstone",
+          deletedAt: Date.now(),
+        },
+        onConfirm,
+      );
+    });
+    act(() => vi.advanceTimersByTime(9_000));
+    expect(onConfirm).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(1_000));
+    expect(onConfirm).toHaveBeenCalledOnce();
+  });
+
+  it("pauses the countdown while the toast is hovered or focused", () => {
+    const onConfirm = vi.fn();
+    act(() => {
+      useUndoDelete.getState().addDeletion(
+        {
+          session: { id: "session-1", title: "Design sync" },
+          tombstone: "tombstone",
+          deletedAt: Date.now(),
+        },
+        onConfirm,
+      );
+    });
+    const view = render(
+      <div data-sonner-toast="" data-testid="toast">
+        <UndoDeleteGauge
+          sessionIds={["session-1"]}
+          remainingDuration={UNDO_TIMEOUT_MS}
+          progress={1}
+        />
+        <button type="button">Undo</button>
+      </div>,
+    );
+    const toastElement = view.getByTestId("toast");
+    const gauge = toastElement.querySelector("span")!;
+
+    act(() => vi.advanceTimersByTime(8_000));
+    fireEvent.mouseEnter(toastElement);
+    expect(gauge.style.animationPlayState).toBe("paused");
+    act(() => vi.advanceTimersByTime(60_000));
+    expect(onConfirm).not.toHaveBeenCalled();
+
+    // Focus inside keeps it paused after the pointer leaves.
+    fireEvent.focusIn(view.getByRole("button", { name: "Undo" }));
+    fireEvent.mouseLeave(toastElement);
+    act(() => vi.advanceTimersByTime(60_000));
+    expect(onConfirm).not.toHaveBeenCalled();
+
+    fireEvent.focusOut(view.getByRole("button", { name: "Undo" }));
+    expect(gauge.style.animationPlayState).toBe("running");
+    act(() => vi.advanceTimersByTime(1_999));
+    expect(onConfirm).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(1));
+    expect(onConfirm).toHaveBeenCalledOnce();
   });
 
   it("dismisses the toast and reopens the tab before the restore resolves", () => {

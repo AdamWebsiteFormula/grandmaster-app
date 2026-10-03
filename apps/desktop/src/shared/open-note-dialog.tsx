@@ -11,10 +11,13 @@ import {
 import { useHotkeys } from "react-hotkeys-hook";
 
 import {
+  ChatCircle,
   FileText,
   Gear,
+  House,
   Lock,
   MagnifyingGlass,
+  NotePencil,
   Users,
   X,
   type Icon,
@@ -31,9 +34,12 @@ import { useAuth } from "~/auth";
 import { useBillingAccess } from "~/auth/billing-context";
 import { useSearchEngine } from "~/search/contexts/engine";
 import { extractPlainText } from "~/search/contexts/engine/utils";
+import { MoveToFolderDialog } from "~/session/components/folder-picker";
 import { useSessionSummaries } from "~/session/queries";
 import { useDurableSharedNotes } from "~/shared-notes/cache";
+import { useEmptyNoteIds } from "~/shared/empty-note-ids";
 import { useMainContentCenterOffset } from "~/shared/main/content-offset";
+import { useNewNote } from "~/shared/useNewNote";
 import { useSettingsNavGroups } from "~/sidebar/settings-nav-groups";
 import { type TabInput, useTabs } from "~/store/zustand/tabs";
 
@@ -74,6 +80,8 @@ type PageResult = {
   icon: Icon;
   requiresPro: boolean;
   destination: TabInput;
+  /** Runs instead of opening `destination` (Home, Chat, New note). */
+  run?: () => void;
 };
 
 const OpenNoteDialogContext = createContext<OpenNoteDialogContextValue | null>(
@@ -108,6 +116,9 @@ export function OpenNoteDialogProvider({
         onOpenChange={setOpen}
         mainContentCenterOffset={mainContentCenterOffset}
       />
+      {/* Fork: host for "Move to folder…" from a note's right-click menu
+          (journey-after P2 "Add note to folder from Home"). */}
+      <MoveToFolderDialog />
     </OpenNoteDialogContext.Provider>
   );
 }
@@ -120,6 +131,16 @@ export function useOpenNoteDialog() {
     );
   }
   return context;
+}
+
+function selectOrOpen(type: "empty" | "chat") {
+  const { tabs, select, openCurrent } = useTabs.getState();
+  const existing = tabs.find((tab) => tab.type === type);
+  if (existing) {
+    select(existing);
+  } else {
+    openCurrent({ type });
+  }
 }
 
 export function OpenNoteDialog({
@@ -138,7 +159,13 @@ export function OpenNoteDialog({
   const { session } = useAuth();
   const settingsNavGroups = useSettingsNavGroups();
 
-  const sessions = useSessionSummaries();
+  const newNote = useNewNote({ behavior: "current" });
+  const allSessions = useSessionSummaries();
+  const emptyNoteIds = useEmptyNoteIds(open);
+  const sessions = useMemo(
+    () => allSessions.filter((session) => !emptyNoteIds.has(session.id)),
+    [allSessions, emptyNoteIds],
+  );
   const sharedNotes = useDurableSharedNotes(session?.user.id);
   const { search } = useSearchEngine();
   const [contentHits, setContentHits] = useState<
@@ -150,6 +177,38 @@ export function OpenNoteDialog({
 
   const pageResults = useMemo<PageResult[]>(
     () => [
+      // Fork: Home, Chat and New note commands, as Raycast and Linear
+      // command menus offer (journey-after P3 "⌘K search, go to"; NN/g #7).
+      {
+        id: "home",
+        label: t`Home`,
+        hint: null,
+        groupLabel: t`Go to`,
+        icon: House,
+        requiresPro: false,
+        destination: { type: "empty" },
+        run: () => selectOrOpen("empty"),
+      },
+      {
+        id: "chat",
+        label: t`Chat`,
+        hint: null,
+        groupLabel: t`Go to`,
+        icon: ChatCircle,
+        requiresPro: false,
+        destination: { type: "chat" },
+        run: () => selectOrOpen("chat"),
+      },
+      {
+        id: "new-note",
+        label: t`New note`,
+        hint: "⌘N",
+        groupLabel: t`Go to`,
+        icon: NotePencil,
+        requiresPro: false,
+        destination: { type: "empty" },
+        run: newNote,
+      },
       ...settingsNavGroups.flatMap((group) =>
         group.items.map((item): PageResult => {
           const hasDestination = "destination" in item;
@@ -177,10 +236,13 @@ export function OpenNoteDialog({
         destination: { type: "settings", state: { tab: "app" } },
       },
     ],
-    [settingsNavGroups, t],
+    [newNote, settingsNavGroups, t],
   );
 
   const topLevelPageIds = new Set([
+    "home",
+    "chat",
+    "new-note",
     "settings",
     ...settingsNavGroups.flatMap((group) =>
       group.items.flatMap((item) => ("destination" in item ? [item.id] : [])),
@@ -204,7 +266,8 @@ export function OpenNoteDialog({
         {
           resourceType: "session",
           id: session.id,
-          title: session.title || t`Untitled`,
+          // Fork: Home's word for a note with no title (journey-after P3).
+          title: session.title || t`Untitled note`,
           createdAt: session.created_at,
         },
       ]),
@@ -222,7 +285,7 @@ export function OpenNoteDialog({
           (note): NoteResult => ({
             resourceType: "shared_session",
             id: note.shareId,
-            title: note.title || t`Untitled`,
+            title: note.title || t`Untitled note`,
             createdAt: note.publishedAt,
           }),
         ),
@@ -413,6 +476,10 @@ export function OpenNoteDialog({
         had_query: Boolean(query.trim()),
       });
       handleOpenChange(false);
+      if (page.run) {
+        page.run();
+        return;
+      }
       openNew(page.destination);
     },
     [handleOpenChange, openNew, query],
@@ -505,10 +572,11 @@ export function OpenNoteDialog({
         <DialogTitle className="sr-only">
           <Trans>Search notes and pages…</Trans>
         </DialogTitle>
+        {/* Fork: a raised popover surface, flat, no drop shadow
+            (journey-after P3 "⌘K search"; design-system Dialogs, Shape). */}
         <div
           className={cn([
-            "border-border/80 bg-background rounded-2xl border",
-            "shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]",
+            "border-border bg-popover rounded-2xl border",
             "overflow-hidden",
           ])}
         >
@@ -525,18 +593,21 @@ export function OpenNoteDialog({
                   "placeholder:text-muted-foreground outline-hidden",
                 ])}
               />
+              {/* Fork: a 24 px target (WCAG 2.2 SC 2.5.8). */}
               <button
+                type="button"
                 aria-label={t`Close`}
                 onClick={() => handleOpenChange(false)}
                 className={cn([
-                  "h-5 w-5 rounded-full",
+                  "size-6 shrink-0 rounded-full",
                   "flex items-center justify-center",
-                  "bg-accent/80 hover:bg-accent/80",
+                  "bg-accent hover:text-foreground",
                   "text-muted-foreground text-xs",
+                  "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-hidden",
                   "transition-colors",
                 ])}
               >
-                <X className="h-3 w-3" />
+                <X className="size-3.5" />
               </button>
             </div>
 

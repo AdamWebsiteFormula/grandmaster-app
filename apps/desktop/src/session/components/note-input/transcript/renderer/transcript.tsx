@@ -393,17 +393,9 @@ const SegmentsList = memo(
             >
               <div
                 className={cn([
-                  index > 0 && (layout?.startsRun ? "pt-4" : "pt-1.5"),
+                  index > 0 && (layout?.startsRun ? "pt-4" : "pt-2"),
                 ])}
               >
-                {layout?.timestamp ? (
-                  <div
-                    data-transcript-timestamp
-                    className="text-muted-foreground pb-2 text-center text-xs tabular-nums"
-                  >
-                    {layout.timestamp}
-                  </div>
-                ) : null}
                 <SegmentRenderer
                   segment={segment}
                   offsetMs={offsetMs}
@@ -419,7 +411,7 @@ const SegmentsList = memo(
                   search={transcriptSearch}
                   editMode={editMode}
                   isSelf={layout?.isSelf ?? false}
-                  showSpeaker={layout?.startsRun ?? true}
+                  timeLabel={layout?.timestamp ?? null}
                 />
               </div>
             </VirtualSegmentRow>

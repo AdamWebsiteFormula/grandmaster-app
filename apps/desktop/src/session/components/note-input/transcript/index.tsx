@@ -1,3 +1,4 @@
+import { useLingui } from "@lingui/react/macro";
 import type { RefObject } from "react";
 import { useCallback } from "react";
 
@@ -46,6 +47,7 @@ function TranscriptContent({
   editMode: boolean;
   onEditModeChange?: (editMode: boolean) => void;
 }) {
+  const { t } = useLingui();
   const screen = useTranscriptScreen({ sessionId });
   const incompleteCapture = useIncompleteCapture(sessionId);
   const { uploadAudio, uploadTranscript } = useUploadFile(sessionId);
@@ -62,18 +64,14 @@ function TranscriptContent({
           role="status"
           className="border-alert-border bg-alert text-alert-foreground border-b px-4 py-2 text-sm"
         >
-          <span className="font-medium">
-            {incompleteCapture.audioDeletionFailed
-              ? "Audio could not be deleted."
-              : "This transcript is incomplete."}
-          </span>{" "}
+          {/* Fork: short, translated sentences (journey-meeting P3; NN/g #2). */}
           {incompleteCapture.audioDeletionFailed
-            ? "Upshot could not remove the temporary audio. Cleanup will be retried automatically."
+            ? t`Temporary audio couldn't be deleted. Upshot will try again.`
             : incompleteCapture.audioKeptForTranscription
-              ? "Some audio has not been transcribed yet, so Upshot kept it temporarily. It will be deleted automatically once transcription succeeds."
+              ? t`Part of this meeting wasn't transcribed. The audio is kept so Upshot can try again.`
               : incompleteCapture.audioDeleted
-                ? "Recovery did not finish before the meeting ended. Audio was deleted according to your retention setting."
-                : "Some audio could not be transcribed. Available recordings were kept according to your retention setting."}
+                ? t`Part of this meeting wasn't transcribed. Its audio was deleted, per your retention setting.`
+                : t`Part of this meeting wasn't transcribed. Recordings were kept, per your retention setting.`}
         </div>
       )}
       {screen.kind === "running_batch" && (

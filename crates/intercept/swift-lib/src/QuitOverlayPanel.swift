@@ -45,22 +45,36 @@ extension QuitInterceptor {
 
     let messageLabel = makeLabel(QuitOverlay.messageText, color: QuitOverlay.primaryTextColor)
     self.messageLabel = messageLabel
+    // Fork: a second, smaller line says a recording stops (journey-meeting P2).
+    let detailLabel = makeLabel(
+      QuitOverlay.detailText, color: QuitOverlay.secondaryTextColor, font: QuitOverlay.detailFont)
 
+    let blockHeight =
+      messageLabel.frame.height + QuitOverlay.lineSpacing + detailLabel.frame.height
+    let bottom = (size.height - blockHeight) / 2
+
+    detailLabel.frame = NSRect(
+      x: (size.width - detailLabel.frame.width) / 2,
+      y: bottom,
+      width: detailLabel.frame.width,
+      height: detailLabel.frame.height
+    )
     messageLabel.frame = NSRect(
       x: (size.width - messageLabel.frame.width) / 2,
-      y: (size.height - messageLabel.frame.height) / 2,
+      y: bottom + detailLabel.frame.height + QuitOverlay.lineSpacing,
       width: messageLabel.frame.width,
       height: messageLabel.frame.height
     )
 
     container.addSubview(messageLabel)
+    container.addSubview(detailLabel)
 
     return container
   }
 
-  func makeLabel(_ text: String, color: NSColor) -> NSTextField {
+  func makeLabel(_ text: String, color: NSColor, font: NSFont = QuitOverlay.font) -> NSTextField {
     let label = NSTextField(labelWithString: text)
-    label.font = QuitOverlay.font
+    label.font = font
     label.textColor = color
     label.alignment = .left
     label.sizeToFit()

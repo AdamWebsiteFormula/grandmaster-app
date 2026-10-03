@@ -1,7 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { Square, Warning } from "@anlg/ui/components/icons";
+import { Square, Warning, X } from "@anlg/ui/components/icons";
 import { DancingSticks } from "@anlg/ui/components/ui/dancing-sticks";
 import { Spinner } from "@anlg/ui/components/ui/spinner";
 
@@ -11,6 +11,7 @@ import {
   useCaptureHealthNotice,
 } from "./capture-health";
 
+import { ResumeRecordingButton } from "~/session/components/resume-recording";
 import { usePermission } from "~/shared/hooks/usePermissions";
 import { useListener } from "~/stt/contexts";
 import {
@@ -19,7 +20,19 @@ import {
 } from "~/stt/window-control";
 
 // Fork: Granola-style recording state at the bottom of the note: moving bars and a clear stop button.
-export function RecordingBar({ sessionId }: { sessionId: string }) {
+// Fork: the pill gets a soft shadow in light, none on black, so it separates
+// from the note text under it (journey-meeting P3; design-system.md Dialogs;
+// Apple HIG Dark Mode).
+const pillSurfaceClassName =
+  "border-border bg-popover text-popover-foreground shadow-sm dark:shadow-none";
+
+export function RecordingBar({
+  sessionId,
+  showResume = false,
+}: {
+  sessionId: string;
+  showResume?: boolean;
+}) {
   const { t } = useLingui();
   const { mode, amplitude, mic, speaker, muted, seconds } = useListener(
     (state) => ({
@@ -52,7 +65,7 @@ export function RecordingBar({ sessionId }: { sessionId: string }) {
     return (
       <div
         role="status"
-        className="border-border bg-popover text-popover-foreground pointer-events-auto absolute bottom-3 left-4 z-20 flex h-10 items-center gap-2 rounded-full border px-4"
+        className={`${pillSurfaceClassName} pointer-events-auto absolute bottom-3 left-4 z-20 flex h-10 items-center gap-2 rounded-full border px-4`}
       >
         <Spinner size={14} />
         <span className="text-sm font-medium">
@@ -63,15 +76,21 @@ export function RecordingBar({ sessionId }: { sessionId: string }) {
   }
 
   if (!active) {
-    return null;
+    // Fork: after Stop, Resume takes Stop's place (journey-meeting P1).
+    return showResume && mode === "inactive" ? (
+      <ResumeRecordingButton sessionId={sessionId} variant="pill" />
+    ) : null;
   }
 
   return (
     <>
       <CaptureHealth speaker={speaker} />
+      {/* Fork: no live region on the whole bar, whose timer and meters
+          change ten times a second; only the label below is announced
+          (journey-meeting P2; WCAG 2.2 SC 4.1.3, SC 2.2.2). */}
       <div
-        role="status"
-        className="border-border bg-popover text-popover-foreground pointer-events-auto absolute bottom-3 left-4 z-20 flex h-10 items-center gap-3 rounded-full border pr-1 pl-4"
+        data-recording-bar
+        className={`${pillSurfaceClassName} pointer-events-auto absolute bottom-3 left-4 z-20 flex h-10 items-center gap-3 rounded-full border pr-1 pl-4`}
       >
         <DancingSticks
           // A floor keeps the bars moving in silence, so recording always reads as live.
@@ -84,6 +103,7 @@ export function RecordingBar({ sessionId }: { sessionId: string }) {
         />
         {/* Fork: "Muted" read like Upshot had stopped (ux-audit-oct3 C, NN/g #2, #3). */}
         <span
+          role="status"
           className="text-sm font-medium"
           title={muted ? t`Unmute in your call to be recorded` : undefined}
         >
@@ -114,11 +134,16 @@ export function RecordingBar({ sessionId }: { sessionId: string }) {
   );
 }
 
+// Fork: h:mm:ss past an hour, "1:15:12" not "75:12" (journey-meeting P3;
+// Apple HIG, clear durations).
 export function formatElapsed(totalSeconds: number) {
   const safe = Math.max(0, Math.floor(totalSeconds));
-  const minutes = Math.floor(safe / 60);
-  const seconds = safe % 60;
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  const hours = Math.floor(safe / 3600);
+  const minutes = Math.floor((safe % 3600) / 60);
+  const seconds = String(safe % 60).padStart(2, "0");
+  return hours > 0
+    ? `${hours}:${String(minutes).padStart(2, "0")}:${seconds}`
+    : `${String(minutes).padStart(2, "0")}:${seconds}`;
 }
 
 // Fork (F2): one level per side, so you can see both are being heard.
@@ -174,14 +199,7 @@ export function CaptureHealthBanner({
   }
 
   if (notice === "quiet") {
-    return (
-      <div
-        role="status"
-        className="border-border bg-popover text-muted-foreground pointer-events-auto absolute bottom-16 left-4 z-20 max-w-[calc(100%-2rem)] rounded-lg border px-3 py-2 text-sm"
-      >
-        <Trans>No sound from the other side yet</Trans>
-      </div>
-    );
+    return <QuietHint />;
   }
 
   return (
@@ -205,6 +223,44 @@ export function CaptureHealthBanner({
         className="bg-secondary text-secondary-foreground hover:bg-accent focus-visible:ring-ring inline-flex h-8 shrink-0 cursor-pointer items-center rounded-md px-3 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none"
       >
         <Trans>Open System Settings</Trans>
+      </button>
+    </div>
+  );
+}
+
+// Fork: the soft hint can be closed and hides itself after a minute, since an
+// in-person meeting never has a remote side (journey-meeting P3; NN/g #3).
+export const QUIET_HINT_AUTO_HIDE_MS = 60_000;
+
+function QuietHint() {
+  const { t } = useLingui();
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setHidden(true), QUIET_HINT_AUTO_HIDE_MS);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (hidden) {
+    return null;
+  }
+
+  return (
+    <div
+      role="status"
+      className="border-border bg-popover text-muted-foreground pointer-events-auto absolute bottom-16 left-4 z-20 flex max-w-[calc(100%-2rem)] items-center gap-1 rounded-lg border py-1 pr-1 pl-3 text-sm shadow-sm dark:shadow-none"
+    >
+      <span>
+        <Trans>No sound from the other side yet</Trans>
+      </span>
+      <button
+        type="button"
+        aria-label={t`Dismiss`}
+        title={t`Dismiss`}
+        onClick={() => setHidden(true)}
+        className="hover:bg-accent hover:text-foreground focus-visible:ring-ring inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none"
+      >
+        <X aria-hidden className="size-3.5" />
       </button>
     </div>
   );

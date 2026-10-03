@@ -28,6 +28,7 @@ vi.mock("~/store/zustand/listener/instance", () => ({
 }));
 
 import {
+  WELCOME_NOTE,
   getOrCreateWelcomeSession,
   setPendingWelcomeSession,
   stopActiveWelcomeDemo,
@@ -161,5 +162,15 @@ it("auto-joins the hosted demo and optionally attaches a completion callback", (
     ),
   ).toBe(
     "https://github.com/AdamWebsiteFormula/upshot?autojoin=1&completion_url=http%3A%2F%2F127.0.0.1%3A43210%2Fonboarding-demo%2Fcomplete",
+  );
+});
+
+it("points to New note on Home and says what leaves the Mac", () => {
+  expect(WELCOME_NOTE).toContain(
+    "on Home, click **New note** at the top right",
+  );
+  expect(WELCOME_NOTE).not.toContain("stay on this Mac");
+  expect(WELCOME_NOTE).toContain(
+    "When Upshot writes a summary, the note and transcript go to Upshot AI, which keeps nothing.",
   );
 });

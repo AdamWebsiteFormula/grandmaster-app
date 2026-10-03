@@ -594,12 +594,12 @@ export function ClassicMainBody() {
             ) : null}
             {/* Fork: 16 px inside the panel's top edge (the panel's 1 px
                 border sits 6 px in from this container); the right edge lines
-                up with Home's 760 px column, at least 32 px inside the
+                up with Home's 640 px column, at least 32 px inside the
                 panel edge (design-system.md; redline-oct3, H1). */}
             {!isOnboarding &&
             currentTab &&
             FLOATING_NEW_NOTE_TAB_TYPES.has(currentTab.type) ? (
-              <NewNoteButton className="absolute top-[23px] right-[max(39px,calc((100%-760px)/2+32px))] z-30 h-8 px-3.5" />
+              <NewNoteButton className="absolute top-[23px] right-[max(39px,calc((100%-640px)/2+32px))] z-30 h-8 px-3.5" />
             ) : null}
           </div>
         </ResizablePanel>

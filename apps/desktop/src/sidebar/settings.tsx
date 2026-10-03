@@ -19,6 +19,7 @@ import {
 import { useAuth } from "~/auth";
 import { useBillingAccess } from "~/auth/billing-context";
 import { usePersonalContact } from "~/contacts/queries";
+import { scrollToSettingsSection, settingsNavPage } from "~/settings/sections";
 import { useOwnerUserId } from "~/shared/owner-user";
 import { type SettingsTab, useTabs } from "~/store/zustand/tabs";
 import { useUpshotPlan } from "~/upshot-plan";
@@ -45,12 +46,9 @@ export function SettingsNav() {
 
   const requestedTab =
     currentTab?.type === "settings" ? (currentTab.state.tab ?? "app") : "app";
-  const activeTab =
-    requestedTab === "audio"
-      ? "meetings"
-      : requestedTab === "stats"
-        ? "insights"
-        : requestedTab;
+  // Fork: a section or sub-page marks the page that holds it
+  // (settings/sections.ts).
+  const activeTab = settingsNavPage(requestedTab);
 
   const setActiveTab = useCallback(
     (tab: SettingsTab) => {
@@ -62,6 +60,9 @@ export function SettingsNav() {
   );
 
   const query = search.trim().toLowerCase();
+  // Fork: sections and sub-pages (Appearance, Privacy, Dictionary, Imports…)
+  // show only as search results, as macOS System Settings search finds
+  // settings inside a pane.
   const visibleGroups = query
     ? groups
         .map((group) =>
@@ -75,7 +76,23 @@ export function SettingsNav() {
               },
         )
         .filter((group) => group.items.length > 0)
-    : groups;
+    : groups
+        .map((group) => ({
+          ...group,
+          items: group.items.filter(
+            (item) => !("parent" in item && item.parent),
+          ),
+        }))
+        .filter((group) => group.items.length > 0);
+
+  const openItem = (item: (typeof groups)[number]["items"][number]) => {
+    if ("destination" in item) {
+      openNew(item.destination);
+      return;
+    }
+    setActiveTab(item.id);
+    scrollToSettingsSection(item.id);
+  };
 
   return (
     // Fork: pb-3 keeps the last row off the window edge (redline-oct3
@@ -103,6 +120,18 @@ export function SettingsNav() {
                 event.preventDefault();
                 event.stopPropagation();
                 setSearch("");
+              }
+              // Fork: Return opens the top match, as macOS System Settings
+              // search does (journey-account-settings P3).
+              const first = visibleGroups[0]?.items[0];
+              if (
+                event.key === "Enter" &&
+                query &&
+                first &&
+                !event.nativeEvent.isComposing
+              ) {
+                event.preventDefault();
+                openItem(first);
               }
             }}
             aria-label={t`Search settings`}
@@ -160,14 +189,7 @@ export function SettingsNav() {
                           ? t`${item.label}, opens outside Settings`
                           : undefined
                       }
-                      onClick={() => {
-                        if ("destination" in item) {
-                          openNew(item.destination);
-                          return;
-                        }
-
-                        setActiveTab(item.id);
-                      }}
+                      onClick={() => openItem(item)}
                       className={cn([
                         "flex w-full items-center gap-2 rounded-full px-3 py-2 text-left text-sm",
                         "transition-colors",
@@ -214,48 +236,74 @@ export function SettingsNav() {
 }
 
 // Fork: who is signed in, on top of the Settings sidebar, as Granola shows
-// avatar, name and email (granola-compare-oct3 section 8). Signed out, it
-// names the app and the plan.
+// avatar, name and email (granola-compare-oct3 section 8): the name on line 1,
+// the email in small muted text on line 2 (redline2-oct3 Settings). Without a
+// saved name, line 1 is the email's local part. A small neutral badge names
+// the plan, as Notion and Slack put the plan next to the workspace name.
 export function SettingsAccountHeader() {
   const { t } = useLingui();
-  const { email, isSignedIn, plan } = useUpshotPlan();
+  const { email, isSignedIn, isLoading, plan } = useUpshotPlan();
   const auth = useAuth();
   const localOwnerUserId = useOwnerUserId();
   const humanId = auth.session?.user.id ?? localOwnerUserId ?? "";
   const profile = usePersonalContact(humanId);
   const profileName = profile.data?.name?.trim() || null;
-  const planLabel = plan?.pro ? t`Pro plan` : t`Free plan`;
+  const isProPlan = Boolean(plan?.pro);
+  // Fork: no badge until the plan is known, so a paying user never sees
+  // "Free" while it loads or offline (journey-account-settings P2; NN/g #1).
+  const planKnown = isSignedIn ? plan !== null : !isLoading;
+  const avatar = profile.data?.avatarDataUrl ?? null;
 
-  // Fork: the name on its own line and the email under it in small muted
-  // text, as Granola's Settings sidebar (redline-oct3 Settings). Without a
-  // name, the plan takes the first line so the email never sits in bold.
   const signedInEmail = isSignedIn && email ? email : null;
-  const title = profileName ?? (signedInEmail ? planLabel : t`Upshot`);
-  const subtitle = signedInEmail ?? planLabel;
-  const initial = (
-    (profileName ?? signedInEmail ?? title).trim()[0] ?? "U"
-  ).toUpperCase();
+  const emailLocalPart = signedInEmail?.split("@")[0]?.trim() || null;
+  const title = profileName ?? emailLocalPart ?? t`Upshot`;
+  const initial = (title.trim()[0] ?? "U").toUpperCase();
 
   return (
     <div
       data-testid="settings-account-header"
       className="flex flex-col items-center gap-1 px-2 pt-2 pb-4 text-center"
     >
-      <span
-        aria-hidden
-        className="bg-sidebar-accent text-foreground mb-1 flex size-10 items-center justify-center rounded-full text-base font-medium"
-      >
-        {initial}
-      </span>
-      <p className="w-full truncate text-sm font-medium" title={title}>
-        {title}
-      </p>
-      <p
-        className="text-muted-foreground w-full truncate text-xs"
-        title={subtitle}
-      >
-        {subtitle}
-      </p>
+      {/* Fork: the Profile photo when there is one (journey-account-settings
+          P3; Granola screens 12–19). */}
+      {avatar ? (
+        <img
+          src={avatar}
+          alt=""
+          aria-hidden
+          data-testid="settings-account-avatar"
+          className="mb-1 size-10 rounded-full object-cover"
+        />
+      ) : (
+        <span
+          aria-hidden
+          className="bg-sidebar-accent text-foreground mb-1 flex size-10 items-center justify-center rounded-full text-base font-medium"
+        >
+          {initial}
+        </span>
+      )}
+      <div className="flex w-full min-w-0 items-center justify-center gap-1.5">
+        <p className="min-w-0 truncate text-sm font-medium" title={title}>
+          {title}
+        </p>
+        {planKnown ? (
+          <span
+            data-testid="settings-plan-badge"
+            className="border-input text-muted-foreground shrink-0 rounded-full border px-1.5 text-xs leading-4 font-medium"
+          >
+            {isProPlan ? t`Pro` : t`Free`}
+            <span className="sr-only"> {t`plan`}</span>
+          </span>
+        ) : null}
+      </div>
+      {signedInEmail ? (
+        <p
+          className="text-muted-foreground w-full truncate text-xs"
+          title={signedInEmail}
+        >
+          {signedInEmail}
+        </p>
+      ) : null}
     </div>
   );
 }

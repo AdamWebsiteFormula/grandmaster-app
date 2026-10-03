@@ -3,10 +3,15 @@ import { beforeEach, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   createSession: vi.fn(),
+  showStillRecordingToast: vi.fn(),
 }));
 
 vi.mock("~/session/queries", () => ({
   createSession: mocks.createSession,
+}));
+
+vi.mock("~/stt/recording-request-toasts", () => ({
+  showStillRecordingToast: mocks.showStillRecordingToast,
 }));
 
 import {
@@ -96,6 +101,7 @@ it("does not rearm auto-start when opening the active live session", () => {
     id: "live-session",
     state: { autoStart: null },
   });
+  expect(mocks.showStillRecordingToast).not.toHaveBeenCalled();
 });
 
 it("opens the requested session without auto-start while another is live", () => {
@@ -114,4 +120,19 @@ it("opens the requested session without auto-start while another is live", () =>
     id: "calendar-session",
     state: { autoStart: null },
   });
+});
+
+// Fork test: journey-meeting P2 (another meeting already recording).
+it("says which note is still recording when another meeting is asked to record", () => {
+  listenerStore.setState((state) => ({
+    live: {
+      ...state.live,
+      status: "active",
+      sessionId: "live-session",
+    },
+  }));
+
+  openSessionAndListen("calendar-session");
+
+  expect(mocks.showStillRecordingToast).toHaveBeenCalledWith("live-session");
 });

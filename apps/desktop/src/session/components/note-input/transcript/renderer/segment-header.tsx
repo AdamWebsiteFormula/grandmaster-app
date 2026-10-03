@@ -12,12 +12,15 @@ export function SegmentHeader({
   transcriptId,
   sessionId,
   label,
+  timeLabel = null,
   selected = false,
 }: {
   segment: Segment;
   transcriptId: string;
   sessionId?: string;
   label: string;
+  /** Bubble start time, shown muted after the name: "Ada · 00:14". */
+  timeLabel?: string | null;
   selected?: boolean;
 }) {
   const { selectMode } = useTranscriptSelectionState();
@@ -26,7 +29,7 @@ export function SegmentHeader({
     "relative py-1",
     // Fork: small, colored, medium weight (granola-compare-oct3 §2).
     "text-xs font-medium",
-    "flex items-center gap-2",
+    "flex items-center gap-2 px-1",
     "[--segment-color:var(--segment-color-light)]",
     "dark:[--segment-color:var(--segment-color-dark)]",
   ]);
@@ -46,13 +49,25 @@ export function SegmentHeader({
           {selected ? <Check className="size-2.5" weight="bold" /> : null}
         </span>
       ) : null}
-      <SpeakerAssignPopover
-        segment={segment}
-        transcriptId={transcriptId}
-        sessionId={sessionId}
-        color="var(--segment-color)"
-        label={label}
-      />
+      <span className="inline-flex min-w-0 items-center gap-1">
+        <SpeakerAssignPopover
+          segment={segment}
+          transcriptId={transcriptId}
+          sessionId={sessionId}
+          color="var(--segment-color)"
+          label={label}
+          className="pr-0"
+        />
+        {timeLabel ? (
+          <span
+            data-transcript-time
+            className="text-muted-foreground font-normal tabular-nums"
+          >
+            <span aria-hidden>· </span>
+            {timeLabel}
+          </span>
+        ) : null}
+      </span>
     </div>
   );
 }

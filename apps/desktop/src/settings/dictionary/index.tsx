@@ -20,26 +20,37 @@ import {
 } from "@anlg/ui/components/ui/input-group";
 
 import { trackAnalyticsEvent } from "~/analytics";
-import { SettingsPageTitle } from "~/settings/page-title";
+import { SettingsSectionTitle } from "~/settings/page-title";
 import { useSetSettingValue } from "~/settings/queries";
+import { settingsSectionId } from "~/settings/sections";
+import { SettingsGroup } from "~/settings/setting-row";
 import { useConfigValue } from "~/shared/config";
 import { normalizeKeywordList, parseDictionaryTermsText } from "~/stt/keywords";
 
-export function SettingsDictionary() {
+// Fork: Dictionary is a section of Transcription, since its words help the
+// transcript and summaries spell names right (grandmaster/sops/
+// settings-ia-oct3.md Q3).
+export function DictionarySection() {
   const terms = useConfigValue("personalization_dictionary_terms");
   const setTerms = useSetSettingValue("personalization_dictionary_terms");
+  const titleId = useId();
 
   // Fork: Dictionary is local (terms feed transcription and summaries on
   // this Mac), so it is open to everyone instead of a dimmed Pro form with
   // no explanation (ux-audit-oct3 E, NN/g #1, #6).
   return (
-    <div className="flex flex-col gap-8">
-      <SettingsPageTitle
-        title={<Trans>Dictionary</Trans>}
-        description={<Trans>Names and terms Upshot should spell right.</Trans>}
-      />
+    <section
+      id={settingsSectionId("dictionary")}
+      aria-labelledby={titleId}
+      className="flex min-w-0 scroll-mt-6 flex-col gap-2"
+    >
+      <div className="flex min-h-6 items-center px-1">
+        <SettingsSectionTitle id={titleId}>
+          <Trans>Dictionary</Trans>
+        </SettingsSectionTitle>
+      </div>
       <DictionarySettings terms={terms} onSave={setTerms} />
-    </div>
+    </section>
   );
 }
 
@@ -105,49 +116,55 @@ export function DictionarySettings({
         void form.handleSubmit();
       }}
     >
-      <InputGroup className="border-input bg-card has-[[data-slot=input-group-control]:focus-visible]:border-input rounded-full shadow-none has-[[data-slot=input-group-control]:focus-visible]:ring-0">
-        <form.Field name="term">
-          {(field) => (
-            <InputGroupInput
-              className="pr-4 pl-4"
-              aria-label={t`Add a term`}
-              aria-describedby={hintId}
-              placeholder={t`Add a term`}
-              value={field.state.value}
-              onChange={(event) => field.handleChange(event.target.value)}
-              onBlur={field.handleBlur}
-            />
-          )}
-        </form.Field>
-        <InputGroupAddon align="inline-end">
-          <form.Subscribe selector={(state) => state.values.term}>
-            {(value) => {
-              const canAdd =
-                appendDictionaryTerms(normalizedTerms, value).length !==
-                normalizedTerms.length;
+      {/* Fork: the field sits in a card like every other page, and Add uses
+          tokens, not hard-coded black and white (journey-account-settings
+          P3; design-system tokens; NN/g #4). */}
+      <SettingsGroup>
+        <div className="flex flex-col gap-2">
+          <InputGroup className="border-input bg-card has-[[data-slot=input-group-control]:focus-visible]:border-input shadow-none has-[[data-slot=input-group-control]:focus-visible]:ring-0">
+            <form.Field name="term">
+              {(field) => (
+                <InputGroupInput
+                  className="pr-4 pl-4"
+                  aria-label={t`Add a term`}
+                  aria-describedby={hintId}
+                  placeholder={t`Add a term`}
+                  value={field.state.value}
+                  onChange={(event) => field.handleChange(event.target.value)}
+                  onBlur={field.handleBlur}
+                />
+              )}
+            </form.Field>
+            <InputGroupAddon align="inline-end">
+              <form.Subscribe selector={(state) => state.values.term}>
+                {(value) => {
+                  const canAdd =
+                    appendDictionaryTerms(normalizedTerms, value).length !==
+                    normalizedTerms.length;
 
-              return (
-                <InputGroupButton
-                  type="submit"
-                  variant="ghost"
-                  size="xs"
-                  className="rounded-full bg-black text-white hover:bg-black/90 hover:text-white dark:bg-white dark:text-black dark:hover:bg-white/90 dark:hover:text-black"
-                  disabled={!canAdd}
-                  aria-label={t`Add`}
-                >
-                  <Plus className="size-3.5" />
-                  <Trans>Add</Trans>
-                </InputGroupButton>
-              );
-            }}
-          </form.Subscribe>
-        </InputGroupAddon>
-      </InputGroup>
-      <p id={hintId} className="text-muted-foreground -mt-2 px-4 text-xs">
-        <Trans>
-          Names, jargon, and product terms Upshot should spell your way.
-        </Trans>
-      </p>
+                  return (
+                    <InputGroupButton
+                      type="submit"
+                      variant="secondary"
+                      size="xs"
+                      disabled={!canAdd}
+                      aria-label={t`Add`}
+                    >
+                      <Plus className="size-3.5" />
+                      <Trans>Add</Trans>
+                    </InputGroupButton>
+                  );
+                }}
+              </form.Subscribe>
+            </InputGroupAddon>
+          </InputGroup>
+          <p id={hintId} className="text-muted-foreground text-xs">
+            <Trans>
+              Names, jargon, and product terms Upshot should spell your way.
+            </Trans>
+          </p>
+        </div>
+      </SettingsGroup>
 
       <form.Subscribe selector={(state) => state.values.term}>
         {(value) => {

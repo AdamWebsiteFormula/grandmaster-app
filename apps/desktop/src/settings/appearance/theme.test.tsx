@@ -37,7 +37,7 @@ describe("ThemeSelector", () => {
 
     expect(
       screen
-        .getByRole("radio", { name: /System/ })
+        .getByRole("radio", { name: /Match my Mac/ })
         .getAttribute("aria-checked"),
     ).toBe("true");
 
@@ -45,5 +45,27 @@ describe("ThemeSelector", () => {
 
     expect(mocks.applyThemePreference).toHaveBeenCalledWith("dark", "anagram");
     expect(mocks.setTheme).toHaveBeenCalledWith("dark");
+  });
+
+  // grandmaster/sops/settings-ia-oct3.md Q1: one compact row with text
+  // segments, Match my Mac by default.
+  it("is one Theme row with three text segments", () => {
+    render(<ThemeSelector />);
+    const group = screen.getByRole("radiogroup", { name: "Theme" });
+    expect(
+      Array.from(group.querySelectorAll("[role=radio]")).map(
+        (radio) => radio.textContent,
+      ),
+    ).toEqual(["Light", "Dark", "Match my Mac"]);
+  });
+
+  it("moves and selects with the arrow keys", () => {
+    render(<ThemeSelector />);
+    const system = screen.getByRole("radio", { name: "Match my Mac" });
+    expect(system.getAttribute("tabindex")).toBe("0");
+
+    fireEvent.keyDown(system, { key: "ArrowRight" });
+
+    expect(mocks.setTheme).toHaveBeenCalledWith("light");
   });
 });

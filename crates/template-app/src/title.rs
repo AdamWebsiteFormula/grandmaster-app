@@ -30,6 +30,17 @@ mod tests {
         |v| v.contains("Korean")
     );
 
+    // Fork: generated titles in sentence case, like summary headings
+    // (redline2-oct3, R2).
+    tpl_assert!(
+        test_title_in_sentence_case,
+        TitleSystem {
+            language: Some("en".to_string()),
+        },
+        |v| v.contains("Write the title in sentence case")
+            && v.contains("not \"Next Steps and Daily Priorities\"")
+    );
+
     tpl_snapshot!(
         test_title_user,
         TitleUser {

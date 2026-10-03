@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   select: vi.fn(),
   openDialog: vi.fn(),
   setSelectedPath: vi.fn(),
+  selectedPath: null as string | null,
 }));
 
 vi.mock("~/store/zustand/tabs", () => {
@@ -47,9 +48,15 @@ vi.mock("~/folders/selection", () => ({
   useFolderSelection: (
     selector: (state: {
       iconOverrides: Record<string, unknown>;
+      selectedPath: string | null;
       setSelectedPath: (path: string | null) => void;
     }) => unknown,
-  ) => selector({ iconOverrides: {}, setSelectedPath: mocks.setSelectedPath }),
+  ) =>
+    selector({
+      iconOverrides: {},
+      selectedPath: mocks.selectedPath,
+      setSelectedPath: mocks.setSelectedPath,
+    }),
 }));
 
 import { SidebarHomeNav } from "./home-nav";
@@ -59,9 +66,56 @@ describe("SidebarHomeNav", () => {
     mocks.currentTab = { type: "empty" };
     mocks.tabs = [];
     mocks.folders = [];
+    mocks.selectedPath = null;
     vi.clearAllMocks();
   });
   afterEach(cleanup);
+
+  // Fork: journey-after P2 "Folders": the open folder is the selected row.
+  it("marks the open folder row as current", () => {
+    mocks.currentTab = { type: "folders" };
+    mocks.folders = ["Work", "Clients"];
+    mocks.selectedPath = "Clients";
+    render(<SidebarHomeNav />);
+
+    const clients = screen.getByRole("button", { name: "Clients" });
+    expect(clients.getAttribute("aria-current")).toBe("page");
+    expect(clients.className).toContain("bg-sidebar-accent");
+    expect(clients.className).toContain("font-medium");
+    expect(
+      screen.getByRole("button", { name: "Work" }).getAttribute("aria-current"),
+    ).toBeNull();
+    expect(
+      screen
+        .getByRole("button", { name: "Folders" })
+        .getAttribute("aria-current"),
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Home" }).getAttribute("aria-current"),
+    ).toBeNull();
+  });
+
+  it("marks Folders as current when no folder is picked", () => {
+    mocks.currentTab = { type: "folders" };
+    mocks.folders = ["Work"];
+    render(<SidebarHomeNav />);
+
+    expect(
+      screen
+        .getByRole("button", { name: "Folders" })
+        .getAttribute("aria-current"),
+    ).toBe("page");
+  });
+
+  it("marks no folder row away from the Folders page", () => {
+    mocks.folders = ["Work"];
+    mocks.selectedPath = "Work";
+    render(<SidebarHomeNav />);
+
+    expect(
+      screen.getByRole("button", { name: "Work" }).getAttribute("aria-current"),
+    ).toBeNull();
+  });
 
   it("lists Home, Search and Folders with Home active on the home tab", () => {
     render(<SidebarHomeNav />);

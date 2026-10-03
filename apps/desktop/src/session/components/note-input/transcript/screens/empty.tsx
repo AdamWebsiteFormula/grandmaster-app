@@ -46,7 +46,15 @@ export function TranscriptEmptyState({
         />
         <div className="mb-6 flex max-w-md flex-col gap-2">
           <p className="text-base font-medium">{t`Transcription failed`}</p>
+          {/* Fork: plain words first, the raw engine error small below
+              (journey-meeting P3; NN/g #9). */}
           <p className="text-muted-foreground text-sm leading-relaxed">
+            {t`Upshot couldn't transcribe this audio. Try again, or pick another engine.`}
+          </p>
+          <p
+            data-transcript-raw-error
+            className="text-muted-foreground text-xs break-words"
+          >
             {error}
           </p>
         </div>

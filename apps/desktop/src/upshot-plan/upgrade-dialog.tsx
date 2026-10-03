@@ -26,6 +26,8 @@ import { Input } from "@anlg/ui/components/ui/input";
 import {
   type AccountMode,
   closeUpgradeDialog,
+  isAlreadyPro,
+  refreshUpshotPlan,
   signInUpshot,
   startCheckout,
   useUpgradeDialog,
@@ -57,10 +59,12 @@ export function UpshotUpgradeDialog() {
     interval,
     checkout,
     error,
+    alreadyPro: openedAlreadyPro,
   } = useUpgradeDialog();
   const signedIn = useUpshotAccount((state) => !!state.session);
   const [mode, setMode] = useState<AccountMode>(openMode);
   const [step, setStep] = useState<"form" | "browser">("form");
+  const [alreadyPro, setAlreadyPro] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -73,7 +77,8 @@ export function UpshotUpgradeDialog() {
       // Fork: "Sign in" opens on sign-in, Upgrade on sign-up (ux-audit-oct3 D,
       // NN/g #2, #4).
       setMode(openMode);
-      setStep("form");
+      setStep(openedAlreadyPro ? "browser" : "form");
+      setAlreadyPro(openedAlreadyPro);
       setBusy(false);
       setMessage(error);
       setPassword("");
@@ -99,6 +104,15 @@ export function UpshotUpgradeDialog() {
         closeUpgradeDialog();
       }
     } catch (cause) {
+      // Fork: already Pro after signing in (a second Mac) is a success:
+      // show "You're on Upshot Pro", not a red error (journey-account-settings
+      // P2; NN/g #5, #9).
+      if (isAlreadyPro(cause)) {
+        await refreshUpshotPlan(true);
+        setAlreadyPro(true);
+        setStep("browser");
+        return;
+      }
       // Fork: an existing email switches the form to sign-in (ux-audit-oct3 D).
       if (
         cause instanceof UpshotRequestError &&
@@ -115,11 +129,16 @@ export function UpshotUpgradeDialog() {
   return (
     <Dialog
       open={open}
-      onOpenChange={(next) => (next ? null : closeUpgradeDialog())}
+      onOpenChange={(next) => {
+        // Fork: Esc or a click outside can't close the dialog mid sign-in,
+        // so checkout never opens after the user left (journey-account-
+        // settings P3; NN/g #3). Cancel is disabled while busy, too.
+        if (!next && !busy) closeUpgradeDialog();
+      }}
     >
       <GlassDialogContent className="max-w-[360px]">
         {step === "browser" ? (
-          <BrowserStep />
+          <BrowserStep alreadyPro={alreadyPro} />
         ) : (
           <form
             className="flex flex-col gap-4"
@@ -294,8 +313,8 @@ function AccountFields({
 
 // Fork: once the webhook lands, this step says so (NN/g heuristic 1,
 // visibility of system status: nngroup.com/articles/ten-usability-heuristics).
-function BrowserStep() {
-  const pro = useUpshotPro();
+function BrowserStep({ alreadyPro }: { alreadyPro: boolean }) {
+  const pro = useUpshotPro() || alreadyPro;
   return (
     <div className="flex flex-col gap-4">
       <DialogHeader className="gap-1 text-left">

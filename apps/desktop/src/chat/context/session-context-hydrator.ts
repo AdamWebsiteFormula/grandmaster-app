@@ -1,7 +1,7 @@
 import type { SessionContext, Transcript } from "@anlg/plugin-template";
 import { commands as transcriptionCommands } from "@anlg/plugin-transcription";
 
-import { loadSessionContentSnapshot } from "~/session/content-queries";
+import { loadReadableSessionContentSnapshot } from "~/session/content-queries";
 import {
   formatMeetingChatRecordsAsMarkdown,
   loadMeetingChatRecords,
@@ -52,7 +52,7 @@ export async function hydrateSessionContext(
   sessionId: string,
   selfHumanId?: string,
 ): Promise<SessionContext | null> {
-  const snapshot = await loadSessionContentSnapshot(sessionId, {
+  const snapshot = await loadReadableSessionContentSnapshot(sessionId, {
     includeTranscriptWords: false,
   });
   if (!snapshot) return null;

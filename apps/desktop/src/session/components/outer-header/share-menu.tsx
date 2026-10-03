@@ -71,11 +71,14 @@ export function ShareMenu({
           <AppFloatingPanel className={appFloatingMenuPanelClassName}>
             <DropdownMenuItem
               disabled={!canShareNotes}
+              // Fork: say why it is off; the hover tip needs pointer events
+              // on the disabled row (journey-after P3 "Share menu"; NN/g #1).
+              title={canShareNotes ? undefined : t`Nothing to share yet`}
               onClick={() => {
                 setOpen(false);
                 void copyNotes();
               }}
-              className="cursor-pointer"
+              className="cursor-pointer data-disabled:pointer-events-auto data-disabled:cursor-default"
             >
               <Copy />
               <span>
@@ -84,11 +87,14 @@ export function ShareMenu({
             </DropdownMenuItem>
             <DropdownMenuItem
               disabled={!canShareNotes}
+              // Fork: say why it is off; the hover tip needs pointer events
+              // on the disabled row (journey-after P3 "Share menu"; NN/g #1).
+              title={canShareNotes ? undefined : t`Nothing to share yet`}
               onClick={() => {
                 setOpen(false);
                 void sendNotesViaEmail();
               }}
-              className="cursor-pointer"
+              className="cursor-pointer data-disabled:pointer-events-auto data-disabled:cursor-default"
             >
               <Envelope />
               <span>

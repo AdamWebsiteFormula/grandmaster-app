@@ -45,4 +45,23 @@ describe("NewNoteButton", () => {
     expect(className).toContain("bg-secondary");
     expect(className).not.toContain("bg-primary ");
   });
+
+  // Fork test: journey-meeting P3, the label matches what a click does.
+  it("says Back to recording while recording, and goes there", () => {
+    mocks.status = "active";
+    render(<NewNoteButton />);
+
+    const button = screen.getByRole("button", { name: "Back to recording" });
+    expect(button.getAttribute("title")).toBe("Go to the note being recorded");
+    fireEvent.click(button);
+    expect(mocks.newNoteAndListen).toHaveBeenCalledTimes(1);
+  });
+
+  it("names the shortcut when idle", () => {
+    render(<NewNoteButton />);
+
+    expect(screen.getByRole("button").getAttribute("title")).toBe(
+      "New note and start recording (⌘N)",
+    );
+  });
 });

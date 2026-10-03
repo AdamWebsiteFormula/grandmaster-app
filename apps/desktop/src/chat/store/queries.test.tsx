@@ -182,6 +182,16 @@ describe("chat SQLite queries", () => {
     expect(statement.params).toContain(message.createdAt);
   });
 
+  // Fork: journey-after P3 "Chat page › Recents".
+  it("marks the chat as updated so a continued chat rises in Recents", async () => {
+    await upsertChatMessage(message);
+
+    const bump = mocks.executeTransaction.mock.calls[0][0][1];
+    expect(bump.sql).toContain("UPDATE chat_groups");
+    expect(bump.sql).toContain("SET updated_at = ?");
+    expect(bump.params[1]).toBe(message.chatGroupId);
+  });
+
   it("atomically persists a replacement before retiring the prior message", async () => {
     await replaceChatMessage({
       message: { ...message, id: "message-new" },

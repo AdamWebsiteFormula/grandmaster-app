@@ -289,38 +289,9 @@ export const BUNDLED_TEMPLATES: Record<string, unknown>[] = [
       },
     ],
   },
-  {
-    slug: "follow-up-email",
-    title: "Follow-up email",
-    description:
-      "A short, ready-to-send follow-up email to the other attendees. Write it in plain prose in the user's voice, under 200 words, with no meeting-notes formatting.",
-    category: "Email",
-    icon: icon("mail"),
-    targets: ["email", "follow up"],
-    sections: [
-      {
-        title: "Subject",
-        description: "One subject line that names the meeting topic.",
-      },
-      {
-        title: "Greeting and thanks",
-        description:
-          "Greet the recipients by first name and thank them in one sentence.",
-      },
-      {
-        title: "Decisions",
-        description: "A short list of what was agreed.",
-      },
-      {
-        title: "Next steps",
-        description:
-          'Each action with its owner and due date, as "Owner: task, by date". Omit dates that were not stated.',
-      },
-      {
-        title: "Sign-off",
-        description:
-          "One line inviting corrections or questions, then a short sign-off.",
-      },
-    ],
-  },
+  // Fork: no "Follow-up email" notes template. Its format rules turned the
+  // email into bulleted headings and it replaced the summary in place; the
+  // bottom bar's "Draft follow-up email" chip drafts it in chat instead, as
+  // Granola's recipe does (journey-meeting P2; Granola docs "Follow-up
+  // emails", "Writing effective recipes"; NN/g #2).
 ];

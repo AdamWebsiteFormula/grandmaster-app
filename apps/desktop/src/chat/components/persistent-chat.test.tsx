@@ -45,6 +45,16 @@ vi.mock("~/contexts/shell", () => ({
   }),
 }));
 
+vi.mock("~/stt/contexts", () => ({
+  useListener: (
+    selector: (state: {
+      live: { sessionId: string | null };
+      getSessionMode: () => string;
+    }) => unknown,
+  ) =>
+    selector({ live: { sessionId: null }, getSessionMode: () => "inactive" }),
+}));
+
 vi.mock("./chat-panel", () => ({
   ChatPanelFrame: ({
     onDraftContentChange,

@@ -1,6 +1,8 @@
 import { json2md } from "@anlg/editor/markdown";
 
 import { liveQueryClient } from "~/db";
+import { isLockedFlag } from "~/lock/flag";
+import { useAppLock } from "~/lock/store";
 import {
   parseSessionSourceApps,
   type SessionSourceApp,
@@ -23,6 +25,7 @@ type SessionContentSqlRow = {
   enhanced_notes_json: string;
   transcripts_json: string;
   participants_json: string;
+  locked?: number | boolean | null;
 };
 
 type EnhancedNoteJson = {
@@ -52,6 +55,7 @@ type ParticipantJson = {
 
 export type SessionContentSnapshot = {
   sessionId: string;
+  locked?: boolean;
   ownerUserId: string;
   ownerEmail?: string | null;
   title: string;
@@ -102,6 +106,7 @@ const SESSION_CONTENT_SQL = `
         AND self_human.deleted_at IS NULL
     ) AS owner_email,
     session.title,
+    session.locked,
     session.created_at,
     session.event_json,
     session.source_apps_json,
@@ -208,12 +213,38 @@ export async function loadSessionContentSnapshot(
   return row ? mapSessionContentRow(row) : null;
 }
 
+// Fork: locked notes stay private until unlocked (journey-after P1 "Locked
+// notes"; Apple Notes, "Lock your notes": contents aren't shown until the
+// note is unlocked). Chat reads go through these instead of the raw snapshot.
+export function isSessionContentReadable(
+  snapshot: Pick<SessionContentSnapshot, "sessionId" | "locked">,
+  options: { allowRevealed?: boolean } = {},
+): boolean {
+  if (!snapshot.locked) return true;
+  if (options.allowRevealed === false) return false;
+  return Boolean(useAppLock.getState().revealedNoteIds[snapshot.sessionId]);
+}
+
+// Returns null for a locked note unless the user unlocked it in this session.
+// Background work (contact summaries) passes allowRevealed: false, as Insights
+// does, so a locked note never feeds it.
+export async function loadReadableSessionContentSnapshot(
+  sessionId: string,
+  options: { includeTranscriptWords?: boolean; allowRevealed?: boolean } = {},
+): Promise<SessionContentSnapshot | null> {
+  const snapshot = await loadSessionContentSnapshot(sessionId, options);
+  if (!snapshot) return null;
+  return isSessionContentReadable(snapshot, options) ? snapshot : null;
+}
+
+// Fork: chat's grep_notes and related-note scans never read a locked note
+// (journey-after P1 "Locked notes").
 export async function loadActiveSessionIds(): Promise<string[]> {
   const rows = await liveQueryClient.execute<{ id: string }>(
     `
       SELECT id
       FROM sessions
-      WHERE deleted_at IS NULL
+      WHERE deleted_at IS NULL AND locked = 0
       ORDER BY created_at DESC, id
     `,
   );
@@ -274,6 +305,7 @@ function mapSessionContentRow(
 
   return {
     sessionId: row.id,
+    locked: isLockedFlag(row.locked),
     ownerUserId: row.owner_user_id,
     ownerEmail: row.owner_email,
     title: row.title,

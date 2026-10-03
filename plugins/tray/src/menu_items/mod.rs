@@ -15,6 +15,7 @@ mod tray_quit_completely;
 mod tray_settings;
 mod tray_show_events;
 mod tray_start;
+mod tray_stop_recording;
 mod tray_version;
 mod view_sidebar;
 
@@ -35,6 +36,7 @@ pub use tray_quit_completely::{TrayQuitCompletely, confirm_restart, quit_complet
 pub use tray_settings::TraySettings;
 pub use tray_show_events::TrayShowEvents;
 pub use tray_start::TrayStart;
+pub use tray_stop_recording::TrayStopRecording;
 pub use tray_version::TrayVersion;
 pub use view_sidebar::ViewSidebar;
 
@@ -121,6 +123,7 @@ macro_rules! menu_items {
 menu_items! {
     TrayOpen => TrayOpen,
     TrayStart => TrayStart,
+    TrayStopRecording => TrayStopRecording,
     TraySettings => TraySettings,
     TrayShowEvents => TrayShowEvents,
     TrayCheckUpdate => TrayCheckUpdate,

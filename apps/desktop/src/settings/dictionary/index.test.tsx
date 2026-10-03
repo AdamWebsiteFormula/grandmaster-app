@@ -53,7 +53,7 @@ vi.mock("~/shared/config", () => ({
   useConfigValue: () => [],
 }));
 
-import { DictionarySettings, SettingsDictionary } from "./index";
+import { DictionarySettings, DictionarySection } from "./index";
 
 describe("DictionarySettings", () => {
   beforeEach(() => {
@@ -68,7 +68,7 @@ describe("DictionarySettings", () => {
   it("is fully usable on the free plan, with a labeled input", () => {
     mocks.billing.isPro = false;
 
-    render(<SettingsDictionary />);
+    render(<DictionarySection />);
 
     const input = screen.getByRole("textbox", { name: "Add a term" });
     fireEvent.click(input);
@@ -199,5 +199,17 @@ describe("DictionarySettings", () => {
     await waitFor(() => expect(screen.getByText("FastConformer")).toBeTruthy());
     expect(screen.queryByText("Anarlog")).toBeNull();
     expect(screen.queryByText("Parakeet TDT")).toBeNull();
+  });
+
+  // journey-account-settings P3 "Settings › Dictionary".
+  it("puts the field in a card and styles Add with tokens", () => {
+    render(<DictionarySettings terms={[]} onSave={vi.fn()} />);
+    const input = screen.getByRole("textbox", { name: "Add a term" });
+    expect(input.closest("[data-settings-card]")).not.toBeNull();
+    const add = screen.getByRole("button", { name: "Add" });
+    expect(add.className).not.toMatch(
+      /bg-black|bg-white|text-white|text-black/,
+    );
+    expect(add.className).toContain("bg-secondary");
   });
 });

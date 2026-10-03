@@ -16,7 +16,7 @@ import {
   type TranscriptContentCorrection,
 } from "~/session/content-mutations";
 import {
-  loadSessionContentSnapshot,
+  loadReadableSessionContentSnapshot,
   type SessionContentSnapshot,
 } from "~/session/content-queries";
 import { updateSettingValue } from "~/settings/queries";
@@ -557,7 +557,7 @@ export const buildApplySessionCorrectionTool = (
         (params.sessionId
           ? undefined
           : resolveActiveEnhancedNoteId(deps, sessionId));
-      const snapshot = await loadSessionContentSnapshot(sessionId);
+      const snapshot = await loadReadableSessionContentSnapshot(sessionId);
       if (!snapshot) {
         return {
           status: "error",

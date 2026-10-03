@@ -14,6 +14,7 @@ vi.mock("~/session/content-mutations", () => ({
 
 vi.mock("~/session/content-queries", () => ({
   loadSessionContentSnapshot: mocks.loadSessionContentSnapshot,
+  loadReadableSessionContentSnapshot: mocks.loadSessionContentSnapshot,
 }));
 
 vi.mock("~/settings/queries", () => ({

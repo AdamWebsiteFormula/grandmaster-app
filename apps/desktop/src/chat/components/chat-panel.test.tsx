@@ -19,6 +19,20 @@ const mocks = vi.hoisted(() => ({
   },
   noteFilter: "mine",
   folderFilter: null as string | null,
+  currentTab: { type: "empty" } as { type: string } | null,
+  selectedPath: null as string | null,
+}));
+
+vi.mock("~/store/zustand/tabs", () => ({
+  useTabs: (
+    selector: (state: { currentTab: { type: string } | null }) => unknown,
+  ) => selector({ currentTab: mocks.currentTab }),
+}));
+
+vi.mock("~/folders/selection", () => ({
+  useFolderSelection: (
+    selector: (state: { selectedPath: string | null }) => unknown,
+  ) => selector({ selectedPath: mocks.selectedPath }),
 }));
 
 vi.mock("./toolbar-controls", () => ({
@@ -132,6 +146,8 @@ describe("Chat panel", () => {
     mocks.chat.scope = "general";
     mocks.noteFilter = "mine";
     mocks.folderFilter = null;
+    mocks.currentTab = { type: "empty" };
+    mocks.selectedPath = null;
     mocks.hasAvailableTranscript = false;
     mocks.sessionMode = "inactive";
     mocks.requestedLiveTranscription = null;
@@ -179,6 +195,29 @@ describe("Chat panel", () => {
       expect.objectContaining({
         folderId: "CS 101",
       }),
+    );
+  });
+
+  // Fork: journey-after P2 "Folder page": chat on a folder page is scoped
+  // to that folder.
+  it("scopes chat to the folder page that is open", () => {
+    mocks.currentTab = { type: "folders" };
+    mocks.selectedPath = "Clients/Acme";
+
+    render(<TestChatPanel />);
+
+    expect(mocks.chatSession).toHaveBeenCalledWith(
+      expect.objectContaining({ folderId: "Clients/Acme" }),
+    );
+  });
+
+  it("ignores the last picked folder away from the folder page", () => {
+    mocks.selectedPath = "Clients/Acme";
+
+    render(<TestChatPanel />);
+
+    expect(mocks.chatSession).toHaveBeenCalledWith(
+      expect.objectContaining({ folderId: undefined }),
     );
   });
 

@@ -3,6 +3,8 @@ import { Trans } from "@lingui/react/macro";
 import { Sparkle } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 
+import { showModelNotReadyToast } from "./model-not-ready";
+
 import { useAITask } from "~/ai/contexts";
 import { useLanguageModel } from "~/ai/hooks";
 import { useEnhancedNote } from "~/session/queries";
@@ -23,7 +25,10 @@ export function GenerateSummary({
   const templateId = useEnhancedNote(enhancedNoteId)?.templateId || undefined;
 
   const handleGenerate = () => {
-    if (!model) return;
+    if (!model) {
+      showModelNotReadyToast();
+      return;
+    }
     void generate(createTaskId(enhancedNoteId, "enhance"), {
       model,
       taskType: "enhance",
@@ -38,7 +43,6 @@ export function GenerateSummary({
       </p>
       <Button
         onClick={handleGenerate}
-        disabled={!model}
         size="sm"
         // Fork: one orange accent per screen (ux-audit-oct3 C, design-system).
         variant="secondary"

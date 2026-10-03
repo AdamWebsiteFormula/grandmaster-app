@@ -12,6 +12,11 @@ const mocks = vi.hoisted(() => ({
   generate: vi.fn(),
   model: { modelId: "test-model" } as any,
   signIn: vi.fn(),
+  toast: vi.fn(),
+}));
+
+vi.mock("@anlg/ui/components/ui/toast", () => ({
+  toast: mocks.toast,
 }));
 
 vi.mock("~/ai/contexts", () => ({
@@ -62,6 +67,7 @@ describe("EnhanceError", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.signIn.mockResolvedValue(undefined);
+    mocks.model = { modelId: "test-model" };
   });
 
   afterEach(cleanup);
@@ -108,6 +114,48 @@ describe("EnhanceError", () => {
       },
     });
     expect(mocks.signIn).not.toHaveBeenCalled();
+  });
+
+  // Fork tests: journey-meeting P3 (413, 402, model briefly missing).
+  it("says what to do when the meeting is too long, without a Retry that can't help", () => {
+    renderError(false, new Error("This meeting is too long for Upshot AI."));
+
+    expect(
+      screen.getByText(
+        "This meeting is too long for one summary. Try a shorter template, or ask in chat.",
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
+    expect(
+      screen.queryByText("This meeting is too long for Upshot AI."),
+    ).toBeNull();
+  });
+
+  it("says Upshot AI is paused when out of credit and keeps Retry", () => {
+    renderError(
+      false,
+      new Error("Upshot AI is out of credit for now. Try again later."),
+    );
+
+    expect(
+      screen.getByText("Upshot AI is paused for now. Try again later."),
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
+  });
+
+  it("keeps Retry enabled with no model and says why nothing ran", () => {
+    mocks.model = null;
+    renderError(false);
+
+    const retry = screen.getByRole("button", { name: "Retry" });
+    expect(retry.hasAttribute("disabled")).toBe(false);
+    fireEvent.click(retry);
+
+    expect(mocks.generate).not.toHaveBeenCalled();
+    expect(mocks.toast).toHaveBeenCalledWith(
+      "Upshot AI is getting ready. Try again in a minute.",
+      { id: "summary-model-not-ready" },
+    );
   });
 
   it("explains a network failure in plain words", () => {

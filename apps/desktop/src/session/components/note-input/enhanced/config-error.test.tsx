@@ -6,6 +6,11 @@ import { ConfigError } from "./config-error";
 const mocks = vi.hoisted(() => ({
   generate: vi.fn(),
   model: { modelId: "upshot" } as unknown,
+  toast: vi.fn(),
+}));
+
+vi.mock("@anlg/ui/components/ui/toast", () => ({
+  toast: mocks.toast,
 }));
 
 vi.mock("~/ai/contexts", () => ({
@@ -24,6 +29,23 @@ vi.mock("~/store/zustand/ai-task/task-configs", () => ({
 describe("ConfigError", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.model = { modelId: "upshot" };
+  });
+
+  // Fork test: journey-meeting P3 (model briefly missing).
+  it("keeps Try again enabled with no model and says why nothing ran", () => {
+    mocks.model = null;
+    render(<ConfigError sessionId="session-1" enhancedNoteId="note-1" />);
+
+    const button = screen.getByRole("button", { name: "Try again" });
+    expect(button.hasAttribute("disabled")).toBe(false);
+    fireEvent.click(button);
+
+    expect(mocks.generate).not.toHaveBeenCalled();
+    expect(mocks.toast).toHaveBeenCalledWith(
+      "Upshot AI is getting ready. Try again in a minute.",
+      { id: "summary-model-not-ready" },
+    );
   });
 
   afterEach(() => {

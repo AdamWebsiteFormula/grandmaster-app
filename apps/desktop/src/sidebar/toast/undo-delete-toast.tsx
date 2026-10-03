@@ -1,6 +1,13 @@
 import { t } from "@lingui/core/macro";
 import { useQueryClient } from "@tanstack/react-query";
-import { type CSSProperties, useCallback, useEffect, useMemo } from "react";
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { toast } from "@anlg/ui/components/ui/toast";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
@@ -196,15 +203,10 @@ function UndoDeleteNotificationToast({ group }: { group: ToastGroup }) {
       closeButton: false,
       dismissible: false,
       description: (
-        <span
-          aria-hidden="true"
-          className="undo-delete-toast-gauge bg-primary block h-full w-full"
-          style={
-            {
-              "--undo-delete-duration": `${remainingDuration}ms`,
-              "--undo-delete-progress": progress,
-            } as CSSProperties
-          }
+        <UndoDeleteGauge
+          sessionIds={group.sessionIds}
+          remainingDuration={remainingDuration}
+          progress={progress}
         />
       ),
       descriptionClassName:
@@ -219,4 +221,84 @@ function UndoDeleteNotificationToast({ group }: { group: ToastGroup }) {
   });
 
   return null;
+}
+
+// Fork: hovering or focusing the toast pauses both the countdown gauge and
+// the finalize timer (journey-after P2 "Delete note / undo"; WCAG 2.2 SC
+// 2.2.1 Timing Adjustable).
+export function UndoDeleteGauge({
+  sessionIds,
+  remainingDuration,
+  progress,
+}: {
+  sessionIds: string[];
+  remainingDuration: number;
+  progress: number;
+}) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [paused, setPaused] = useState(false);
+  const idsKey = sessionIds.join(":");
+
+  useEffect(() => {
+    const toastElement =
+      ref.current?.closest<HTMLElement>("[data-sonner-toast]") ?? null;
+    if (!toastElement) return;
+    const ids = idsKey.split(":");
+    let hovered = false;
+    let focused = false;
+    const sync = () => {
+      const next = hovered || focused;
+      setPaused(next);
+      const store = useUndoDelete.getState();
+      if (next) store.pauseDeletions(ids);
+      else store.resumeDeletions(ids);
+    };
+    const onEnter = () => {
+      hovered = true;
+      sync();
+    };
+    const onLeave = () => {
+      hovered = false;
+      sync();
+    };
+    const onFocusIn = () => {
+      focused = true;
+      sync();
+    };
+    const onFocusOut = (event: FocusEvent) => {
+      if (
+        event.relatedTarget instanceof Node &&
+        toastElement.contains(event.relatedTarget)
+      ) {
+        return;
+      }
+      focused = false;
+      sync();
+    };
+    toastElement.addEventListener("mouseenter", onEnter);
+    toastElement.addEventListener("mouseleave", onLeave);
+    toastElement.addEventListener("focusin", onFocusIn);
+    toastElement.addEventListener("focusout", onFocusOut);
+    return () => {
+      toastElement.removeEventListener("mouseenter", onEnter);
+      toastElement.removeEventListener("mouseleave", onLeave);
+      toastElement.removeEventListener("focusin", onFocusIn);
+      toastElement.removeEventListener("focusout", onFocusOut);
+    };
+  }, [idsKey]);
+
+  return (
+    <span
+      ref={ref}
+      aria-hidden="true"
+      className="undo-delete-toast-gauge bg-primary block h-full w-full"
+      style={
+        {
+          "--undo-delete-duration": `${remainingDuration}ms`,
+          "--undo-delete-progress": progress,
+          animationPlayState: paused ? "paused" : "running",
+        } as CSSProperties
+      }
+    />
+  );
 }

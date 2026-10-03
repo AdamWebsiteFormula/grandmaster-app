@@ -555,6 +555,12 @@ pub fn main() {
 
     #[cfg(target_os = "macos")]
     anlg_intercept::setup_force_quit_handler();
+    // Fork: the second ⌘Q exits through ExitRequested, so the frontend flush
+    // runs (journey-meeting P2).
+    {
+        let quit_handle = app.handle().clone();
+        anlg_intercept::set_quit_handler(move || quit_handle.exit(0));
+    }
 
     #[allow(unused_variables)]
     app.run(move |app, event| match event {

@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
   stopSfx: vi.fn(),
   setSettingValues: vi.fn(),
   autoPost: false,
+  autoStart: false,
   seedExample: vi.fn(),
 }));
 
@@ -32,7 +33,8 @@ vi.mock("~/settings/queries", () => ({
 }));
 
 vi.mock("~/shared/config", () => ({
-  useConfigValue: () => mocks.autoPost,
+  useConfigValue: (key: string) =>
+    key === "auto_start_scheduled_meetings" ? mocks.autoStart : mocks.autoPost,
 }));
 
 vi.mock("@anlg/plugin-analytics", () => ({
@@ -75,6 +77,7 @@ beforeEach(() => {
   mocks.stopSfx.mockResolvedValue(null);
   mocks.setSettingValues.mockResolvedValue(undefined);
   mocks.autoPost = false;
+  mocks.autoStart = false;
   mocks.seedExample.mockResolvedValue("example-session");
 });
 
@@ -228,4 +231,38 @@ it("still finishes when the example meeting cannot be created", async () => {
 
   expect(onContinue).toHaveBeenCalledWith("welcome-session");
   consoleError.mockRestore();
+});
+
+it("offers auto start under the notice, off by default, and saves the same key as Settings", () => {
+  render(<FinalSection onContinue={vi.fn()} />);
+
+  const toggle = screen.getByRole("switch", {
+    name: "Start recording when a scheduled meeting begins",
+  });
+  expect(toggle.getAttribute("aria-checked")).toBe("false");
+  // It sits under the chat notice switch.
+  const notice = screen.getByRole("switch", {
+    name: "Post a short notice in the meeting chat",
+  });
+  expect(
+    notice.compareDocumentPosition(toggle) & Node.DOCUMENT_POSITION_FOLLOWING,
+  ).toBeTruthy();
+
+  fireEvent.click(toggle);
+  expect(mocks.setSettingValues).toHaveBeenCalledWith({
+    auto_start_scheduled_meetings: true,
+  });
+});
+
+it("shows auto start on for someone who turned it on before", () => {
+  mocks.autoStart = true;
+  render(<FinalSection onContinue={vi.fn()} />);
+
+  expect(
+    screen
+      .getByRole("switch", {
+        name: "Start recording when a scheduled meeting begins",
+      })
+      .getAttribute("aria-checked"),
+  ).toBe("true");
 });

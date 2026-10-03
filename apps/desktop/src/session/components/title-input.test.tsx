@@ -79,6 +79,29 @@ describe("TitleInput", () => {
     cleanup();
   });
 
+  // Fork test: installed-build review Oct 3 (P1: an empty note showed no
+  // title field).
+  it("shows an empty note title as a full-width field with an Untitled placeholder", () => {
+    hoisted.storeTitle = "";
+    const onFocusEditorAtStart = vi.fn();
+    renderTitleInput({ variant: "note", onFocusEditorAtStart });
+
+    const input = screen.getByRole("textbox", { name: "Note title" });
+    expect(input.getAttribute("placeholder")).toBe("Untitled");
+    expect((input as HTMLInputElement).value).toBe("");
+    expect(input.className).toContain("font-display");
+    expect(input.parentElement?.className).toContain("w-full");
+
+    vi.useFakeTimers();
+    try {
+      fireEvent.keyDown(input, { key: "Enter" });
+      vi.runAllTimers();
+    } finally {
+      vi.useRealTimers();
+    }
+    expect(onFocusEditorAtStart).toHaveBeenCalled();
+  });
+
   it("does not route escape from the title field into tab navigation", () => {
     renderTitleInput();
 

@@ -11,8 +11,8 @@ export const SETTING_CONTROL_CLASS = "bg-card h-9 w-full shadow-none";
 // Fork: Settings rows sit in rounded cards with hairlines between them, as
 // macOS System Settings and Granola's Settings do (Apple HIG, "Settings";
 // granola-compare-oct3 section 8). The card is one surface step up from the
-// panel, and a switch track inside it steps up again so it stays visible
-// (design-system "Contrast": raised is lighter).
+// panel (design-system "Contrast": raised is lighter). Switches need no
+// override here: the shared off track meets 3:1 on the card.
 export function SettingsCard({
   children,
   className,
@@ -26,7 +26,6 @@ export function SettingsCard({
       className={cn([
         "border-border bg-muted divide-border flex min-w-0 flex-col divide-y rounded-xl border",
         "[&>*]:px-4 [&>*]:py-3.5",
-        "[&_[role=switch][data-state=unchecked]]:bg-accent",
         className,
       ])}
     >
@@ -38,13 +37,19 @@ export function SettingsCard({
 // A group title above a card (sentence case, a real heading, not an
 // eyebrow on one element) and the card itself.
 export function SettingsGroup({
+  id,
   title,
   action,
+  footer,
   children,
   className,
 }: {
+  /** An anchor for links that open this group (settings/sections.ts). */
+  id?: string;
   title?: ReactNode;
   action?: ReactNode;
+  /** A small muted note under the card, as macOS grouped-form footers. */
+  footer?: ReactNode;
   children: ReactNode;
   className?: string;
 }) {
@@ -52,8 +57,9 @@ export function SettingsGroup({
 
   return (
     <section
+      id={id}
       aria-labelledby={title ? titleId : undefined}
-      className={cn(["flex min-w-0 flex-col gap-2", className])}
+      className={cn(["flex min-w-0 scroll-mt-6 flex-col gap-2", className])}
     >
       {title || action ? (
         <div className="flex min-h-6 items-center justify-between gap-3 px-1">
@@ -66,6 +72,9 @@ export function SettingsGroup({
         </div>
       ) : null}
       <SettingsCard>{children}</SettingsCard>
+      {footer ? (
+        <p className="text-muted-foreground px-1 text-xs">{footer}</p>
+      ) : null}
     </section>
   );
 }

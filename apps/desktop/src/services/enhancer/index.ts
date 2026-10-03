@@ -47,6 +47,10 @@ type EnhanceOpts = {
   templateId?: string | null;
   targetNoteId?: string;
   templateTitle?: string;
+  // Fork: a manual Generate summary may run on typed notes when too little
+  // was said (Granola enhances typed notes after any meeting:
+  // docs.granola.ai/help-center/getting-started/granola-101; NN/g #3).
+  allowShortTranscript?: boolean;
 };
 
 type EnhancerEvent =
@@ -134,6 +138,7 @@ export class EnhancerService {
   private pendingRetries = new Map<string, ReturnType<typeof setTimeout>>();
   private pendingResumeTimer: ReturnType<typeof setTimeout> | null = null;
   private unsubscribe: (() => void) | null = null;
+  private removeOnlineListener: (() => void) | null = null;
   private eventListeners = new Set<(event: EnhancerEvent) => void>();
   private started = false;
 
@@ -151,12 +156,26 @@ export class EnhancerService {
       }
     });
     this.schedulePendingAutoEnhanceResume(0);
+
+    // Fork: back online, retry waiting summaries at once instead of after
+    // the backoff, which can reach 15 minutes (journey-meeting P3; NN/g #1).
+    if (typeof window !== "undefined") {
+      const handleOnline = () => {
+        this.autoEnhanceFailures.clear();
+        void this.resumePendingAutoEnhance();
+      };
+      window.addEventListener("online", handleOnline);
+      this.removeOnlineListener = () =>
+        window.removeEventListener("online", handleOnline);
+    }
   }
 
   dispose() {
     this.started = false;
     this.unsubscribe?.();
     this.unsubscribe = null;
+    this.removeOnlineListener?.();
+    this.removeOnlineListener = null;
     for (const timer of this.pendingRetries.values()) clearTimeout(timer);
     this.pendingRetries.clear();
     if (this.pendingResumeTimer) clearTimeout(this.pendingResumeTimer);
@@ -469,7 +488,11 @@ export class EnhancerService {
 
     const snapshot = await this.loadSession(sessionId);
     const eligibility = getEligibility(snapshot.transcripts);
-    if (!eligibility.eligible && eligibility.code === "transcript_too_short") {
+    if (
+      !opts?.allowShortTranscript &&
+      !eligibility.eligible &&
+      eligibility.code === "transcript_too_short"
+    ) {
       this.emit({
         type: "auto-enhance-skipped",
         sessionId,
@@ -511,6 +534,8 @@ export class EnhancerService {
     }
 
     if (targetNote) {
+      // Fork: switch the template and title but keep the old body until the
+      // new summary is written (journey-meeting P2).
       await this.replaceNoteTemplate(
         sessionId,
         targetNote.id,
@@ -520,14 +545,12 @@ export class EnhancerService {
       note = {
         ...targetNote,
         title: opts?.templateTitle?.trim() || "Summary",
-        markdown: "",
-        content: "",
-        contentFormat: "prosemirror_json",
         templateId: templateId ?? "",
       };
     }
 
     if (
+      !targetNote &&
       existingTask?.status === "success" &&
       hasSummaryContent(note.content, snapshot.title)
     ) {

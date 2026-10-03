@@ -144,8 +144,15 @@ export function MeetingImportScreen({
   const historyQuery = useMeetingImportHistory();
   const history = historyQuery.data ?? EMPTY_MEETING_IMPORT_HISTORY;
   const detectedProviders = detectionQuery.data ?? [];
+  // Fork: Nango rows (Zoom, Teams, Notion, Fathom, Meet, Webex) need the
+  // upstream Anarlog account, which Upshot doesn't have; "Connect" led to a
+  // dead-end sign-in. Keep Granola (MCP), Plaud (CLI) and file imports
+  // (journey-after P1 "Imports"; NN/g #5, #10).
   const connectedProviders = detectedProviders
-    .filter((provider) => isDirectMeetingImport(provider))
+    .filter(
+      (provider) =>
+        isDirectMeetingImport(provider) && !isNangoMeetingImport(provider),
+    )
     .sort(compareProviders);
   const mcpProviders = connectedProviders.filter(isLocalConnectedImport);
   const nangoProviders = connectedProviders.filter(isNangoMeetingImport);

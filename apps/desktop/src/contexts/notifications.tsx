@@ -35,15 +35,27 @@ interface NotificationState {
 
 const NotificationContext = createContext<NotificationState | null>(null);
 
+// Fork: the same name onboarding uses (journey-first-run P2, NN/g #4).
 const MODEL_DISPLAY_NAMES: Partial<Record<LocalModel, string>> = {
-  "soniqo-parakeet-streaming": "Soniqo Parakeet Streaming",
-  "soniqo-parakeet-batch": "Soniqo Parakeet Batch",
+  "soniqo-parakeet-streaming": "Parakeet",
+  "soniqo-parakeet-batch": "Parakeet",
   "am-parakeet-v2": "Parakeet v2",
   "am-parakeet-v3": "Parakeet v3",
   "am-whisper-large-v3": "Whisper Large v3",
   QuantizedTinyEn: "Whisper Tiny (English)",
   QuantizedSmallEn: "Whisper Small (English)",
 };
+
+// Fork: onboarding shows its own download error in place, so the global toast
+// would say it twice (journey-first-run P2).
+export function isOnboardingVisible(
+  pathname = typeof window === "undefined" ? "" : window.location.pathname,
+  currentTabType = useTabs.getState().currentTab?.type,
+): boolean {
+  return (
+    pathname.startsWith("/app/onboarding") || currentTabType === "onboarding"
+  );
+}
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const {
@@ -96,7 +108,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       // Fork: a user-initiated cancel arrives as Failed("Download cancelled")
       // (crates/model-downloader manager.rs); it isn't an error to report.
       const isCancelled = isFailed && /cancel/i.test(status.failed);
-      if (isFailed && !isCancelled) {
+      if (isFailed && !isCancelled && !isOnboardingVisible()) {
         const modelName = MODEL_DISPLAY_NAMES[eventModel] ?? eventModel;
         toast.error(`Couldn’t download ${modelName}`, {
           description: status.failed,

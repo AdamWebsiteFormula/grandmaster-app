@@ -3,15 +3,33 @@ import { useLingui } from "@lingui/react/macro";
 import {
   CheckCircle,
   Copy,
+  Globe,
   MagnifyingGlass,
   PencilSimple,
 } from "@anlg/ui/components/icons";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@anlg/ui/components/ui/popover";
 import { cn } from "@anlg/utils";
 
 import { useCopyTranscript } from "./header-transcript";
 import { useSearch } from "./search/context";
 
+import {
+  ResumeRecordingButton,
+  useCanResumeRecording,
+} from "~/session/components/resume-recording";
 import { useHasTranscript } from "~/session/components/shared";
+import {
+  CORE_TRANSCRIPTION_LANGUAGE_CODES,
+  getAdditionalSpokenLanguages,
+  getBaseLanguageDisplayName,
+} from "~/settings/general/language";
+import { MainLanguageView } from "~/settings/general/main-language";
+import { useSetSettingValues } from "~/settings/queries";
+import { useConfigValue } from "~/shared/config";
 import type { EditorView } from "~/store/zustand/tabs/schema";
 import { useListener } from "~/stt/contexts";
 
@@ -21,14 +39,22 @@ const toolbarButtonClassName = cn([
   "aria-pressed:bg-accent aria-pressed:text-foreground",
 ]);
 
+// Fork: a small switch with a quiet selected pill: the page background with
+// a field border (3:1 or more on the track, WCAG 2.2 SC 1.4.11), not a solid
+// white pill (redline2-oct3, R2).
 const segmentClassName = cn([
-  "inline-flex h-7 cursor-pointer items-center rounded-full px-3 text-xs font-medium transition-colors",
+  "inline-flex h-6 cursor-pointer items-center rounded-full px-2 text-xs font-medium transition-colors",
+  "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
+]);
+
+const languageChipClassName = cn([
+  "text-muted-foreground hover:bg-accent hover:text-foreground inline-flex h-7 max-w-40 min-w-0 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-xs whitespace-nowrap transition-colors",
   "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
 ]);
 
 // Fork: one h-8 row under the audio player. On the left a Summary /
 // Transcript switch, so the way back to the summary is always in view; on
-// the right search, edit and copy together (redline-oct3, H2; Granola's
+// the right language, search, edit and copy together (redline-oct3, H2; Granola's
 // transcript bar keeps its tools in one slim row, granola-compare-oct3 §2).
 export function TranscriptToolbar({
   sessionId,
@@ -47,6 +73,7 @@ export function TranscriptToolbar({
   const search = useSearch();
   const hasTranscript = useHasTranscript(sessionId);
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
+  const canResume = useCanResumeRecording(sessionId);
   const { canCopyTranscript, copyTranscript } = useCopyTranscript(sessionId);
   const canEdit =
     sessionMode === "inactive" && hasTranscript && Boolean(onEditModeChange);
@@ -69,7 +96,7 @@ export function TranscriptToolbar({
           role="group"
           aria-label={t`View`}
           data-transcript-view-switch
-          className="bg-muted inline-flex h-8 items-center gap-0.5 rounded-full p-0.5"
+          className="bg-muted inline-flex h-7 items-center gap-0.5 rounded-full p-0.5"
         >
           <button
             type="button"
@@ -85,13 +112,22 @@ export function TranscriptToolbar({
           <button
             type="button"
             aria-pressed
-            className={cn([segmentClassName, "bg-foreground text-background"])}
+            className={cn([
+              segmentClassName,
+              "bg-background text-foreground ring-input ring-1 ring-inset",
+            ])}
           >
             {t`Transcript`}
           </button>
         </div>
       ) : null}
       <div className="flex-1" />
+      {/* Fork: Resume at the foot of the transcript, as in Granola screen 06
+          (journey-meeting P1). */}
+      {sessionMode === "inactive" && hasTranscript && canResume ? (
+        <ResumeRecordingButton sessionId={sessionId} variant="toolbar" />
+      ) : null}
+      <TranscriptLanguageChip />
       {search ? (
         <button
           type="button"
@@ -135,4 +171,76 @@ export function TranscriptToolbar({
       ) : null}
     </div>
   );
+}
+
+// Fork: the spoken language, picked in place in a small popover with the
+// same select as Settings › General, so the live note stays open (Granola
+// screen 06: language picker inline in the transcript footer;
+// journey-meeting P3). Transcription itself is untouched; a change applies
+// to the next recording and summary.
+function TranscriptLanguageChip() {
+  const { t } = useLingui();
+  const setSettingValues = useSetSettingValues();
+  const mainLanguage = useConfigValue("ai_language");
+  const spokenLanguages = useConfigValue("spoken_languages");
+  const extraLanguages = parseLanguageList(spokenLanguages);
+  const extraCount = extraLanguages.filter(
+    (code) => code && code !== mainLanguage,
+  ).length;
+  const name = mainLanguage ? getBaseLanguageDisplayName(mainLanguage) : "";
+  if (!name) {
+    return null;
+  }
+  const label = extraCount > 0 ? `${name} +${extraCount}` : name;
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          title={t`Spoken language`}
+          className={languageChipClassName}
+        >
+          <Globe aria-hidden className="text-muted-foreground size-3.5" />
+          <span className="truncate">{label}</span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="end"
+        sideOffset={6}
+        data-transcript-language-popover
+        className="w-80 p-4"
+      >
+        <MainLanguageView
+          value={mainLanguage}
+          supportedLanguages={CORE_TRANSCRIPTION_LANGUAGE_CODES}
+          onChange={(value) =>
+            setSettingValues({
+              ai_language: value,
+              spoken_languages: JSON.stringify(
+                getAdditionalSpokenLanguages(value, extraLanguages),
+              ),
+            })
+          }
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function parseLanguageList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === "string");
+  }
+  if (typeof value !== "string" || !value.trim()) {
+    return [];
+  }
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === "string")
+      : [];
+  } catch {
+    return [];
+  }
 }

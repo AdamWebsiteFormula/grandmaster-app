@@ -30,13 +30,18 @@ type AccountState = {
   loaded: boolean;
   /** Set when a checkout opened in the browser; cleared when Pro shows. */
   checkoutPendingSince: number | null;
+  /** The Worker rejected the refresh token, so this Mac signed out. */
+  sessionEnded: boolean;
 };
 
 export const useUpshotAccount = create<AccountState>(() => ({
   session: null,
   loaded: false,
   checkoutPendingSince: null,
+  sessionEnded: false,
 }));
+
+export const SESSION_ENDED = "Your session ended. Sign in again.";
 
 export class UpshotRequestError extends Error {
   constructor(
@@ -182,15 +187,29 @@ export async function signInUpshot(
     { body: { email, password } },
   );
   await saveSession(toSession(data, email));
+  useUpshotAccount.setState({ sessionEnded: false });
 }
 
 export async function signOutUpshot(): Promise<void> {
+  useUpshotAccount.setState({ sessionEnded: false });
   await saveSession(null);
 }
 
-let refreshing: Promise<UpshotSession | null> | null = null;
+/**
+ * Delete the Upshot account on the Worker (Stripe customer, then the
+ * Supabase user), then sign out on this Mac. Notes stay on the Mac.
+ */
+export async function deleteUpshotAccount(): Promise<void> {
+  await upshotAuthedRequest<{ deleted: boolean }>("/account/delete", {
+    method: "POST",
+    body: {},
+  });
+  await signOutUpshot();
+}
 
-async function refresh(session: UpshotSession): Promise<UpshotSession | null> {
+let refreshing: Promise<UpshotSession> | null = null;
+
+async function refresh(session: UpshotSession): Promise<UpshotSession> {
   try {
     const data = await workerFetch<WorkerSession>("/auth/refresh", {
       body: { refresh_token: session.refresh_token },
@@ -199,16 +218,23 @@ async function refresh(session: UpshotSession): Promise<UpshotSession | null> {
     await saveSession(next);
     return next;
   } catch (error) {
-    // A rejected refresh token means the session is over; a network error
-    // keeps it for the next try.
+    // Fork: only a rejected refresh token ends the session; a network or
+    // Worker error keeps it and says what went wrong, instead of a false
+    // "Sign in to continue." (journey-account-settings P2; NN/g #9).
     if (error instanceof UpshotRequestError && error.status === 401) {
       await saveSession(null);
+      useUpshotAccount.setState({ sessionEnded: true });
+      throw new UpshotRequestError(SESSION_ENDED, 401, "session_ended");
     }
-    return null;
+    throw error;
   }
 }
 
-/** A valid access token, refreshed when it is about to expire, or null. */
+/**
+ * A valid access token, refreshed when it is about to expire, or null when
+ * signed out. Throws UpshotRequestError when the refresh fails (status 0
+ * offline, 401 when the session ended).
+ */
 export async function getUpshotAccessToken(
   nowSeconds = Date.now() / 1000,
 ): Promise<string | null> {
@@ -221,7 +247,7 @@ export async function getUpshotAccessToken(
   refreshing ??= refresh(session).finally(() => {
     refreshing = null;
   });
-  return (await refreshing)?.access_token ?? null;
+  return (await refreshing).access_token;
 }
 
 /** Call the Worker as the signed-in user. */
@@ -240,7 +266,9 @@ export async function upshotAuthedRequest<T>(
  * Auto requests use plain providerFetch and carry no token.
  */
 export const upshotAuthFetch: typeof fetch = async (input, init) => {
-  const token = await getUpshotAccessToken();
+  // A failed refresh sends the request without a token; the Worker then
+  // answers on Auto instead of failing the chat.
+  const token = await getUpshotAccessToken().catch(() => null);
   const headers = new Headers(init?.headers);
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
@@ -258,5 +286,6 @@ export function resetUpshotAccountForTests(): void {
     session: null,
     loaded: false,
     checkoutPendingSince: null,
+    sessionEnded: false,
   });
 }

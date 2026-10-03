@@ -4,6 +4,47 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   openSearch: vi.fn(),
   copyTranscript: vi.fn(),
+  openNew: vi.fn(),
+  setSettingValues: vi.fn(),
+  canResume: false,
+  sessionMode: "inactive",
+}));
+
+vi.mock("~/settings/queries", () => ({
+  useSetSettingValues: () => mocks.setSettingValues,
+}));
+
+vi.mock("~/settings/general/main-language", () => ({
+  MainLanguageView: ({
+    value,
+    onChange,
+  }: {
+    value: string;
+    onChange: (value: string) => void;
+  }) => (
+    <button type="button" onClick={() => onChange("de")}>
+      {`Main language ${value}`}
+    </button>
+  ),
+}));
+
+vi.mock("~/session/components/resume-recording", () => ({
+  useCanResumeRecording: () => mocks.canResume,
+  ResumeRecordingButton: ({ variant }: { variant: string }) => (
+    <button type="button" aria-label="Resume recording" data-variant={variant}>
+      Resume
+    </button>
+  ),
+}));
+
+vi.mock("~/shared/config", () => ({
+  useConfigValue: (key: string) =>
+    key === "ai_language" ? "en" : key === "spoken_languages" ? '["de"]' : "",
+}));
+
+vi.mock("~/store/zustand/tabs", () => ({
+  useTabs: (selector: (state: unknown) => unknown) =>
+    selector({ openNew: mocks.openNew }),
 }));
 
 vi.mock("./search/context", () => ({
@@ -23,7 +64,7 @@ vi.mock("~/session/components/shared", () => ({
 
 vi.mock("~/stt/contexts", () => ({
   useListener: (selector: (state: unknown) => unknown) =>
-    selector({ getSessionMode: () => "inactive" }),
+    selector({ getSessionMode: () => mocks.sessionMode }),
 }));
 
 import { TranscriptToolbar } from "./transcript-toolbar";
@@ -36,9 +77,49 @@ const transcript = { type: "transcript" } as EditorView;
 // Fork: one h-8 row under the player with a way back to the summary
 // (redline-oct3, H2).
 describe("TranscriptToolbar", () => {
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    mocks.canResume = false;
+    mocks.sessionMode = "inactive";
+    mocks.setSettingValues.mockClear();
+    mocks.openNew.mockClear();
+  });
 
-  it("keeps the view switch, search, edit and copy in one h-8 row", () => {
+  // Fork tests: journey-meeting P1 (Resume) and P3 (language in place).
+  it("offers Resume before the language chip once recording stops", () => {
+    mocks.canResume = true;
+    render(<TranscriptToolbar sessionId="session-1" editMode={false} />);
+
+    const toolbar = screen.getByRole("toolbar", { name: "Transcript" });
+    const labels = Array.from(toolbar.querySelectorAll("button")).map(
+      (button) => button.getAttribute("aria-label") ?? button.textContent,
+    );
+    expect(labels.slice(0, 2)).toEqual(["Resume recording", "English +1"]);
+    expect(
+      screen
+        .getByRole("button", { name: "Resume recording" })
+        .getAttribute("data-variant"),
+    ).toBe("toolbar");
+  });
+
+  it("offers no Resume while recording or when it can't start", () => {
+    mocks.canResume = true;
+    mocks.sessionMode = "active";
+    render(<TranscriptToolbar sessionId="session-1" editMode={false} />);
+    expect(
+      screen.queryByRole("button", { name: "Resume recording" }),
+    ).toBeNull();
+    cleanup();
+
+    mocks.sessionMode = "inactive";
+    mocks.canResume = false;
+    render(<TranscriptToolbar sessionId="session-1" editMode={false} />);
+    expect(
+      screen.queryByRole("button", { name: "Resume recording" }),
+    ).toBeNull();
+  });
+
+  it("keeps the view switch, language, search, edit and copy in one h-8 row", () => {
     render(
       <TranscriptToolbar
         sessionId="session-1"
@@ -58,6 +139,7 @@ describe("TranscriptToolbar", () => {
     ).toEqual([
       "Summary",
       "Transcript",
+      "English +1",
       "Search transcript",
       "Edit transcript",
       "Copy transcript",
@@ -81,5 +163,40 @@ describe("TranscriptToolbar", () => {
     fireEvent.click(screen.getByRole("button", { name: "Summary" }));
 
     expect(onSelectView).toHaveBeenCalledWith(summary);
+  });
+
+  // redline2-oct3 R2: a small switch with a quiet selected pill.
+  it("draws a small switch with a quiet selected segment", () => {
+    render(
+      <TranscriptToolbar
+        sessionId="session-1"
+        editMode={false}
+        editorTabs={[summary, transcript]}
+        onSelectView={vi.fn()}
+      />,
+    );
+
+    const selected = screen.getByRole("button", { name: "Transcript" });
+    expect(selected.className).toContain("h-6");
+    expect(selected.className).toContain("px-2");
+    expect(selected.className).toContain("text-xs");
+    expect(selected.className).toContain("bg-background");
+    expect(selected.className).not.toContain("bg-foreground");
+  });
+
+  it("changes the language in place instead of opening Settings", async () => {
+    render(<TranscriptToolbar sessionId="session-1" editMode={false} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "English +1" }));
+    const picker = await screen.findByRole("button", {
+      name: "Main language en",
+    });
+    expect(mocks.openNew).not.toHaveBeenCalled();
+
+    fireEvent.click(picker);
+    expect(mocks.setSettingValues).toHaveBeenCalledWith({
+      ai_language: "de",
+      spoken_languages: "[]",
+    });
   });
 });

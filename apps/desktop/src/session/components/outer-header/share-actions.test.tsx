@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   buildNotesMailto,
+  getAttendeeEmails,
   MAILTO_BODY_LIMIT,
   markdownToPlainText,
   useNoteShareActions,
@@ -14,6 +15,7 @@ const mocks = vi.hoisted(() => ({
   toastSuccess: vi.fn(),
   rawMd: "",
   enhancedContent: "",
+  participants: [] as { email: string; human_id: string }[],
 }));
 
 vi.mock("@anlg/plugin-opener2", () => ({
@@ -30,7 +32,12 @@ vi.mock("~/session/components/note-input/header-shared", () => ({
 }));
 
 vi.mock("~/session/queries", () => ({
-  useSession: () => ({ title: "Weekly sync", raw_md: mocks.rawMd }),
+  useSession: () => ({
+    title: "Weekly sync",
+    raw_md: mocks.rawMd,
+    user_id: "me",
+  }),
+  useSessionParticipants: () => mocks.participants,
   useEnhancedNoteRecords: () => [{ id: "summary-1" }],
   useEnhancedNote: (id: string) =>
     id ? { content: mocks.enhancedContent } : undefined,
@@ -63,6 +70,49 @@ describe("markdownToPlainText", () => {
         "Done.",
       ].join("\n"),
     );
+  });
+});
+
+// Fork tests: journey-meeting P2 (follow-up email recipients).
+describe("getAttendeeEmails", () => {
+  it("keeps valid, unique attendee addresses and drops the owner", () => {
+    expect(
+      getAttendeeEmails(
+        [
+          { email: "me@example.com", human_id: "me" },
+          { email: "ana@example.com", human_id: "h1" },
+          { email: "ANA@example.com", human_id: "h2" },
+          { email: "", human_id: "h3" },
+          { email: "not an email", human_id: "h4" },
+          { email: "x@y.com?cc=evil@z.com", human_id: "h5" },
+          { email: " bo@example.org ", human_id: "h6" },
+        ],
+        "me",
+      ),
+    ).toEqual(["ana@example.com", "bo@example.org"]);
+  });
+});
+
+describe("buildNotesMailto recipients", () => {
+  it("fills the To line from the attendees", () => {
+    const { url } = buildNotesMailto({
+      title: "Weekly sync",
+      body: "Notes",
+      truncatedNote: "",
+      to: ["ana@example.com", "bo+team@example.org"],
+    });
+    expect(
+      url.startsWith("mailto:ana%40example.com,bo%2Bteam%40example.org?"),
+    ).toBe(true);
+  });
+
+  it("leaves the To line empty with no attendees", () => {
+    const { url } = buildNotesMailto({
+      title: "Weekly sync",
+      body: "Notes",
+      truncatedNote: "",
+    });
+    expect(url.startsWith("mailto:?subject=")).toBe(true);
   });
 });
 

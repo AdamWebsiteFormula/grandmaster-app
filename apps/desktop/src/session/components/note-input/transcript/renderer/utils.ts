@@ -98,7 +98,10 @@ export function getSegmentColor(
   const channelOffset = key.speaker_human_id
     ? 0
     : key.channel === "RemoteParty"
-      ? 180
+      ? // Fork: 90, not 180, so remote speaker 0 lands at hue 310 (violet),
+        // not hue 40, the orange accent's hue (journey-meeting P3;
+        // design-system.md: speakers never read as the accent).
+        90
       : 0;
   // Golden-angle spacing keeps consecutive speakers visually distinct.
   // Fork: start at a cool hue (220) at low chroma, so speakers never read as the orange accent.
@@ -120,18 +123,15 @@ export function useSegmentColorVars(key: SegmentKey): SegmentColorVars {
 }
 
 // Fork: Granola lays the transcript out as chat bubbles: your lines on the
-// right, everyone else on the left with the speaker name over the first bubble
-// of a run, and a centered timestamp between runs (granola-compare-oct3 §2).
-// Fork: a time label about every 30 s, as Granola's transcript shows
-// (redline-oct3, H2).
-export const TRANSCRIPT_TIMESTAMP_INTERVAL_MS = 30_000;
-
+// right, everyone else on the left (granola-compare-oct3 §2). Each bubble
+// has a small "Name · 00:14" label above it ("You · 00:14" for your own),
+// replacing the centered time labels between runs (redline2-oct3, R2).
 export type SegmentBubbleLayout = {
   /** Your own words (the mic channel, unless reassigned to someone else). */
   isSelf: boolean;
-  /** First bubble of a speaker run: the speaker name shows above it. */
+  /** First bubble of a speaker run: it gets more space above it. */
   startsRun: boolean;
-  /** Centered time label shown before this bubble, or null. */
+  /** Start time shown in the bubble's label, or null without words. */
   timestamp: string | null;
 };
 
@@ -172,29 +172,20 @@ export function getSegmentBubbleLayouts(
     speakerLabels?: ReadonlyArray<string>;
   } = {},
 ): SegmentBubbleLayout[] {
-  let lastLabelMs: number | null = null;
   let previousSpeaker: string | null = null;
 
   return segments.map((segment, index) => {
     const isSelf = isSelfSegmentKey(segment.key, selfHumanId);
     const firstWord = segment.words[0];
-    let timestamp: string | null = null;
-    if (firstWord) {
-      const startMs = offsetMs + (firstWord.start_ms ?? 0);
-      if (
-        lastLabelMs === null ||
-        startMs - lastLabelMs >= TRANSCRIPT_TIMESTAMP_INTERVAL_MS
-      ) {
-        timestamp = formatTranscriptTimestamp(startMs);
-        lastLabelMs = startMs;
-      }
-    }
+    const timestamp = firstWord
+      ? formatTranscriptTimestamp(offsetMs + (firstWord.start_ms ?? 0))
+      : null;
 
     const speaker = isSelf
       ? "self"
       : (speakerLabels?.[index] ??
         `${segment.key.channel}:${segment.key.speaker_index ?? ""}:${segment.key.speaker_human_id ?? ""}`);
-    const startsRun = speaker !== previousSpeaker || timestamp !== null;
+    const startsRun = speaker !== previousSpeaker;
     previousSpeaker = speaker;
 
     return { isSelf, startsRun, timestamp };

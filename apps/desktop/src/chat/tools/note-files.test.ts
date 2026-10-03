@@ -16,6 +16,7 @@ vi.mock("~/stt/meeting-chat-records", () => ({
 vi.mock("~/session/content-queries", () => ({
   loadActiveSessionIds: mocks.loadActiveSessionIds,
   loadSessionContentSnapshot: mocks.loadSessionContentSnapshot,
+  loadReadableSessionContentSnapshot: mocks.loadSessionContentSnapshot,
 }));
 
 vi.mock("~/session/queries", () => ({

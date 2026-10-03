@@ -1,18 +1,25 @@
 import { Trans } from "@lingui/react/macro";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import { Button } from "@anlg/ui/components/ui/button";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 
 import { OnboardingButton } from "./shared";
 
 import { useAppleCalendarSelection } from "~/calendar/components/apple/calendar-selection";
-import { TroubleShootingLink } from "~/calendar/components/apple/permission";
+import {
+  NoCalendarsYet,
+  openInternetAccounts,
+  TroubleShootingLink,
+} from "~/calendar/components/apple/permission";
 import {
   type CalendarGroup,
   CalendarSelection,
 } from "~/calendar/components/calendar-selection";
 import { SyncProvider, useSync } from "~/calendar/components/context";
+import { useTurnOnCalendarsByDefault } from "~/calendar/default-calendars";
 import { useEnabledCalendars } from "~/calendar/hooks";
+import { useCalendarRows } from "~/calendar/queries";
 import { usePermission } from "~/shared/hooks/usePermissions";
 
 // Fork: Apple Calendar only. Google and Outlook need the upstream cloud
@@ -31,21 +38,47 @@ function AppleCalendarList() {
   const { scheduleSync } = useSync();
   const { groups, handleRefresh, handleToggle, isLoading } =
     useAppleCalendarSelection();
+  const calendarCount = useTurnOnCalendarsByDefault(isLoading, {
+    turnOnNewCalendars: true,
+  });
 
   useMountEffect(() => {
     scheduleSync();
   });
 
+  // Fork: calendars added in System Settings show up when the user comes
+  // back, with no Refresh click (journey-first-run P2, NN/g #1).
+  useEffect(() => {
+    const onFocus = () => handleRefresh();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [handleRefresh]);
+
   return (
-    <CalendarSelection
-      key={getCalendarSelectionKey(groups)}
-      groups={groups}
-      onToggle={handleToggle}
-      onRefresh={handleRefresh}
-      isLoading={isLoading}
-      disableHoverTone
-      className="border-border bg-card rounded-xl border p-4"
-    />
+    <div className="flex flex-col gap-2">
+      {calendarCount > 0 && (
+        <p className="text-muted-foreground text-sm">
+          <Trans>Turn off any calendar you don't meet from.</Trans>
+        </p>
+      )}
+      <CalendarSelection
+        key={getCalendarSelectionKey(groups)}
+        groups={groups}
+        onToggle={handleToggle}
+        onRefresh={handleRefresh}
+        isLoading={isLoading}
+        disableHoverTone
+        className="border-border bg-card rounded-xl border p-4"
+        emptyState={
+          // The main button below is Add an account, so it isn't repeated here.
+          <NoCalendarsYet
+            onRefresh={handleRefresh}
+            isLoading={isLoading}
+            showAddAccount={false}
+          />
+        }
+      />
+    </div>
   );
 }
 
@@ -54,13 +87,11 @@ function AppleCalendarProvider({
   isPending,
   onRequest,
   onTroubleshoot,
-  onOpen,
 }: {
   isAuthorized: boolean;
   isPending: boolean;
   onRequest: () => void;
   onTroubleshoot: () => void;
-  onOpen: () => void;
 }) {
   return (
     <>
@@ -74,7 +105,7 @@ function AppleCalendarProvider({
         <OnboardingButton
           onClick={() => {
             if (isAuthorized) {
-              onOpen();
+              void openInternetAccounts();
               return;
             }
 
@@ -90,10 +121,11 @@ function AppleCalendarProvider({
             aria-hidden="true"
             className="size-6 rounded-[4px] object-cover"
           />
-          {/* Fork: once access is on, the button says where it goes (UX audit
-              Oct 3, A: NN/g #2). */}
+          {/* Fork: once access is on, the next useful step is adding a Google
+              or Outlook account (Apple support icl4308d6701; journey-first-run
+              P2). The Privacy pane would show Upshot already on. */}
           {isAuthorized ? (
-            <Trans>Open Calendar settings</Trans>
+            <Trans>Add an account</Trans>
           ) : (
             <Trans>Connect calendar</Trans>
           )}
@@ -109,6 +141,10 @@ function CalendarSectionContent({ onContinue }: { onContinue: () => void }) {
   const [showTroubleshooting, setShowTroubleshooting] = useState(false);
   const enabledCalendars = useEnabledCalendars();
   const hasConnectedCalendar = enabledCalendars.length > 0;
+  // Fork: when access is on and the list is empty, the empty state already
+  // explains Internet Accounts and has Add an account, so skip the repeat.
+  const appleCalendarCount = useCalendarRows("apple").length;
+  const showAccountsHint = !isAuthorized || appleCalendarCount > 0;
 
   return (
     <div className="flex flex-col gap-4">
@@ -118,18 +154,36 @@ function CalendarSectionContent({ onContinue }: { onContinue: () => void }) {
           isPending={calendar.isPending}
           onRequest={calendar.request}
           onTroubleshoot={() => setShowTroubleshooting(true)}
-          onOpen={calendar.open}
         />
       </div>
 
-      <p className="text-muted-foreground text-sm">
-        <Trans>
-          Google or Outlook calendars added in System Settings › Internet
-          Accounts show up here too.
-        </Trans>
-      </p>
+      {showAccountsHint && (
+        <div className="flex flex-col items-start gap-2">
+          <p className="text-muted-foreground text-sm">
+            <Trans>
+              Google or Outlook calendars added in System Settings › Internet
+              Accounts show up here too.
+            </Trans>
+          </p>
+          {/* Fork: Apple's way to add Google or Outlook to Calendar
+              (support.apple.com/guide/calendar/icl4308d6701). With access on,
+              the main button already says Add an account. */}
+          {!isAuthorized && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-3"
+              onClick={() => void openInternetAccounts()}
+            >
+              <Trans>Add an account</Trans>
+            </Button>
+          )}
+        </div>
+      )}
 
-      {hasConnectedCalendar && (
+      {/* Fork: Continue always shows once access is on, so the step never
+          dead-ends on a list of switches (journey-first-run P1, NN/g #3). */}
+      {(isAuthorized || hasConnectedCalendar) && (
         <OnboardingButton onClick={onContinue}>
           <Trans>Continue</Trans>
         </OnboardingButton>

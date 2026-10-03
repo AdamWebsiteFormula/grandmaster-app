@@ -42,7 +42,9 @@ export function SettingsConnectors() {
           icon={CalendarDots}
           title={<Trans>Apple Calendar</Trans>}
           description={<Trans>See upcoming meetings and pick calendars.</Trans>}
-          value={calendar.status === "authorized" ? t`Connected` : undefined}
+          // Fork: a status either way, as Granola's "1/2 Connected"
+          // (journey-account-settings P3; NN/g #1).
+          value={calendar.status === "authorized" ? t`Connected` : t`Off`}
           onClick={() => open("calendars")}
         />
         <SettingLinkRow

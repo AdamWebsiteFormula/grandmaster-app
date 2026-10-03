@@ -22,7 +22,11 @@ import {
   reasoningProviderOptions,
 } from "../reasoning-effort";
 import { streamOnlyGenerationMiddleware } from "../stream-only-generation";
-import { normalizeUpshotModel, UPSHOT_AUTO_MODEL } from "../upshot-models";
+import {
+  pickUpshotModels,
+  resolveUpshotModelPick,
+  UPSHOT_AUTO_MODEL,
+} from "../upshot-models";
 
 import { useAuth } from "~/auth";
 import { useBillingAccess } from "~/auth/billing-context";
@@ -37,6 +41,7 @@ import {
   getProviderSelectionBlockers,
   type ProviderEligibilityContext,
 } from "~/settings/ai/shared/eligibility";
+import { useModelRegistry } from "~/settings/ai/shared/use-model-registry";
 import { useAiProvider } from "~/settings/providers";
 import { useConfigValues } from "~/shared/config";
 import { upshotAuthFetch, useUpshotPro } from "~/upshot-plan";
@@ -87,6 +92,11 @@ export const useLLMConnection = (): LLMConnectionResult => {
   const session = auth?.session;
   const billing = useBillingAccess();
   const isUpshotPro = useUpshotPro();
+  const { registry } = useModelRegistry();
+  const upshotModels = useMemo(
+    () => pickUpshotModels(registry.providers.openrouter),
+    [registry],
+  );
 
   const {
     current_llm_provider,
@@ -110,9 +120,11 @@ export const useLLMConnection = (): LLMConnectionResult => {
         // (docs.granola.ai/help-center/getting-more-from-your-notes/understanding-model-selection-in-granola-chat).
         modelId:
           normalizeLLMProviderId(current_llm_provider ?? "") === "anarlog"
-            ? isUpshotPro
-              ? normalizeUpshotModel(current_llm_model)
-              : UPSHOT_AUTO_MODEL
+            ? resolveUpshotModelPick(
+                current_llm_model,
+                upshotModels,
+                isUpshotPro,
+              )
             : current_llm_model,
         reasoningEffort: normalizeReasoningEffort(current_llm_reasoning_effort),
         providerConfig,
@@ -123,6 +135,7 @@ export const useLLMConnection = (): LLMConnectionResult => {
       session,
       billing.isPaid,
       isUpshotPro,
+      upshotModels,
       current_llm_model,
       current_llm_provider,
       current_llm_reasoning_effort,

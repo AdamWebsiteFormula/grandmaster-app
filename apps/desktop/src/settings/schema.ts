@@ -39,10 +39,13 @@ export const SETTING_DEFINITIONS = {
     path: ["general", "auto_stop_meetings"],
     default: true as boolean,
   },
+  // Fork: off by default. Capture starts on a click, as in Granola ("only
+  // starts capturing audio … when you click on a notification", How
+  // transcription works); onboarding offers the switch. Journey-first-run P1.
   auto_start_scheduled_meetings: {
     type: "boolean",
     path: ["general", "auto_start_scheduled_meetings"],
-    default: true as boolean,
+    default: false as boolean,
   },
   auto_join_scheduled_meetings: {
     type: "boolean",
@@ -103,7 +106,7 @@ export const SETTING_DEFINITIONS = {
   theme: {
     type: "string",
     path: ["general", "theme"],
-    default: "dark" as string,
+    default: "system" as string, // Fork: follow the Mac (Apple HIG Dark Mode; Granola defaults to System).
     synced: true,
   },
   app_icon: {
@@ -228,6 +231,13 @@ export const SETTING_DEFINITIONS = {
   consent_auto_send_chat: {
     type: "boolean",
     path: ["general", "consent_auto_send_chat"],
+    default: false as boolean,
+  },
+  // Fork: set once calendars were turned on by default on this Mac, so a
+  // user who later turns them all off is not overridden.
+  calendar_defaults_applied: {
+    type: "boolean",
+    path: ["calendar", "defaults_applied"],
     default: false as boolean,
   },
   capture_meeting_chat: {

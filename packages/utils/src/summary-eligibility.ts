@@ -1,7 +1,10 @@
 export const MIN_WORDS_FOR_SUMMARY = 5;
 export const MIN_TRANSCRIPT_CHARACTERS_FOR_SUMMARY = 160;
-const TOO_SHORT_FOR_SUMMARY =
-  "Too little was said for a summary. Record a bit longer, then click Generate summary.";
+// Fork: My notes now always offers Generate summary, which can run on typed
+// notes when too little was said (Granola enhances notes after any meeting:
+// docs.granola.ai/help-center/getting-started/granola-101; NN/g #1, #3).
+export const TOO_SHORT_FOR_SUMMARY =
+  "Too little was said for a full summary. Click Generate summary in My notes to make one from your notes anyway.";
 
 export type SummaryEligibilitySkipCode =
   | "no_transcript"

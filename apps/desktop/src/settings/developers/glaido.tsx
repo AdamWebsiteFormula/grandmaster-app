@@ -1,5 +1,5 @@
 import { t } from "@lingui/core/macro";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { dataDir } from "@tauri-apps/api/path";
 
 import { commands as fs2Commands } from "@anlg/plugin-fs2";
@@ -88,13 +88,27 @@ async function writeGlaidoFolder() {
   return folder;
 }
 
+// Fork: after a restart, a folder made earlier still counts, so the page
+// shows "Update folder" and the import steps instead of starting over
+// (journey-after P3 "Settings › Developers › Glaido"; NN/g #1, #6).
+export async function findGlaidoFolder(): Promise<string | null> {
+  const folder = glaidoFolderPath(await dataDir());
+  const existing = await fs2Commands.readTextFile(`${folder}/mcp.json`);
+  return existing.status === "ok" ? folder : null;
+}
+
 export function GlaidoSection() {
+  const existing = useQuery({
+    queryKey: ["glaido-folder"],
+    queryFn: findGlaidoFolder,
+    retry: false,
+  });
   const connect = useMutation({
     mutationFn: writeGlaidoFolder,
     onSuccess: () => toast.success(t`Glaido folder is ready`),
     onError: (error) => toast.error(error.message),
   });
-  const folder = connect.data;
+  const folder = connect.data ?? existing.data ?? undefined;
 
   const reveal = async () => {
     if (!folder) return;

@@ -111,6 +111,45 @@ test("error messages never ask for a key", async () => {
   }
 });
 
+// Fork: journey-after P2 "Chat provider error".
+test("provider errors become plain sentences, never raw JSON", async () => {
+  const env = {
+    OPENROUTER_API_KEY: "test",
+    RATE_LIMITER: { limit: async () => ({ success: true }) },
+  };
+  const realFetch = globalThis.fetch;
+  const cases = [
+    [429, 429, "Upshot AI is busy. Try again in a minute."],
+    [500, 502, "Upshot AI had a problem answering. Try again."],
+    [400, 502, "Upshot AI had a problem answering. Try again."],
+  ];
+  const realError = console.error;
+  console.error = () => {};
+  try {
+    for (const [upstreamStatus, status, message] of cases) {
+      globalThis.fetch = async () =>
+        new Response(
+          JSON.stringify({ error: { message: "Provider returned error" } }),
+          { status: upstreamStatus },
+        );
+      const response = await worker.fetch(
+        new Request("https://w/llm/chat/completions", {
+          method: "POST",
+          body: JSON.stringify({ messages: [{ role: "user", content: "Hi" }] }),
+        }),
+        env,
+      );
+      assert.equal(response.status, status);
+      const { error } = await response.json();
+      assert.equal(error.message, message);
+      assert.doesNotMatch(error.message, /Provider returned/);
+    }
+  } finally {
+    globalThis.fetch = realFetch;
+    console.error = realError;
+  }
+});
+
 // ---------- Accounts and Pro (billing.js, auth.js) ----------
 
 const TOKEN = "eyJhbGciOiJIUzI1NiJ9.user-token.signature";
@@ -619,6 +658,10 @@ test("checkout route posts form data to Stripe and returns the url", async () =>
   const mock = mockFetch([
     ...proRoutes(null),
     [
+      "https://api.stripe.com/v1/checkout/sessions?",
+      () => Response.json({ data: [] }),
+    ],
+    [
       "https://api.stripe.com/v1/checkout/sessions",
       (_url, init) => {
         form = new URLSearchParams(init.body);
@@ -644,6 +687,268 @@ test("checkout route posts form data to Stripe and returns the url", async () =>
     });
     assert.equal(form.get("line_items[0][price]"), "price_year");
     assert.equal(form.get("cancel_url"), "https://upshot.test/billing/cancel");
+  } finally {
+    mock.restore();
+  }
+});
+
+// journey-account-settings P2 "already_pro" and P3 "one subscription".
+function checkoutRequest() {
+  return new Request("https://upshot.test/billing/checkout", {
+    method: "POST",
+    headers: { authorization: `Bearer ${TOKEN}` },
+    body: JSON.stringify({ interval: "month" }),
+  });
+}
+
+function rowRoute(row) {
+  return [
+    "https://sb.test/rest/v1/subscriptions?",
+    () => Response.json(row ? [row] : []),
+  ];
+}
+
+test("checkout: a Pro row answers 409 with code already_pro", async () => {
+  const mock = mockFetch(proRoutes("active"));
+  try {
+    const response = await worker.fetch(checkoutRequest(), baseEnv);
+    assert.equal(response.status, 409);
+    const body = await response.json();
+    assert.equal(body.error.code, "already_pro");
+    assert.equal(body.error.message, "You already have Upshot Pro.");
+    assert.equal(
+      mock.calls.filter((c) => c.url.includes("api.stripe.com")).length,
+      0,
+    );
+  } finally {
+    mock.restore();
+  }
+});
+
+test("checkout: a live Stripe subscription before the webhook is already_pro", async () => {
+  let created = false;
+  const mock = mockFetch([
+    proRoutes(null)[0],
+    rowRoute({
+      user_id: "user-1",
+      status: "canceled",
+      stripe_customer_id: "cus_1",
+    }),
+    [
+      "https://api.stripe.com/v1/subscriptions?",
+      (url) => {
+        const query = new URL(url).searchParams;
+        assert.equal(query.get("customer"), "cus_1");
+        return Response.json({ data: [{ id: "sub_2", status: "active" }] });
+      },
+    ],
+    [
+      "https://api.stripe.com/v1/checkout/sessions",
+      () => {
+        created = true;
+        return Response.json({ url: "https://checkout.stripe.com/x" });
+      },
+    ],
+  ]);
+  try {
+    const response = await worker.fetch(checkoutRequest(), baseEnv);
+    assert.equal(response.status, 409);
+    assert.equal((await response.json()).error.code, "already_pro");
+    assert.equal(created, false);
+  } finally {
+    mock.restore();
+  }
+});
+
+test("checkout: earlier open sessions are expired before a new one", async () => {
+  const expired = [];
+  const mock = mockFetch([
+    proRoutes(null)[0],
+    rowRoute(null),
+    [
+      "https://api.stripe.com/v1/checkout/sessions?",
+      (url) => {
+        const query = new URL(url).searchParams;
+        assert.equal(query.get("status"), "open");
+        assert.equal(query.get("customer"), null);
+        return Response.json({
+          data: [
+            { id: "cs_mine", client_reference_id: "user-1" },
+            { id: "cs_other", client_reference_id: "user-2" },
+          ],
+        });
+      },
+    ],
+    [
+      "https://api.stripe.com/v1/checkout/sessions/",
+      (url, init) => {
+        assert.equal(init.method, "POST");
+        expired.push(url.split("/").at(-2));
+        return Response.json({});
+      },
+    ],
+    [
+      "https://api.stripe.com/v1/checkout/sessions",
+      () => Response.json({ url: "https://checkout.stripe.com/new" }),
+    ],
+  ]);
+  try {
+    const response = await worker.fetch(checkoutRequest(), baseEnv);
+    assert.equal(response.status, 200);
+    assert.deepEqual(expired, ["cs_mine"]);
+  } finally {
+    mock.restore();
+  }
+});
+
+test("checkout: Stripe list errors never block a new checkout", async () => {
+  const mock = mockFetch([
+    proRoutes(null)[0],
+    rowRoute({ user_id: "user-1", status: null, stripe_customer_id: "cus_1" }),
+    [
+      "https://api.stripe.com/v1/subscriptions?",
+      () => new Response("{}", { status: 500 }),
+    ],
+    [
+      "https://api.stripe.com/v1/checkout/sessions?",
+      () => new Response("{}", { status: 500 }),
+    ],
+    [
+      "https://api.stripe.com/v1/checkout/sessions",
+      () => Response.json({ url: "https://checkout.stripe.com/new" }),
+    ],
+  ]);
+  try {
+    const response = await worker.fetch(checkoutRequest(), baseEnv);
+    assert.equal(response.status, 200);
+  } finally {
+    mock.restore();
+  }
+});
+
+// journey-account-settings P3 "account removal".
+function deleteRequest(token = TOKEN) {
+  return new Request("https://upshot.test/account/delete", {
+    method: "POST",
+    headers: token ? { authorization: `Bearer ${token}` } : {},
+  });
+}
+
+test("account delete: Stripe customer first, then the Supabase user", async () => {
+  const order = [];
+  const mock = mockFetch([
+    proRoutes(null)[0],
+    rowRoute({
+      user_id: "user-1",
+      status: "active",
+      stripe_customer_id: "cus_1",
+    }),
+    [
+      "https://api.stripe.com/v1/customers/cus_1",
+      (_url, init) => {
+        assert.equal(init.method, "DELETE");
+        order.push("stripe");
+        return Response.json({ deleted: true });
+      },
+    ],
+    [
+      "https://sb.test/auth/v1/admin/users/user-1",
+      (_url, init) => {
+        assert.equal(init.method, "DELETE");
+        assert.equal(init.headers.apikey, "sb_secret_test");
+        order.push("supabase");
+        return Response.json({});
+      },
+    ],
+  ]);
+  try {
+    const response = await worker.fetch(deleteRequest(), baseEnv);
+    assert.equal(response.status, 200);
+    assert.deepEqual(order, ["stripe", "supabase"]);
+  } finally {
+    mock.restore();
+  }
+});
+
+test("account delete: keeps the account when billing can't be stopped", async () => {
+  let deletedUser = false;
+  const mock = mockFetch([
+    proRoutes(null)[0],
+    rowRoute({
+      user_id: "user-1",
+      status: "active",
+      stripe_customer_id: "cus_1",
+    }),
+    [
+      "https://api.stripe.com/v1/customers/cus_1",
+      () => new Response("{}", { status: 500 }),
+    ],
+    [
+      "https://sb.test/auth/v1/admin/users/",
+      () => {
+        deletedUser = true;
+        return Response.json({});
+      },
+    ],
+  ]);
+  try {
+    const response = await worker.fetch(deleteRequest(), baseEnv);
+    assert.equal(response.status, 502);
+    assert.match((await response.json()).error.message, /account was kept/);
+    assert.equal(deletedUser, false);
+  } finally {
+    mock.restore();
+  }
+});
+
+test("account delete: no customer skips Stripe; no token is 401", async () => {
+  const mock = mockFetch([
+    proRoutes(null)[0],
+    rowRoute(null),
+    ["https://sb.test/auth/v1/admin/users/user-1", () => Response.json({})],
+  ]);
+  try {
+    assert.equal(
+      (await worker.fetch(deleteRequest(null), baseEnv)).status,
+      401,
+    );
+    const response = await worker.fetch(deleteRequest(), baseEnv);
+    assert.equal(response.status, 200);
+    assert.equal(
+      mock.calls.filter((c) => c.url.includes("api.stripe.com")).length,
+      0,
+    );
+  } finally {
+    mock.restore();
+  }
+});
+
+test("webhook after account deletion is ignored, not retried", async () => {
+  const mock = mockFetch([
+    [
+      "https://api.stripe.com/v1/subscriptions/sub_9",
+      () =>
+        Response.json({
+          id: "sub_9",
+          status: "canceled",
+          customer: "cus_9",
+          metadata: { user_id: "gone-user" },
+        }),
+    ],
+    ["https://sb.test/rest/v1/subscriptions?", () => Response.json([])],
+    [
+      "https://sb.test/rest/v1/subscriptions",
+      () => new Response('{"code":"23503"}', { status: 409 }),
+    ],
+  ]);
+  try {
+    assert.equal(
+      await handleEvent(baseEnv, {
+        type: "customer.subscription.deleted",
+        data: { object: { id: "sub_9" } },
+      }),
+      "orphan",
+    );
   } finally {
     mock.restore();
   }

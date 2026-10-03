@@ -20,6 +20,22 @@ import { useSession, useUpdateSession } from "~/session/queries";
 import { useLiveTitle } from "~/store/zustand/live-title";
 import { type Tab } from "~/store/zustand/tabs";
 
+type TitleVariant = "title" | "breadcrumb" | "note";
+
+// Fork: "note" is the title line above the chip row in My notes, set like the
+// Summary's first-line title (Bricolage display, 1.728rem), as Granola puts
+// the title above its chips (granola-compare-oct3 §1, screen 04).
+const titleBoxClassName: Record<TitleVariant, string> = {
+  breadcrumb: "h-5",
+  title: "h-8",
+  note: "h-9",
+};
+const titleTextClassName: Record<TitleVariant, string> = {
+  breadcrumb: "text-sm leading-5",
+  title: "text-xl font-semibold",
+  note: "font-display text-[1.728rem] leading-9 font-semibold tracking-[-0.01em]",
+};
+
 export interface TitleInputHandle {
   focus: () => void;
   focusAtEnd: () => void;
@@ -33,7 +49,7 @@ export const TitleInput = forwardRef<
     onTransferContentToEditor?: (content: string) => void;
     onFocusEditorAtStart?: () => void;
     onFocusEditorAtPixelWidth?: (pixelWidth: number) => void;
-    variant?: "title" | "breadcrumb";
+    variant?: TitleVariant;
   }
 >(
   (
@@ -78,15 +94,13 @@ export const TitleInput = forwardRef<
           data-tauri-drag-region="false"
           className={cn([
             "flex w-full items-center justify-start",
-            variant === "breadcrumb" ? "h-5" : "h-8",
+            titleBoxClassName[variant],
           ])}
         >
           <span
             className={cn([
               "text-muted-foreground animate-pulse",
-              variant === "breadcrumb"
-                ? "text-sm leading-5"
-                : "text-xl font-semibold",
+              titleTextClassName[variant],
             ])}
           >
             <Trans>Generating title…</Trans>
@@ -101,15 +115,13 @@ export const TitleInput = forwardRef<
           data-tauri-drag-region="false"
           className={cn([
             "flex w-full items-center justify-start overflow-hidden",
-            variant === "breadcrumb" ? "h-5" : "h-8",
+            titleBoxClassName[variant],
           ])}
         >
           <span
             className={cn([
               "animate-reveal-left whitespace-nowrap",
-              variant === "breadcrumb"
-                ? "text-sm leading-5"
-                : "text-xl font-semibold",
+              titleTextClassName[variant],
             ])}
           >
             {generatedTitle}
@@ -143,7 +155,7 @@ const TitleInputInner = memo(
       onTransferContentToEditor?: (content: string) => void;
       onFocusEditorAtStart?: () => void;
       onFocusEditorAtPixelWidth?: (pixelWidth: number) => void;
-      variant: "title" | "breadcrumb";
+      variant: TitleVariant;
     }
   >(
     (
@@ -393,10 +405,10 @@ const TitleInputInner = memo(
           data-tauri-drag-region="false"
           style={titleFadeStyle}
           className={cn([
-            "group/title-input relative grid w-fit max-w-full grid-cols-[minmax(0,1fr)] items-center overflow-hidden",
-            variant === "breadcrumb"
-              ? "h-5 text-sm leading-5"
-              : "h-8 text-xl font-semibold",
+            "group/title-input relative grid max-w-full grid-cols-[minmax(0,1fr)] items-center overflow-hidden",
+            variant === "note" ? "w-full" : "w-fit",
+            titleBoxClassName[variant],
+            titleTextClassName[variant],
           ])}
         >
           <span
@@ -449,7 +461,8 @@ const TitleInputInner = memo(
               "placeholder:text-muted-foreground text-left",
               variant === "breadcrumb"
                 ? "text-foreground h-5 appearance-none p-0 text-sm leading-5 focus:underline"
-                : "text-xl font-semibold",
+                : titleTextClassName[variant],
+              variant === "note" && "text-foreground h-9 p-0",
               variant === "breadcrumb" &&
                 (isTitleFocused
                   ? "overflow-x-auto whitespace-nowrap"
@@ -466,9 +479,7 @@ const TitleInputInner = memo(
                 style={titleHoverScrollStyle}
                 className={cn([
                   "group-hover/title-input:animate-title-hover-scroll whitespace-nowrap group-hover/title-input:will-change-transform",
-                  variant === "breadcrumb"
-                    ? "text-sm leading-5"
-                    : "text-xl font-semibold",
+                  titleTextClassName[variant],
                 ])}
               >
                 {title}

@@ -24,10 +24,13 @@ vi.mock("@anlg/plugin-store2", () => ({
 }));
 
 import {
+  deleteUpshotAccount,
   getUpshotAccessToken,
   resetUpshotAccountForTests,
   signInUpshot,
   signOutUpshot,
+  upshotAuthedRequest,
+  upshotAuthFetch,
   useUpshotAccount,
 } from "./session";
 
@@ -128,17 +131,112 @@ describe("Upshot account session", () => {
     mocks.fetch.mockResolvedValue(
       Response.json({ error: { message: "ended" } }, { status: 401 }),
     );
-    expect(await getUpshotAccessToken(NOW)).toBeNull();
+    // journey-account-settings P2: only a rejected refresh token reads
+    // "Your session ended" and signs out.
+    await expect(getUpshotAccessToken(NOW)).rejects.toMatchObject({
+      message: "Your session ended. Sign in again.",
+      status: 401,
+      code: "session_ended",
+    });
     expect(useUpshotAccount.getState().session).toBeNull();
+    expect(useUpshotAccount.getState().sessionEnded).toBe(true);
     expect(mocks.saved).toBeNull();
   });
 
   it("keeps the session when the network is down", async () => {
     saveSession(NOW - 10);
     mocks.fetch.mockRejectedValue(new TypeError("offline"));
-    expect(await getUpshotAccessToken(NOW)).toBeNull();
+    await expect(getUpshotAccessToken(NOW)).rejects.toMatchObject({
+      message: "Could not reach Upshot. Check your connection.",
+      status: 0,
+    });
     expect(useUpshotAccount.getState().session?.email).toBe(
       "judge@example.com",
     );
+    expect(useUpshotAccount.getState().sessionEnded).toBe(false);
+  });
+
+  // journey-account-settings P2: offline after sleep is not "Sign in".
+  it("an authed request offline says Could not reach, not Sign in", async () => {
+    saveSession(Date.now() / 1000 - 10);
+    mocks.fetch.mockRejectedValue(new TypeError("offline"));
+    await expect(upshotAuthedRequest("/billing/status")).rejects.toMatchObject({
+      message: "Could not reach Upshot. Check your connection.",
+      status: 0,
+    });
+  });
+
+  it("a Worker 5xx on refresh keeps the session and its message", async () => {
+    saveSession(Date.now() / 1000 - 10);
+    mocks.fetch.mockResolvedValue(
+      Response.json({ error: { message: "Down" } }, { status: 503 }),
+    );
+    await expect(upshotAuthedRequest("/billing/status")).rejects.toMatchObject({
+      message: "Down",
+      status: 503,
+    });
+    expect(useUpshotAccount.getState().session).not.toBeNull();
+  });
+
+  it("signed out, an authed request still says Sign in to continue", async () => {
+    await expect(upshotAuthedRequest("/billing/status")).rejects.toMatchObject({
+      message: "Sign in to continue.",
+      status: 401,
+    });
+  });
+
+  it("upshotAuthFetch falls back to no token when the refresh fails", async () => {
+    saveSession(Date.now() / 1000 - 10);
+    mocks.fetch
+      .mockRejectedValueOnce(new TypeError("offline"))
+      .mockResolvedValueOnce(Response.json({}));
+    await upshotAuthFetch("https://upshot-ai.example.workers.dev/llm/x", {
+      headers: { Authorization: "Bearer stale" },
+    });
+    const [, init] = mocks.fetch.mock.calls[1];
+    expect(new Headers(init.headers).get("Authorization")).toBeNull();
+  });
+
+  it("signing in again clears the session-ended note", async () => {
+    useUpshotAccount.setState({ sessionEnded: true });
+    mocks.fetch.mockResolvedValue(
+      Response.json({
+        access_token: "a",
+        refresh_token: "r",
+        expires_at: NOW + 3600,
+        user: { id: "u", email: "judge@example.com" },
+      }),
+    );
+    await signInUpshot("signin", "judge@example.com", "password123");
+    expect(useUpshotAccount.getState().sessionEnded).toBe(false);
+  });
+
+  // journey-account-settings P3: account deletion.
+  it("deletes the account on the Worker, then signs out", async () => {
+    saveSession(Date.now() / 1000 + 3600);
+    mocks.fetch.mockResolvedValue(Response.json({ deleted: true }));
+    await deleteUpshotAccount();
+    const [url, init] = mocks.fetch.mock.calls[0];
+    expect(url).toBe("https://upshot-ai.example.workers.dev/account/delete");
+    expect(init.method).toBe("POST");
+    expect(new Headers(init.headers).get("Authorization")).toBe(
+      "Bearer old-access",
+    );
+    expect(useUpshotAccount.getState().session).toBeNull();
+    expect(mocks.saved).toBeNull();
+  });
+
+  it("keeps the session when deletion fails", async () => {
+    saveSession(Date.now() / 1000 + 3600);
+    mocks.fetch.mockResolvedValue(
+      Response.json(
+        { error: { message: "Could not cancel your subscription." } },
+        { status: 502 },
+      ),
+    );
+    await expect(deleteUpshotAccount()).rejects.toThrow(
+      "Could not cancel your subscription.",
+    );
+    expect(useUpshotAccount.getState().session).not.toBeNull();
   });
 });

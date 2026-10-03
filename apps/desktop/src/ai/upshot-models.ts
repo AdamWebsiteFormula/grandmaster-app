@@ -114,3 +114,18 @@ export function pickUpshotModels(
     name: entry.name?.trim() || entry.id.split("/")[1],
   }));
 }
+
+// Fork: a saved pick that left this week's catalog falls back to Auto, in the
+// menu and in the request alike, so the label, the check and the model sent
+// agree (journey-after P3 "Auto model menu"; NN/g #1). Before the catalog
+// loads (empty list) the saved pick stands.
+export function resolveUpshotModelPick(
+  saved: unknown,
+  models: readonly UpshotModelOption[],
+  isPro: boolean,
+): string {
+  if (!isPro) return UPSHOT_AUTO_MODEL;
+  const slug = normalizeUpshotModel(saved);
+  if (slug === UPSHOT_AUTO_MODEL || models.length === 0) return slug;
+  return models.some((model) => model.id === slug) ? slug : UPSHOT_AUTO_MODEL;
+}

@@ -314,6 +314,9 @@ function ensureSummaryDocumentWithMetadata(
   });
 }
 
+// Fork: the body is left as it is; the new summary overwrites it only once
+// it is written, so a failed or stopped template switch keeps the old
+// summary (journey-meeting P2; NN/g #5 error prevention, #3 undo).
 export function replaceSummaryDocumentTemplate({
   sessionId,
   noteId,
@@ -336,8 +339,6 @@ export function replaceSummaryDocumentTemplate({
             kind = ?,
             template_id = ?,
             title = ?,
-            body_format = 'prosemirror_json',
-            body = '',
             updated_by = COALESCE((
               SELECT owner_user_id FROM sessions
               WHERE sessions.id = ? AND sessions.deleted_at IS NULL

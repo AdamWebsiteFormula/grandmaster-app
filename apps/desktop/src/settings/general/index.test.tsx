@@ -44,6 +44,12 @@ vi.mock("~/settings/queries", () => ({
 }));
 
 vi.mock("./account", () => ({ SettingsAccount: () => null }));
+vi.mock("~/settings/appearance", () => ({
+  AppearanceSection: () => <span>Appearance section</span>,
+}));
+vi.mock("~/settings/privacy", () => ({
+  PrivacySection: () => <span>Privacy section</span>,
+}));
 vi.mock("./app-settings", () => ({ AppSettingsView: () => null }));
 vi.mock("./audio-settings", () => ({
   AudioSettingsView: () => <span>Audio settings</span>,
@@ -69,7 +75,19 @@ vi.mock("./summary-length", () => ({
 vi.mock("./timezone", () => ({ TimezoneSelector: () => null }));
 vi.mock("./week-start", () => ({ WeekStartSelector: () => null }));
 
-import { SettingsApp, SettingsMeetings } from "./index";
+import { SettingsApp, SettingsMeetings, SettingsNotifications } from "./index";
+
+// journey-account-settings P3 "Settings › Notifications".
+describe("SettingsNotifications", () => {
+  afterEach(cleanup);
+
+  it("spaces groups with gap-8, as every other page", () => {
+    const { container } = render(<SettingsNotifications />);
+    const page = container.firstElementChild as HTMLElement;
+    expect(page.className).toContain("gap-8");
+    expect(page.className).not.toContain("gap-6");
+  });
+});
 
 describe("SettingsApp", () => {
   afterEach(() => {
@@ -125,13 +143,14 @@ describe("SettingsApp", () => {
         onChange: (value: boolean) => void;
       };
     };
-    expect(props.autoStartScheduledMeetings.value).toBe(true);
+    // Auto-start of scheduled meetings defaults to off (settings/schema.ts).
+    expect(props.autoStartScheduledMeetings.value).toBe(false);
 
-    act(() => props.autoStartScheduledMeetings.onChange(false));
+    act(() => props.autoStartScheduledMeetings.onChange(true));
 
     await waitFor(() => {
       expect(mocks.setSettingValues).toHaveBeenCalledWith(
-        expect.objectContaining({ auto_start_scheduled_meetings: false }),
+        expect.objectContaining({ auto_start_scheduled_meetings: true }),
       );
     });
   });

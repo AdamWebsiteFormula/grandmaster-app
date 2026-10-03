@@ -24,6 +24,18 @@ const mocks = vi.hoisted(() => ({
     title: string;
     created_at: string;
   }>,
+  emptyIds: new Set<string>(),
+  newNote: vi.fn(),
+  select: vi.fn(),
+  tabs: [] as Array<{ type: string }>,
+}));
+
+vi.mock("~/shared/empty-note-ids", () => ({
+  useEmptyNoteIds: () => mocks.emptyIds,
+}));
+
+vi.mock("~/shared/useNewNote", () => ({
+  useNewNote: () => mocks.newNote,
 }));
 
 vi.mock("~/auth", () => ({
@@ -50,20 +62,19 @@ vi.mock("~/shared-notes/cache", () => ({
   useDurableSharedNotes: () => mocks.notes,
 }));
 
-vi.mock("~/store/zustand/tabs", () => ({
-  useTabs: (
-    selector: (state: {
-      openCurrent: typeof mocks.openCurrent;
-      openNew: typeof mocks.openNew;
-      recentlyOpenedSessionIds: string[];
-    }) => unknown,
-  ) =>
-    selector({
-      openCurrent: mocks.openCurrent,
-      openNew: mocks.openNew,
-      recentlyOpenedSessionIds: [],
-    }),
-}));
+vi.mock("~/store/zustand/tabs", () => {
+  const state = () => ({
+    openCurrent: mocks.openCurrent,
+    openNew: mocks.openNew,
+    select: mocks.select,
+    tabs: mocks.tabs,
+    recentlyOpenedSessionIds: [] as string[],
+  });
+  const useTabs = (selector: (s: ReturnType<typeof state>) => unknown) =>
+    selector(state());
+  useTabs.getState = state;
+  return { useTabs };
+});
 
 import { buildSnippet, OpenNoteDialog } from "./open-note-dialog";
 
@@ -72,6 +83,8 @@ describe("OpenNoteDialog", () => {
     vi.clearAllMocks();
     mocks.notes = [];
     mocks.sessions = [];
+    mocks.emptyIds = new Set();
+    mocks.tabs = [];
     mocks.search.mockResolvedValue([]);
     globalThis.ResizeObserver = class {
       observe() {}
@@ -160,6 +173,53 @@ describe("OpenNoteDialog", () => {
     expect(screen.queryByRole("option", { name: "Contacts" })).toBeNull();
     expect(screen.getByRole("option", { name: "Settings" })).toBeTruthy();
     expect(screen.queryByRole("option", { name: "Transcription" })).toBeNull();
+  });
+
+  // Fork: journey-after P3 "⌘K search, no query": Home's empty-note rule
+  // and its "Untitled note" label.
+  it("hides empty notes and names untitled ones as Home does", () => {
+    mocks.sessions = [
+      { id: "empty", title: "", created_at: "2026-10-03T09:00:00.000Z" },
+      { id: "kept", title: "", created_at: "2026-10-02T09:00:00.000Z" },
+      { id: "named", title: "Standup", created_at: "2026-10-01T09:00:00.000Z" },
+    ];
+    mocks.emptyIds = new Set(["empty"]);
+    render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
+
+    expect(
+      screen.getAllByRole("option", { name: "Untitled note" }),
+    ).toHaveLength(1);
+    expect(screen.getByRole("option", { name: "Standup" })).toBeTruthy();
+    expect(screen.queryByRole("option", { name: "Untitled" })).toBeNull();
+  });
+
+  // Fork: journey-after P3 "⌘K search, go to".
+  it("goes Home, to Chat, or makes a new note", () => {
+    mocks.tabs = [{ type: "empty" }];
+    render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
+
+    fireEvent.click(screen.getByRole("option", { name: "Home" }));
+    expect(mocks.select).toHaveBeenCalledWith({ type: "empty" });
+
+    fireEvent.click(screen.getByRole("option", { name: "Chat" }));
+    expect(mocks.openCurrent).toHaveBeenCalledWith({ type: "chat" });
+
+    fireEvent.click(screen.getByRole("option", { name: /New note/ }));
+    expect(mocks.newNote).toHaveBeenCalledOnce();
+    expect(mocks.openNew).not.toHaveBeenCalled();
+  });
+
+  // Fork: journey-after P3 "⌘K search": flat surface, 24 px close.
+  it("uses a flat popover surface and a 24 px close button", () => {
+    render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
+    // The dialog primitive has its own hidden Close button too.
+    const close = screen
+      .getAllByRole("button", { name: "Close" })
+      .find((button) => button.className.includes("size-6"))!;
+    expect(close.className).toContain("size-6");
+    const panel = close.closest(".bg-popover");
+    expect(panel).toBeTruthy();
+    expect(panel?.className).not.toContain("shadow");
   });
 
   it("opens a matching page from the global navigator", () => {

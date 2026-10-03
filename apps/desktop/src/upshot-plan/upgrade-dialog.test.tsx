@@ -44,7 +44,7 @@ describe("UpshotUpgradeDialog", () => {
     mocks.fetch.mockReset();
     mocks.openUrl.mockClear();
     resetUpshotAccountForTests();
-    useUpgradeDialog.setState({ open: false, error: null });
+    useUpgradeDialog.setState({ open: false, error: null, alreadyPro: false });
     mocks.pro = false;
   });
 
@@ -167,6 +167,106 @@ describe("UpshotUpgradeDialog", () => {
     rerender(<UpshotUpgradeDialog />);
     expect(screen.getByText("You're on Upshot Pro")).not.toBeNull();
     expect(screen.queryByText(/4242 4242 4242 4242/)).toBeNull();
+  });
+
+  // journey-account-settings P2: a second Mac signs in and is already Pro.
+  it("already Pro after sign-in shows You're on Upshot Pro, not an error", async () => {
+    mocks.fetch.mockImplementation(async (url: string) => {
+      const path = new URL(url).pathname;
+      if (path === "/auth/login") {
+        return Response.json({
+          access_token: "a",
+          refresh_token: "r",
+          expires_at: Date.now() / 1000 + 3600,
+          user: { id: "u", email: "judge@example.com" },
+        });
+      }
+      if (path === "/billing/checkout") {
+        return Response.json(
+          {
+            error: {
+              message: "You already have Upshot Pro.",
+              code: "already_pro",
+            },
+          },
+          { status: 409 },
+        );
+      }
+      return Response.json({
+        pro: true,
+        status: "active",
+        current_period_end: null,
+        interval: "year",
+      });
+    });
+    render(<UpshotUpgradeDialog />);
+    await act(() => openUpgrade("year"));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Already have an account? Sign in" }),
+    );
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "judge@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "password123" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Sign in and continue" }),
+    );
+    await waitFor(() =>
+      expect(screen.getByText("You're on Upshot Pro")).not.toBeNull(),
+    );
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(mocks.openUrl).not.toHaveBeenCalled();
+  });
+
+  it("opens straight on You're on Upshot Pro when openUpgrade found Pro", () => {
+    render(<UpshotUpgradeDialog />);
+    act(() =>
+      useUpgradeDialog.setState({
+        open: true,
+        mode: "signup",
+        checkout: true,
+        error: null,
+        alreadyPro: true,
+      }),
+    );
+    expect(screen.getByText("You're on Upshot Pro")).not.toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Done" }));
+    expect(useUpgradeDialog.getState().open).toBe(false);
+  });
+
+  // journey-account-settings P3: Esc mid sign-in can't strand a checkout.
+  it("Esc while signing in keeps the dialog open", async () => {
+    let answer!: (response: Response) => void;
+    mocks.fetch.mockImplementation(
+      () =>
+        new Promise<Response>((resolve) => {
+          answer = resolve;
+        }),
+    );
+    render(<UpshotUpgradeDialog />);
+    await act(() => openUpgrade("month"));
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "judge@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "password123" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Create account and continue" }),
+    );
+    await waitFor(() => expect(mocks.fetch).toHaveBeenCalled());
+    fireEvent.keyDown(document.activeElement ?? document.body, {
+      key: "Escape",
+    });
+    expect(useUpgradeDialog.getState().open).toBe(true);
+    expect(
+      screen.getByRole("button", { name: "Cancel" }).hasAttribute("disabled"),
+    ).toBe(true);
+    await act(async () => {
+      answer(Response.json({ error: { message: "Nope" } }, { status: 400 }));
+    });
   });
 
   // Fork: "Sign in" opens the sign-in form, and an existing email switches

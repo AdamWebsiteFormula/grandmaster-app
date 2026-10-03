@@ -2,9 +2,15 @@ import { useLingui } from "@lingui/react/macro";
 import { AnimatePresence, motion } from "motion/react";
 import { useRef, useState } from "react";
 
-import { CaretDown, Envelope, Globe } from "@anlg/ui/components/icons";
+import { CaretDown, Envelope } from "@anlg/ui/components/icons";
 import { Kbd } from "@anlg/ui/components/ui/kbd";
 import { Spinner } from "@anlg/ui/components/ui/spinner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@anlg/ui/components/ui/tooltip";
 import { cn } from "@anlg/utils";
 
 import { RecordingBar } from "./recording-bar";
@@ -13,9 +19,12 @@ import { setSessionFabSelectionHost } from "./selection-slot";
 import { queueChatPrompt } from "~/chat/pending-prompt";
 import { useShell } from "~/contexts/shell";
 import { TranscriptAudioIcon } from "~/session/components/note-input/header-transcript-icon";
-import { getBaseLanguageDisplayName } from "~/settings/general/language";
-import { useConfigValue } from "~/shared/config";
-import { useTabs } from "~/store/zustand/tabs";
+import { useCanResumeRecording } from "~/session/components/resume-recording";
+import {
+  hasStoredNoteContent,
+  useHasTranscript,
+} from "~/session/components/shared";
+import { useSession } from "~/session/queries";
 import type { EditorView, Tab } from "~/store/zustand/tabs/schema";
 import { useListener } from "~/stt/contexts";
 
@@ -30,34 +39,55 @@ export function FloatingActionButton(props: {
   editorTabs?: EditorView[];
   onSelectView?: (view: EditorView) => void;
   isTranscribing?: boolean;
-  skipReason?: string | null;
   tab: Extract<Tab, { type: "sessions" }>;
 }) {
+  const sessionId = props.tab.id;
   const recordingBarShown = useListener(
-    (state) => state.getSessionMode(props.tab.id) !== "inactive",
+    (state) => state.getSessionMode(sessionId) !== "inactive",
   );
+  const hasTranscript = useHasTranscript(sessionId);
+  const rawNote = useSession(sessionId)?.raw_md;
+  const canResume = useCanResumeRecording(sessionId);
+  // Fork: Resume shows after Stop when there is something to add to
+  // (journey-meeting P1).
+  const showResume =
+    props.allowListening !== false &&
+    canResume &&
+    (hasTranscript || Boolean(props.audioExists));
+  // Fork: the follow-up email chip needs something to draft from
+  // (journey-meeting P3; NN/g #5 error prevention).
+  const canDraftEmail = hasTranscript || hasStoredNoteContent(rawNote);
   const { chat } = useShell();
   const isChatOpen = chat.mode !== "FloatingClosed";
+  // Fork: the floating chat covers the bottom of the note, so Resume hides
+  // with the note bar while it is open instead of showing clipped
+  // ("Resume reco…"); it returns when chat closes, and ⋯ › Recording keeps
+  // Resume reachable (NN/g #4 consistency; Apple HIG: never truncate a
+  // button label).
+  const resumeVisible = showResume && chat.mode !== "FloatingOpen";
+  const barBesidePill = recordingBarShown || resumeVisible;
 
   return (
     <>
-      <RecordingBar sessionId={props.tab.id} />
+      <RecordingBar sessionId={sessionId} showResume={resumeVisible} />
       <div
         data-note-bar-stack
         className={cn([
           "pointer-events-none absolute bottom-3 left-1/2 z-30 flex w-[min(520px,calc(100%-2rem))] -translate-x-1/2 flex-col-reverse items-center",
-          // The recording bar sits bottom left, so while it shows the note
-          // bar moves to the bottom right and narrows beside it.
-          recordingBarShown &&
+          // The recording bar (or Resume) sits bottom left, so while it
+          // shows the note bar moves to the bottom right and narrows beside it.
+          barBesidePill &&
             "right-4 left-auto w-[min(360px,calc(100%-2rem))] translate-x-0",
+          // Fork: in a narrow pane only the Ask field gives way, so the
+          // transcript toggle stays beside the recording bar
+          // (journey-meeting P2; WCAG 2.2 SC 1.4.10 Reflow).
+          recordingBarShown && "@max-[760px]:w-auto",
         ])}
       >
         <div
           data-note-bar
           className={cn([
             "peer/session-fab pointer-events-auto relative flex h-11 w-full max-w-full items-center gap-2",
-            // Fork: the recording bar and the note bar overlap in a narrow note pane, so the bar hides there while recording (ux-audit-oct3 C, WCAG 1.4.10).
-            recordingBarShown && "@max-[760px]:hidden",
             isChatOpen && "hidden",
           ])}
         >
@@ -76,14 +106,12 @@ export function FloatingActionButton(props: {
                 onSelectView={props.onSelectView}
                 isTranscribing={props.isTranscribing ?? false}
               />
+              {/* Fork: the bar is the same on Summary and Transcript; the
+                  language chip lives in the transcript toolbar
+                  (redline2-oct3, R2). */}
               <NoteAskField
-                trailing={
-                  props.currentView.type === "transcript" ? (
-                    <TranscriptLanguageChip />
-                  ) : (
-                    <FollowUpEmailChip />
-                  )
-                }
+                hideWhenNarrow={recordingBarShown}
+                trailing={canDraftEmail ? <FollowUpEmailChip /> : null}
               />
             </motion.div>
           </AnimatePresence>
@@ -148,38 +176,52 @@ function TranscriptToggle({
     }
   };
 
+  // Fork: a real tooltip naming the action, since the bars icon alone does
+  // not say what it does (redline2-oct3, R2; HIG: help tags name the action).
   return (
-    <button
-      type="button"
-      aria-label={label}
-      aria-pressed={showingTranscript}
-      title={label}
-      onClick={handleClick}
-      className={cn([
-        "border-input bg-popover text-foreground hover:bg-accent inline-flex h-9 shrink-0 cursor-pointer items-center justify-center gap-0.5 rounded-full border px-2.5 transition-colors",
-        "focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
-        showingTranscript && "bg-accent",
-      ])}
-    >
-      {isTranscribing ? (
-        <Spinner size={16} className="shrink-0" />
-      ) : (
-        // Fork: Lucide AudioLines, the bars Granola's toggle shows
-        // (redline-oct3, H2).
-        <TranscriptAudioIcon />
-      )}
-      <CaretDown
-        aria-hidden
-        className={cn([
-          "size-3 transition-transform",
-          !showingTranscript && "rotate-180",
-        ])}
-      />
-    </button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            aria-label={label}
+            aria-pressed={showingTranscript}
+            onClick={handleClick}
+            className={cn([
+              "border-input bg-popover text-foreground hover:bg-accent inline-flex h-9 shrink-0 cursor-pointer items-center justify-center gap-0.5 rounded-full border px-2.5 shadow-sm transition-colors dark:shadow-none",
+              "focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
+              showingTranscript && "bg-accent",
+            ])}
+          >
+            {isTranscribing ? (
+              <Spinner size={16} className="shrink-0" />
+            ) : (
+              // Fork: Lucide AudioLines, the bars Granola's toggle shows
+              // (redline-oct3, H2).
+              <TranscriptAudioIcon />
+            )}
+            <CaretDown
+              aria-hidden
+              className={cn([
+                "size-3 transition-transform",
+                !showingTranscript && "rotate-180",
+              ])}
+            />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="top">{label}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
-function NoteAskField({ trailing }: { trailing?: React.ReactNode }) {
+function NoteAskField({
+  hideWhenNarrow = false,
+  trailing,
+}: {
+  hideWhenNarrow?: boolean;
+  trailing?: React.ReactNode;
+}) {
   const { t } = useLingui();
   const { chat } = useShell();
   const [value, setValue] = useState("");
@@ -204,8 +246,16 @@ function NoteAskField({ trailing }: { trailing?: React.ReactNode }) {
         submit();
       }}
       className={cn([
-        "border-input bg-popover flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full border pr-1.5 pl-4",
+        // Fork: soft shadow in light, none on black (journey-meeting P3;
+        // design-system.md Dialogs).
+        "border-input bg-popover flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full border pr-1.5 pl-4 shadow-sm dark:shadow-none",
+        // Fork: the field is its own container, so the chip drops to its
+        // icon when the field narrows (beside Resume, or a ~920 px window)
+        // and never clips (WCAG 2.2 SC 1.4.10 Reflow; Apple HIG Toolbars:
+        // icon-only items keep a help tag).
+        "@container/ask",
         "focus-within:ring-ring focus-within:ring-offset-background focus-within:ring-2 focus-within:ring-offset-2",
+        hideWhenNarrow && "@max-[760px]:hidden",
       ])}
     >
       <input
@@ -217,7 +267,7 @@ function NoteAskField({ trailing }: { trailing?: React.ReactNode }) {
         aria-keyshortcuts="Meta+J"
         className="placeholder:text-muted-foreground text-foreground h-full min-w-[6.5rem] flex-1 bg-transparent text-sm focus:outline-none"
       />
-      <Kbd className="shrink-0 @max-[560px]:hidden">⌘ J</Kbd>
+      <Kbd className="shrink-0 @max-[15rem]/ask:hidden">⌘ J</Kbd>
       {trailing}
     </form>
   );
@@ -247,54 +297,7 @@ function FollowUpEmailChip() {
       className={barChipClassName}
     >
       <Envelope aria-hidden className="text-muted-foreground size-3.5" />
-      <span className="truncate @max-[420px]:sr-only">{label}</span>
+      <span className="truncate @max-[22rem]/ask:sr-only">{label}</span>
     </button>
   );
-}
-
-// Fork: Granola shows the spoken language in the transcript footer. Upshot
-// reads it from Settings > General and links there; transcription itself is
-// untouched (granola-compare-oct3 §2, P3).
-function TranscriptLanguageChip() {
-  const { t } = useLingui();
-  const openNew = useTabs((state) => state.openNew);
-  const mainLanguage = useConfigValue("ai_language");
-  const spokenLanguages = useConfigValue("spoken_languages");
-  const extraCount = parseLanguageList(spokenLanguages).filter(
-    (code) => code && code !== mainLanguage,
-  ).length;
-  const name = mainLanguage ? getBaseLanguageDisplayName(mainLanguage) : "";
-  if (!name) {
-    return null;
-  }
-  const label = extraCount > 0 ? `${name} +${extraCount}` : name;
-
-  return (
-    <button
-      type="button"
-      title={t`Spoken language. Change it in Settings › General.`}
-      onClick={() => openNew({ type: "settings", state: { tab: "app" } })}
-      className={barChipClassName}
-    >
-      <Globe aria-hidden className="text-muted-foreground size-3.5" />
-      <span className="truncate">{label}</span>
-    </button>
-  );
-}
-
-function parseLanguageList(value: unknown): string[] {
-  if (Array.isArray(value)) {
-    return value.filter((item): item is string => typeof item === "string");
-  }
-  if (typeof value !== "string" || !value.trim()) {
-    return [];
-  }
-  try {
-    const parsed: unknown = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((item): item is string => typeof item === "string")
-      : [];
-  } catch {
-    return [];
-  }
 }

@@ -402,8 +402,9 @@ describe("RenderTranscript", () => {
     expect(screen.getByRole("button", { name: "Ada" })).toBeTruthy();
   });
 
-  // granola-compare-oct3 §2: centered time labels between bubble runs.
-  it("shows a centered timestamp before the first bubble and after a minute", () => {
+  // redline2-oct3 R2: a small time label on every bubble, no centered
+  // floating time.
+  it("puts each bubble's start time in its label", () => {
     const first = createSegment("a", 0);
     const second = createSegment("b", 1);
     const later = createSegment("c", 0);
@@ -417,21 +418,19 @@ describe("RenderTranscript", () => {
 
     renderTranscript();
 
-    const labels = Array.from(
-      document.querySelectorAll("[data-transcript-timestamp]"),
-    );
-    expect(labels.map((label) => label.textContent)).toEqual([
-      "00:00",
-      "01:15",
-    ]);
-    expect(labels[0]?.className).toContain("text-center");
+    expect(
+      Array.from(document.querySelectorAll("[data-transcript-time]"))
+        .map((label) => label.textContent)
+        .sort(),
+    ).toEqual(["· 00:00", "· 00:00", "· 01:15"]);
+    expect(document.querySelector("[data-transcript-timestamp]")).toBeNull();
     expect(document.querySelectorAll("[data-transcript-bubble]").length).toBe(
       3,
     );
   });
 
   // Fork: display only, stored words untouched (redline-oct3, H2).
-  it("shows one bubble per spoken result, a space after a glued sentence, and a timestamp every 30 seconds", () => {
+  it("shows one bubble per spoken result, a space after a glued sentence, and a time on each", () => {
     const words = [
       ["Okay,", 0],
       [" a", 400],
@@ -482,10 +481,10 @@ describe("RenderTranscript", () => {
       "And then.",
     ]);
     expect(
-      Array.from(document.querySelectorAll("[data-transcript-timestamp]")).map(
+      Array.from(document.querySelectorAll("[data-transcript-time]")).map(
         (label) => label.textContent,
       ),
-    ).toEqual(["00:00", "00:33"]);
+    ).toEqual(["· 00:00", "· 00:02", "· 00:33"]);
     expect(JSON.stringify(monologue)).toBe(stored);
   });
 

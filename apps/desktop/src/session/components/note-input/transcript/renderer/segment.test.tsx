@@ -12,6 +12,7 @@ import type { Segment, SegmentWord } from "~/stt/live-segment";
 const mocks = vi.hoisted(() => ({
   splitTranscriptSpeaker: vi.fn(() => Promise.resolve()),
   updateTranscriptSegmentText: vi.fn(() => Promise.resolve()),
+  toastError: vi.fn(),
   wordSpan: vi.fn(
     ({
       displayText,
@@ -28,7 +29,17 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("./segment-header", () => ({
-  SegmentHeader: () => <div data-testid="segment-header" />,
+  SegmentHeader: ({
+    label,
+    timeLabel,
+  }: {
+    label: string;
+    timeLabel?: string | null;
+  }) => (
+    <div data-testid="segment-header">
+      {timeLabel ? `${label} · ${timeLabel}` : label}
+    </div>
+  ),
 }));
 
 vi.mock("./speaker-assign", () => ({
@@ -45,6 +56,10 @@ vi.mock("./word-span", () => ({
   WordSpan: mocks.wordSpan,
 }));
 
+vi.mock("@anlg/ui/components/ui/toast", () => ({
+  toast: { error: mocks.toastError },
+}));
+
 vi.mock("~/stt/queries", () => ({
   updateTranscriptSegmentText: mocks.updateTranscriptSegmentText,
   splitTranscriptSpeaker: mocks.splitTranscriptSpeaker,
@@ -55,6 +70,43 @@ describe("SegmentRenderer", () => {
     mocks.splitTranscriptSpeaker.mockClear();
     mocks.wordSpan.mockClear();
     mocks.updateTranscriptSegmentText.mockClear();
+    mocks.toastError.mockClear();
+  });
+
+  // Fork test: journey-meeting P2 (transcript edit save fails).
+  it("says so when a transcript edit can't be saved", async () => {
+    mocks.updateTranscriptSegmentText.mockImplementationOnce(() =>
+      Promise.reject(new Error("database is locked")),
+    );
+    const view = render(
+      <SegmentRenderer
+        segment={createSegment()}
+        offsetMs={0}
+        transcriptId="transcript-1"
+        sessionId="session-1"
+        speakerLabel="Speaker 1"
+        currentMs={0}
+        seekAndPlay={vi.fn()}
+        audioExists
+        search={EMPTY_TRANSCRIPT_SEARCH}
+        editMode
+      />,
+    );
+
+    const editor = view.container.querySelector<HTMLElement>(
+      "[data-transcript-editor]",
+    )!;
+    editor.innerText = "Corrected transcript text";
+    editor.textContent = "Corrected transcript text";
+    fireEvent.blur(editor);
+
+    await waitFor(() => {
+      expect(mocks.toastError).toHaveBeenCalledWith(
+        "Couldn't save your transcript edit. Try again.",
+        { id: "transcript-edit-failed-transcript-1" },
+      );
+    });
+    view.unmount();
   });
 
   it("keeps spaces between rendered words and lines", () => {
@@ -73,7 +125,10 @@ describe("SegmentRenderer", () => {
       />,
     );
 
-    expect(view.container.textContent).toBe("First line. Second line.");
+    expect(
+      view.container.querySelector("[data-transcript-segment-content]")
+        ?.textContent,
+    ).toBe("First line. Second line.");
   });
 
   it("skips playback rerenders while the active line is unchanged", () => {
@@ -385,11 +440,12 @@ function createSearch(activeMatchId: string): TranscriptSearchRenderState {
   };
 }
 
-// granola-compare-oct3 §2: transcript as chat bubbles.
+// granola-compare-oct3 §2: transcript as chat bubbles; redline2-oct3 R2:
+// a "Name · 00:14" label over every bubble.
 describe("SegmentRenderer bubbles", () => {
   const renderBubble = (props: {
     isSelf?: boolean;
-    showSpeaker?: boolean;
+    timeLabel?: string | null;
     editMode?: boolean;
   }) =>
     render(
@@ -408,40 +464,35 @@ describe("SegmentRenderer bubbles", () => {
   const header = (view: ReturnType<typeof render>) =>
     view.container.querySelector("[data-testid='segment-header']");
 
-  it("puts your own words in a right-aligned bubble with no name", () => {
-    const view = renderBubble({ isSelf: true });
+  it("puts your own words in a right-aligned bubble labeled You", () => {
+    const view = renderBubble({ isSelf: true, timeLabel: "00:14" });
 
     const section = view.container.querySelector("section")!;
     expect(section.dataset.transcriptSelf).toBe("true");
     expect(section.className).toContain("items-end");
     const bubble = section.querySelector("[data-transcript-bubble]")!;
-    expect(bubble.className).toContain("bg-accent");
+    // Fork: journey-meeting P3, a distinct fill from others' bg-muted.
+    expect(bubble.className).toContain("bg-sidebar-accent");
     expect(bubble.className).toContain("rounded-2xl");
     expect(bubble.className).toContain("max-w-[80%]");
-    expect(header(view)).toBeNull();
+    expect(header(view)?.textContent).toBe("You · 00:14");
+    expect(section.firstElementChild).toBe(header(view));
     view.unmount();
   });
 
-  it("puts others on the left with the speaker name over the first bubble", () => {
-    const view = renderBubble({});
+  it("puts others on the left with their name and time over the bubble", () => {
+    const view = renderBubble({ timeLabel: "00:14" });
 
     const section = view.container.querySelector("section")!;
     expect(section.className).toContain("items-start");
     expect(
       section.querySelector("[data-transcript-bubble]")!.className,
     ).toContain("bg-muted");
-    expect(header(view)).not.toBeNull();
+    expect(header(view)?.textContent).toBe("Bruce · 00:14");
     view.unmount();
   });
 
-  it("drops the name on later bubbles of the same run", () => {
-    const view = renderBubble({ showSpeaker: false });
-
-    expect(header(view)).toBeNull();
-    view.unmount();
-  });
-
-  it("keeps the name on your bubbles while editing, to reassign speakers", () => {
+  it("keeps the label on your bubbles while editing, to reassign speakers", () => {
     const view = renderBubble({ isSelf: true, editMode: true });
 
     expect(header(view)).not.toBeNull();

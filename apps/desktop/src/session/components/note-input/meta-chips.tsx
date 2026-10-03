@@ -13,6 +13,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@anlg/ui/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@anlg/ui/components/ui/tooltip";
 import { cn, parseEventInstant, safeFormat } from "@anlg/utils";
 
 import { HeaderViewEnhanced } from "./header-enhanced";
@@ -155,16 +161,26 @@ export function NoteMetaChips({
       className="flex flex-wrap items-center gap-1.5"
     >
       {showNotesToggle ? (
-        <button
-          type="button"
-          aria-label={t`My notes`}
-          aria-pressed={rawActive}
-          title={t`My notes`}
-          onClick={handleNotesToggle}
-          className={noteChipClassName(rawActive, "px-1.5")}
-        >
-          <TextAlignLeft aria-hidden />
-        </button>
+        // Fork: a tooltip naming what the chip does next, as Granola's
+        // notes toggle shows (redline2-oct3, R2).
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                aria-label={t`My notes`}
+                aria-pressed={rawActive}
+                onClick={handleNotesToggle}
+                className={noteChipClassName(rawActive, "px-1.5")}
+              >
+                <TextAlignLeft aria-hidden />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {rawActive ? t`Show summary` : t`Show my notes`}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       ) : null}
       {enhancedTabs.map((view, index) => {
         const isActive =

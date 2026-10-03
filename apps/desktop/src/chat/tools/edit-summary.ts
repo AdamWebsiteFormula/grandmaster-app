@@ -8,7 +8,7 @@ import {
 import type { ToolDependencies } from "./types";
 
 import { usePendingEditStore } from "~/chat/tools/pending-edit-store";
-import { loadSessionContentSnapshot } from "~/session/content-queries";
+import { loadReadableSessionContentSnapshot } from "~/session/content-queries";
 import {
   applySessionProposal,
   declineSessionProposal,
@@ -24,7 +24,7 @@ type SummaryCandidate = {
 
 function listSummaryCandidates(
   notes: NonNullable<
-    Awaited<ReturnType<typeof loadSessionContentSnapshot>>
+    Awaited<ReturnType<typeof loadReadableSessionContentSnapshot>>
   >["enhancedNotes"],
 ): SummaryCandidate[] {
   return notes.map((note) => ({
@@ -81,7 +81,7 @@ export const buildEditSummaryTool = (
         };
       }
 
-      const snapshot = await loadSessionContentSnapshot(sessionId);
+      const snapshot = await loadReadableSessionContentSnapshot(sessionId);
       const notes = snapshot?.enhancedNotes ?? [];
       const noteIds = notes.map((note) => note.id);
 

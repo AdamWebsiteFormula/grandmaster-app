@@ -10,6 +10,7 @@ import {
   parseStoredTemplateSections,
   parseStoredTemplateTargets,
 } from "./codec";
+import { displayTemplateTitle } from "./default-titles";
 import {
   DEFAULT_TEMPLATE_ICON,
   normalizeTemplateIcon,
@@ -77,7 +78,7 @@ function toUserTemplate(
 ): UserTemplate {
   return {
     id,
-    title,
+    title: displayTemplateTitle(id, title),
     description,
     pinned,
     pinOrder: pinOrder ?? undefined,

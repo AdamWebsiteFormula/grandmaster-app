@@ -15,6 +15,7 @@ import type { JSONContent, NoteEditorRef } from "@anlg/editor/note";
 import { cn } from "@anlg/utils";
 
 import { Enhanced } from "./enhanced";
+import { GenerateSummaryOffer } from "./generate-summary-offer";
 import { Header, SessionViewSwitcher, useEditorTabs } from "./header";
 import { NoteMetaChips, NoteMetaChipsLayer } from "./meta-chips";
 import { RawEditor } from "./raw";
@@ -28,6 +29,10 @@ import {
   unregisterCanonicalSessionEditor,
 } from "~/session-sharing/editor-activity";
 import { useCurrentNoteTab } from "~/session/components/shared";
+import {
+  TitleInput,
+  type TitleInputHandle,
+} from "~/session/components/title-input";
 import { useScrollPreservation } from "~/shared/hooks/useScrollPreservation";
 import type { SessionMode } from "~/store/zustand/listener/general";
 import { type Tab, useTabs } from "~/store/zustand/tabs";
@@ -165,6 +170,7 @@ const NoteInputContent = forwardRef<
     ref,
   ) => {
     const internalEditorRef = useRef<NoteEditorRef>(null);
+    const titleRef = useRef<TitleInputHandle>(null);
     const sessionId = tab.id;
     const deferredCurrentTab = useDeferredValue(currentTab);
     const renderedCurrentTab = editorTabs.some((editorTab) =>
@@ -273,6 +279,26 @@ const NoteInputContent = forwardRef<
         });
       }
     }, [renderedCurrentTab, isMeetingInProgress]);
+
+    // Fork: My notes shows an editable title above the chip row, with an
+    // "Untitled" placeholder when empty, as Granola sets the title above its
+    // chips (granola-compare-oct3 §1, screen 04). The Summary keeps its
+    // first-line title inside the editor.
+    const showNoteTitle = showMetaChips && renderedCurrentTab.type === "raw";
+    const handleNavigateToTitle = useCallback(
+      (pixelWidth?: number) => {
+        if (onNavigateToTitle) {
+          onNavigateToTitle(pixelWidth);
+          return;
+        }
+        if (pixelWidth === undefined) {
+          titleRef.current?.focusAtEnd();
+          return;
+        }
+        titleRef.current?.focusAtPixelWidth(pixelWidth);
+      },
+      [onNavigateToTitle],
+    );
 
     const search = useSearch();
     const showSearchBar = search?.isVisible ?? false;
@@ -386,11 +412,45 @@ const NoteInputContent = forwardRef<
                 data-note-column
                 className={cn([
                   "relative mx-auto w-full max-w-[680px]",
+                  // Fork: Bricolage Grotesque for the note title only; the
+                  // summary, chips and body stay Geist (owner's pick, Oct 3).
+                  // `!` wins over the editor's unlayered title rule.
+                  "[&_.note-title-editor>h1:first-child]:font-display! [&_.note-title-editor>h1:first-child]:font-semibold! [&_.note-title-editor>h1:first-child]:tracking-[-0.01em]!",
                   showMetaChips && "note-meta-chips-host",
                 ])}
               >
+                {showNoteTitle && (
+                  <div
+                    data-note-title-anchor
+                    // The chip row is drawn in this gap, as under the
+                    // Summary's title (note-typography.css).
+                    style={{
+                      marginBottom: "var(--note-meta-chips-space, 3rem)",
+                    }}
+                  >
+                    <TitleInput
+                      ref={titleRef}
+                      tab={tab}
+                      variant="note"
+                      onFocusEditorAtStart={() =>
+                        internalEditorRef.current?.commands.focusAtStart()
+                      }
+                      onTransferContentToEditor={(content) =>
+                        internalEditorRef.current?.commands.insertAtStartAndFocus(
+                          content,
+                        )
+                      }
+                      onFocusEditorAtPixelWidth={(pixelWidth) =>
+                        internalEditorRef.current?.commands.focusAtPixelWidth(
+                          pixelWidth,
+                        )
+                      }
+                    />
+                  </div>
+                )}
                 {showMetaChips && (
-                  <NoteMetaChipsLayer>
+                  // Keyed by view so the row measures the new title line.
+                  <NoteMetaChipsLayer key={renderedCurrentTab.type}>
                     <NoteMetaChips
                       sessionId={sessionId}
                       editorTabs={editorTabs}
@@ -410,6 +470,9 @@ const NoteInputContent = forwardRef<
                     onViewDisposed={handleSessionViewDisposed}
                   />
                 )}
+                {showNoteTitle && (
+                  <GenerateSummaryOffer sessionId={sessionId} />
+                )}
                 {renderedCurrentTab.type === "raw" && (
                   <RawEditor
                     ref={internalEditorRef}
@@ -418,7 +481,9 @@ const NoteInputContent = forwardRef<
                     sessionTitle={sessionTitle}
                     eventTitle={eventTitle}
                     eventDescription={eventDescription}
-                    onNavigateToTitle={onNavigateToTitle}
+                    onNavigateToTitle={
+                      showNoteTitle ? handleNavigateToTitle : onNavigateToTitle
+                    }
                     onViewReady={handleSessionViewReady}
                     onViewDisposed={handleSessionViewDisposed}
                   />

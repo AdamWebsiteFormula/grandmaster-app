@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("~/session/content-queries", () => ({
   loadSessionContentSnapshot: mocks.loadSessionContentSnapshot,
+  loadReadableSessionContentSnapshot: mocks.loadSessionContentSnapshot,
 }));
 
 vi.mock("@anlg/plugin-transcription", () => ({
