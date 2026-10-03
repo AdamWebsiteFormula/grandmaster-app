@@ -39,6 +39,23 @@ export const ACCOUNT_EXISTS =
 export const WRONG_LOGIN = "Wrong email or password.";
 const TOO_MANY = "Too many tries. Wait a minute, then try again.";
 const CONFIRM_EMAIL = "Check your email to confirm your account, then sign in.";
+const SIGNUP_FAILED = "Could not create your account.";
+
+// Supabase Auth error codes (supabase.com/docs/guides/auth/debugging/error-codes)
+// to fixed sentences; any other code gets the generic line, never raw text.
+const KNOWN_ERRORS = {
+  weak_password: "Choose a stronger password. This one is too easy to guess.",
+  email_address_invalid: "This email address can't be used. Try another one.",
+  signup_disabled: "New accounts are paused right now. Try again later.",
+  over_email_send_rate_limit:
+    "Too many sign-up emails were sent. Try again in an hour.",
+};
+
+function knownError(body) {
+  return Object.hasOwn(KNOWN_ERRORS, body?.error_code ?? "")
+    ? KNOWN_ERRORS[body.error_code]
+    : null;
+}
 
 function accountExists() {
   return new Response(
@@ -139,12 +156,11 @@ export async function handleAuth(request, env, pathname) {
   if (pathname === "/auth/signup") {
     const { response, body } = await gotrue(env, "signup", parsed);
     if (!response.ok) {
+      const known = knownError(body);
+      if (known) return json(response.status === 429 ? 429 : 400, known);
       if (response.status === 429) return json(429, TOO_MANY);
       if (isAlreadyRegistered(body)) return accountExists();
-      return json(
-        400,
-        authErrorMessage(body, "Could not create your account."),
-      );
+      return json(400, SIGNUP_FAILED);
     }
     if (!body.access_token && isObfuscatedExistingUser(body)) {
       return accountExists();
@@ -170,6 +186,8 @@ export async function handleAuth(request, env, pathname) {
     if (body?.error_code === "email_not_confirmed") {
       return json(400, CONFIRM_EMAIL);
     }
+    const known = knownError(body);
+    if (known) return json(400, known);
     // Supabase answers 400 "Invalid login credentials".
     return json(400, WRONG_LOGIN);
   }

@@ -16,9 +16,13 @@ import worker from "./src/index.js";
 import {
   AUTO_MODEL,
   isProModelSlug,
+  isProRow,
   resolveModel,
   verifyPro,
 } from "./src/model.js";
+
+// The app's AI SDK sends this header; the Worker refuses anything else.
+const JSON_TYPE = { "content-type": "application/json" };
 
 test("slug rule: only Anthropic, OpenAI and Google slugs", () => {
   assert.equal(isProModelSlug("anthropic/claude-sonnet-5.5"), true);
@@ -74,7 +78,11 @@ test("fetch handler forwards Auto and an allowlisted body", async () => {
       user: "drop me",
     });
     const response = await worker.fetch(
-      new Request("https://w/llm/chat/completions", { method: "POST", body }),
+      new Request("https://w/llm/chat/completions", {
+        method: "POST",
+        headers: JSON_TYPE,
+        body,
+      }),
       env,
     );
     assert.equal(response.status, 200);
@@ -99,6 +107,7 @@ test("error messages never ask for a key", async () => {
     const response = await worker.fetch(
       new Request("https://w/llm/chat/completions", {
         method: "POST",
+        headers: JSON_TYPE,
         body: JSON.stringify({ messages: [{ role: "user", content: "Hi" }] }),
       }),
       env,
@@ -135,6 +144,7 @@ test("provider errors become plain sentences, never raw JSON", async () => {
       const response = await worker.fetch(
         new Request("https://w/llm/chat/completions", {
           method: "POST",
+          headers: JSON_TYPE,
           body: JSON.stringify({ messages: [{ role: "user", content: "Hi" }] }),
         }),
         env,
@@ -567,7 +577,7 @@ function proRoutes(status) {
   ];
 }
 
-async function chatModelFor({ token, status, model }) {
+async function chatModelFor({ token, status, model, upstreamStatus = 200 }) {
   let sent;
   const mock = mockFetch([
     ...proRoutes(status),
@@ -575,13 +585,15 @@ async function chatModelFor({ token, status, model }) {
       "https://openrouter.ai/",
       (_url, init) => {
         sent = JSON.parse(init.body);
-        return Response.json({});
+        return Response.json({}, { status: upstreamStatus });
       },
     ],
   ]);
   try {
-    const headers = token ? { authorization: `Bearer ${token}` } : {};
-    await worker.fetch(
+    const headers = token
+      ? { ...JSON_TYPE, authorization: `Bearer ${token}` }
+      : JSON_TYPE;
+    const response = await worker.fetch(
       new Request("https://w/llm/chat/completions", {
         method: "POST",
         headers,
@@ -592,7 +604,7 @@ async function chatModelFor({ token, status, model }) {
       }),
       baseEnv,
     );
-    return { sent, calls: mock.calls };
+    return { sent, calls: mock.calls, response };
   } finally {
     mock.restore();
   }
@@ -917,7 +929,8 @@ test("account delete: no customer skips Stripe; no token is 401", async () => {
     const response = await worker.fetch(deleteRequest(), baseEnv);
     assert.equal(response.status, 200);
     assert.equal(
-      mock.calls.filter((c) => c.url.includes("api.stripe.com")).length,
+      mock.calls.filter((c) => c.url.includes("api.stripe.com/v1/customers"))
+        .length,
       0,
     );
   } finally {
@@ -950,6 +963,11 @@ test("webhook after account deletion is ignored, not retried", async () => {
         data: { object: { id: "sub_9" } },
       }),
       "orphan",
+    );
+    // A canceled subscription needs no cancel call.
+    assert.equal(
+      mock.calls.filter((c) => c.init.method === "DELETE").length,
+      0,
     );
   } finally {
     mock.restore();
@@ -1106,4 +1124,353 @@ test("privacy policy: served from public/ with the CalOPPA items", async () => {
   );
   assert.match(config, /"directory": "\.\/public"/);
   assert.doesNotMatch(config, /"html_handling"|"run_worker_first"/);
+});
+
+// ---------- Hardening (Oct 3) ----------
+
+function chatRequest(body, headers = JSON_TYPE) {
+  return new Request("https://w/llm/chat/completions", {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+  });
+}
+
+test("chat: only application/json reaches OpenRouter (no preflight-free POST)", async () => {
+  const mock = mockFetch([["https://openrouter.ai/", () => Response.json({})]]);
+  try {
+    const messages = [{ role: "user", content: "Hi" }];
+    for (const headers of [{}, { "content-type": "text/plain" }]) {
+      const response = await worker.fetch(
+        chatRequest({ messages }, headers),
+        baseEnv,
+      );
+      assert.equal(response.status, 415);
+      assert.equal((await response.json()).error.message, "Invalid request");
+    }
+    assert.equal(mock.calls.length, 0);
+    const ok = await worker.fetch(
+      chatRequest(
+        { messages },
+        { "content-type": "application/json; charset=utf-8" },
+      ),
+      baseEnv,
+    );
+    assert.equal(ok.status, 200);
+  } finally {
+    mock.restore();
+  }
+});
+
+test("chat: image and file parts are refused; text parts pass", async () => {
+  const mock = mockFetch([["https://openrouter.ai/", () => Response.json({})]]);
+  try {
+    for (const part of [
+      { type: "image_url", image_url: { url: "https://x.test/big.png" } },
+      { type: "file", file: { file_data: "https://x.test/big.pdf" } },
+      { type: "input_audio" },
+      null,
+    ]) {
+      const response = await worker.fetch(
+        chatRequest({
+          messages: [
+            { role: "user", content: [{ type: "text", text: "Hi" }, part] },
+          ],
+        }),
+        baseEnv,
+      );
+      assert.equal(response.status, 400, JSON.stringify(part));
+    }
+    assert.equal(mock.calls.length, 0);
+    const ok = await worker.fetch(
+      chatRequest({
+        messages: [
+          { role: "system", content: "Be brief." },
+          { role: "user", content: [{ type: "text", text: "Hi" }] },
+        ],
+      }),
+      baseEnv,
+    );
+    assert.equal(ok.status, 200);
+  } finally {
+    mock.restore();
+  }
+});
+
+test("slug rule: non-chat models and dated snapshots run on Auto", () => {
+  for (const slug of [
+    "openai/gpt-6-image",
+    "google/gemma-4-27b",
+    "openai/gpt-6-sol-search",
+    "openai/codex-6",
+    "openai/chatgpt-4o-latest",
+    "openai/gpt-4o-2024-11-20",
+    "anthropic/claude-opus-5.5-20260922",
+    "openai/gpt-3.5-turbo-0613",
+  ]) {
+    assert.equal(isProModelSlug(slug), false, slug);
+    assert.equal(resolveModel(slug, true).model, AUTO_MODEL, slug);
+  }
+  assert.equal(isProModelSlug("anthropic/claude-opus-5.5"), true);
+  assert.equal(isProModelSlug("google/gemini-3.8-flash-lite"), true);
+});
+
+test("Pro row: a period that ended over 2 days ago is not Pro", async () => {
+  const now = Date.parse("2026-10-03T12:00:00Z");
+  const day = 24 * 60 * 60 * 1000;
+  const at = (ms) => new Date(ms).toISOString();
+  assert.equal(isProRow({ status: "active" }, now), true);
+  assert.equal(
+    isProRow({ status: "active", current_period_end: null }, now),
+    true,
+  );
+  assert.equal(
+    isProRow({ status: "active", current_period_end: at(now + 20 * day) }, now),
+    true,
+  );
+  assert.equal(
+    isProRow({ status: "trialing", current_period_end: at(now - day) }, now),
+    true,
+  );
+  assert.equal(
+    isProRow({ status: "active", current_period_end: at(now - 3 * day) }, now),
+    false,
+  );
+  // PostgREST reads timestamptz back with an offset.
+  assert.equal(
+    isProRow(
+      { status: "active", current_period_end: "2026-09-29T08:00:00+00:00" },
+      now,
+    ),
+    false,
+  );
+  assert.equal(
+    isProRow({ status: "canceled", current_period_end: at(now + day) }, now),
+    false,
+  );
+
+  const mock = mockFetch([
+    proRoutes(null)[0],
+    rowRoute({
+      user_id: "user-1",
+      status: "active",
+      current_period_end: "2020-01-01T00:00:00+00:00",
+    }),
+  ]);
+  try {
+    const request = new Request("https://w/", {
+      headers: { authorization: `Bearer ${TOKEN}` },
+    });
+    assert.equal(await verifyPro(request, baseEnv), false);
+  } finally {
+    mock.restore();
+  }
+});
+
+test("chat: a retired Pro model says to switch to Auto; Auto keeps the generic line", async () => {
+  const realError = console.error;
+  console.error = () => {};
+  try {
+    for (const upstreamStatus of [400, 404]) {
+      const pro = await chatModelFor({
+        token: TOKEN,
+        status: "active",
+        model: "openai/gpt-6.1-sol",
+        upstreamStatus,
+      });
+      assert.equal(pro.sent.model, "openai/gpt-6.1-sol");
+      assert.equal(pro.response.status, 400);
+      assert.equal(
+        (await pro.response.json()).error.message,
+        "This model isn't available anymore. Switch to Auto.",
+      );
+      const auto = await chatModelFor({
+        token: null,
+        status: null,
+        model: "Auto",
+        upstreamStatus,
+      });
+      assert.equal(auto.response.status, 502);
+      assert.equal(
+        (await auto.response.json()).error.message,
+        "Upshot AI had a problem answering. Try again.",
+      );
+    }
+  } finally {
+    console.error = realError;
+  }
+});
+
+test("auth: known Supabase error codes get fixed sentences, others the generic line", async () => {
+  const cases = [
+    [
+      422,
+      { error_code: "weak_password", msg: "Password is known to be weak" },
+      400,
+      "Choose a stronger password. This one is too easy to guess.",
+    ],
+    [
+      400,
+      {
+        error_code: "email_address_invalid",
+        msg: "Email address is invalid",
+      },
+      400,
+      "This email address can't be used. Try another one.",
+    ],
+    [
+      422,
+      { error_code: "signup_disabled", msg: "Signups not allowed" },
+      400,
+      "New accounts are paused right now. Try again later.",
+    ],
+    [
+      429,
+      {
+        error_code: "over_email_send_rate_limit",
+        msg: "email rate limit exceeded",
+      },
+      429,
+      "Too many sign-up emails were sent. Try again in an hour.",
+    ],
+    [
+      400,
+      { error_code: "validation_failed", msg: "Raw internal Supabase text" },
+      400,
+      "Could not create your account.",
+    ],
+    [
+      500,
+      { message: "upstream exploded" },
+      400,
+      "Could not create your account.",
+    ],
+  ];
+  let next;
+  const mock = mockFetch([["https://sb.test/auth/v1/signup", () => next()]]);
+  try {
+    for (const [supabaseStatus, body, status, message] of cases) {
+      next = () => Response.json(body, { status: supabaseStatus });
+      const response = await worker.fetch(
+        new Request("https://w/auth/signup", {
+          method: "POST",
+          body: JSON.stringify({
+            email: "judge@example.com",
+            password: "password123",
+          }),
+        }),
+        baseEnv,
+      );
+      assert.equal(response.status, status, body.error_code);
+      assert.deepEqual(await response.json(), { error: { message } });
+    }
+  } finally {
+    mock.restore();
+  }
+});
+
+test("rate limit: 60 requests a minute per IP", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const config = await readFile(
+    new URL("./wrangler.jsonc", import.meta.url),
+    "utf8",
+  );
+  assert.match(config, /"simple": \{ "limit": 60, "period": 60 \}/);
+});
+
+test("account delete: open Checkout Sessions expire before the customer goes", async () => {
+  const order = [];
+  const mock = mockFetch([
+    proRoutes(null)[0],
+    rowRoute({
+      user_id: "user-1",
+      status: "active",
+      stripe_customer_id: "cus_1",
+    }),
+    [
+      "https://api.stripe.com/v1/checkout/sessions?",
+      (url) => {
+        assert.match(url, /status=open/);
+        assert.match(url, /customer=cus_1/);
+        return Response.json({ data: [{ id: "cs_open" }] });
+      },
+    ],
+    [
+      "https://api.stripe.com/v1/checkout/sessions/cs_open/expire",
+      () => {
+        order.push("expire");
+        return Response.json({});
+      },
+    ],
+    [
+      "https://api.stripe.com/v1/customers/cus_1",
+      () => {
+        order.push("customer");
+        return Response.json({ deleted: true });
+      },
+    ],
+    [
+      "https://sb.test/auth/v1/admin/users/user-1",
+      () => {
+        order.push("user");
+        return Response.json({});
+      },
+    ],
+  ]);
+  try {
+    const response = await worker.fetch(deleteRequest(), baseEnv);
+    assert.equal(response.status, 200);
+    assert.deepEqual(order, ["expire", "customer", "user"]);
+  } finally {
+    mock.restore();
+  }
+});
+
+test("webhook: a live subscription for a deleted account is canceled", async () => {
+  const realError = console.error;
+  const logged = [];
+  console.error = (...args) => logged.push(args.join(" "));
+  try {
+    for (const cancelStatus of [200, 403]) {
+      const mock = mockFetch([
+        [
+          "https://api.stripe.com/v1/subscriptions/sub_9",
+          (_url, init) =>
+            init.method === "DELETE"
+              ? Response.json({}, { status: cancelStatus })
+              : Response.json({
+                  id: "sub_9",
+                  status: "active",
+                  customer: "cus_9",
+                  metadata: { user_id: "gone-user" },
+                }),
+        ],
+        ["https://sb.test/rest/v1/subscriptions?", () => Response.json([])],
+        [
+          "https://sb.test/rest/v1/subscriptions",
+          () => new Response('{"code":"23503"}', { status: 409 }),
+        ],
+      ]);
+      try {
+        assert.equal(
+          await handleEvent(baseEnv, {
+            type: "customer.subscription.created",
+            data: { object: { id: "sub_9" } },
+          }),
+          "orphan",
+        );
+        assert.equal(
+          mock.calls.filter((c) => c.init.method === "DELETE").length,
+          1,
+        );
+      } finally {
+        mock.restore();
+      }
+    }
+    // A key without Subscriptions write: logged, and the event still succeeds.
+    assert.equal(logged.length, 1);
+    assert.match(logged[0], /orphan subscription not canceled/);
+  } finally {
+    console.error = realError;
+  }
 });

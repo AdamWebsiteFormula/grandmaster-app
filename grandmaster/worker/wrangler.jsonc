@@ -8,12 +8,13 @@
   // Keep variables added in the dashboard when deploying from this folder.
   "keep_vars": true,
   // developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/
-  // 30 requests a minute per IP: Enhance uses 1-2, a chat turn a few more.
+  // 60 requests a minute per IP: Enhance uses 1-2, a chat turn with tools
+  // several, and judges may share one office NAT address.
   "ratelimits": [
     {
       "name": "RATE_LIMITER",
       "namespace_id": "1001",
-      "simple": { "limit": 30, "period": 60 },
+      "simple": { "limit": 60, "period": 60 },
     },
   ],
   // Brand images for Stripe Checkout and the billing pages, served at

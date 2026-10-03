@@ -306,7 +306,24 @@ async function syncSubscription(env, subscriptionId, userIdHint) {
   ) {
     return "stale";
   }
-  return upsertRow(env, rowFromSubscription(userId, subscription));
+  const result = await upsertRow(
+    env,
+    rowFromSubscription(userId, subscription),
+  );
+  // The user deleted their account but this subscription is still live (a
+  // checkout paid afterward): stop the billing (docs.stripe.com/api/
+  // subscriptions/cancel). Needs Subscriptions write on the restricted key;
+  // without it, log and move on so Stripe doesn't retry the event.
+  if (result === "orphan" && isProStatus(subscription.status)) {
+    await stripe(
+      env,
+      "DELETE",
+      `/subscriptions/${encodeURIComponent(subscription.id)}`,
+    ).catch((error) => {
+      console.error("orphan subscription not canceled", error.message);
+    });
+  }
+  return result;
 }
 
 /** The subscription id on an invoice, for API 2022-11-15 and newer. */
@@ -486,6 +503,8 @@ export async function handleDeleteAccount(request, env) {
   } catch {
     return json(503, "Account deletion is not available right now.");
   }
+  // An open Checkout Session paid after deletion would bill a deleted account.
+  await expireOpenSessions(env, user, row);
   if (row?.stripe_customer_id) {
     const response = await fetch(
       `${STRIPE}/customers/${encodeURIComponent(row.stripe_customer_id)}`,

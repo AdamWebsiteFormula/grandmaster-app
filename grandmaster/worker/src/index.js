@@ -15,7 +15,12 @@
 import { handleAuth } from "./auth.js";
 import { handleBilling, handleDeleteAccount } from "./billing.js";
 import { json } from "./http.js";
-import { isProModelSlug, resolveModel, verifyPro } from "./model.js";
+import {
+  AUTO_MODEL,
+  isProModelSlug,
+  resolveModel,
+  verifyPro,
+} from "./model.js";
 
 const UPSTREAM = "https://openrouter.ai/api/v1/chat/completions";
 // Models: see model.js.
@@ -68,6 +73,14 @@ export default {
       return json(404, "Not found");
     }
 
+    // JSON only: a text/plain POST skips the CORS preflight, so any web page
+    // could make its visitors' browsers spend the credit (fetch.spec.whatwg.org,
+    // "CORS-safelisted request-header"). The app's AI SDK sends application/json.
+    const contentType = request.headers.get("content-type") ?? "";
+    if (!contentType.toLowerCase().startsWith("application/json")) {
+      return json(415, "Invalid request");
+    }
+
     const ip = request.headers.get("cf-connecting-ip") ?? "unknown";
     const { success } = await env.RATE_LIMITER.limit({ key: ip });
     if (!success) {
@@ -92,6 +105,14 @@ export default {
     if (!Array.isArray(body?.messages) || body.messages.length === 0) {
       return json(400, "Invalid request");
     }
+    // Text parts only: an image_url or file part makes OpenRouter fetch a
+    // remote file of any size (OWASP LLM10). The app sends text only.
+    const nonText = body.messages.some(
+      (message) =>
+        Array.isArray(message?.content) &&
+        message.content.some((part) => part?.type !== "text"),
+    );
+    if (nonText) return json(400, "Invalid request");
 
     // Only a picked model needs the Pro check (two Supabase reads).
     const wantsPick = body.model !== "Auto" && isProModelSlug(body.model);
@@ -140,9 +161,17 @@ export default {
     // error"; NN/g #9; OWASP LLM10).
     if (!upstream.ok) {
       console.error("upstream error", upstream.status);
-      return upstream.status === 429
-        ? json(429, "Upshot AI is busy. Try again in a minute.")
-        : json(502, "Upshot AI had a problem answering. Try again.");
+      if (upstream.status === 429) {
+        return json(429, "Upshot AI is busy. Try again in a minute.");
+      }
+      // A picked model that OpenRouter retired or renamed: say how to recover.
+      if (
+        forwarded.model !== AUTO_MODEL &&
+        (upstream.status === 400 || upstream.status === 404)
+      ) {
+        return json(400, "This model isn't available anymore. Switch to Auto.");
+      }
+      return json(502, "Upshot AI had a problem answering. Try again.");
     }
 
     return new Response(upstream.body, {

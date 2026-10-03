@@ -19,11 +19,18 @@ const AUTO_REASONING = { effort: "medium" };
 // matches apps/desktop/src/ai/upshot-models.ts.
 const PRO_VENDORS = ["anthropic/", "openai/", "google/"];
 const MODEL_SLUG = /^[a-z0-9-]+\/[a-z0-9.\-]+$/;
+// Not chat models, and dated snapshots: the picker never lists them.
+// Keep in sync with apps/desktop/src/ai/upshot-models.ts.
+const NOT_CHAT =
+  /(?:image|audio|tts|embed|search|realtime|transcribe|moderation|lyria|veo|imagen|gemma|codex|oss|latest|computer|deep-research|customtools)/;
+const DATED = /-(?:\d{4}-\d{2}-\d{2}|\d{8}|\d{4})$/;
 
 export function isProModelSlug(model) {
   return (
     typeof model === "string" &&
     MODEL_SLUG.test(model) &&
+    !NOT_CHAT.test(model) &&
+    !DATED.test(model) &&
     PRO_VENDORS.some((vendor) => model.startsWith(vendor))
   );
 }
@@ -31,13 +38,25 @@ export function isProModelSlug(model) {
 // Pro check: the app sends "Authorization: Bearer <Supabase access token>"
 // only when a model is picked; the user must have an active or trialing
 // row in public.subscriptions (written by the Stripe webhook, billing.js).
+// A period that ended over 2 days ago also means "not Pro", so a missed
+// cancel webhook can't leave Pro on forever (2 days covers renewal lag).
 // Any failure means "not Pro", so the request still runs on Auto.
+const PERIOD_GRACE_MS = 2 * 24 * 60 * 60 * 1000;
+
+export function isProRow(row, now = Date.now()) {
+  if (!isProStatus(row?.status)) return false;
+  // Stored as ISO 8601 (billing.js periodEnd); timestamptz reads back as
+  // "2027-01-15T08:00:00+00:00", which Date.parse also reads.
+  const end = Date.parse(row.current_period_end ?? "");
+  return Number.isNaN(end) || end > now - PERIOD_GRACE_MS;
+}
+
 export async function verifyPro(request, env) {
   try {
     const user = await getUser(request, env);
     if (!user) return false;
     const row = await rowForUser(env, user.id, user.token);
-    return isProStatus(row?.status);
+    return isProRow(row);
   } catch {
     return false;
   }
