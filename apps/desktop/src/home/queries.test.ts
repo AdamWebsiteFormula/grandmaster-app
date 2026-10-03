@@ -1,15 +1,20 @@
+import { renderHook } from "@testing-library/react";
 import { createRequire } from "node:module";
 import { expect, it, vi } from "vitest";
 
 vi.mock("~/auth", () => ({ useAuth: vi.fn() }));
 vi.mock("~/db", () => ({ useLiveQuery: vi.fn() }));
+vi.mock("~/shared/owner-user", () => ({ useOwnerUserId: vi.fn() }));
 
-import { NOTES_SQL, STREAK_SQL, TALK_SQL } from "./queries";
+import { NOTES_SQL, STREAK_SQL, TALK_SQL, useHomeStats } from "./queries";
 
+import { useAuth } from "~/auth";
+import { useLiveQuery } from "~/db";
 import {
   EXAMPLE_NOTE_TRACKING_ID,
   WELCOME_NOTE_TRACKING_ID,
 } from "~/onboarding/welcome-note.constants";
+import { useOwnerUserId } from "~/shared/owner-user";
 
 const { DatabaseSync } = createRequire(import.meta.url)(
   "node:sqlite",
@@ -61,5 +66,17 @@ it("leaves the welcome note and the example meeting out of home stats", () => {
     expect(db.prepare(STREAK_SQL).all("user", 0)).toHaveLength(1);
   } finally {
     db.close();
+  }
+});
+
+it("counts meetings owned by the local user when nobody is signed in", () => {
+  vi.mocked(useAuth).mockReturnValue({ session: null } as never);
+  vi.mocked(useOwnerUserId).mockReturnValue("local-user");
+  vi.mocked(useLiveQuery).mockReturnValue({ data: null } as never);
+
+  renderHook(() => useHomeStats());
+
+  for (const [options] of vi.mocked(useLiveQuery).mock.calls) {
+    expect((options as { params: unknown[] }).params).toContain("local-user");
   }
 });

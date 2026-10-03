@@ -13,6 +13,7 @@ import {
   EXAMPLE_NOTE_TRACKING_ID,
   WELCOME_NOTE_TRACKING_ID,
 } from "~/onboarding/welcome-note.constants";
+import { useOwnerUserId } from "~/shared/owner-user";
 import { DEFAULT_USER_ID } from "~/shared/utils";
 
 // The bundled welcome note and example meeting are demos, not the user's
@@ -160,7 +161,10 @@ export function homeWindows(todayStartMs: number) {
 
 export function useHomeStats() {
   const auth = useAuth();
-  const ownerId = auth.session?.user.id ?? DEFAULT_USER_ID;
+  // Fork: without sign-in, meetings are owned by the local user id, not the
+  // all-zero default, so match the id the contacts view uses.
+  const localOwnerUserId = useOwnerUserId();
+  const ownerId = auth.session?.user.id ?? localOwnerUserId ?? DEFAULT_USER_ID;
   const now = new Date();
   const todayStartMs = new Date(
     now.getFullYear(),

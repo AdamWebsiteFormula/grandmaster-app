@@ -4,6 +4,7 @@ import {
   EXAMPLE_NOTE_TRACKING_ID,
   WELCOME_NOTE_TRACKING_ID,
 } from "~/onboarding/welcome-note.constants";
+import { useOwnerUserId } from "~/shared/owner-user";
 import { DEFAULT_USER_ID } from "~/shared/utils";
 
 export type ActivityRecord = {
@@ -47,8 +48,10 @@ export const ACTIVITY_SQL = `
 
 export function useActivity() {
   const auth = useAuth();
+  // Fork: without sign-in, meetings are owned by the local user id.
+  const localOwnerUserId = useOwnerUserId();
   return useLiveQuery<ActivityRecord, ActivityRecord[]>({
     sql: ACTIVITY_SQL,
-    params: [auth.session?.user.id ?? DEFAULT_USER_ID],
+    params: [auth.session?.user.id ?? localOwnerUserId ?? DEFAULT_USER_ID],
   });
 }
