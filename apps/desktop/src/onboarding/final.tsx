@@ -8,6 +8,7 @@ import { commands as openerCommands } from "@anlg/plugin-opener2";
 import { commands as sfxCommands } from "@anlg/plugin-sfx";
 import { CircleNotch, GithubLogo } from "@anlg/ui/components/icons";
 
+import { seedExampleSessionOnce } from "./example-note";
 import { OnboardingButton } from "./shared";
 import {
   getOrCreateWelcomeSession,
@@ -79,19 +80,20 @@ export function RecordingNotice() {
       </p>
       {canAutoPost && (
         <SettingSwitchRow
-        title={<Trans>Post a short notice in the meeting chat</Trans>}
-        description={
-          <Trans>
-            When Upshot starts, it sends: “{MEETING_DISCLOSURE_MESSAGE}”
-          </Trans>
-        }
-        checked={autoPost}
-        onChange={(checked) =>
-          void setSettingValues({ consent_auto_send_chat: checked }).catch(
-            (error) => console.error("Failed to save recording notice", error),
-          )
-        }
-      />
+          title={<Trans>Post a short notice in the meeting chat</Trans>}
+          description={
+            <Trans>
+              When Upshot starts, it sends: “{MEETING_DISCLOSURE_MESSAGE}”
+            </Trans>
+          }
+          checked={autoPost}
+          onChange={(checked) =>
+            void setSettingValues({ consent_auto_send_chat: checked }).catch(
+              (error) =>
+                console.error("Failed to save recording notice", error),
+            )
+          }
+        />
       )}
     </div>
   );
@@ -158,6 +160,11 @@ export async function finishOnboarding(
   welcomeSessionRef?: { current: string | null },
 ) {
   await sfxCommands.stop("BGM").catch(console.error);
+  // Seed the example first so the welcome note stays on top of the list.
+  // Never blocks finishing.
+  await seedExampleSessionOnce().catch((error) => {
+    console.error("Failed to create example meeting", error);
+  });
   const welcomeSessionId =
     welcomeSessionRef?.current ??
     (await getOrCreateWelcomeSession().catch((error) => {

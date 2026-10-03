@@ -18,6 +18,11 @@ const mocks = vi.hoisted(() => ({
   stopSfx: vi.fn(),
   setSettingValues: vi.fn(),
   autoPost: false,
+  seedExample: vi.fn(),
+}));
+
+vi.mock("./example-note", () => ({
+  seedExampleSessionOnce: mocks.seedExample,
 }));
 
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => "macos" }));
@@ -70,6 +75,7 @@ beforeEach(() => {
   mocks.stopSfx.mockResolvedValue(null);
   mocks.setSettingValues.mockResolvedValue(undefined);
   mocks.autoPost = false;
+  mocks.seedExample.mockResolvedValue("example-session");
 });
 
 afterEach(cleanup);
@@ -203,4 +209,26 @@ it("shows the switch on when the notice is already on", () => {
       .getByRole("switch", { name: "Post a short notice in the meeting chat" })
       .getAttribute("aria-checked"),
   ).toBe("true");
+});
+
+it("seeds the example meeting, then opens the welcome note", async () => {
+  const onContinue = vi.fn();
+  await finishOnboarding(onContinue);
+
+  expect(mocks.seedExample).toHaveBeenCalledTimes(1);
+  expect(mocks.seedExample.mock.invocationCallOrder[0]).toBeLessThan(
+    mocks.getOrCreateWelcomeSession.mock.invocationCallOrder[0]!,
+  );
+  expect(onContinue).toHaveBeenCalledWith("welcome-session");
+});
+
+it("still finishes when the example meeting cannot be created", async () => {
+  const onContinue = vi.fn();
+  const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+  mocks.seedExample.mockRejectedValueOnce(new Error("db busy"));
+
+  await finishOnboarding(onContinue);
+
+  expect(onContinue).toHaveBeenCalledWith("welcome-session");
+  consoleError.mockRestore();
 });

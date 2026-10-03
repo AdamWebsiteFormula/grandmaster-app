@@ -65,24 +65,31 @@ export function useProviderSelectionPrompt({
       toast.success(t`Using ${providerName}`, {
         id: `provider-selection:${providerType}:${providerId}`,
         description: t`Your key works. ${providerName} is now the current provider.`,
-        action: {
-          label: t`Undo`,
-          onClick: () => {
-            void setSettingValues(
-              providerType === "llm"
-                ? {
-                    current_llm_provider: currentProvider ?? "",
-                    current_llm_model: "",
-                  }
-                : {
-                    current_stt_provider: currentProvider ?? "",
-                    current_stt_model: "",
-                  },
-            ).catch((error) => {
-              console.error(`[settings] failed to undo ${providerType}`, error);
-            });
-          },
-        },
+        // With nothing chosen before, Undo would clear the provider and
+        // default resolution would pick this one again at once.
+        action: currentProvider
+          ? {
+              label: t`Undo`,
+              onClick: () => {
+                void setSettingValues(
+                  providerType === "llm"
+                    ? {
+                        current_llm_provider: currentProvider,
+                        current_llm_model: "",
+                      }
+                    : {
+                        current_stt_provider: currentProvider,
+                        current_stt_model: "",
+                      },
+                ).catch((error) => {
+                  console.error(
+                    `[settings] failed to undo ${providerType}`,
+                    error,
+                  );
+                });
+              },
+            }
+          : undefined,
       });
       return;
     }

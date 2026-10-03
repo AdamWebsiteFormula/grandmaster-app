@@ -401,10 +401,6 @@ msgstr "Add an AI key to turn meetings into notes. No key? Get a free one from G
 msgid "Add and configure at least one action first."
 msgstr "Add and configure at least one action first."
 
-#: src/onboarding/calendar.tsx
-#~ msgid "Add another account"
-#~ msgstr "Add another account"
-
 #: src/settings/sync/index.tsx
 msgid "Add another device"
 msgstr "Add another device"
@@ -1483,10 +1479,6 @@ msgstr "Connect calendar"
 msgid "Connect GitHub for private repos."
 msgstr "Connect GitHub for private repos."
 
-#: src/onboarding/calendar.tsx
-#~ msgid "Connect Google Calendar"
-#~ msgstr "Connect Google Calendar"
-
 #: src/settings/automations/google-drive-config.tsx
 msgid "Connect Google Drive"
 msgstr "Connect Google Drive"
@@ -1507,10 +1499,6 @@ msgstr "Connect Notion"
 #: src/crm/enrich-contact.tsx
 msgid "Connect one in Settings"
 msgstr "Connect one in Settings"
-
-#: src/onboarding/calendar.tsx
-#~ msgid "Connect Outlook"
-#~ msgstr "Connect Outlook"
 
 #: src/session-sharing/delivery-panel.tsx
 #: src/settings/automations/starter-config.tsx
@@ -2508,10 +2496,6 @@ msgstr "Export the meeting as Markdown"
 msgid "Exporting..."
 msgstr "Exporting..."
 
-#: src/onboarding/calendar.tsx
-#~ msgid "Failed to load Google Calendar"
-#~ msgstr "Failed to load Google Calendar"
-
 #: src/calendar/components/oauth/provider-content.tsx
 #: src/settings/todo/provider-content.tsx
 msgid "Failed to load integration status"
@@ -2520,10 +2504,6 @@ msgstr "Failed to load integration status"
 #: src/task/resource-view.tsx
 msgid "Failed to load issue"
 msgstr "Failed to load issue"
-
-#: src/onboarding/calendar.tsx
-#~ msgid "Failed to load Outlook Calendar"
-#~ msgstr "Failed to load Outlook Calendar"
 
 #: src/task/resource-view.tsx
 msgid "Failed to load pull request"
@@ -4382,6 +4362,10 @@ msgstr "Post a meeting recap to a Slack channel."
 msgid "Post a recap to Slack"
 msgstr "Post a recap to Slack"
 
+#: src/onboarding/final.tsx
+msgid "Post a short notice in the meeting chat"
+msgstr "Post a short notice in the meeting chat"
+
 #: src/settings/general/meeting-settings.tsx
 msgid "Post recording disclosure in meeting chat"
 msgstr "Post recording disclosure in meeting chat"
@@ -5963,6 +5947,10 @@ msgstr "Teams"
 msgid "Tell participants when listening starts; this does not confirm consent."
 msgstr "Tell participants when listening starts; this does not confirm consent."
 
+#: src/onboarding/final.tsx
+msgid "Tell people when you record them. It's best practice, and the law in some places."
+msgstr "Tell people when you record them. It's best practice, and the law in some places."
+
 #: src/templates/auto-form.tsx
 #: src/templates/details.tsx
 #: src/templates/template-form.tsx
@@ -6535,10 +6523,6 @@ msgstr "Upshot will retry automatically."
 msgid "Upshot will retry automatically. This does not affect your notes."
 msgstr "Upshot will retry automatically. This does not affect your notes."
 
-#: src/onboarding/index.tsx
-#~ msgid "Upshot will sync your calendar to get meeting reminders"
-#~ msgstr "Upshot will sync your calendar to get meeting reminders"
-
 #: src/settings/team/index.tsx
 msgid "Usage"
 msgstr "Usage"
@@ -6709,6 +6693,10 @@ msgstr "What's new in {version}?"
 #: src/settings/automations/workflow-builder.tsx
 msgid "When this happens"
 msgstr "When this happens"
+
+#: src/onboarding/final.tsx
+msgid "When Upshot starts, it sends: “{MEETING_DISCLOSURE_MESSAGE}”"
+msgstr "When Upshot starts, it sends: “{MEETING_DISCLOSURE_MESSAGE}”"
 
 #: src/settings/ai/stt/local-file-model.tsx
 msgid "whisper.cpp models"

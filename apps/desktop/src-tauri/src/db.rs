@@ -82,11 +82,10 @@ pub fn is_transient_lock_error(error: &impl std::fmt::Display) -> bool {
 }
 
 // Matches MigrateError::SchemaFromNewerApp, which reaches startup as a string
-// after crossing the tauri plugin setup boundary.
+// after crossing the tauri plugin setup boundary. crates/db-migrate still
+// names upstream ("...newer version of Anarlog"), so match without the name.
 pub fn is_newer_schema_error(error: &impl std::fmt::Display) -> bool {
-    error
-        .to_string()
-        .contains("created by a newer version of Upshot")
+    error.to_string().contains("created by a newer version of")
 }
 pub fn cloudsync_runtime_config_from_env()
 -> Result<Option<anlg_db_core::CloudsyncRuntimeConfig>, String> {
@@ -248,7 +247,11 @@ mod tests {
         // Rendered form of MigrateError::SchemaFromNewerApp after crossing the
         // plugin setup boundary as a string.
         assert!(is_newer_schema_error(
-            &"plugin db failed: the database was created by a newer version of Upshot: it requires migration 20260901000000, but this build only includes migrations up to 20260816100100"
+            &"plugin db failed: the database was created by a newer version of Anarlog: it requires migration 20260901000000, but this build only includes migrations up to 20260816100100"
+        ));
+        // DatabaseAhead, the other newer-app error from crates/db-migrate.
+        assert!(is_newer_schema_error(
+            &"migration 20260901000000 cannot be applied because the database was created by a newer version of Anarlog (max applied migration 20260902000000)"
         ));
         assert!(!is_newer_schema_error(
             &"unable to open database file: /tmp/app.db"

@@ -117,7 +117,7 @@ export function ModelCombobox({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [showIgnored, setShowIgnored] = useState(false);
-  const [showMore, setShowMore] = useState(false);
+  const [showMore, setShowMore] = useState<boolean | null>(null);
   const [showPreviews, setShowPreviews] = useState(false);
   const registryState = useModelRegistry();
 
@@ -146,7 +146,9 @@ export function ModelCombobox({
   );
   const trimmedQuery = query.trim();
   const isSearching = trimmedQuery.length > 0;
-  const moreExpanded = showMore || groups.more.includes(value);
+  // Opens on its own when the saved model is folded; after that the toggle
+  // alone decides, so "Fewer models" always works.
+  const moreExpanded = showMore ?? groups.more.includes(value);
   // Searching looks through every model, folded or not.
   const visibleOptions = isSearching
     ? options
@@ -316,7 +318,7 @@ export function ModelCombobox({
                   <CommandItem
                     key="more-models"
                     value="more-models"
-                    onSelect={() => setShowMore((prev) => !prev)}
+                    onSelect={() => setShowMore(!moreExpanded)}
                     className={cn([
                       "text-muted-foreground cursor-pointer",
                       "hover:bg-accent! focus:bg-accent! aria-selected:bg-transparent",

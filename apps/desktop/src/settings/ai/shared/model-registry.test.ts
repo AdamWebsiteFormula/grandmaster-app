@@ -390,6 +390,15 @@ describe("resolveVanishedModel", () => {
     ).toBeNull();
     expect(resolveVanishedModel("ollama", "llama3", result)).toBeNull();
   });
+
+  test("keeps a routing variant whose base model is still listed", () => {
+    expect(
+      resolveVanishedModel("anthropic", "claude-sonnet-5-5:online", result),
+    ).toBeNull();
+    expect(
+      resolveVanishedModel("anthropic", "claude-sonnet-5:nitro", result),
+    ).toBeNull();
+  });
 });
 
 describe("refreshRegistry", () => {

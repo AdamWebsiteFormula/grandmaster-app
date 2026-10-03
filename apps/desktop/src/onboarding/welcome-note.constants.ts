@@ -1,5 +1,7 @@
 export const WELCOME_NOTE_DEMO_URL = "";
 export const WELCOME_NOTE_TRACKING_ID = "anarlog-onboarding-demo-v1";
+// Fork: the seeded "Example: Product sync" meeting (onboarding/example-note.ts).
+export const EXAMPLE_NOTE_TRACKING_ID = "upshot-onboarding-example-v1";
 const WELCOME_NOTE_COMPLETE_PATH = "/onboarding-demo/complete";
 const WELCOME_NOTE_DEMO_AUTOJOIN_PARAM = "autojoin";
 

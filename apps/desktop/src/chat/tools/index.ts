@@ -36,7 +36,6 @@ import { buildApplySessionCorrectionTool } from "./session-correction";
 import type {
   CalendarEventSearchResult,
   ContactSearchResult,
-  WebSearchResponse,
   ToolDependencies,
 } from "./types";
 
@@ -242,15 +241,6 @@ type LocalTools = {
       query: string;
       results: CalendarEventSearchResult[];
     };
-  };
-  web_search: {
-    input: {
-      query: string;
-      includeDomains?: string[];
-      excludeDomains?: string[];
-      limit?: number;
-    };
-    output: WebSearchResponse;
   };
   edit_memo: {
     input: { sessionId?: string; content: string };

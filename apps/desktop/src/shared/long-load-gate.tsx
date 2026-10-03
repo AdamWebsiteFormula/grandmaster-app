@@ -105,9 +105,9 @@ function getStartupDetail(status: StartupStatus | undefined) {
 }
 
 function StartupErrorView({ error }: { error: Error }) {
-  const needsUpdate = error.message.includes(
-    "created by a newer version of Upshot",
-  );
+  // crates/db-migrate names upstream ("...newer version of Anarlog"), so
+  // match without the app name.
+  const needsUpdate = error.message.includes("created by a newer version of");
 
   const handleRestart = async () => {
     try {

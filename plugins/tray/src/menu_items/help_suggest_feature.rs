@@ -16,6 +16,6 @@ impl MenuItemHandler for HelpSuggestFeature {
     }
 
     fn handle(_app: &AppHandle<tauri::Wry>) {
-        let _ = open::that("https://github.com/AdamWebsiteFormula/upshot");
+        let _ = open::that("https://github.com/AdamWebsiteFormula/grandmaster-app");
     }
 }

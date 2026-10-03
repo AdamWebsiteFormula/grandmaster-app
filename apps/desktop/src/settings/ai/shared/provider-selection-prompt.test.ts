@@ -112,11 +112,16 @@ describe("useProviderSelectionPrompt", () => {
       });
       const [title, options] = mocks.toastSuccess.mock.calls[0];
       expect(title).toBe("Using Anthropic");
+      if (!currentProvider) {
+        // Undo would only re-select Anthropic through default resolution.
+        expect(options.action).toBeUndefined();
+        return;
+      }
       expect(options.action.label).toBe("Undo");
 
       act(() => options.action.onClick());
       expect(mocks.setSettingValues).toHaveBeenLastCalledWith({
-        current_llm_provider: currentProvider ?? "",
+        current_llm_provider: currentProvider,
         current_llm_model: "",
       });
     },

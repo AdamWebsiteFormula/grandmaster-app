@@ -51,9 +51,7 @@ describe("stripRemoteMarkdownImages", () => {
     ["title on the next line", '![a](https://evil.example/?d=x\n"t")'],
     ["parentheses in the URL", "![a](https://evil.example/x_(1).png)"],
   ])("drops a remote image with a %s", (_, image) => {
-    expect(stripRemoteMarkdownImages(`Plan ${image} done`)).toBe(
-      "Plan a done",
-    );
+    expect(stripRemoteMarkdownImages(`Plan ${image} done`)).toBe("Plan a done");
   });
 
   it("drops reference-style remote images and their definitions", () => {

@@ -76,9 +76,9 @@ export function ToolCardBody({ children }: { children: ReactNode }) {
 
 export function ToolCardFooterError({ text }: { text: string }) {
   return (
-    <div className="flex items-center gap-2 border-t border-destructive/40 bg-destructive/10 px-3.5 py-2.5">
-      <XCircle className="h-4 w-4 shrink-0 text-destructive" />
-      <p className="text-sm text-destructive">{text}</p>
+    <div className="border-destructive/40 bg-destructive/10 flex items-center gap-2 border-t px-3.5 py-2.5">
+      <XCircle className="text-destructive h-4 w-4 shrink-0" />
+      <p className="text-destructive text-sm">{text}</p>
     </div>
   );
 }

@@ -9,15 +9,19 @@ import { STREAK_LOOKBACK_DAYS } from "./stats";
 
 import { useAuth } from "~/auth";
 import { useLiveQuery } from "~/db";
-import { WELCOME_NOTE_TRACKING_ID } from "~/onboarding/welcome-note.constants";
+import {
+  EXAMPLE_NOTE_TRACKING_ID,
+  WELCOME_NOTE_TRACKING_ID,
+} from "~/onboarding/welcome-note.constants";
 import { DEFAULT_USER_ID } from "~/shared/utils";
 
-// The bundled welcome note is a demo, not the user's meeting.
+// The bundled welcome note and example meeting are demos, not the user's
+// meetings.
 const OWNED_REAL_SESSION = `
   session.deleted_at IS NULL
   AND COALESCE(session.owner_user_id, '') IN (?, '', '${DEFAULT_USER_ID}')
   AND NOT CASE WHEN json_valid(session.event_json)
-    THEN COALESCE(json_extract(session.event_json, '$.tracking_id') = '${WELCOME_NOTE_TRACKING_ID}', 0)
+    THEN COALESCE(json_extract(session.event_json, '$.tracking_id') IN ('${WELCOME_NOTE_TRACKING_ID}', '${EXAMPLE_NOTE_TRACKING_ID}'), 0)
     ELSE 0 END
 `;
 

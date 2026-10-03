@@ -46,7 +46,9 @@ describe("getDisplayImageSrc", () => {
   });
 
   it("never loads a remote image", () => {
-    expect(getDisplayImageSrc("https://evil.example/?d=secret")).toBeUndefined();
+    expect(
+      getDisplayImageSrc("https://evil.example/?d=secret"),
+    ).toBeUndefined();
     expect(getDisplayImageSrc("//evil.example/x.png")).toBeUndefined();
     expect(getDisplayImageSrc(null)).toBeUndefined();
   });

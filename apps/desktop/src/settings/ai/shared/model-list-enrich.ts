@@ -188,6 +188,9 @@ export function enrichResult(
   const now = options.now ?? Date.now();
 
   const unreachable = result.models.length === 0 && result.ignored.length === 0;
+  // Azure requests need the user's deployment names, which the catalog
+  // cannot know. An empty Azure list stays empty.
+  if (unreachable && catalogProvider === "azure") return result;
   const base = unreachable
     ? catalogResult(providerId, { registry, now })
     : result;
@@ -288,6 +291,12 @@ export function resolveVanishedModel(
   if (result.source === "offline" || result.models.length === 0) return null;
   if (result.models.includes(savedModel)) return null;
   if (result.ignored.some(({ id }) => id === savedModel)) return null;
+  // A routing variant such as OpenRouter's "model:online" or ":nitro" is not
+  // in the list, but its base model is; the variant still works.
+  const variantBase = savedModel.split(":")[0];
+  if (variantBase !== savedModel && result.models.includes(variantBase)) {
+    return null;
+  }
 
   const family = deriveFamily(savedModel);
   const candidates = result.models.filter(
