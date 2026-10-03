@@ -110,6 +110,14 @@ export function ChatToolbarControls({
               onClick={onOpenRightPanel ?? (() => {})}
               className={actionButtonClassName}
             />
+            {/* Fork: the floating chat gets a visible close button too
+                (ux-audit-oct3 D, NN/g #3, #4). */}
+            <ChatActionButton
+              icon={<X size={16} />}
+              label={t`Close chat`}
+              onClick={onClose ?? (() => {})}
+              className={actionButtonClassName}
+            />
           </>
         )}
       </div>
@@ -208,11 +216,8 @@ function ChatGroups({
         className="max-h-[min(20rem,var(--radix-dropdown-menu-content-available-height))] w-72 max-w-[var(--radix-dropdown-menu-content-available-width)] overflow-y-auto"
       >
         <AppFloatingPanel className={appFloatingMenuPanelClassName}>
-          <div className="px-2 py-1.5">
-            <h4 className="text-muted-foreground text-xs font-semibold">
-              Recent chats
-            </h4>
-          </div>
+          {/* Fork: no "Recent chats" eyebrow; the trigger is labeled "Chat
+              history" (ux-audit-oct3 D, design-system Words). */}
           {recentChatGroups.length > 0 ? (
             <div className="flex flex-col gap-0.5">
               {recentChatGroups.map((chatGroup) => (
@@ -281,6 +286,7 @@ function ChatGroupItem({
         </div>
         <div className="min-w-0 flex-1 text-left">
           <div
+            title={chatGroup.title}
             className={cn([
               "truncate text-sm font-medium",
               isActive ? "text-foreground" : "text-muted-foreground",

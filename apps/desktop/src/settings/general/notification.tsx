@@ -281,8 +281,7 @@ export function NotificationSettingsView() {
                     title={<Trans>Completion sound</Trans>}
                     description={
                       <Trans>
-                        Play a sound when transcription, summaries, or cloud
-                        sync finish.
+                        Play a sound when a transcript or summary is ready.
                       </Trans>
                     }
                     checked={field.state.value}
@@ -401,36 +400,55 @@ export function NotificationSettingsView() {
                       >
                         <form.Field name="mic_active_threshold">
                           {(thresholdField) => (
-                            <div className="mb-4 flex items-center justify-between gap-4">
-                              <div className="flex-1">
-                                <h4 className="text-sm font-medium">
-                                  <Trans>Detection delay</Trans>
-                                </h4>
-                                <p className="text-muted-foreground text-xs">
+                            // Fork: a named, translated delay picker
+                            // (ux-audit-oct3 E, WCAG 4.1.2).
+                            <div className="mb-4">
+                              <SettingRow
+                                title={<Trans>Detection delay</Trans>}
+                                description={
                                   <Trans>
                                     Wait before treating microphone activity as
                                     a meeting.
                                   </Trans>
-                                </p>
-                              </div>
-                              <Select
-                                value={String(thresholdField.state.value)}
-                                onValueChange={(v) =>
-                                  thresholdField.handleChange(Number(v))
                                 }
+                                controlWidth="content"
                               >
-                                <SelectTrigger className="w-[100px]">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent align="end">
-                                  <SelectItem value="5">5 sec</SelectItem>
-                                  <SelectItem value="10">10 sec</SelectItem>
-                                  <SelectItem value="15">15 sec</SelectItem>
-                                  <SelectItem value="30">30 sec</SelectItem>
-                                  <SelectItem value="60">1 min</SelectItem>
-                                  <SelectItem value="120">2 min</SelectItem>
-                                </SelectContent>
-                              </Select>
+                                {(labelProps) => (
+                                  <Select
+                                    value={String(thresholdField.state.value)}
+                                    onValueChange={(v) =>
+                                      thresholdField.handleChange(Number(v))
+                                    }
+                                  >
+                                    <SelectTrigger
+                                      {...labelProps}
+                                      className="w-[120px]"
+                                    >
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent align="end">
+                                      <SelectItem value="5">
+                                        <Trans>5 seconds</Trans>
+                                      </SelectItem>
+                                      <SelectItem value="10">
+                                        <Trans>10 seconds</Trans>
+                                      </SelectItem>
+                                      <SelectItem value="15">
+                                        <Trans>15 seconds</Trans>
+                                      </SelectItem>
+                                      <SelectItem value="30">
+                                        <Trans>30 seconds</Trans>
+                                      </SelectItem>
+                                      <SelectItem value="60">
+                                        <Trans>1 minute</Trans>
+                                      </SelectItem>
+                                      <SelectItem value="120">
+                                        <Trans>2 minutes</Trans>
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                )}
+                              </SettingRow>
                             </div>
                           )}
                         </form.Field>
@@ -521,7 +539,8 @@ export function NotificationSettingsView() {
                                                 type="button"
                                                 variant="ghost"
                                                 size="sm"
-                                                className="ml-0.5 h-3 w-3 p-0 hover:bg-transparent"
+                                                aria-label={t`Remove ${bundleIdToName(bundleId)}`}
+                                                className="-my-1 -mr-1.5 size-6 p-0 hover:bg-transparent"
                                                 onClick={(event) => {
                                                   event.stopPropagation();
                                                   handleToggleIgnoredApp(
@@ -531,14 +550,14 @@ export function NotificationSettingsView() {
                                                   );
                                                 }}
                                               >
-                                                <X className="h-2.5 w-2.5" />
+                                                <X className="size-3" />
                                               </Button>
                                             </Badge>
                                           );
                                         },
                                       )}
                                       <span className="text-muted-foreground text-sm">
-                                        <Trans>Search installed apps...</Trans>
+                                        <Trans>Search installed apps…</Trans>
                                       </span>
                                     </div>
                                   </PopoverTrigger>
@@ -553,7 +572,7 @@ export function NotificationSettingsView() {
                                     <AppFloatingPanel className="overflow-hidden">
                                       <Command className="rounded-[inherit] border-0 bg-transparent">
                                         <CommandInput
-                                          placeholder={t`Search installed apps...`}
+                                          placeholder={t`Search installed apps…`}
                                           value={searchQuery}
                                           onValueChange={setSearchQuery}
                                         />
@@ -604,14 +623,6 @@ export function NotificationSettingsView() {
 
             {supportsDoNotDisturb && (
               <div className="flex flex-col gap-6">
-                <div className="flex items-center gap-4 pt-4 pb-2">
-                  <div className="border-muted min-w-0 flex-1 border-t" />
-                  <span className="text-muted-foreground shrink-0 text-xs font-medium">
-                    <Trans>For enabled notifications</Trans>
-                  </span>
-                  <div className="border-muted min-w-0 flex-1 border-t" />
-                </div>
-
                 <form.Subscribe
                   selector={(state) =>
                     !state.values.notification_disabled &&
@@ -623,7 +634,7 @@ export function NotificationSettingsView() {
                     <form.Field name="respect_dnd">
                       {(field) => (
                         <SettingSwitchRow
-                          title={<Trans>Respect Do-Not-Disturb mode</Trans>}
+                          title={<Trans>Respect Do Not Disturb</Trans>}
                           description={
                             <Trans>
                               Pause alerts while Do Not Disturb is on.

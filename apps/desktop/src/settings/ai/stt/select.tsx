@@ -79,9 +79,11 @@ import {
   getVisibleModelSelection,
 } from "~/settings/ai/shared/selection";
 import { getBaseLanguageDisplayName } from "~/settings/general/language";
+import { SettingsSectionTitle } from "~/settings/page-title";
 import { useAiProvidersState } from "~/settings/providers";
 import { useSetSettingValues } from "~/settings/queries";
 import { useConfigValues } from "~/shared/config";
+import { DestructiveConfirmationDialog } from "~/shared/ui/destructive-confirmation-dialog";
 import { SettingsAlertToast } from "~/shared/ui/settings-alert";
 import {
   canAppleSpeechTranscribe,
@@ -222,6 +224,27 @@ export function SelectProviderAndModel() {
     });
   };
 
+  const [modelMenuOpen, setModelMenuOpen] = useState(false);
+  const [modelToDelete, setModelToDelete] = useState<ModelEntry | null>(null);
+
+  // Fork: Download, Cancel download and Upgrade are menu items, so they are
+  // always visible and reachable from the keyboard (ux-audit-oct3 E,
+  // WCAG 2.1.1, NN/g #3).
+  const handleModelValueChange = (value: string) => {
+    const action = parseModelAction(value);
+    if (!action) {
+      handleModelChange(value);
+      return;
+    }
+    if (action.kind === "download") {
+      startDownload(action.model as LocalModel);
+    } else if (action.kind === "cancel") {
+      void localSttCommands.cancelDownload(action.model as LocalModel);
+    } else {
+      startTrial();
+    }
+  };
+
   const handleModelChange = (model: string) => {
     if (!visibleProvider) {
       return;
@@ -252,13 +275,14 @@ export function SelectProviderAndModel() {
       />
       {!alertDescription && <TranscriptionLanguageWarningToast />}
 
-      <h3 className="text-md font-sans font-semibold">
+      <SettingsSectionTitle>
         <Trans>Model being used</Trans>
-      </h3>
+      </SettingsSectionTitle>
       <div className="flex flex-row items-center gap-4">
         <div className="min-w-0 flex-2" data-stt-provider-selector>
           <Select value={visibleProvider} onValueChange={handleProviderChange}>
             <SelectTrigger
+              aria-label={t`Transcription provider`}
               corners={{ radius: 18, smoothing: 0 }}
               className="bg-card rounded-[18px] shadow-none"
             >
@@ -326,18 +350,22 @@ export function SelectProviderAndModel() {
             <Input
               value={displayedSttModel || ""}
               onChange={(event) => handleModelChange(event.target.value)}
+              aria-label={t`Model ID`}
               className="text-xs"
-              placeholder={t`Enter a model identifier`}
+              placeholder={t`Enter a model ID`}
             />
           </div>
         ) : (
           <div className="min-w-0 flex-3">
             <Select
               value={displayedSttModel || ""}
-              onValueChange={handleModelChange}
+              onValueChange={handleModelValueChange}
+              open={modelMenuOpen}
+              onOpenChange={setModelMenuOpen}
               disabled={selectedModels.length === 0}
             >
               <SelectTrigger
+                aria-label={t`Transcription model`}
                 corners={{ radius: 18, smoothing: 0 }}
                 className={cn([
                   "bg-card rounded-[18px] text-left shadow-none",
@@ -373,8 +401,10 @@ export function SelectProviderAndModel() {
                       )}
                       <ModelSelectItem
                         model={model}
-                        onDownload={() => startDownload(model.id as LocalModel)}
-                        onStartTrial={startTrial}
+                        onRequestDelete={() => {
+                          setModelMenuOpen(false);
+                          setModelToDelete(model);
+                        }}
                       />
                     </span>
                   );
@@ -384,8 +414,33 @@ export function SelectProviderAndModel() {
           </div>
         )}
       </div>
+      <DeleteLocalModelDialog
+        model={modelToDelete}
+        onClose={() => setModelToDelete(null)}
+      />
     </div>
   );
+}
+
+type ModelAction = {
+  kind: "download" | "cancel" | "upgrade";
+  model: string;
+};
+
+const MODEL_ACTION_SEPARATOR = "::model-action::";
+
+function modelActionValue(kind: ModelAction["kind"], model: string) {
+  return `${kind}${MODEL_ACTION_SEPARATOR}${model}`;
+}
+
+export function parseModelAction(value: string): ModelAction | null {
+  const index = value.indexOf(MODEL_ACTION_SEPARATOR);
+  if (index === -1) return null;
+  const kind = value.slice(0, index);
+  if (kind !== "download" && kind !== "cancel" && kind !== "upgrade") {
+    return null;
+  }
+  return { kind, model: value.slice(index + MODEL_ACTION_SEPARATOR.length) };
 }
 
 const TRANSCRIPTION_LANGUAGE_WARNING_TOAST_ID =
@@ -450,12 +505,13 @@ function TranscriptionLanguageWarningToast() {
           .map((language) => getBaseLanguageDisplayName(language, i18n.locale))
       : [];
 
+  const more = (count: number) => t`${count} more`;
   const description =
     needsSystemSettings.length > 0
-      ? t`Add ${formatLanguageList(needsSystemSettings)} in System Settings > General > Language & Region to transcribe with ${model}, or choose another model.`
+      ? t`Add ${formatLanguageList(needsSystemSettings, more)} in System Settings › General › Language & Region to transcribe with ${model}, or choose another model.`
       : unsupportedLanguages.length > 0
-        ? t`${model} can't transcribe ${formatLanguageList(unsupportedLanguages)}. Try another model or change your spoken languages.`
-        : t`${model} can't transcribe all selected languages together. Try another model or use fewer spoken languages.`;
+        ? t`${model} can’t transcribe ${formatLanguageList(unsupportedLanguages, more)}. Try another model or change your spoken languages.`
+        : t`${model} can’t transcribe all selected languages together. Try another model or use fewer spoken languages.`;
 
   return (
     <TranscriptionLanguageWarningToastLifecycle
@@ -481,7 +537,9 @@ function TranscriptionLanguageWarningToastLifecycle({
     toast.warning(description, {
       id: TRANSCRIPTION_LANGUAGE_WARNING_TOAST_ID,
       duration: Infinity,
-      icon: <Warning className="size-4 shrink-0 text-amber-500" />,
+      icon: (
+        <Warning className="size-4 shrink-0 text-amber-600 dark:text-amber-500" />
+      ),
       action: {
         label: actionLabel,
         onClick: () => {
@@ -602,12 +660,15 @@ function useTranscriptionLanguageWarning() {
   };
 }
 
-function formatLanguageList(languages: string[]) {
+function formatLanguageList(
+  languages: string[],
+  more: (count: number) => string,
+) {
   const visibleLanguages = languages.slice(0, 3);
   const remainingCount = languages.length - visibleLanguages.length;
 
   if (remainingCount > 0) {
-    visibleLanguages.push(`${remainingCount} more`);
+    visibleLanguages.push(more(remainingCount));
   }
 
   return visibleLanguages.join(", ");
@@ -626,7 +687,7 @@ type ModelEntry = {
 
 function getModelCategoryLabel(category?: ModelCategory) {
   if (category === "latest") {
-    return "Recommended";
+    return <Trans>Recommended</Trans>;
   }
 
   if (category === "hardware") {
@@ -832,12 +893,10 @@ function buildOnDeviceModelEntries(
 
 function ModelSelectItem({
   model,
-  onDownload,
-  onStartTrial,
+  onRequestDelete,
 }: {
   model: ModelEntry;
-  onDownload: () => void;
-  onStartTrial: () => void;
+  onRequestDelete: () => void;
 }) {
   const isCloud = model.id === "cloud";
   const { activeDownloads } = useNotifications();
@@ -852,15 +911,7 @@ function ModelSelectItem({
   const isDeprecated = model.isDeprecated === true;
   const content = (
     <div
-      className={cn([
-        "flex min-w-0 flex-1 items-center justify-between gap-3",
-        !model.isDownloaded &&
-          !isDownloading &&
-          (isCloud
-            ? "group-focus-within:pr-24 group-hover:pr-24"
-            : "group-focus-within:pr-16 group-hover:pr-16"),
-        "transition-[padding] duration-150",
-      ])}
+      className={cn(["flex min-w-0 flex-1 items-center justify-between gap-3"])}
     >
       <LocalModelLabel
         model={model.id}
@@ -895,71 +946,54 @@ function ModelSelectItem({
           {content}
         </SelectItem>
         {showLocalActions && (
-          <LocalModelDropdownActions model={model.id as LocalModel} />
+          <LocalModelDropdownActions
+            model={model.id as LocalModel}
+            onRequestDelete={onRequestDelete}
+          />
         )}
       </div>
     );
   }
 
-  const handleAction = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (isDownloading) {
-      return;
-    }
-    if (isCloud) {
-      onStartTrial();
-    } else {
-      onDownload();
-    }
-  };
+  const actionKind: ModelAction["kind"] = isDownloading
+    ? "cancel"
+    : isCloud
+      ? "upgrade"
+      : "download";
 
   return (
-    <div
-      className={cn([
-        "relative flex items-center justify-between",
-        "rounded-full py-1.5 text-sm outline-hidden",
-        isCloud ? "pr-1.5 pl-2" : "px-2",
-        "cursor-pointer select-none",
-        "hover:bg-accent hover:text-accent-foreground",
-        "group",
-      ])}
+    <SelectItem
+      value={modelActionValue(actionKind, model.id)}
+      className="pr-2 [&>span:first-child]:hidden [&>span:last-child]:min-w-0 [&>span:last-child]:flex-1"
     >
-      <div className="text-muted-foreground min-w-0 flex-1">{content}</div>
-      {isDownloading ? (
-        <span
-          className={cn([
-            "rounded-full px-2 py-0.5 text-xs font-medium",
-            "flex items-center gap-1",
-            "from-muted to-accent text-muted-foreground bg-linear-to-t",
-          ])}
-        >
-          <CircleNotch className="size-3 animate-spin" />
-          {downloadInfo ? (
-            formatDownloadProgress(downloadInfo.progress)
-          ) : (
-            <Trans>Starting</Trans>
-          )}
-        </span>
-      ) : (
-        <button
-          type="button"
-          className={cn([
-            "rounded-full px-2 text-xs font-medium",
-            "pointer-events-none absolute top-1/2 right-1.5 -translate-y-1/2 opacity-0",
-            "group-hover:pointer-events-auto group-hover:opacity-100",
-            "group-focus-within:pointer-events-auto group-focus-within:opacity-100",
-            "transition-opacity duration-150",
-            isCloud
-              ? "bg-primary text-primary-foreground hover:bg-primary/90 py-1 shadow-xs hover:shadow-md dark:!bg-white dark:!text-black dark:hover:!bg-white/90"
-              : "from-muted to-accent text-foreground bg-linear-to-t py-0.5 shadow-xs hover:shadow-md",
-          ])}
-          onClick={handleAction}
-        >
-          {isCloud ? <Trans>Upgrade to use</Trans> : <Trans>Download</Trans>}
-        </button>
-      )}
-    </div>
+      <div className="flex w-full min-w-0 items-center gap-2">
+        <div className="text-muted-foreground min-w-0 flex-1">{content}</div>
+        {isDownloading ? (
+          <span className="text-muted-foreground flex shrink-0 items-center gap-1.5 text-xs">
+            <CircleNotch className="size-3 animate-spin" />
+            {downloadInfo ? (
+              formatDownloadProgress(downloadInfo.progress)
+            ) : (
+              <Trans>Starting</Trans>
+            )}
+            <span className="text-foreground font-medium">
+              <Trans>Cancel download</Trans>
+            </span>
+          </span>
+        ) : (
+          <span
+            className={cn([
+              "shrink-0 rounded-full px-2 py-0.5 text-xs font-medium",
+              isCloud
+                ? "bg-primary text-primary-foreground"
+                : "bg-accent text-foreground",
+            ])}
+          >
+            {isCloud ? <Trans>Upgrade to use</Trans> : <Trans>Download</Trans>}
+          </span>
+        )}
+      </div>
+    </SelectItem>
   );
 }
 
@@ -1037,9 +1071,14 @@ function isLocalModelId(model: string): model is LocalModel {
   return isSupportedLocalSttModel(model);
 }
 
-function LocalModelDropdownActions({ model }: { model: LocalModel }) {
+function LocalModelDropdownActions({
+  model,
+  onRequestDelete,
+}: {
+  model: LocalModel;
+  onRequestDelete: () => void;
+}) {
   const { t } = useLingui();
-  const queryClient = useQueryClient();
 
   const stopSelect = (event: React.SyntheticEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -1058,33 +1097,13 @@ function LocalModelDropdownActions({ model }: { model: LocalModel }) {
     });
   };
 
-  const deleteModel = useMutation({
-    mutationFn: () => localSttCommands.deleteModel(model),
-    onSuccess: (result) => {
-      if (result.status === "ok") {
-        void queryClient.invalidateQueries({
-          queryKey: sttModelQueries.isDownloaded(model).queryKey,
-        });
-      }
-    },
-  });
-
-  const handleDelete = () => {
-    if (deleteModel.isPending) {
-      return;
-    }
-    deleteModel.mutate();
-  };
-
   return (
     <div
-      data-model-actions-pending={deleteModel.isPending || undefined}
       className={cn([
         "absolute top-0 right-0 bottom-0 flex items-center justify-end gap-1 rounded-r-full pl-6",
         "pointer-events-none opacity-0 transition-opacity duration-150",
         "group-hover/model-row:pointer-events-auto group-hover/model-row:opacity-100",
         "group-focus-within/model-row:pointer-events-auto group-focus-within/model-row:opacity-100",
-        deleteModel.isPending && "pointer-events-auto opacity-100",
       ])}
     >
       <button
@@ -1105,24 +1124,72 @@ function LocalModelDropdownActions({ model }: { model: LocalModel }) {
       <button
         type="button"
         aria-label={t`Delete model`}
-        disabled={deleteModel.isPending}
         className={cn([
           "flex size-6 items-center justify-center rounded-full",
-          "text-red-500 hover:text-red-600",
+          "text-destructive hover:bg-destructive/10",
           "disabled:opacity-70",
         ])}
         onPointerDown={stopSelect}
         onClick={(event) => {
           stopSelect(event);
-          handleDelete();
+          onRequestDelete();
         }}
       >
-        {deleteModel.isPending ? (
-          <CircleNotch className="size-3.5 animate-spin" />
-        ) : (
-          <Trash className="size-3.5" />
-        )}
+        <Trash className="size-3.5" />
       </button>
     </div>
+  );
+}
+
+// Fork: deleting a downloaded model asks first, because getting it back
+// means downloading it again (ux-audit-oct3 E, NN/g #5; HIG alerts).
+export function DeleteLocalModelDialog({
+  model,
+  onClose,
+}: {
+  model: ModelEntry | null;
+  onClose: () => void;
+}) {
+  const { t } = useLingui();
+  const queryClient = useQueryClient();
+  const deleteModel = useMutation({
+    mutationFn: (id: LocalModel) => localSttCommands.deleteModel(id),
+    onSuccess: (result, id) => {
+      if (result.status === "ok") {
+        void queryClient.invalidateQueries({
+          queryKey: sttModelQueries.isDownloaded(id).queryKey,
+        });
+        onClose();
+      } else {
+        toast.error(t`Couldn’t delete the model`, {
+          description: result.error,
+        });
+      }
+    },
+  });
+
+  const label = model ? displayModelLabel(model.id, model.displayName) : "";
+  const size = model ? formatModelSize(model.sizeBytes) : null;
+
+  return (
+    <DestructiveConfirmationDialog
+      open={model !== null}
+      onOpenChange={(open) => {
+        if (!open && !deleteModel.isPending) onClose();
+      }}
+      title={t`Delete ${label}?`}
+      description={
+        size
+          ? t`You’ll need to download it again (${size}) to use it.`
+          : t`You’ll need to download it again to use it.`
+      }
+      confirmLabel={t`Delete`}
+      pendingLabel={t`Deleting…`}
+      isPending={deleteModel.isPending}
+      onConfirm={() => {
+        if (!model || deleteModel.isPending) return;
+        deleteModel.mutate(model.id as LocalModel);
+      }}
+    />
   );
 }

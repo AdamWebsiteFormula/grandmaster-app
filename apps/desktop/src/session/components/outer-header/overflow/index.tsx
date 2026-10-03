@@ -1,15 +1,16 @@
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
 
 import {
   AppWindow,
   ArrowsClockwise,
-  CalendarBlank,
   ClockCounterClockwise,
+  Copy,
   DotsThree,
   FileArrowDown,
   FileText,
   PictureInPicture,
+  Trash,
   Waveform,
 } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
@@ -19,15 +20,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuPortal,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@anlg/ui/components/ui/dropdown-menu";
+import { cn } from "@anlg/utils";
 
-import { MetadataPanelContent } from "../metadata";
 import { DeleteNote } from "./delete";
 import { ExportModal } from "./export-modal";
 import { Listening } from "./listening";
@@ -37,6 +34,7 @@ import { ShowInFolder } from "./misc";
 import { useAudioPlayer } from "~/audio-player";
 import { openFloatingMeetingPanel } from "~/meeting-float/host";
 import { isFloatingBarSupported } from "~/meeting-float/support";
+import { useCopyTranscript } from "~/session/components/note-input/header-transcript";
 import { useRegenerateTranscript } from "~/session/components/note-input/transcript/actions";
 import {
   useCurrentNoteHasContent,
@@ -60,6 +58,7 @@ export function OverflowButton({
   sessionId: string;
   currentView: EditorView;
 }) {
+  const { t } = useLingui();
   const [open, setOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [hasOpenedExportModal, setHasOpenedExportModal] = useState(false);
@@ -70,7 +69,9 @@ export function OverflowButton({
     sessionId,
     currentView,
   );
-  const { audioExists, audioExistsResolved } = useAudioPlayer();
+  const { audioExists, audioExistsResolved, requestDeleteRecording } =
+    useAudioPlayer();
+  const { canCopyTranscript, copyTranscript } = useCopyTranscript(sessionId);
   const { uploadAudio, uploadTranscript } = useUploadFile(sessionId);
   const regenerateTranscript = useRegenerateTranscript(sessionId);
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
@@ -93,6 +94,7 @@ export function OverflowButton({
     floatingBarEnabled &&
     sessionMode === "active";
   const hasMeetingActions =
+    canCopyTranscript ||
     showListeningAction ||
     showRetranscribeAction ||
     showUploadActions ||
@@ -126,6 +128,14 @@ export function OverflowButton({
       enabled: floatingBarEnabled,
     });
   };
+  const handleCopyTranscript = () => {
+    setOpen(false);
+    void copyTranscript();
+  };
+  const handleDeleteRecording = () => {
+    setOpen(false);
+    requestDeleteRecording();
+  };
   const handleOpenStandaloneWindow = () => {
     setOpen(false);
     void openStandaloneNoteWindow(sessionId);
@@ -139,7 +149,7 @@ export function OverflowButton({
             size="icon"
             variant="ghost"
             data-tauri-drag-region="false"
-            aria-label="More"
+            aria-label={t`More`}
             className="text-muted-foreground hover:bg-accent hover:text-foreground rounded-full [&_svg]:size-4"
           >
             <DotsThree className="size-4" />
@@ -147,30 +157,14 @@ export function OverflowButton({
         </DropdownMenuTrigger>
         <DropdownMenuContent variant="app" align="end" className="w-56">
           <AppFloatingPanel className={appFloatingMenuPanelClassName}>
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger className="cursor-pointer">
-                <CalendarBlank />
-                <span>
-                  <Trans>Meeting info</Trans>
-                </span>
-              </DropdownMenuSubTrigger>
-              <DropdownMenuPortal>
-                <DropdownMenuSubContent
-                  variant="app"
-                  className="w-72 overflow-hidden"
-                >
-                  <MetadataPanelContent sessionId={sessionId} />
-                </DropdownMenuSubContent>
-              </DropdownMenuPortal>
-            </DropdownMenuSub>
-            <DropdownMenuSeparator />
+            {/* Fork: Meeting info moved to a header button, so Tab no longer gets trapped in a submenu (ux-audit-oct3 C, WCAG 2.1.1). */}
             <DropdownMenuItem
               onClick={openExportModal}
               className="cursor-pointer"
             >
               <FileArrowDown />
               <span>
-                <Trans>Export</Trans>
+                <Trans>Export…</Trans>
               </span>
             </DropdownMenuItem>
             <DropdownMenuItem
@@ -195,7 +189,9 @@ export function OverflowButton({
                 className="cursor-pointer"
               >
                 <ArrowsClockwise />
-                <span>Re-transcribe</span>
+                <span>
+                  <Trans>Transcribe again</Trans>
+                </span>
               </DropdownMenuItem>
             )}
             {showUploadActions && (
@@ -231,6 +227,18 @@ export function OverflowButton({
                 </span>
               </DropdownMenuItem>
             )}
+            {/* Fork: Copy transcript and Delete recording were right-click only (ux-audit-oct3 C; HIG context menus). */}
+            {canCopyTranscript && (
+              <DropdownMenuItem
+                onClick={handleCopyTranscript}
+                className="cursor-pointer"
+              >
+                <Copy />
+                <span>
+                  <Trans>Copy transcript</Trans>
+                </span>
+              </DropdownMenuItem>
+            )}
             {hasMeetingActions && <DropdownMenuSeparator />}
             {!standaloneWindow && (
               <DropdownMenuItem
@@ -239,12 +247,27 @@ export function OverflowButton({
               >
                 <AppWindow />
                 <span>
-                  <Trans>Open in New Window</Trans>
+                  <Trans>Open in new window</Trans>
                 </span>
               </DropdownMenuItem>
             )}
             <ShowInFolder sessionId={sessionId} />
             <LockNote sessionId={sessionId} />
+            <DropdownMenuSeparator />
+            {showRetranscribeAction && (
+              <DropdownMenuItem
+                onClick={handleDeleteRecording}
+                className={cn([
+                  "text-destructive cursor-pointer",
+                  "hover:bg-destructive/10 hover:text-destructive",
+                ])}
+              >
+                <Trash />
+                <span>
+                  <Trans>Delete recording</Trans>
+                </span>
+              </DropdownMenuItem>
+            )}
             <DeleteNote sessionId={sessionId} />
           </AppFloatingPanel>
         </DropdownMenuContent>

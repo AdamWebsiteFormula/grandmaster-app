@@ -419,12 +419,13 @@ export const useRunBatch = (sessionId: string) => {
       }
 
       if (!shouldUseSelectedTarget && !options?.recovery && !options?.resume) {
-        toast.warning("Using a batch transcription provider", {
-          description: `${
-            selectedTarget
-              ? selectedProviderLabel(conn, selectedModel)
-              : selectedProviderLabel(conn)
-          } is not available for batch transcription. Using ${target.label} instead.`,
+        // Fork: no "batch" jargon (ux-audit-oct3 C, NN/g #2).
+        const selectedLabel = selectedTarget
+          ? selectedProviderLabel(conn, selectedModel)
+          : selectedProviderLabel(conn);
+        const fallbackLabel = target.label;
+        toast.warning(t`Switching to ${fallbackLabel} for this transcript`, {
+          description: t`${selectedLabel} can't transcribe after you stop, so Upshot uses ${fallbackLabel}.`,
         });
       }
 

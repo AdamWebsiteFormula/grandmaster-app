@@ -13,25 +13,30 @@ import {
 } from "@anlg/plugin-export";
 import { commands as fs2Commands } from "@anlg/plugin-fs2";
 import { commands as openerCommands } from "@anlg/plugin-opener2";
+import { Button } from "@anlg/ui/components/ui/button";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogTitle,
 } from "@anlg/ui/components/ui/dialog";
-import { cn } from "@anlg/utils";
 
 import { formatDate, formatDuration } from "./export-utils";
 
 import { useTranscriptExportSegments } from "~/session/components/note-input/transcript/export-data";
 import {
   useEnhancedNote,
+  useEnhancedNoteRecords,
   useSession,
   useSessionParticipants,
 } from "~/session/queries";
 import { getSessionEvent } from "~/session/utils";
 import { getStoredSettingValues } from "~/settings/queries";
 import { isAppStoreBuild } from "~/shared/app-store";
+import {
+  GlassDialogCancelButton,
+  GlassDialogContent,
+} from "~/shared/ui/glass-dialog";
 import type { EditorView } from "~/store/zustand/tabs/schema";
 import { useSessionTranscriptMetadata } from "~/stt/queries";
 
@@ -88,7 +93,13 @@ export function ExportModal({
   const eventTitle = event?.title;
   const rawMd = session?.raw_md;
 
-  const enhancedNoteId = currentView.type === "enhanced" ? currentView.id : "";
+  // Fork: exporting from My notes or Transcript used to drop the summary silently;
+  // fall back to the note's first summary (ux-audit-oct3 C, NN/g #5).
+  const enhancedNoteRecords = useEnhancedNoteRecords(sessionId);
+  const enhancedNoteId =
+    currentView.type === "enhanced"
+      ? currentView.id
+      : (enhancedNoteRecords[0]?.id ?? "");
   const enhancedNoteContent = useEnhancedNote(enhancedNoteId)?.content;
   const participants = useSessionParticipants(sessionId);
 
@@ -178,7 +189,7 @@ export function ExportModal({
       const memo = getMemoMd();
       if (memo) {
         sections.push("");
-        sections.push(`## ${t`Memo`}`);
+        sections.push(`## ${t`My notes`}`);
         sections.push(memo);
       }
     }
@@ -226,8 +237,8 @@ export function ExportModal({
       const memo = getMemoMd();
       if (memo) {
         sections.push("");
-        sections.push(t`Memo`);
-        sections.push("-".repeat(4));
+        sections.push(t`My notes`);
+        sections.push("-".repeat(8));
         sections.push(markdownToText(memo));
       }
     }
@@ -283,7 +294,7 @@ export function ExportModal({
       const memo = getMemoMd();
       if (memo) {
         sections.push("");
-        sections.push(`* ${t`Memo`}`);
+        sections.push(`* ${t`My notes`}`);
         sections.push(markdownToOrg(memo));
       }
     }
@@ -408,121 +419,123 @@ export function ExportModal({
     return null;
   }
 
+  // Fork: one opaque dialog surface with Cancel, real fieldsets, no shadows
+  // (ux-audit-oct3 C; design-system dialogs, HIG sheets, WCAG 1.3.1).
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        overlayClassName="bg-black/20 backdrop-blur-xs"
-        className={cn([
-          "w-full max-w-xs gap-0 border-0 bg-transparent p-4 shadow-none sm:rounded-none",
-          "[&>button:last-child]:hidden",
-        ])}
-      >
-        <div
-          className={cn([
-            "border-border/80 bg-background rounded-xl border",
-            "shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]",
-            "flex flex-col gap-4 p-5 text-center",
-          ])}
-        >
-          <div className="flex flex-col gap-1">
-            <DialogTitle className="text-base leading-normal font-semibold">
-              <Trans>Export</Trans>
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground text-sm">
-              <Trans>Choose a file format and what to include.</Trans>
-            </DialogDescription>
-          </div>
+      <GlassDialogContent className="text-center">
+        <div className="flex flex-col gap-1">
+          <DialogTitle className="text-base leading-normal font-semibold">
+            <Trans>Export</Trans>
+          </DialogTitle>
+          <DialogDescription className="text-muted-foreground text-sm">
+            <Trans>Choose a file format and what to include.</Trans>
+          </DialogDescription>
+        </div>
 
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium">
-                <Trans>File format</Trans>
-              </span>
-              <div className="flex justify-center gap-4">
-                {(["pdf", "txt", "md", "org"] as const).map((f) => (
-                  <label
-                    key={f}
-                    className="flex cursor-pointer items-center gap-1.5 text-sm"
-                  >
-                    <input
-                      type="radio"
-                      name="export-format"
-                      checked={format === f}
-                      onChange={() => setFormat(f)}
-                      className="accent-primary"
-                    />
-                    {f === "md"
-                      ? "Markdown"
-                      : f === "org"
-                        ? "Org"
-                        : f.toUpperCase()}
-                  </label>
-                ))}
-              </div>
+        <div className="flex flex-col gap-4">
+          <fieldset className="flex flex-col gap-2">
+            <legend className="mb-2 w-full text-sm font-medium">
+              <Trans>File format</Trans>
+            </legend>
+            <div className="flex justify-center gap-4">
+              {(["pdf", "txt", "md", "org"] as const).map((f) => (
+                <label
+                  key={f}
+                  className="flex cursor-pointer items-center gap-1.5 text-sm"
+                >
+                  <input
+                    type="radio"
+                    name="export-format"
+                    checked={format === f}
+                    onChange={() => setFormat(f)}
+                    className="accent-primary"
+                  />
+                  {f === "md"
+                    ? "Markdown"
+                    : f === "org"
+                      ? "Org"
+                      : f.toUpperCase()}
+                </label>
+              ))}
             </div>
+          </fieldset>
 
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium">
-                <Trans>Include</Trans>
-              </span>
-              <div className="flex justify-center gap-4">
-                {(
+          <fieldset className="flex flex-col gap-2">
+            <legend className="mb-2 w-full text-sm font-medium">
+              <Trans>Include</Trans>
+            </legend>
+            <div className="flex justify-center gap-4">
+              {(
+                [
                   [
-                    ["memo", <Trans>Memo</Trans>, includeMemo, setIncludeMemo],
-                    [
-                      "summary",
-                      <Trans>Summary</Trans>,
-                      includeSummary,
-                      setIncludeSummary,
-                    ],
-                    [
-                      "transcript",
-                      <Trans>Transcript</Trans>,
-                      includeTranscript,
-                      setIncludeTranscript,
-                    ],
-                  ] as const
-                ).map(([id, label, checked, setter]) => (
-                  <label
-                    key={id}
-                    className="flex cursor-pointer items-center gap-1.5 text-sm"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={(e) => setter(e.target.checked)}
-                      className="accent-primary"
-                    />
-                    {label}
-                  </label>
-                ))}
-              </div>
+                    "memo",
+                    <Trans>My notes</Trans>,
+                    includeMemo,
+                    setIncludeMemo,
+                  ],
+                  [
+                    "summary",
+                    <Trans>Summary</Trans>,
+                    includeSummary,
+                    setIncludeSummary,
+                  ],
+                  [
+                    "transcript",
+                    <Trans>Transcript</Trans>,
+                    includeTranscript,
+                    setIncludeTranscript,
+                  ],
+                ] as const
+              ).map(([id, label, checked, setter]) => (
+                <label
+                  key={id}
+                  className="flex cursor-pointer items-center gap-1.5 text-sm"
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={(e) => setter(e.target.checked)}
+                    className="accent-primary"
+                  />
+                  {label}
+                </label>
+              ))}
             </div>
-          </div>
+          </fieldset>
+        </div>
 
-          {error && (
-            <p role="alert" className="text-destructive text-xs">
-              <Trans>
-                Could not export. Check the export location in Settings and try
-                again.
-              </Trans>
-            </p>
-          )}
-          <button
+        {error && (
+          <p role="alert" className="text-destructive text-xs">
+            <Trans>
+              Could not export. Check the export location in Settings and try
+              again.
+            </Trans>
+          </p>
+        )}
+        <DialogFooter className="grid grid-cols-2 gap-2 sm:grid-cols-2 sm:justify-normal">
+          <GlassDialogCancelButton
+            disabled={isPending}
+            onClick={() => onOpenChange(false)}
+          >
+            <Trans>Cancel</Trans>
+          </GlassDialogCancelButton>
+          <Button
+            type="button"
             onClick={() => mutate(null)}
             disabled={
               isPending || isTranscriptPending || !hasAnyContentSelected
             }
-            className="border-primary bg-primary text-primary-foreground hover:bg-primary/90 h-10 w-full rounded-full border-2 text-sm font-medium shadow-[0_4px_14px_rgba(0,0,0,0.4)] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-8 rounded-full px-4 text-xs font-medium"
           >
             {isPending
-              ? t`Exporting...`
+              ? t`Exporting…`
               : isTranscriptPending
-                ? t`Preparing transcript...`
+                ? t`Preparing transcript…`
                 : t`Export`}
-          </button>
-        </div>
-      </DialogContent>
+          </Button>
+        </DialogFooter>
+      </GlassDialogContent>
     </Dialog>
   );
 }

@@ -19,7 +19,7 @@ export const EXAMPLE_NOTE_TITLE = "Example: Product sync";
 const EXAMPLE_MEMO = `This is an example meeting, so you can see what Upshot makes. Open **Summary** and **Transcript** above.
 
 
-To delete it, right-click it in the sidebar and choose **Delete note**.`;
+To delete it, right-click it on Home and choose **Delete note**.`;
 
 export const EXAMPLE_SUMMARY = `## Summary
 

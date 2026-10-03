@@ -17,7 +17,7 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { platform } from "@tauri-apps/plugin-os";
 import { type ReactNode, useCallback, useState } from "react";
 
-import { Microphone } from "@anlg/ui/components/icons";
+import { Lock, Microphone } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 import { Checkbox } from "@anlg/ui/components/ui/checkbox";
 import { Kbd } from "@anlg/ui/components/ui/kbd";
@@ -167,7 +167,11 @@ export function UpNext({ event }: { event: UpNextEvent | null }) {
             onClick={() => openEvent(false)}
             className="min-w-0 flex-1 cursor-pointer text-left"
           >
-            <p className="text-foreground truncate text-sm font-medium">
+            {/* Fork: full title on hover when truncated (ux-audit-oct3 B, WCAG 1.3.1). */}
+            <p
+              title={event.title || t`Untitled`}
+              className="text-foreground truncate text-sm font-medium"
+            >
               {event.title || t`Untitled`}
             </p>
             <p className="text-muted-foreground truncate text-sm tabular-nums">
@@ -330,10 +334,15 @@ export function RecentNotes({
   groups,
   hasMore = false,
   onShowMore,
+  headingId = "home-recent",
+  compactHeading = false,
 }: {
   groups: RecentGroup[];
   hasMore?: boolean;
   onShowMore?: () => void;
+  headingId?: string;
+  /** Fork: the folder page uses its own small section headings. */
+  compactHeading?: boolean;
 }) {
   const { t } = useLingui();
   const groupLabel = (group: RecentGroup) =>
@@ -349,10 +358,16 @@ export function RecentNotes({
           );
 
   return (
-    <section aria-labelledby="home-recent" className="flex flex-col">
-      <SectionTitle id="home-recent">
-        <Trans>Notes</Trans>
-      </SectionTitle>
+    <section aria-labelledby={headingId} className="flex flex-col">
+      {compactHeading ? (
+        <h4 id={headingId} className="mb-1.5 text-sm font-medium">
+          <Trans>Notes</Trans>
+        </h4>
+      ) : (
+        <SectionTitle id={headingId}>
+          <Trans>Notes</Trans>
+        </SectionTitle>
+      )}
       <div className="flex flex-col gap-4">
         {groups.map((group) => (
           <div key={group.key} className="flex flex-col">
@@ -415,7 +430,23 @@ function RecentNoteRow({ note }: { note: RecentNote }) {
         contextMenu={contextMenu}
         className="hover:bg-accent -mx-3 flex w-[calc(100%+1.5rem)] cursor-pointer items-center gap-4 rounded-lg px-3 py-2 text-left text-sm transition-colors"
       >
-        <span className="text-foreground min-w-0 flex-1 truncate">{title}</span>
+        {/* Fork: full title on hover and a lock mark on locked notes
+            (ux-audit-oct3 B, WCAG 1.3.1). */}
+        <span
+          title={title}
+          className="text-foreground flex min-w-0 flex-1 items-center gap-1.5"
+        >
+          <span className="min-w-0 truncate">{title}</span>
+          {note.locked ? (
+            <span
+              role="img"
+              aria-label={t`Locked`}
+              className="text-muted-foreground shrink-0"
+            >
+              <Lock className="size-3.5" aria-hidden="true" />
+            </span>
+          ) : null}
+        </span>
         {people ? (
           <span className="text-muted-foreground shrink-0">{people}</span>
         ) : null}
@@ -437,16 +468,18 @@ function Shortcuts() {
       <SectionTitle id="home-start">
         <Trans>Your notes show up here</Trans>
       </SectionTitle>
+      {/* Fork: ⌘N records and ⇧⌘N makes a blank note (ux-audit-oct3 A/B,
+          Granola 101: New note starts transcribing; NN/g #4). */}
       <div className="flex flex-col">
         <ShortcutItem
-          label={<Trans>New note</Trans>}
+          label={<Trans>Start recording</Trans>}
           shortcut={[primaryModifier, "N"]}
-          onClick={newNote}
+          onClick={() => openNewNoteAndListen({ behavior: "current" })}
         />
         <ShortcutItem
-          label={<Trans>Start recording</Trans>}
-          shortcut={[primaryModifier, "⇧", "N"]}
-          onClick={() => openNewNoteAndListen({ behavior: "current" })}
+          label={<Trans>Blank note</Trans>}
+          shortcut={["⇧", primaryModifier, "N"]}
+          onClick={newNote}
         />
         <ShortcutItem
           label={<Trans>Settings</Trans>}

@@ -79,3 +79,13 @@ it("shows the calendar list and Continue once a calendar is on", () => {
   fireEvent.click(screen.getByRole("button", { name: "Continue" }));
   expect(onContinue).toHaveBeenCalledTimes(1);
 });
+
+it("says Open Calendar settings once access is on", () => {
+  mocks.permission.status = "authorized";
+  render(<CalendarSection onContinue={vi.fn()} />);
+
+  expect(
+    screen.getByRole("button", { name: "Open Calendar settings" }),
+  ).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "Connect calendar" })).toBeNull();
+});

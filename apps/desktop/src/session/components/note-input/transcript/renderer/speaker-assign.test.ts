@@ -205,7 +205,7 @@ describe("SpeakerAssignPopover", () => {
     fireEvent.click(screen.getByRole("button", { name: "Unknown speaker" }));
     expect(screen.queryByRole("checkbox")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Alice" }));
-    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    fireEvent.click(screen.getByRole("button", { name: "Assign" }));
 
     await waitFor(() =>
       expect(assignTranscriptSpeakerMock).toHaveBeenCalledWith(
@@ -258,9 +258,7 @@ describe("SpeakerAssignPopover", () => {
 
     fireEvent.click(trigger);
     expect(trigger.className.split(/\s+/)).toContain("underline");
-    expect(
-      screen.getByRole("button", { name: "Create new speaker" }),
-    ).toBeTruthy();
+    expect(screen.getByText("Type a name to add a speaker")).toBeTruthy();
     const searchInput = screen.getByPlaceholderText(
       "Select or type to add speaker",
     );
@@ -269,13 +267,11 @@ describe("SpeakerAssignPopover", () => {
       "py-1",
     );
     const footer = screen.getByRole("button", {
-      name: "Confirm",
+      name: "Assign",
     }).parentElement;
     expect(footer?.className).toContain("py-1");
     expect(footer?.className).not.toContain("pb-3");
-    const list = screen.getByRole("button", {
-      name: "Create new speaker",
-    }).parentElement;
+    const list = screen.getByText("Type a name to add a speaker").parentElement;
     expect(list?.className).toContain("py-1");
     expect(list?.className).toContain("pb-3");
     const aliceOption = screen.getByRole("button", { name: "Alice" });
@@ -285,7 +281,7 @@ describe("SpeakerAssignPopover", () => {
     fireEvent.click(aliceOption);
     expect(assignTranscriptSpeakerMock).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    fireEvent.click(screen.getByRole("button", { name: "Assign" }));
 
     await waitFor(() => {
       expect(assignSessionTranscriptSpeakerMock).toHaveBeenCalledWith({
@@ -336,7 +332,7 @@ describe("SpeakerAssignPopover", () => {
     fireEvent.click(screen.getByRole("button", { name: "Speaker 2" }));
     fireEvent.click(screen.getByRole("checkbox"));
     fireEvent.click(screen.getByRole("button", { name: "Alice" }));
-    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    fireEvent.click(screen.getByRole("button", { name: "Assign" }));
 
     await waitFor(() => {
       expect(assignTranscriptSpeakerMock).toHaveBeenCalledWith(

@@ -4,8 +4,8 @@ import { useMutation } from "@tanstack/react-query";
 import { Button } from "@anlg/ui/components/ui/button";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@anlg/ui/components/ui/dialog";
@@ -17,6 +17,10 @@ import {
   useSessionConflicts,
   useSessionDocumentVersions,
 } from "~/session/queries";
+import {
+  GlassDialogCancelButton,
+  GlassDialogContent,
+} from "~/shared/ui/glass-dialog";
 
 export function VersionHistoryDialog({
   sessionId,
@@ -61,7 +65,8 @@ export function VersionHistoryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[min(560px,calc(100vh-80px))] w-full max-w-lg flex-col gap-4 overflow-hidden">
+      {/* Fork: the shared dialog surface with a visible Done (ux-audit-oct3 C; design-system dialogs, HIG sheets). */}
+      <GlassDialogContent className="flex max-h-[min(560px,calc(100vh-80px))] w-full max-w-lg flex-col gap-4 overflow-hidden">
         <DialogHeader>
           <DialogTitle className="text-base">
             <Trans>Version history</Trans>
@@ -123,11 +128,16 @@ export function VersionHistoryDialog({
         )}
 
         {restoreMutation.error && (
-          <p className="text-xs text-destructive">
-            {restoreMutation.error.message}
+          <p role="alert" className="text-destructive text-xs">
+            <Trans>Couldn't restore this version. Try again.</Trans>
           </p>
         )}
-      </DialogContent>
+        <DialogFooter className="sm:justify-end">
+          <GlassDialogCancelButton onClick={() => onOpenChange(false)}>
+            <Trans>Done</Trans>
+          </GlassDialogCancelButton>
+        </DialogFooter>
+      </GlassDialogContent>
     </Dialog>
   );
 }

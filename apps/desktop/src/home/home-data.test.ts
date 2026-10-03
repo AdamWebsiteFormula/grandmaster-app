@@ -6,6 +6,7 @@ vi.mock("~/db/write-queue", () => ({ enqueueDatabaseWrite: vi.fn() }));
 vi.mock("~/calendar/ignored-events", () => ({ useIgnoredEvents: vi.fn() }));
 
 import {
+  FOLDER_SESSIONS_SQL,
   FOLLOW_UPS_SQL,
   groupRecentNotes,
   pickUpNext,
@@ -216,6 +217,29 @@ describe("home SQL", () => {
       expect(recent).toEqual([
         expect.objectContaining({ id: "s1", attendees: 2, locked: 1 }),
       ]);
+    } finally {
+      db.close();
+    }
+  });
+
+  it("lists a folder's notes, including nested folders", () => {
+    const db = new DatabaseSync(":memory:");
+    try {
+      db.exec(`
+        CREATE TABLE sessions (id TEXT PRIMARY KEY, title TEXT, created_at TEXT, event_json TEXT, deleted_at TEXT, locked INTEGER DEFAULT 0, folder_path TEXT DEFAULT '');
+        CREATE TABLE session_participants (id TEXT PRIMARY KEY, session_id TEXT, deleted_at TEXT);
+        INSERT INTO sessions VALUES ('a', 'In folder', '2026-10-02T10:00:00Z', '', NULL, 0, 'Work');
+        INSERT INTO sessions VALUES ('b', 'Nested', '2026-10-03T10:00:00Z', '', NULL, 0, 'Work/Hiring');
+        INSERT INTO sessions VALUES ('c', 'Sibling prefix', '2026-10-03T11:00:00Z', '', NULL, 0, 'Workshop');
+        INSERT INTO sessions VALUES ('d', 'Deleted', '2026-10-03T12:00:00Z', '', '2026-10-03T13:00:00Z', 0, 'Work');
+        INSERT INTO sessions VALUES ('e', 'No folder', '2026-10-03T12:00:00Z', '', NULL, 0, '');
+        INSERT INTO sessions VALUES ('f', 'Wildcard', '2026-10-03T12:00:00Z', '', NULL, 0, 'Wor_');
+      `);
+
+      const rows = db
+        .prepare(FOLDER_SESSIONS_SQL)
+        .all("Work", "Work/", "Work/", 10) as Array<{ id: string }>;
+      expect(rows.map((row) => row.id)).toEqual(["b", "a"]);
     } finally {
       db.close();
     }

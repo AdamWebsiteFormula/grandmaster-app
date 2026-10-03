@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   addDays,
@@ -263,6 +264,9 @@ export function CalendarView() {
             size="icon"
             smoothCorners={false}
             className="hover:bg-accent h-full w-7 rounded-none border-0 bg-transparent shadow-none"
+            // Fork: named icon buttons (ux-audit-oct3 B, WCAG 4.1.2).
+            aria-label={isMonthView ? t`Previous month` : t`Previous days`}
+            title={isMonthView ? t`Previous month` : t`Previous days`}
             onClick={goToPrev}
           >
             <CaretLeft className="size-3.5" />
@@ -286,6 +290,8 @@ export function CalendarView() {
             size="icon"
             smoothCorners={false}
             className="hover:bg-accent h-full w-7 rounded-none border-0 bg-transparent shadow-none"
+            aria-label={isMonthView ? t`Next month` : t`Next days`}
+            title={isMonthView ? t`Next month` : t`Next days`}
             onClick={goToNext}
           >
             <CaretRight className="size-3.5" />
@@ -459,6 +465,9 @@ function CalendarSyncHeaderControls() {
           size="icon"
           className="size-6"
           data-tauri-drag-region="false"
+          // Fork: named icon button (ux-audit-oct3 B, WCAG 4.1.2).
+          aria-label={t`Refresh calendar`}
+          title={t`Refresh calendar`}
           onClick={handleRefresh}
         >
           <ArrowsClockwise className="size-3.5" />

@@ -1,3 +1,4 @@
+import { useLingui } from "@lingui/react/macro";
 import { useCallback, useMemo, useState } from "react";
 
 import { Pause, Play } from "@anlg/ui/components/icons";
@@ -22,6 +23,7 @@ export function Timeline({
 }: {
   contentClassName?: string;
 } = {}) {
+  const { t } = useLingui();
   const { isPro } = useBillingAccess();
   const {
     registerContainer,
@@ -32,7 +34,7 @@ export function Timeline({
     stop,
     playbackRate,
     setPlaybackRate,
-    deleteRecording,
+    requestDeleteRecording,
     isDeletingRecording,
   } = useAudioPlayer();
   const time = useAudioTime();
@@ -48,10 +50,11 @@ export function Timeline({
     }
   };
 
-  const handleDeleteRecording = useCallback(async () => {
+  // Fork: asks before deleting (ux-audit-oct3 C, HIG alerts).
+  const handleDeleteRecording = useCallback(() => {
     setShowRateMenu(false);
-    await deleteRecording();
-  }, [deleteRecording]);
+    requestDeleteRecording();
+  }, [requestDeleteRecording]);
 
   const contextMenu = useMemo(
     () => [
@@ -71,7 +74,7 @@ export function Timeline({
       {
         id: "delete-recording",
         text: "Delete recording",
-        action: () => void handleDeleteRecording(),
+        action: handleDeleteRecording,
         disabled: isDeletingRecording,
       },
     ],
@@ -93,7 +96,11 @@ export function Timeline({
       onContextMenu={showContextMenu}
       leading={
         <button
+          type="button"
           onClick={handleClick}
+          // Fork: named for screen readers (ux-audit-oct3 C, WCAG 4.1.2).
+          aria-label={state === "playing" ? t`Pause` : t`Play`}
+          title={state === "playing" ? t`Pause` : t`Play`}
           className={cn([
             "flex items-center justify-center",
             "h-7 w-7 rounded-full",
@@ -124,6 +131,9 @@ export function Timeline({
             >
               <DropdownMenuTrigger asChild>
                 <button
+                  type="button"
+                  aria-label={t`Playback speed`}
+                  title={t`Playback speed`}
                   className={cn([
                     "flex shrink-0 items-center justify-center",
                     "h-6 rounded-md px-1.5",

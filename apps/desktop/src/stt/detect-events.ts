@@ -396,7 +396,8 @@ export const useHandleDetectEvents = (store: ListenerStore) => {
                 displayIgnorableApps.length > 0
                   ? {
                       text: getIgnoreAppsFooterText(displayIgnorableApps),
-                      actionLabel: "Yes",
+                      // Fork: "Yes" meant two opposite things (ux-audit-oct3 C, HIG alerts).
+                      actionLabel: "Ignore",
                       icon: footerIcon,
                     }
                   : null;
@@ -422,7 +423,7 @@ export const useHandleDetectEvents = (store: ListenerStore) => {
                 start_time: null,
                 participants: null,
                 event_details: null,
-                action_label: "Yes",
+                action_label: "Take notes",
                 action_variant: null,
                 options: null,
                 footer,

@@ -1,12 +1,20 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useCallback, useState } from "react";
 
-import { Lock, MagnifyingGlass, X } from "@anlg/ui/components/icons";
+import {
+  ArrowUpRight,
+  Lock,
+  MagnifyingGlass,
+  X,
+} from "@anlg/ui/components/icons";
 import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
 import { cn } from "@anlg/utils";
 
 import { CustomSidebarHeader } from "./custom-sidebar-header";
-import { useSettingsNavGroups } from "./settings-nav-groups";
+import {
+  settingsNavItemMatches,
+  useSettingsNavGroups,
+} from "./settings-nav-groups";
 
 import { useBillingAccess } from "~/auth/billing-context";
 import { type SettingsTab, useTabs } from "~/store/zustand/tabs";
@@ -50,7 +58,7 @@ export function SettingsNav() {
             : {
                 ...group,
                 items: group.items.filter((item) =>
-                  item.label.toLowerCase().includes(query),
+                  settingsNavItemMatches(item, query),
                 ),
               },
         )
@@ -64,7 +72,7 @@ export function SettingsNav() {
         <div
           ref={searchRef}
           className={cn([
-            "border-border bg-accent/50 flex h-8 w-full shrink-0 items-center gap-2 rounded-lg border px-3",
+            "border-input bg-accent/50 flex h-8 w-full shrink-0 items-center gap-2 rounded-lg border px-3",
             "focus-within:bg-accent transition-colors",
           ])}
         >
@@ -74,11 +82,16 @@ export function SettingsNav() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             onKeyDown={(event) => {
-              if (event.key === "Escape") {
+              // Fork: Esc clears the search without also closing Settings
+              // (ux-audit-oct3 E, NN/g #3).
+              if (event.key === "Escape" && search) {
+                event.preventDefault();
+                event.stopPropagation();
                 setSearch("");
               }
             }}
-            placeholder={t`Search settings...`}
+            aria-label={t`Search settings`}
+            placeholder={t`Search`}
             className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm placeholder:text-sm focus:outline-hidden"
           />
           {search ? (
@@ -86,7 +99,7 @@ export function SettingsNav() {
               type="button"
               onClick={() => setSearch("")}
               className={cn([
-                "size-4 shrink-0",
+                "-mr-2 flex size-6 shrink-0 items-center justify-center rounded-full",
                 "text-muted-foreground hover:text-foreground",
                 "transition-colors",
               ])}
@@ -119,11 +132,19 @@ export function SettingsNav() {
             >
               {group.items.map((item) => {
                 const requiresPro = Boolean(item.requiresPro && !isPro);
+                const leavesSettings = "destination" in item;
+                const isActive = !leavesSettings && activeTab === item.id;
 
                 return (
                   <div key={item.id} className="relative">
                     <button
                       type="button"
+                      aria-current={isActive ? "page" : undefined}
+                      aria-label={
+                        leavesSettings
+                          ? t`${item.label}, opens outside Settings`
+                          : undefined
+                      }
                       onClick={() => {
                         if ("destination" in item) {
                           openNew(item.destination);
@@ -135,7 +156,7 @@ export function SettingsNav() {
                       className={cn([
                         "flex w-full items-center gap-2 rounded-full px-3 py-2 text-left text-sm",
                         "transition-colors",
-                        activeTab === item.id
+                        isActive
                           ? "bg-sidebar-accent text-foreground font-medium"
                           : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground",
                       ])}
@@ -149,6 +170,15 @@ export function SettingsNav() {
                         <span className="min-w-0 flex-1 truncate">
                           {item.label}
                         </span>
+                        {/* Fork: Folders, Calendar and Templates open their
+                            own screens, so they carry an arrow (ux-audit-oct3
+                            E, NN/g #4). */}
+                        {leavesSettings ? (
+                          <ArrowUpRight
+                            aria-hidden
+                            className="text-muted-foreground size-3.5 shrink-0"
+                          />
+                        ) : null}
                         {requiresPro ? (
                           <Lock
                             aria-label={t`Requires Upshot Pro`}

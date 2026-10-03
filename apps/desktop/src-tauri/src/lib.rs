@@ -345,7 +345,10 @@ pub fn main() {
     }
 
     builder = builder
-        .plugin(tauri_plugin_tray::init(!cfg!(feature = "app-store")))
+        // Fork: the updater has no release feed yet, so Check for updates
+        // always failed; hide it in the app menu, tray and Dock (UX audit
+        // Oct 3, A: NN/g #9).
+        .plugin(tauri_plugin_tray::init(false))
         .plugin(tauri_plugin_settings::init())
         .plugin(tauri_plugin_sfx::init())
         .plugin(tauri_plugin_shortcut::init())

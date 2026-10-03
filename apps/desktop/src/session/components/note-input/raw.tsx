@@ -275,7 +275,7 @@ export const RawEditor = forwardRef<
       [syncTasks, sessionId],
     );
     const placeholderComponent = useMemo(
-      () => () => (isGenerating ? t`Creating brief...` : t`Start writing...`),
+      () => () => (isGenerating ? t`Creating brief…` : t`Start writing…`),
       [isGenerating, t],
     );
     return (
@@ -440,7 +440,8 @@ function TemplateEmptyState({
   const handleCreateTemplate = useCallback(() => {
     void (async () => {
       const templateId = await createTemplate({
-        title: "New Template",
+        // Fork: sentence case (ux-audit-oct3 C).
+        title: "New template",
         description: "",
         sections: [],
       });

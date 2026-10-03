@@ -67,7 +67,7 @@ export function SessionChip({
       { separator: true },
       {
         id: "delete",
-        text: "Delete Note",
+        text: t`Delete note`, // Fork: sentence case (ux-audit-oct3 B).
         action: handleDelete,
       },
     ],

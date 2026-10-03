@@ -27,10 +27,10 @@ describe("BatchState", () => {
   it("identifies intentional batch transcription", () => {
     render(<BatchState requestedLiveTranscription={false} />);
 
-    expect(screen.getByText("Batch transcription mode")).not.toBeNull();
+    expect(screen.getByText("Transcript comes after you stop")).not.toBeNull();
     expect(
       screen.getByText(
-        "Recording continues. Your transcript will be generated after you stop.",
+        "Recording continues. Your transcript appears here after you click Stop.",
       ),
     ).not.toBeNull();
   });

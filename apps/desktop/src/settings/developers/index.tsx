@@ -20,20 +20,24 @@ export function SettingsDevelopers() {
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between gap-4">
         <SettingsPageTitle title={t`Developers`} />
+        {/* Fork: one name and style for help links across Settings
+            (ux-audit-oct3 E, NN/g #4). */}
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           size="sm"
           onClick={() =>
             void openerCommands.openUrl(DEVELOPERS_GUIDE_URL, null)
           }
         >
-          {t`Guide`}
+          {t`Help`}
           <ArrowSquareOut className="size-3.5" />
         </Button>
       </div>
-      <CliSettingsSections />
+      {/* Fork: Glaido first; it is the integration most people use
+          (ux-audit-oct3 E, NN/g #4). */}
       <GlaidoSection />
+      <CliSettingsSections />
       {/* Fork: cloud API hidden (blueprint section 5); local CLI and webhooks stay. */}
       <WebhooksSection />
     </div>

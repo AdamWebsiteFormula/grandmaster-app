@@ -3,6 +3,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { TranscriptEmptyState } from "./empty";
 
+const mocks = vi.hoisted(() => ({ openNew: vi.fn() }));
+
+vi.mock("~/store/zustand/tabs", () => ({
+  useTabs: (selector: (state: { openNew: typeof mocks.openNew }) => unknown) =>
+    selector({ openNew: mocks.openNew }),
+}));
+
 describe("TranscriptEmptyState", () => {
   afterEach(() => {
     cleanup();
@@ -50,8 +57,16 @@ describe("TranscriptEmptyState", () => {
       screen.getByText("The transcription provider timed out.").className,
     ).toContain("text-sm");
 
-    fireEvent.click(screen.getByRole("button", { name: "Re-transcribe" }));
+    fireEvent.click(screen.getByRole("button", { name: "Transcribe again" }));
     expect(onRetranscribe).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Transcription settings" }),
+    );
+    expect(mocks.openNew).toHaveBeenCalledWith({
+      type: "settings",
+      state: { tab: "transcription" },
+    });
   });
 
   it("offers re-transcription instead of replacing existing audio", () => {
@@ -66,7 +81,7 @@ describe("TranscriptEmptyState", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Re-transcribe" }));
+    fireEvent.click(screen.getByRole("button", { name: "Transcribe again" }));
 
     expect(onRetranscribe).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole("button", { name: "Upload audio" })).toBeNull();
@@ -74,7 +89,7 @@ describe("TranscriptEmptyState", () => {
       screen.getByRole("button", { name: "Upload transcript" }),
     ).not.toBeNull();
     expect(screen.getByText("Audio available")).not.toBeNull();
-    expect(screen.getByText(/Re-transcribe this audio/)).not.toBeNull();
+    expect(screen.getByText(/Transcribe this audio again/)).not.toBeNull();
     expect(screen.queryByText(/refresh button/i)).toBeNull();
   });
 });

@@ -1,5 +1,7 @@
 export const MIN_WORDS_FOR_SUMMARY = 5;
 export const MIN_TRANSCRIPT_CHARACTERS_FOR_SUMMARY = 160;
+const TOO_SHORT_FOR_SUMMARY =
+  "Too little was said for a summary. Record a bit longer, then click Generate summary.";
 
 export type SummaryEligibilitySkipCode =
   | "no_transcript"
@@ -38,7 +40,8 @@ export function getSummaryEligibility({
     return {
       eligible: false,
       code: "transcript_too_short",
-      reason: `Not enough words recorded (${wordCount}/${MIN_WORDS_FOR_SUMMARY} minimum)`,
+      // Fork: plain words, not counts (ux-audit-oct3 C, NN/g #9).
+      reason: TOO_SHORT_FOR_SUMMARY,
       characterCount,
       wordCount,
     };
@@ -48,7 +51,8 @@ export function getSummaryEligibility({
     return {
       eligible: false,
       code: "transcript_too_short",
-      reason: `Transcript too short to summarize (${characterCount}/${MIN_TRANSCRIPT_CHARACTERS_FOR_SUMMARY} characters minimum)`,
+      // Fork: plain words, not counts (ux-audit-oct3 C, NN/g #9).
+      reason: TOO_SHORT_FOR_SUMMARY,
       characterCount,
       wordCount,
     };

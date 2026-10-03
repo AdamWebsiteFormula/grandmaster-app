@@ -133,7 +133,9 @@ export function MultiSelectionBar({
     humanId: string,
   ) => void | Promise<void>;
   onMerge?: () => void | Promise<void>;
-  onDelete?: (selection: TranscriptWordSelection) => Promise<void>;
+  onDelete?: (
+    selection: TranscriptWordSelection,
+  ) => Promise<(() => Promise<void>) | void>;
 }) {
   const fabSelectionHost = useSyncExternalStore(
     subscribeSessionFabSelectionHost,
@@ -154,12 +156,25 @@ export function MultiSelectionBar({
     onClear();
   }, [onClear, onMerge]);
 
+  // Fork: deleting lines offers Undo and a specific error (ux-audit-oct3 C, NN/g #5, #9).
   const deleteMutation = useMutation({
-    mutationFn: async () => {
-      await onDelete?.(selection);
+    mutationFn: async () => onDelete?.(selection),
+    onSuccess: (undo) => {
+      onClear();
+      if (!undo) return;
+      toast(t`Lines deleted`, {
+        action: {
+          label: t`Undo`,
+          onClick: () => {
+            undo().catch((error: unknown) => {
+              console.error("[transcript] undo delete failed", error);
+              toast.error(t`Couldn't restore these lines. Try again.`);
+            });
+          },
+        },
+      });
     },
-    onSuccess: onClear,
-    onError: () => toast.error(t`Something went wrong`),
+    onError: () => toast.error(t`Couldn't delete these lines. Try again.`),
   });
 
   const bar = (

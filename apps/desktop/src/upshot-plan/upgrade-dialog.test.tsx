@@ -34,7 +34,7 @@ vi.mock("@anlg/plugin-store2", () => ({
   },
 }));
 
-import { openUpgrade, useUpgradeDialog } from "./index";
+import { openUpgrade, openUpshotSignIn, useUpgradeDialog } from "./index";
 import { resetUpshotAccountForTests } from "./session";
 import { UpshotUpgradeDialog } from "./upgrade-dialog";
 
@@ -167,5 +167,45 @@ describe("UpshotUpgradeDialog", () => {
     rerender(<UpshotUpgradeDialog />);
     expect(screen.getByText("You're on Upshot Pro")).not.toBeNull();
     expect(screen.queryByText(/4242 4242 4242 4242/)).toBeNull();
+  });
+
+  // Fork: "Sign in" opens the sign-in form, and an existing email switches
+  // sign-up to sign-in (ux-audit-oct3 D).
+  it("opens on sign-in for Sign in, and switches there for an existing email", async () => {
+    render(<UpshotUpgradeDialog />);
+    act(() => openUpshotSignIn());
+    expect(screen.getByText("Sign in to Upshot")).not.toBeNull();
+    act(() => useUpgradeDialog.setState({ open: false }));
+
+    mocks.fetch.mockResolvedValue(
+      Response.json(
+        {
+          error: {
+            message:
+              "An account with this email already exists. Sign in instead.",
+            code: "account_exists",
+          },
+        },
+        { status: 409 },
+      ),
+    );
+    await act(() => openUpgrade("month"));
+    expect(screen.getByText("Create your Upshot account")).not.toBeNull();
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "judge@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "password123" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Create account and continue" }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText("Sign in to Upshot")).not.toBeNull(),
+    );
+    expect(screen.getByRole("alert").textContent).toBe(
+      "An account with this email already exists. Sign in instead.",
+    );
   });
 });

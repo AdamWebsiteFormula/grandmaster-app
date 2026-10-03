@@ -646,7 +646,7 @@ describe("RawEditor", () => {
 
     const props = hoisted.noteEditorProps[hoisted.noteEditorProps.length - 1];
     expect((props?.placeholderComponent as () => string)()).toBe(
-      "Creating brief...",
+      "Creating brief…",
     );
     expect(props?.readOnly).toBe(true);
     expect(screen.queryByText("Prepare for this meeting")).toBeNull();
@@ -663,7 +663,7 @@ describe("RawEditor", () => {
 
     await waitFor(() =>
       expect(hoisted.createTemplate).toHaveBeenCalledWith({
-        title: "New Template",
+        title: "New template",
         description: "",
         sections: [],
       }),

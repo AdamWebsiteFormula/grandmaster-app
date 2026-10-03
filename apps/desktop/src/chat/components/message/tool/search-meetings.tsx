@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { useCallback, useMemo } from "react";
 
 import { MagnifyingGlass } from "@anlg/ui/components/icons";
@@ -84,47 +85,36 @@ function formatSearchInput(input: Part["input"] | undefined): {
     return { titleQuery: "meetings", details: [] };
   }
 
+  // Fork: plain search details, no developer fields (ux-audit-oct3 D, NN/g #2).
   const details: string[] = [];
   const rawQuery = typeof input.query === "string" ? input.query.trim() : "";
-  const titleQuery = rawQuery || "meetings";
+  const titleQuery = rawQuery || t`meetings`;
 
-  if (!rawQuery) {
-    details.push("Query: none");
-  } else {
-    details.push(`Query: ${rawQuery}`);
+  if (rawQuery) {
+    details.push(t`Query: ${rawQuery}`);
   }
 
+  const formatDate = (value: number) =>
+    new Date(value).toLocaleDateString(undefined, { dateStyle: "medium" });
   const createdAt = input.filters?.created_at;
-  if (createdAt?.kind === "relative") {
-    details.push(
-      `Date: recent ${createdAt.recent_days} day(s), including today`,
-    );
+  if (createdAt?.kind === "relative" && createdAt.recent_days != null) {
+    const days = createdAt.recent_days;
+    details.push(days === 1 ? t`Today` : t`Last ${days} days`);
   } else if (createdAt?.kind === "absolute") {
-    const bounds = [
-      createdAt.gte != null
-        ? `gte ${new Date(createdAt.gte).toLocaleString()}`
-        : null,
-      createdAt.lte != null
-        ? `lte ${new Date(createdAt.lte).toLocaleString()}`
-        : null,
-      createdAt.gt != null
-        ? `gt ${new Date(createdAt.gt).toLocaleString()}`
-        : null,
-      createdAt.lt != null
-        ? `lt ${new Date(createdAt.lt).toLocaleString()}`
-        : null,
-      createdAt.eq != null
-        ? `eq ${new Date(createdAt.eq).toLocaleString()}`
-        : null,
-    ].filter(Boolean);
-
-    if (bounds.length > 0) {
-      details.push(`Date: ${bounds.join(", ")}`);
+    const from = createdAt.gte ?? createdAt.gt;
+    const to = createdAt.lte ?? createdAt.lt;
+    if (createdAt.eq != null) {
+      const date = formatDate(createdAt.eq);
+      details.push(t`On ${date}`);
     }
-  }
-
-  if (typeof input.limit === "number") {
-    details.push(`Limit: ${input.limit}`);
+    if (from != null) {
+      const date = formatDate(from);
+      details.push(t`From ${date}`);
+    }
+    if (to != null) {
+      const date = formatDate(to);
+      details.push(t`To ${date}`);
+    }
   }
 
   return { titleQuery, details };
@@ -148,7 +138,7 @@ const getTitle = (part: Part) => {
   const { titleQuery } = formatSearchInput(part.input);
 
   if (part.state === "input-streaming") {
-    return "Preparing search...";
+    return t`Preparing search…`;
   }
   if (part.state === "input-available") {
     return `Searching for: ${titleQuery}`;
@@ -219,7 +209,9 @@ function RenderContent({ part }: { part: Part }) {
   }
 
   if (part.state === "output-error") {
-    return <div className="text-sm text-red-500">Error: {part.errorText}</div>;
+    return (
+      <div className="text-destructive text-sm">Error: {part.errorText}</div>
+    );
   }
 
   return details.length > 0 ? (

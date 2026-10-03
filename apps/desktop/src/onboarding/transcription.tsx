@@ -46,7 +46,8 @@ export function pickTranscriptionModel(keys: string[]): Choice | null {
 export function TranscriptionSetupSection({
   onContinue,
 }: {
-  onContinue: () => void;
+  // Fork: reports whether setup failed, so the step says "skipped".
+  onContinue: (failed?: boolean) => void;
 }) {
   const currentProvider = useConfigValue("current_stt_provider");
   const [choice, setChoice] = useState<Choice | null>(null);
@@ -172,7 +173,7 @@ export function TranscriptionSetupSection({
           status="failed"
           label={
             <Trans>
-              Couldn’t set up {name}. You can pick an engine later in Settings →
+              Couldn’t set up {name}. You can pick an engine later in Settings ›
               Transcription.
             </Trans>
           }
@@ -180,7 +181,7 @@ export function TranscriptionSetupSection({
       )}
 
       <div className="flex flex-wrap items-center gap-3">
-        <OnboardingButton onClick={onContinue}>
+        <OnboardingButton onClick={() => onContinue(phase.kind === "failed")}>
           <Trans>Continue</Trans>
         </OnboardingButton>
         {((stalled && phase.kind === "downloading") ||

@@ -1223,10 +1223,10 @@ describe("useRunBatch", () => {
       expect.any(Object),
     );
     expect(toastWarningMock).toHaveBeenCalledWith(
-      "Using a batch transcription provider",
+      "Switching to Pro cloud transcription for this transcript",
       expect.objectContaining({
         description:
-          "nova-3 is not available for batch transcription. Using Pro cloud transcription instead.",
+          "nova-3 can't transcribe after you stop, so Upshot uses Pro cloud transcription.",
       }),
     );
   });

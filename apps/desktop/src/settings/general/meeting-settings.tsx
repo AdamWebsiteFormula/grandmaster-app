@@ -41,7 +41,14 @@ export function MeetingSettingsView({
       <SettingSwitchRow
         title={<Trans>Join scheduled meetings</Trans>}
         description={
-          <Trans>Open the meeting link when a scheduled meeting begins.</Trans>
+          // Fork: a disabled row says why (ux-audit-oct3 E, NN/g #1).
+          autoStartScheduledMeetings.value ? (
+            <Trans>
+              Open the meeting link when a scheduled meeting begins.
+            </Trans>
+          ) : (
+            <Trans>Turn on Start when meeting begins first.</Trans>
+          )
         }
         checked={autoJoinScheduledMeetings.value}
         onChange={autoJoinScheduledMeetings.onChange}
@@ -69,7 +76,7 @@ export function MeetingSettingsView({
             onChange={meetingDisclosureAutoPost.onChange}
           />
           <SettingSwitchRow
-            title={<Trans>Capture meeting chat in Memos</Trans>}
+            title={<Trans>Save meeting chat to your notes</Trans>}
             description={
               <Trans>
                 Save visible chat from supported meetings using Accessibility.

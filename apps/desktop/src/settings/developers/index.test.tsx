@@ -110,7 +110,7 @@ describe("buildMcpConfiguration", () => {
 
     expect(configuration).toEqual({
       mcpServers: {
-        anarlog: {
+        upshot: {
           command: "/Users/test/.local/bin/anarlog",
           args: ["mcp"],
         },
@@ -129,7 +129,7 @@ describe("getCliInstallNotification", () => {
         state: "installed",
         details: "Installed.",
       }),
-    ).toEqual({ type: "success", message: "anarlog is ready to use" });
+    ).toEqual({ type: "success", message: "Upshot CLI is ready to use" });
   });
 
   it.each(["resource_missing", "unsupported"] as const)(
@@ -221,7 +221,7 @@ describe("SettingsDevelopers", () => {
     await waitFor(() => expect(writeText).toHaveBeenCalledOnce());
     expect(JSON.parse(writeText.mock.calls[0][0])).toEqual({
       mcpServers: {
-        anarlog: {
+        upshot: {
           command: "/Users/test/.local/bin/anarlog",
           args: ["mcp"],
         },

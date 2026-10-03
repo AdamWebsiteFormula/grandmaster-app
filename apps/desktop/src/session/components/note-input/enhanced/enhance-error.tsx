@@ -10,6 +10,17 @@ import { useAuth } from "~/auth";
 import { useEnhancedNote } from "~/session/queries";
 import { createTaskId } from "~/store/zustand/ai-task/task-configs";
 
+const NETWORK_ERROR_PATTERN =
+  /failed to fetch|load failed|network|offline|internet|ENOTFOUND|ECONNREFUSED|ECONNRESET|EAI_AGAIN|could not connect|couldn't connect|unable to connect|dns/i;
+
+export function isNetworkError(error: Error | undefined): boolean {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    return true;
+  }
+
+  return Boolean(error && NETWORK_ERROR_PATTERN.test(error.message));
+}
+
 export function EnhanceError({
   sessionId,
   enhancedNoteId,
@@ -61,12 +72,21 @@ export function EnhanceError({
               Upshot could not generate this summary because you were not signed
               in. Sign in, then try again.
             </Trans>
+          ) : isNetworkError(error) ? (
+            // Fork: plain-language errors with the raw text kept small below (ux-audit-oct3 C, NN/g #9).
+            <Trans>
+              Upshot can't reach the internet. Check your connection, then click
+              Retry.
+            </Trans>
           ) : (
-            error?.message || (
-              <Trans>Something went wrong while generating the summary.</Trans>
-            )
+            <Trans>Upshot couldn't write this summary. Click Retry.</Trans>
           )}
         </p>
+        {!isUnauthenticated && error?.message ? (
+          <p className="text-muted-foreground text-xs break-words">
+            {error.message}
+          </p>
+        ) : null}
       </div>
       {isUnauthenticated ? (
         <Button
@@ -87,7 +107,8 @@ export function EnhanceError({
           disabled={!model}
           size="sm"
           className="gap-2"
-          variant="default"
+          // Fork: one orange accent per screen (ux-audit-oct3 C, design-system).
+          variant="secondary"
         >
           <ArrowsClockwise size={16} />
           <span>

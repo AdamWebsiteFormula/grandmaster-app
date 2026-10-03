@@ -11,7 +11,7 @@ impl MenuItemHandler for TrayStart {
     const ID: &'static str = "anlg_tray_start";
 
     fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
-        let item = MenuItem::with_id(app, Self::ID, "Start a new meeting", true, None::<&str>)?;
+        let item = MenuItem::with_id(app, Self::ID, "New note", true, None::<&str>)?;
         Ok(MenuItemKind::MenuItem(item))
     }
 
@@ -39,12 +39,6 @@ impl TrayStart {
         app: &AppHandle<tauri::Wry>,
         disabled: bool,
     ) -> Result<MenuItem<tauri::Wry>> {
-        MenuItem::with_id(
-            app,
-            Self::ID,
-            "Start a new meeting",
-            !disabled,
-            None::<&str>,
-        )
+        MenuItem::with_id(app, Self::ID, "New note", !disabled, None::<&str>)
     }
 }

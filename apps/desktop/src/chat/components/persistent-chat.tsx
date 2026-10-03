@@ -58,16 +58,30 @@ export function PersistentChatPanel({
     return toFloatingContainerRect(anchor.getBoundingClientRect());
   };
 
+  // Fork: Esc closes the right-panel chat too, when focus is inside it, so
+  // Esc in a note still belongs to the note (ux-audit-oct3 D, NN/g #4).
+  const isRightPanelOpen = chat.mode === "RightPanelOpen";
   useHotkeys(
     "esc",
-    () => chat.sendEvent({ type: "CLOSE" }),
+    (event) => {
+      if (
+        isRightPanelOpen &&
+        !(
+          document.activeElement instanceof Element &&
+          document.activeElement.closest("[data-chat-right-panel]")
+        )
+      ) {
+        return;
+      }
+      event.preventDefault();
+      chat.sendEvent({ type: "CLOSE" });
+    },
     {
-      enabled: isVisible,
-      preventDefault: true,
+      enabled: isVisible || isRightPanelOpen,
       enableOnFormTags: true,
       enableOnContentEditable: true,
     },
-    [chat, isVisible],
+    [chat, isVisible, isRightPanelOpen],
   );
 
   useLayoutEffect(() => {

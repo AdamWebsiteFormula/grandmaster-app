@@ -182,7 +182,8 @@ export function SectionsList({
           disabled={disabled}
         >
           <Plus className="mr-2 h-4 w-4" />
-          Add Section
+          {/* Fork: sentence case (ux-audit-oct3 B). */}
+          <Trans>Add section</Trans>
         </Button>
       )}
     </div>
@@ -218,9 +219,13 @@ function SectionItem({
   return (
     <div className="group bg-card relative">
       {!disabled && (
+        // Fork: named, and shown on keyboard focus, not only hover
+        // (ux-audit-oct3 B; WCAG 2.4.7, 4.1.2).
         <button
           type="button"
-          className="absolute top-2.5 -left-5 cursor-move opacity-0 transition-opacity group-hover:opacity-30 hover:opacity-60"
+          aria-label={t`Drag to reorder`}
+          title={t`Drag to reorder`}
+          className="focus-visible:ring-ring absolute top-2.5 -left-5 cursor-move rounded-sm opacity-0 transition-opacity group-focus-within:opacity-60 group-hover:opacity-60 hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:outline-hidden"
           onPointerDown={(event) => dragControls.start(event)}
           disabled={disabled}
         >
@@ -229,7 +234,7 @@ function SectionItem({
       )}
 
       {!disabled && (
-        <div className="absolute top-2 right-2 opacity-0 transition-all group-hover:opacity-100">
+        <div className="absolute top-2 right-2 opacity-0 transition-all group-focus-within:opacity-100 group-hover:opacity-100">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -288,14 +293,17 @@ function SectionItem({
           value={item.title}
           onChange={(e) => onChange({ ...item, title: e.target.value })}
           placeholder={t`Untitled`}
-          className="placeholder:text-muted-foreground/60 border-0 bg-transparent p-0 font-medium shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="placeholder:text-muted-foreground border-0 bg-transparent p-0 font-medium shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
         />
 
         <textarea
           disabled={disabled}
           value={item.description}
           onChange={(e) => onChange({ ...item, description: e.target.value })}
-          placeholder={t`Template content with Jinja2: {{ variable }}, {% if condition %}`}
+          // Fork: plain-language hint, not template syntax (ux-audit-oct3 B;
+          // NN/g #2).
+          aria-label={t`Section content`}
+          placeholder={t`What this section should cover, e.g. decisions made and who owns each`}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           className={cn([

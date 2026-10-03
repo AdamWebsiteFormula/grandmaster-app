@@ -22,6 +22,7 @@ import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
 import { cn } from "@anlg/utils";
 
 import { type WebTemplate } from "./codec";
+import { DeleteTemplateDialog } from "./delete-template-dialog";
 import { getTemplateCopyTitle, type UserTemplate } from "./queries";
 import { TemplateIconGlyph } from "./template-icon";
 import { AUTO_TEMPLATE_ID, useTemplateTab } from "./utils";
@@ -91,6 +92,16 @@ export function TemplatesSidebarContent({
       }
     },
     [deleteTemplate, effectiveSelectedMineId, setSelectedMineId],
+  );
+
+  const [pendingDelete, setPendingDelete] = useState<UserTemplate | null>(null);
+  const requestDeleteTemplate = useCallback(
+    (id: string) => {
+      setPendingDelete(
+        userTemplates.find((template) => template.id === id) ?? null,
+      );
+    },
+    [userTemplates],
   );
 
   const handleToggleFavorite = useCallback(
@@ -348,9 +359,12 @@ export function TemplatesSidebarContent({
           {userTemplates.length > 1 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
+                {/* Fork: named icon buttons (ux-audit-oct3 B, WCAG 4.1.2). */}
                 <Button
                   size="icon"
                   variant="ghost"
+                  aria-label={t`Sort templates`}
+                  title={t`Sort templates`}
                   className="text-muted-foreground hover:text-foreground relative z-[60]"
                 >
                   <ArrowsDownUp size={16} />
@@ -376,6 +390,8 @@ export function TemplatesSidebarContent({
           <Button
             size="icon"
             variant="ghost"
+            aria-label={t`New template`}
+            title={t`New template`}
             className="text-muted-foreground hover:text-foreground relative z-[60]"
             onClick={createDefaultTemplate}
           >
@@ -401,7 +417,7 @@ export function TemplatesSidebarContent({
                   setSearch("");
                 }
               }}
-              placeholder={t`Search templates...`}
+              placeholder={t`Search templates…`}
               className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm placeholder:text-sm focus:outline-hidden"
             />
             {search && (
@@ -460,7 +476,7 @@ export function TemplatesSidebarContent({
                       ])}
                     >
                       <div className="flex items-center gap-2">
-                        <Sparkle className="size-4 text-primary" />
+                        <Sparkle className="text-primary size-4" />
                         <div className="min-w-0 flex-1">
                           <div className="truncate font-medium">
                             {item.title}
@@ -481,7 +497,7 @@ export function TemplatesSidebarContent({
                       onSelect={setSelectedMineId}
                       onToggleFavorite={handleToggleFavorite}
                       onDuplicate={handleDuplicateTemplate}
-                      onDelete={handleDeleteTemplate}
+                      onDelete={requestDeleteTemplate}
                     />
                   ) : (
                     <button
@@ -538,6 +554,13 @@ export function TemplatesSidebarContent({
           </>
         )}
       </div>
+      <DeleteTemplateDialog
+        template={pendingDelete}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+        onConfirm={(id) => void handleDeleteTemplate(id)}
+      />
     </div>
   );
 }

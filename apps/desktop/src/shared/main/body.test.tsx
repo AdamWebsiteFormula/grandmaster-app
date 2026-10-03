@@ -213,7 +213,9 @@ describe("ClassicMainBody", () => {
       render(<ClassicMainBody />);
 
       const sidebarToggle = screen.getByRole("button", {
-        name: "Show sidebar",
+        name: isBadgePresent
+          ? "Show sidebar, meeting coming up"
+          : "Show sidebar",
       });
       const badge = within(sidebarToggle).queryByTestId(
         "collapsed-sidebar-upcoming-meeting-badge",

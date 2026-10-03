@@ -25,5 +25,6 @@
 .dark .ProseMirror .is-editor-empty:first-child::before,
 .dark .ProseMirror .is-empty::before,
 .dark .ProseMirror .react-placeholder-widget {
-  color: hsl(0 0% 40%);
+  /* Placeholders meet 4.5:1 (WCAG 2.2 SC 1.4.3); 40% gray was 3.6:1. */
+  color: hsl(var(--muted-foreground));
 }

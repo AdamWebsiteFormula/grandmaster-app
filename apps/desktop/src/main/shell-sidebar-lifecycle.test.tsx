@@ -86,25 +86,25 @@ describe("custom sidebar chat lifecycle", () => {
       }
 
       act(() => useTabs.getState().openNew({ type: "settings" }));
-      expect(screen.getByRole("button", { name: "Go home" })).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Back" })).toBeTruthy();
 
       act(() => useTabs.getState().openNew({ type: "automations" }));
-      expect(screen.getByRole("button", { name: "Go home" })).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Back" })).toBeTruthy();
 
       act(() => useChatContext.getState().startNewChat("automations"));
-      expect(screen.getByRole("button", { name: "Go home" })).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Back" })).toBeTruthy();
 
       act(() =>
         useChatContext.getState().selectChat("automations", "saved-chat"),
       );
-      expect(screen.getByRole("button", { name: "Go home" })).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Back" })).toBeTruthy();
 
       fireEvent.click(screen.getByRole("button", { name: "Hide sidebar" }));
-      expect(screen.getByRole("button", { name: "Go home" })).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Back" })).toBeTruthy();
 
-      fireEvent.click(screen.getByRole("button", { name: "Go home" }));
+      fireEvent.click(screen.getByRole("button", { name: "Back" }));
       expect(useTabs.getState().currentTab?.type).toBe("settings");
-      fireEvent.click(screen.getByRole("button", { name: "Go home" }));
+      fireEvent.click(screen.getByRole("button", { name: "Back" }));
       expect(useTabs.getState().currentTab?.type).toBe("empty");
       expect(screen.queryByText("Notes sidebar") !== null).toBe(expanded);
 

@@ -39,7 +39,7 @@ export function SegmentHeader({
             "flex size-4 shrink-0 items-center justify-center rounded-full border",
             selected
               ? "border-primary bg-primary text-primary-foreground"
-              : "border-muted-foreground/40",
+              : "border-muted-foreground",
           ])}
         >
           {selected ? <Check className="size-2.5" weight="bold" /> : null}

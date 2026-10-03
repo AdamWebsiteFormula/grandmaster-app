@@ -6,14 +6,16 @@ import {
   useLegacyMigrationCleanup,
 } from "./legacy-cleanup";
 
+import { SettingsSectionTitle } from "~/settings/page-title";
+
 export function StorageSettingsView() {
   const { visible } = useLegacyMigrationCleanup();
 
   return (
     <div>
-      <h2 className="mb-4 font-sans text-base font-semibold">
+      <SettingsSectionTitle className="mb-4">
         <Trans>Storage</Trans>
-      </h2>
+      </SettingsSectionTitle>
       <div className="flex flex-col gap-3">
         <ExportLocationRow />
         {visible && <LegacyMigrationCleanupRow />}

@@ -303,8 +303,36 @@ describe("HomeView", () => {
     render(<HomeView />);
 
     expect(
-      screen.getByRole("button", { name: /Start recording/ }),
+      screen.getByRole("button", { name: /^Start recording\s*⌘ N$/ }),
     ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /^Blank note\s*⇧ ⌘ N$/ }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /New note/ })).toBeNull();
     expect(screen.queryByRole("heading", { name: "Notes" })).toBeNull();
+  });
+
+  it("marks locked notes and titles truncated rows", () => {
+    mocks.recent.groups = [
+      {
+        key: "today",
+        kind: "today",
+        dayMs: time(0),
+        notes: [
+          {
+            id: "secret",
+            title: "Board prep",
+            timeMs: time(9),
+            attendees: 0,
+            locked: true,
+            trackingId: null,
+          },
+        ],
+      },
+    ];
+    render(<HomeView />);
+
+    expect(screen.getByRole("img", { name: "Locked" })).toBeTruthy();
+    expect(screen.getByTitle("Board prep")).toBeTruthy();
   });
 });

@@ -485,7 +485,8 @@ function ChatSessionLifecycle({
           parts: [
             {
               type: "text",
-              text: t`This recording is using batch transcription, so the transcript isn't available to chat yet. Ask again after transcription finishes, or pick a Live model in Settings > Transcription.`,
+              // Fork: plain words, "›" path (ux-audit-oct3 D, NN/g #2, #4).
+              text: t`The transcript is still being processed, so chat can't read it yet. Ask again when it's done, or pick a Live model in Settings › Transcription.`,
             },
           ],
           metadata: {

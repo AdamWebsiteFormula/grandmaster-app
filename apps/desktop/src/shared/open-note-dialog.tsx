@@ -144,6 +144,9 @@ export function OpenNoteDialog({
   const [contentHits, setContentHits] = useState<
     Array<{ id: string; title: string; content: string }>
   >([]);
+  // Fork: the query the content hits belong to, so "No results" doesn't
+  // flash while the debounced search runs (ux-audit-oct3 B; NN/g #1).
+  const [searchedQuery, setSearchedQuery] = useState("");
 
   const pageResults = useMemo<PageResult[]>(
     () => [
@@ -275,18 +278,25 @@ export function OpenNoteDialog({
 
     let cancelled = false;
     const timeout = setTimeout(() => {
-      void search(trimmed).then((hits) => {
-        if (cancelled) return;
-        setContentHits(
-          hits
-            .filter((hit) => hit.document.type === "session")
-            .map((hit) => ({
-              id: hit.document.id,
-              title: hit.document.title,
-              content: hit.document.content,
-            })),
-        );
-      });
+      void search(trimmed)
+        .then((hits) => {
+          if (cancelled) return;
+          setContentHits(
+            hits
+              .filter((hit) => hit.document.type === "session")
+              .map((hit) => ({
+                id: hit.document.id,
+                title: hit.document.title,
+                content: hit.document.content,
+              })),
+          );
+          setSearchedQuery(trimmed);
+        })
+        .catch((error) => {
+          if (cancelled) return;
+          console.error("[open-note-dialog] content search failed", error);
+          setSearchedQuery(trimmed);
+        });
     }, CONTENT_SEARCH_DEBOUNCE_MS);
 
     return () => {
@@ -323,6 +333,11 @@ export function OpenNoteDialog({
     query,
     sessionsMap,
   ]);
+
+  const trimmedQuery = query.trim();
+  const isSearchPending =
+    trimmedQuery.length >= CONTENT_SEARCH_MIN_CHARS &&
+    searchedQuery !== trimmedQuery;
 
   const hasAnyResults =
     filteredPages.length > 0 ||
@@ -488,7 +503,7 @@ export function OpenNoteDialog({
         }}
       >
         <DialogTitle className="sr-only">
-          <Trans>Search notes and pages...</Trans>
+          <Trans>Search notes and pages…</Trans>
         </DialogTitle>
         <div
           className={cn([
@@ -504,7 +519,7 @@ export function OpenNoteDialog({
                 ref={focusInput}
                 value={query}
                 onValueChange={setQuery}
-                placeholder={t`Search notes and pages...`}
+                placeholder={t`Search notes and pages…`}
                 className={cn([
                   "flex-1 bg-transparent text-sm",
                   "placeholder:text-muted-foreground outline-hidden",
@@ -528,7 +543,13 @@ export function OpenNoteDialog({
             <CommandPrimitive.List className="max-h-80 overflow-y-auto p-2">
               {!hasAnyResults ? (
                 <CommandPrimitive.Empty className="text-muted-foreground py-6 text-center text-sm">
-                  <Trans>No results found.</Trans>
+                  {isSearchPending ? (
+                    <Trans>Searching notes…</Trans>
+                  ) : (
+                    <Trans>
+                      No notes match “{trimmedQuery}”. Try fewer words.
+                    </Trans>
+                  )}
                 </CommandPrimitive.Empty>
               ) : (
                 <>
@@ -646,7 +667,7 @@ export function OpenNoteDialog({
                             <span className="truncate">{note.title}</span>
                             {snippet ? (
                               <span
-                                className="text-muted-foreground/80 line-clamp-2 text-xs"
+                                className="text-muted-foreground line-clamp-2 text-xs"
                                 data-testid="content-snippet"
                               >
                                 {snippet}

@@ -3,6 +3,7 @@ import { useCallback } from "react";
 
 import { Square, Warning } from "@anlg/ui/components/icons";
 import { DancingSticks } from "@anlg/ui/components/ui/dancing-sticks";
+import { Spinner } from "@anlg/ui/components/ui/spinner";
 
 import {
   type CaptureHealthNotice,
@@ -20,16 +21,21 @@ import {
 // Fork: Granola-style recording state at the bottom of the note: moving bars and a clear stop button.
 export function RecordingBar({ sessionId }: { sessionId: string }) {
   const { t } = useLingui();
-  const { active, amplitude, mic, speaker, muted } = useListener((state) => ({
-    active: state.getSessionMode(sessionId) === "active",
-    amplitude: Math.min(
-      Math.hypot(state.live.amplitude.mic, state.live.amplitude.speaker),
-      1,
-    ),
-    mic: state.live.amplitude.mic,
-    speaker: state.live.amplitude.speaker,
-    muted: state.live.muted,
-  }));
+  const { mode, amplitude, mic, speaker, muted, seconds } = useListener(
+    (state) => ({
+      mode: state.getSessionMode(sessionId),
+      amplitude: Math.min(
+        Math.hypot(state.live.amplitude.mic, state.live.amplitude.speaker),
+        1,
+      ),
+      mic: state.live.amplitude.mic,
+      speaker: state.live.amplitude.speaker,
+      muted: state.live.muted,
+      // Fork: reads the listener's existing 1 s tick, which resets at live start (ux-audit-oct3 C, NN/g #1).
+      seconds: state.live.seconds,
+    }),
+  );
+  const active = mode === "active";
   const stop = useListener((state) => state.stop);
 
   const handleStop = useCallback(() => {
@@ -40,6 +46,21 @@ export function RecordingBar({ sessionId }: { sessionId: string }) {
 
     stop();
   }, [sessionId, stop]);
+
+  // Fork: keep the bar while the transcript finishes, so the note never looks idle (ux-audit-oct3 C, NN/g #1).
+  if (mode === "finalizing" || mode === "running_batch") {
+    return (
+      <div
+        role="status"
+        className="border-border bg-popover text-popover-foreground pointer-events-auto absolute bottom-3 left-4 z-20 flex h-10 items-center gap-2 rounded-full border px-4"
+      >
+        <Spinner size={14} />
+        <span className="text-sm font-medium">
+          <Trans>Finishing transcript…</Trans>
+        </span>
+      </div>
+    );
+  }
 
   if (!active) {
     return null;
@@ -61,8 +82,19 @@ export function RecordingBar({ sessionId }: { sessionId: string }) {
           stickWidth={4}
           gap={3}
         />
-        <span className="text-sm font-medium">
-          {muted ? <Trans>Muted</Trans> : <Trans>Recording</Trans>}
+        {/* Fork: "Muted" read like Upshot had stopped (ux-audit-oct3 C, NN/g #2, #3). */}
+        <span
+          className="text-sm font-medium"
+          title={muted ? t`Unmute in your call to be recorded` : undefined}
+        >
+          {muted ? <Trans>Your mic is muted</Trans> : <Trans>Recording</Trans>}
+        </span>
+        <span
+          role="timer"
+          className="text-muted-foreground font-mono text-xs tabular-nums"
+          aria-label={t`Recording time`}
+        >
+          {formatElapsed(seconds)}
         </span>
         <span className="grid grid-cols-[auto_2rem] items-center gap-x-1.5">
           <LevelMeter label={t`You`} amplitude={muted ? 0 : mic} />
@@ -80,6 +112,13 @@ export function RecordingBar({ sessionId }: { sessionId: string }) {
       </div>
     </>
   );
+}
+
+export function formatElapsed(totalSeconds: number) {
+  const safe = Math.max(0, Math.floor(totalSeconds));
+  const minutes = Math.floor(safe / 60);
+  const seconds = safe % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
 // Fork (F2): one level per side, so you can see both are being heard.

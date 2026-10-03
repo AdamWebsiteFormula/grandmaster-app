@@ -29,7 +29,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("../title-input", () => ({
-  TitleInput: () => <input aria-label="Session title" placeholder="Untitled" />,
+  TitleInput: () => <input aria-label="Note title" placeholder="Untitled" />,
 }));
 
 vi.mock("~/session/queries", () => ({
@@ -37,6 +37,10 @@ vi.mock("~/session/queries", () => ({
   useFolderIcons: () => ({}),
   useFolderPaths: () => [],
   useUpdateSession: () => vi.fn(),
+}));
+
+vi.mock("./metadata", () => ({
+  MetadataPopoverContent: () => null,
 }));
 
 vi.mock("./overflow", () => ({
@@ -191,7 +195,12 @@ function renderHeader(
   );
 }
 
-const ACTIONS = ["Record", "Join & record", "Stop", "Share note"] as const;
+const ACTIONS = [
+  "Start recording",
+  "Join & record",
+  "Stop",
+  "Share note",
+] as const;
 
 function visibleAction() {
   const visible = ACTIONS.filter((name) =>
@@ -228,7 +237,7 @@ describe("OuterHeader", () => {
   });
 
   it.each<[string, Scenario, (typeof ACTIONS)[number] | null]>([
-    ["new ad hoc note", {}, "Record"],
+    ["new ad hoc note", {}, "Start recording"],
     // Stop lives in the bottom recording bar (see floating/recording-bar.test.tsx).
     ["active recording", { mode: "active" }, null],
     [
@@ -250,11 +259,11 @@ describe("OuterHeader", () => {
       },
       null, // Fork: Share hidden
     ],
-    ["meeting without a link", { event: scheduled() }, "Record"],
+    ["meeting without a link", { event: scheduled() }, "Start recording"],
     [
       "meeting with an unrecognized link",
       { event: scheduled("https://naver.me/example") },
-      "Record",
+      "Start recording",
     ],
     [
       "remote meeting before start",
@@ -274,7 +283,7 @@ describe("OuterHeader", () => {
     [
       "remote meeting after start with mic in use",
       { event: scheduled(MEET_LINK), now: DURING, micInUse: true },
-      "Record",
+      "Start recording",
     ],
     [
       "welcome demo after start with mic in use",
@@ -297,7 +306,7 @@ describe("OuterHeader", () => {
     arrange({ event: scheduled("https://naver.me/example") });
     renderHeader();
 
-    fireEvent.click(screen.getByRole("button", { name: "Record" }));
+    fireEvent.click(screen.getByRole("button", { name: "Start recording" }));
 
     expect(mocks.startListening).toHaveBeenCalledTimes(1);
     expect(mocks.openUrl).not.toHaveBeenCalled();
@@ -460,7 +469,7 @@ describe("OuterHeader", () => {
       });
 
       expect(
-        screen.queryByRole("textbox", { name: "Session title" }) !== null,
+        screen.queryByRole("textbox", { name: "Note title" }) !== null,
       ).toBe(visible);
     },
   );

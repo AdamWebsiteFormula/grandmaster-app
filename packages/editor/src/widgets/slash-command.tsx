@@ -120,8 +120,9 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
     },
   },
   {
+    // Fork: sentence case (ux-audit-oct3 C).
     id: "bulletList",
-    label: "Bullet List",
+    label: "Bulleted list",
     description: "Unordered list",
     icon: ListBullets,
     keywords: ["bullet", "list", "unordered", "ul"],
@@ -131,7 +132,7 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
   },
   {
     id: "orderedList",
-    label: "Numbered List",
+    label: "Numbered list",
     description: "Ordered list",
     icon: ListNumbers,
     keywords: ["numbered", "list", "ordered", "ol"],
@@ -141,7 +142,7 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
   },
   {
     id: "taskList",
-    label: "Task List",
+    label: "Checklist",
     description: "List with checkboxes",
     icon: ListChecks,
     keywords: ["task", "todo", "checkbox", "check"],
@@ -180,7 +181,7 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
   },
   {
     id: "codeBlock",
-    label: "Code Block",
+    label: "Code block",
     description: "Code with syntax highlighting",
     icon: Code,
     keywords: ["code", "pre", "block", "snippet"],

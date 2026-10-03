@@ -37,6 +37,7 @@ type SettingsNavItem =
       label: string;
       icon: Icon;
       requiresPro?: boolean;
+      keywords?: string;
     }
   | {
       id: "automations" | "calendar" | "contacts" | "folders" | "templates";
@@ -44,9 +45,24 @@ type SettingsNavItem =
       icon: Icon;
       destination: TabInput;
       requiresPro?: boolean;
+      keywords?: string;
     };
 
 export type SettingsNavGroup = { label: string; items: SettingsNavItem[] };
+
+// Fork: search matches what is inside a page, not only its name, as macOS
+// System Settings search does (ux-audit-oct3 E, HIG search fields).
+export function settingsNavItemMatches(
+  item: { label: string; keywords?: string },
+  query: string,
+): boolean {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return true;
+  if (item.label.toLowerCase().includes(needle)) return true;
+  return (item.keywords ?? "")
+    .split(",")
+    .some((keyword) => keyword.trim().toLowerCase().includes(needle));
+}
 
 // Fork (blueprint section 5): hide cloud, account and plan screens a judge
 // cannot use. UI only; the screens and their code stay in place.
@@ -74,13 +90,28 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
     {
       label: t`App`,
       items: [
-        { id: "app", label: t`General`, icon: Gear },
+        {
+          id: "app",
+          label: t`General`,
+          icon: Gear,
+          keywords: t`language, region, time zone, timezone, week start, spoken languages, login, startup, Dock, menu bar, storage, export location`,
+        },
         // Fork: Upshot's plan page, where Granola keeps Settings › Billing
         // (docs.granola.ai/help-center/managing-your-account/subscriptions-and-billing).
-        { id: "plan", label: t`Plan`, icon: CreditCard },
+        {
+          id: "plan",
+          label: t`Plan`,
+          icon: CreditCard,
+          keywords: t`Pro, upgrade, subscription, billing, price`,
+        },
         { id: "account", label: t`Account`, icon: User },
         { id: "billing", label: t`Billing`, icon: CreditCard },
-        { id: "insights", label: t`Insights`, icon: ChartLineUp },
+        {
+          id: "insights",
+          label: t`Insights`,
+          icon: ChartLineUp,
+          keywords: t`stats, statistics, activity, badges`,
+        },
         {
           id: "team",
           label: t`Teams`,
@@ -93,14 +124,29 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           icon: ArrowsClockwise,
           requiresPro: true,
         },
-        { id: "appearance", label: t`Appearance`, icon: Sun },
-        { id: "notifications", label: t`Notifications`, icon: Bell },
+        {
+          id: "appearance",
+          label: t`Appearance`,
+          icon: Sun,
+          keywords: t`theme, dark, light, mode, 24-hour, time format, clock`,
+        },
+        {
+          id: "notifications",
+          label: t`Notifications`,
+          icon: Bell,
+          keywords: t`sound, alerts, reminders, Do Not Disturb, meeting detected`,
+        },
       ],
     },
     {
       label: "AI",
       items: [
-        { id: "transcription", label: t`Transcription`, icon: Waveform },
+        {
+          id: "transcription",
+          label: t`Transcription`,
+          icon: Waveform,
+          keywords: t`model, download, speech to text, on-device, local, provider, language`,
+        },
         {
           id: "dictation",
           label: t`Dictation`,
@@ -112,25 +158,32 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           id: "dictionary",
           label: t`Dictionary`,
           icon: BookOpen,
-          requiresPro: true,
+          keywords: t`words, terms, names, vocabulary, spelling, jargon`,
         },
       ],
     },
     {
       label: t`Workspace`,
       items: [
-        { id: "meetings", label: t`Meetings`, icon: VideoCamera },
+        {
+          id: "meetings",
+          label: t`Meetings`,
+          icon: VideoCamera,
+          keywords: t`microphone, mic, audio, recording, auto-join, summaries, summary length, speakers, retention`,
+        },
         {
           id: "folders",
           label: t`Folders`,
           icon: FolderSimple,
           destination: { type: "folders" },
+          keywords: t`folder`,
         },
         {
           id: "calendar",
           label: t`Calendar`,
           icon: CalendarDots,
           destination: { type: "calendar" },
+          keywords: t`events, schedule`,
         },
         {
           id: "contacts",
@@ -143,6 +196,7 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           label: t`Templates`,
           icon: FileText,
           destination: { type: "templates" },
+          keywords: t`template, format`,
         },
         {
           id: "automations",
@@ -156,7 +210,12 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
     {
       label: t`Data`,
       items: [
-        { id: "imports", label: t`Imports`, icon: DownloadSimple },
+        {
+          id: "imports",
+          label: t`Imports`,
+          icon: DownloadSimple,
+          keywords: t`import, Granola, transcript, file, migrate`,
+        },
         { id: "crm", label: t`CRM`, icon: Buildings },
       ],
     },
@@ -167,9 +226,20 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           id: "privacy",
           label: i18n._(privacyMessages.title),
           icon: ShieldCheck,
+          keywords: t`Touch ID, lock, password, telemetry, data`,
         },
-        { id: "permissions", label: t`Permissions`, icon: Lock },
-        { id: "developers", label: t`Developers`, icon: Code },
+        {
+          id: "permissions",
+          label: t`Permissions`,
+          icon: Lock,
+          keywords: t`microphone, system audio, accessibility, calendar access`,
+        },
+        {
+          id: "developers",
+          label: t`Developers`,
+          icon: Code,
+          keywords: t`CLI, MCP, API, webhooks, Glaido, skills`,
+        },
       ],
     },
   ];

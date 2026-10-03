@@ -57,7 +57,7 @@ describe("approval tool cards", () => {
     expect(screen.getByText("Will change Summary (1 place).")).toBeTruthy();
     expect(resolve).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+    fireEvent.click(screen.getByRole("button", { name: "Apply correction" }));
 
     expect(resolve).toHaveBeenCalledWith(true);
     expect(usePendingApprovalStore.getState().approvals.size).toBe(0);
@@ -68,10 +68,10 @@ describe("approval tool cards", () => {
     addPending(resolve);
 
     render(<ToolMoveMeetingContents part={movePart} />);
-    fireEvent.click(screen.getByRole("button", { name: "Dismiss" }));
+    fireEvent.click(screen.getByRole("button", { name: "Discard" }));
 
     expect(resolve).toHaveBeenCalledWith(false);
-    expect(screen.queryByRole("button", { name: "Apply" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Move contents" })).toBeNull();
   });
 
   it("applies a folder move only when Apply is pressed", () => {
@@ -89,15 +89,17 @@ describe("approval tool cards", () => {
     ).toBeTruthy();
     expect(resolve).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+    fireEvent.click(screen.getByRole("button", { name: "Move meetings" }));
     expect(resolve).toHaveBeenCalledWith(true);
   });
 
   it("hides the actions when nothing is waiting for approval", () => {
     render(<ToolSessionCorrection part={correctionPart} />);
 
-    expect(screen.queryByRole("button", { name: "Apply" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Dismiss" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Apply correction" }),
+    ).toBeNull();
+    expect(screen.queryByRole("button", { name: "Discard" })).toBeNull();
   });
 
   it("shows a card dismissed by Stop as declined instead of spinning", async () => {
@@ -113,6 +115,6 @@ describe("approval tool cards", () => {
 
     await expect(approved).resolves.toBe(false);
     expect(await screen.findByText("Folder move dismissed")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Apply" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Move meetings" })).toBeNull();
   });
 });

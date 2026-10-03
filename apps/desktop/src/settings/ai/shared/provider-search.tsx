@@ -39,9 +39,15 @@ export function ProviderSearch({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={(event) => {
-          if (event.key === "Escape") onChange("");
+          // Fork: Esc clears the search without also closing Settings
+          // (ux-audit-oct3 E, NN/g #3).
+          if (event.key === "Escape" && value) {
+            event.preventDefault();
+            event.stopPropagation();
+            onChange("");
+          }
         }}
-        placeholder={t`Search providers...`}
+        placeholder={t`Search providers…`}
         aria-label={t`Search providers`}
         className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm focus:outline-hidden [&::-webkit-search-cancel-button]:hidden"
       />

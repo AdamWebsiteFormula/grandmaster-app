@@ -424,7 +424,7 @@ const _PROVIDERS = [
   {
     disabled: false,
     id: "local_file",
-    displayName: "BYO-model",
+    displayName: "Your own model file",
     badge: "On device",
     baseUrl: "",
     builtIn: true,

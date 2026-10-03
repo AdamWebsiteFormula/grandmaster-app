@@ -89,7 +89,7 @@ export const TitleInput = forwardRef<
                 : "text-xl font-semibold",
             ])}
           >
-            <Trans>Generating title...</Trans>
+            <Trans>Generating title…</Trans>
           </span>
         </div>
       );
@@ -414,7 +414,7 @@ const TitleInputInner = memo(
           <input
             data-tauri-drag-region="false"
             data-session-title-input
-            aria-label={t`Session title`}
+            aria-label={t`Note title`}
             ref={setInputRef}
             id={`title-input-${sessionId}-${editorId}`}
             placeholder={untitled}
@@ -448,7 +448,7 @@ const TitleInputInner = memo(
               "border-none bg-transparent focus:outline-hidden",
               "placeholder:text-muted-foreground text-left",
               variant === "breadcrumb"
-                ? "h-5 appearance-none p-0 text-sm leading-5 text-foreground focus:underline"
+                ? "text-foreground h-5 appearance-none p-0 text-sm leading-5 focus:underline"
                 : "text-xl font-semibold",
               variant === "breadcrumb" &&
                 (isTitleFocused

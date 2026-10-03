@@ -14,6 +14,11 @@ vi.mock("./recording-bar", () => ({
   RecordingBar: () => null,
 }));
 
+vi.mock("~/stt/contexts", () => ({
+  useListener: (selector: (state: unknown) => unknown) =>
+    selector({ getSessionMode: () => "inactive" }),
+}));
+
 vi.mock("~/shared/chat-cta", () => ({
   ChatCTA: () => (
     <button type="button" onClick={() => hoisted.sendEvent({ type: "OPEN" })}>

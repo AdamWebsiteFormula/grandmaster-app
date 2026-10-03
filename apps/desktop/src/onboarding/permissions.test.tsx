@@ -82,7 +82,7 @@ describe("PermissionsSection", () => {
     });
   });
 
-  it("waits for all three macOS permissions before continuing", () => {
+  it("continues on its own once all three macOS permissions are on", () => {
     const onContinue = vi.fn();
     mocks.permissions.microphone.status = "authorized";
     mocks.permissions.microphone.confirmedStatus = "authorized";
@@ -102,6 +102,74 @@ describe("PermissionsSection", () => {
 
     view.rerender(<PermissionsSection onContinue={onContinue} />);
 
+    expect(onContinue).toHaveBeenCalledTimes(1);
+  });
+
+  // UX audit Oct 3, A P1: mic + system audio are enough, as in Granola.
+  it("completes without Accessibility through a secondary button", () => {
+    const onContinue = vi.fn();
+    mocks.permissions.microphone.status = "authorized";
+    mocks.permissions.microphone.confirmedStatus = "authorized";
+    mocks.permissions.systemAudio.status = "authorized";
+    mocks.permissions.systemAudio.confirmedStatus = "authorized";
+
+    render(<PermissionsSection onContinue={onContinue} />);
+
+    expect(onContinue).not.toHaveBeenCalled();
+    expect(
+      screen.getByText("You can turn this on later in Settings."),
+    ).toBeTruthy();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Continue without meeting details" }),
+    );
+    expect(onContinue).toHaveBeenCalledTimes(1);
+  });
+
+  it("offers no way past the step until mic and system audio are on", () => {
+    mocks.permissions.microphone.status = "authorized";
+    mocks.permissions.microphone.confirmedStatus = "authorized";
+
+    render(<PermissionsSection onContinue={vi.fn()} />);
+
+    expect(
+      screen.queryByRole("button", {
+        name: "Continue without meeting details",
+      }),
+    ).toBeNull();
+  });
+
+  it("says where to fix a denied permission and shows its error as text", () => {
+    mocks.permissions.systemAudio.error = "Screen recording is off";
+
+    render(<PermissionsSection />);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Turn on microphone in System Settings",
+      }),
+    );
+    expect(mocks.permissions.microphone.open).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("Screen recording is off").className).toContain(
+      "text-destructive",
+    );
+  });
+
+  it("shows Continue, not an automatic jump, when returning to a finished step", () => {
+    const onContinue = vi.fn();
+    Object.values(mocks.permissions).forEach((permission) => {
+      permission.status = "authorized";
+      permission.confirmedStatus = "authorized";
+    });
+
+    render(
+      <PermissionsSection
+        onContinue={onContinue}
+        continuedRef={{ current: true }}
+      />,
+    );
+
+    expect(onContinue).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     expect(onContinue).toHaveBeenCalledTimes(1);
   });
 
@@ -155,7 +223,7 @@ describe("PermissionsSection", () => {
     render(<PermissionsSection />);
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Enable accessibility" }),
+      screen.getByRole("button", { name: "Help Upshot read meeting activity" }),
     );
 
     expect(mocks.permissions.accessibility.request).toHaveBeenCalledTimes(1);
@@ -168,7 +236,7 @@ describe("PermissionsSection", () => {
     render(<PermissionsSection />);
 
     const row = screen.getByRole("button", {
-      name: "Open accessibility settings",
+      name: "Help Upshot read meeting activity",
     });
     fireEvent.click(row);
 
@@ -204,7 +272,7 @@ describe("PermissionsSection", () => {
     const restartName = "Turned it on? Restart Upshot";
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Open accessibility settings" }),
+      screen.getByRole("button", { name: "Help Upshot read meeting activity" }),
     );
     act(() => {
       window.dispatchEvent(new Event("blur"));

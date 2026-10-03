@@ -15,7 +15,6 @@ import {
   removeSessionParticipant,
   useSessionParticipant,
 } from "~/session/queries";
-import { useTabs } from "~/store/zustand/tabs/index";
 import { removeHumanSpeakerAssignments } from "~/stt/queries";
 
 export function ParticipantChip({
@@ -39,14 +38,7 @@ export function ParticipantChip({
     sessionId,
   });
 
-  const handleClick = useCallback(() => {
-    if (assignedHumanId) {
-      useTabs.getState().openNew({
-        type: "contacts",
-        state: { selected: { type: "person", id: assignedHumanId } },
-      });
-    }
-  }, [assignedHumanId]);
+  const { t } = useLingui();
 
   if (!details || source === "excluded" || isRemoving) {
     return null;
@@ -62,14 +54,15 @@ export function ParticipantChip({
   const isEnhancing = enhancingHumanId === assignedHumanId;
   const canEnhance = Boolean(onEnhanceContact && assignedHumanId);
 
+  // Fork: the chip opened the hidden Contacts screen; it is now plain text
+  // with a named, 24 px remove button (ux-audit-oct3 C, WCAG 4.1.2, 2.5.8).
   return (
     <Badge
       variant="secondary"
       className={cn([
-        "bg-foreground/10 hover:bg-foreground/15 relative flex cursor-pointer items-center gap-1 overflow-hidden px-2 py-0.5 text-xs",
+        "bg-foreground/10 relative flex items-center gap-1 overflow-hidden py-0.5 pr-0.5 pl-2 text-xs",
         isEnhancing && "ring-ring/20 ring-1",
       ])}
-      onClick={handleClick}
     >
       {isEnhancing && (
         <span
@@ -94,7 +87,9 @@ export function ParticipantChip({
         type="button"
         variant="ghost"
         size="sm"
-        className="relative ml-0.5 h-3 w-3 p-0 hover:bg-transparent"
+        aria-label={t`Remove ${displayName}`}
+        title={t`Remove ${displayName}`}
+        className="hover:bg-foreground/10 relative -my-1 size-6 rounded-full p-0"
         onClick={(e) => {
           e.stopPropagation();
           handleRemove();
@@ -125,7 +120,7 @@ function EnhanceContactButton({
           type="button"
           variant="ghost"
           size="sm"
-          aria-label={t`Enhance contact ${label}`}
+          aria-label={t`Fill in details from the invite: ${label}`}
           className="text-muted-foreground hover:text-foreground relative ml-0.5 h-3.5 w-3.5 p-0 hover:bg-transparent"
           disabled={isDisabled}
           onClick={(e) => {
@@ -141,7 +136,7 @@ function EnhanceContactButton({
         </Button>
       </TooltipTrigger>
       <TooltipContent side="bottom">
-        <Trans>Enhance contact</Trans>
+        <Trans>Fill in details from the invite</Trans>
       </TooltipContent>
     </Tooltip>
   );

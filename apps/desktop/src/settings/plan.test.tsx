@@ -132,7 +132,9 @@ describe("Settings › Plan", () => {
       },
     };
     render(<SettingsPlan />);
-    expect(screen.getByText(/Active, ends Nov 3, 2026/)).not.toBeNull();
+    expect(
+      screen.getByText(/Canceled. Pro stays on until Nov 3, 2026./),
+    ).not.toBeNull();
   });
 
   it("signed out offers Sign in", () => {

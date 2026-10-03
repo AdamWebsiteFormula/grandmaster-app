@@ -235,7 +235,7 @@ export function ModelCombobox({
             ) : (
               <span className="text-muted-foreground truncate">
                 {isLoadingModels
-                  ? t`Loading models...`
+                  ? t`Loading models…`
                   : (placeholder ?? t`Select a model`)}
               </span>
             )}

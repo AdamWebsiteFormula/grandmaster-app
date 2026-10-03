@@ -3,6 +3,7 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { Check } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
+import { SettingsSectionTitle } from "~/settings/page-title";
 import { useSetSettingValue } from "~/settings/queries";
 import { useConfigValue } from "~/shared/config";
 import { normalizeAppIconPreference } from "~/shared/theme/icon";
@@ -34,9 +35,9 @@ export function ThemeSelector() {
   return (
     <section className="flex flex-col gap-4">
       <div>
-        <h3 className="text-lg font-semibold">
+        <SettingsSectionTitle>
           <Trans>Theme</Trans>
-        </h3>
+        </SettingsSectionTitle>
         <p className="text-muted-foreground mt-1 text-sm">
           <Trans>Choose how Upshot looks on this device.</Trans>
         </p>

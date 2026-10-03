@@ -7,6 +7,7 @@ import { setSessionFabSelectionHost } from "./selection-slot";
 
 import { ChatCTA } from "~/shared/chat-cta";
 import type { EditorView, Tab } from "~/store/zustand/tabs/schema";
+import { useListener } from "~/stt/contexts";
 
 export function FloatingActionButton(props: {
   allowListening?: boolean;
@@ -15,6 +16,10 @@ export function FloatingActionButton(props: {
   skipReason?: string | null;
   tab: Extract<Tab, { type: "sessions" }>;
 }) {
+  const recordingBarShown = useListener(
+    (state) => state.getSessionMode(props.tab.id) !== "inactive",
+  );
+
   return (
     <>
       <RecordingBar sessionId={props.tab.id} />
@@ -23,7 +28,13 @@ export function FloatingActionButton(props: {
           "pointer-events-none absolute bottom-3 left-1/2 z-30 flex max-w-[calc(100%-2rem)] -translate-x-1/2 flex-col-reverse items-center",
         ])}
       >
-        <div className="peer/session-fab pointer-events-auto relative h-10 w-[150px] max-w-full">
+        <div
+          className={cn([
+            "peer/session-fab pointer-events-auto relative h-10 w-[150px] max-w-full",
+            // Fork: the recording bar and Ask bar overlap in a narrow note pane, so Ask hides there while recording (ux-audit-oct3 C, WCAG 1.4.10).
+            recordingBarShown && "@max-[760px]:hidden",
+          ])}
+        >
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key="chat"

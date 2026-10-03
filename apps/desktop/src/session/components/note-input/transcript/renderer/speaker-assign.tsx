@@ -560,15 +560,12 @@ export function SpeakerParticipantPicker({
               </p>
             )}
 
+            {/* Fork: the dead "Create new speaker" button only focused the field; say how instead (ux-audit-oct3 C, NN/g #9). */}
             {!query.trim() && (
-              <button
-                type="button"
-                className="hover:bg-accent flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm"
-                onClick={() => searchInputRef.current?.focus()}
-              >
-                <Plus className="size-4" />
-                <Trans>Create new speaker</Trans>
-              </button>
+              <p className="text-muted-foreground flex items-center gap-2 px-3 py-1.5 text-xs">
+                <Plus aria-hidden className="size-3.5" />
+                <Trans>Type a name to add a speaker</Trans>
+              </p>
             )}
           </div>
         </div>
@@ -595,7 +592,8 @@ export function SpeakerParticipantPicker({
           disabled={!selectedOption || assigning}
           onClick={handleConfirm}
         >
-          <Trans>Confirm</Trans>
+          {/* Fork: names the action (ux-audit-oct3 C, HIG buttons). */}
+          <Trans>Assign</Trans>
         </button>
       </div>
     </div>

@@ -497,7 +497,8 @@ describe("EnhancerService", () => {
     await expect(service.checkEligibility("session-1")).resolves.toMatchObject({
       eligible: false,
       characterCount: 24,
-      reason: "Transcript too short to summarize (24/160 characters minimum)",
+      reason:
+        "Too little was said for a summary. Record a bit longer, then click Generate summary.",
       wordCount: 5,
     });
     snapshot = createSnapshot({ wordCount: 40 });

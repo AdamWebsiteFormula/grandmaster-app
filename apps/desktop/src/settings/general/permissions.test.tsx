@@ -80,7 +80,9 @@ describe("Permissions", () => {
     ).toBeTruthy();
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Open accessibility settings" }),
+      screen.getByRole("button", {
+        name: "Open System Settings for Accessibility",
+      }),
     );
 
     expect(accessibility.open).toHaveBeenCalledOnce();
@@ -92,7 +94,7 @@ describe("Permissions", () => {
 
     fireEvent.click(
       screen.getByRole("button", {
-        name: "Request accessibility permission",
+        name: "Allow Accessibility",
       }),
     );
 
@@ -109,7 +111,9 @@ describe("Permissions", () => {
     ).toBeTruthy();
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Open accessibility settings" }),
+      screen.getByRole("button", {
+        name: "Open System Settings for Accessibility",
+      }),
     );
 
     expect(accessibility.open).toHaveBeenCalledOnce();

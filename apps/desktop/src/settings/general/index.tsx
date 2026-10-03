@@ -24,7 +24,7 @@ import { SummaryLengthSelector } from "./summary-length";
 import { TimezoneSelector } from "./timezone";
 import { WeekStartSelector } from "./week-start";
 
-import { SettingsPageTitle } from "~/settings/page-title";
+import { SettingsPageTitle, SettingsSectionTitle } from "~/settings/page-title";
 import {
   type StoredSettingValues,
   useSetSettingValues,
@@ -239,9 +239,9 @@ function SettingsSectionContent({
           </form.Subscribe>
 
           <div>
-            <h2 className="mb-4 font-sans text-base font-semibold">
+            <SettingsSectionTitle className="mb-4">
               <Trans>Language &amp; region</Trans>
-            </h2>
+            </SettingsSectionTitle>
             <div className="flex flex-col gap-6">
               <form.Field name="ai_language">
                 {(field) => (
@@ -327,16 +327,16 @@ function SettingsSectionContent({
           </form.Subscribe>
 
           <div>
-            <h2 className="mb-4 font-sans text-base font-semibold">
+            <SettingsSectionTitle className="mb-4">
               <Trans>Summaries</Trans>
-            </h2>
+            </SettingsSectionTitle>
             <SummaryLengthSelector />
           </div>
 
           <div>
-            <h2 className="mb-4 font-sans text-base font-semibold">
+            <SettingsSectionTitle className="mb-4">
               <Trans>Audio</Trans>
-            </h2>
+            </SettingsSectionTitle>
             <AudioSettingsView
               audioRetention={{
                 value: audioRetention,

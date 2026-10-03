@@ -10,7 +10,7 @@ impl DockMenuItem for DockCheckUpdate {
     }
 
     fn title(_app: &tauri::AppHandle<tauri::Wry>) -> String {
-        "Check for Updates...".to_string()
+        "Check for updates…".to_string()
     }
 
     fn handle(app: &tauri::AppHandle<tauri::Wry>) {

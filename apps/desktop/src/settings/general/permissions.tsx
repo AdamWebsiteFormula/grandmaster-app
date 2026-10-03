@@ -2,7 +2,7 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { platform } from "@tauri-apps/plugin-os";
 
 import type { PermissionStatus } from "@anlg/plugin-permissions";
-import { ArrowRight, Check, WarningCircle } from "@anlg/ui/components/icons";
+import { Check, WarningCircle } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 import { cn } from "@anlg/utils";
@@ -76,54 +76,48 @@ function PermissionRow({
         </div>
         <p className="text-muted-foreground text-xs">{description}</p>
         {error && (
-          <p role="alert" className="mt-1 text-xs text-destructive">
+          <p role="alert" className="text-destructive mt-1 text-xs">
             {error}
           </p>
         )}
       </div>
-      <Button
-        variant={isAuthorized ? "ghost" : "default"}
-        size="icon"
-        onClick={handleButtonClick}
-        disabled={isPending || (runtimeCapability && isAuthorized)}
-        className={cn([
-          "size-8",
-          isAuthorized &&
-            "text-primary hover:bg-transparent hover:text-primary",
-        ])}
-        aria-label={
-          runtimeCapability
-            ? isDenied
-              ? `${t`Try again`}: ${title}`
-              : title
-            : assisted || isAuthorized || isDenied
-              ? t`Open ${title.toLowerCase()} settings`
-              : t`Request ${title.toLowerCase()} permission`
-        }
-      >
-        {isAuthorized ? (
-          <Check className="size-4" />
-        ) : (
-          <ArrowRight className="size-5" />
-        )}
-      </Button>
-    </div>
-  );
-}
-
-function PermissionGroup({
-  title,
-  children,
-}: {
-  title: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <h3 className="text-muted-foreground mb-3 text-xs font-semibold">
-        {title}
-      </h3>
-      <div className="flex flex-col gap-4">{children}</div>
+      {/* Fork: text buttons say what happens, and a granted permission is a
+          quiet "Allowed" (ux-audit-oct3 E, HIG buttons). */}
+      {isAuthorized ? (
+        <span className="text-muted-foreground flex shrink-0 items-center gap-1 text-xs">
+          <Check className="size-3.5" aria-hidden />
+          <Trans>Allowed</Trans>
+        </span>
+      ) : (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleButtonClick}
+          disabled={isPending}
+          className="shrink-0"
+          aria-label={
+            runtimeCapability
+              ? isDenied
+                ? `${t`Try again`}: ${title}`
+                : t`Allow ${title}`
+              : assisted || isDenied
+                ? t`Open System Settings for ${title}`
+                : t`Allow ${title}`
+          }
+        >
+          {runtimeCapability ? (
+            isDenied ? (
+              <Trans>Try again</Trans>
+            ) : (
+              <Trans>Allow</Trans>
+            )
+          ) : assisted || isDenied ? (
+            <Trans>Open System Settings</Trans>
+          ) : (
+            <Trans>Allow</Trans>
+          )}
+        </Button>
+      )}
     </div>
   );
 }
@@ -134,7 +128,7 @@ export function Permissions() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       <AudioPermissions runtimeCapabilities />
     </div>
   );
@@ -156,7 +150,7 @@ function AudioPermissions({
   );
 
   return (
-    <PermissionGroup title={<Trans>Audio</Trans>}>
+    <>
       <PermissionRow
         permission="microphone"
         title={t`Microphone`}
@@ -179,7 +173,7 @@ function AudioPermissions({
         onOpen={systemAudio.open}
         runtimeCapability={runtimeCapabilities}
       />
-    </PermissionGroup>
+    </>
   );
 }
 
@@ -200,7 +194,9 @@ function MacOSPermissions() {
   useMountEffect(() => () => void closePermissionAssistant());
 
   return (
-    <div className="flex flex-col gap-8">
+    // Fork: one list, no eyebrow group labels, in the order a meeting needs
+    // them (ux-audit-oct3 E, design-system).
+    <div className="flex flex-col gap-6">
       <AudioPermissions />
 
       <PermissionRow
@@ -218,17 +214,15 @@ function MacOSPermissions() {
         assisted={Boolean(accessibilityGuidance)}
       />
 
-      <PermissionGroup title={<Trans>Others</Trans>}>
-        <PermissionRow
-          permission="calendar"
-          title={t`Calendar`}
-          description={t`Show Apple Calendar events in Upshot.`}
-          status={calendar.status}
-          isPending={calendar.isPending}
-          onRequest={calendar.request}
-          onOpen={calendar.open}
-        />
-      </PermissionGroup>
+      <PermissionRow
+        permission="calendar"
+        title={t`Calendar`}
+        description={t`Show Apple Calendar events in Upshot.`}
+        status={calendar.status}
+        isPending={calendar.isPending}
+        onRequest={calendar.request}
+        onOpen={calendar.open}
+      />
     </div>
   );
 }

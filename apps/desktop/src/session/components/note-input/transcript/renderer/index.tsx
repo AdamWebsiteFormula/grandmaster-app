@@ -45,6 +45,7 @@ import { useAudioTime } from "~/audio-player/provider";
 import type { Segment } from "~/stt/live-segment";
 import {
   assignTranscriptSpeaker,
+  getTranscriptRecord,
   mergeTranscriptSegments,
   updateTranscriptSegmentText,
 } from "~/stt/queries";
@@ -276,6 +277,20 @@ export function TranscriptViewer({
         group.wordIds.forEach((wordId) => wordIds.add(wordId));
         wordsByTranscript.set(group.transcriptId, wordIds);
       }
+      // Fork: remember the deleted words so the toast can undo (ux-audit-oct3 C, NN/g #5).
+      const originals: {
+        transcriptId: string;
+        wordId: string;
+        text: string;
+      }[] = [];
+      for (const [transcriptId, wordIds] of wordsByTranscript) {
+        const record = await getTranscriptRecord(transcriptId);
+        for (const word of record?.words ?? []) {
+          if (wordIds.has(word.id) && word.text) {
+            originals.push({ transcriptId, wordId: word.id, text: word.text });
+          }
+        }
+      }
       await preserveScrollPosition(containerRef.current, () =>
         Promise.all(
           [...wordsByTranscript].map(([transcriptId, wordIds]) =>
@@ -287,6 +302,16 @@ export function TranscriptViewer({
           ),
         ),
       );
+
+      return async () => {
+        for (const original of originals) {
+          await updateTranscriptSegmentText({
+            transcriptId: original.transcriptId,
+            wordIds: [original.wordId],
+            text: original.text,
+          });
+        }
+      };
     },
     [],
   );
@@ -542,7 +567,7 @@ export function TranscriptViewer({
             data-transcript-scroll-controls
             className={cn([
               "group/scroll-controls absolute top-1/2 right-1 z-40 flex -translate-y-1/2 flex-col overflow-hidden",
-              "text-muted-foreground/45 rounded-full border border-transparent bg-transparent",
+              "text-muted-foreground rounded-full border border-transparent bg-transparent",
               "transition-[background-color,border-color,color,box-shadow,backdrop-filter] duration-150",
               "hover:border-border/50 hover:bg-background/65 hover:text-foreground hover:shadow-sm hover:backdrop-blur-md",
               "focus-within:border-border/50 focus-within:bg-background/65 focus-within:text-foreground focus-within:shadow-sm focus-within:backdrop-blur-md",

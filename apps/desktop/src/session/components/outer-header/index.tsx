@@ -3,12 +3,18 @@ import { useCallback, useRef, useState } from "react";
 
 import { commands as deeplinkCommands } from "@anlg/plugin-deeplink2";
 import { commands as openerCommands } from "@anlg/plugin-opener2";
-import { Headset, Square, VideoCamera } from "@anlg/ui/components/icons";
+import {
+  CalendarBlank,
+  Headset,
+  Square,
+  VideoCamera,
+} from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 import {
   Popover,
   PopoverAnchor,
   PopoverContent,
+  PopoverTrigger,
 } from "@anlg/ui/components/ui/popover";
 import { cn, parseEventInstant, safeParseDate } from "@anlg/utils";
 
@@ -16,6 +22,7 @@ import { FolderPicker } from "../folder-picker";
 import { RecordingIcon, useHasTranscript } from "../shared";
 import { TitleInput } from "../title-input";
 import { AudioSavedLine } from "./audio-saved";
+import { MetadataPopoverContent } from "./metadata";
 import { OverflowButton } from "./overflow";
 
 import { useAudioPlayer } from "~/audio-player";
@@ -127,6 +134,7 @@ export function OuterHeader({
           sessionMode={sessionMode}
           meetingOver={meetingOver}
         />
+        <MeetingInfoButton sessionId={sessionId} />
         <OverflowButton
           standaloneWindow={standaloneWindow}
           sessionId={sessionId}
@@ -135,6 +143,31 @@ export function OuterHeader({
         {!standaloneWindow && <NewNoteButton className="ml-1" />}
       </div>
     </div>
+  );
+}
+
+// Fork: Meeting info was a submenu inside the … menu, where Tab got trapped;
+// a header button opens the same panel as a popover (ux-audit-oct3 C, WCAG 2.1.1).
+function MeetingInfoButton({ sessionId }: { sessionId: string }) {
+  const { t } = useLingui();
+  const label = t`Meeting info`;
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          size="icon"
+          variant="ghost"
+          data-tauri-drag-region="false"
+          aria-label={label}
+          title={label}
+          className="text-muted-foreground hover:bg-accent hover:text-foreground rounded-full [&_svg]:size-4"
+        >
+          <CalendarBlank className="size-4" />
+        </Button>
+      </PopoverTrigger>
+      <MetadataPopoverContent sessionId={sessionId} />
+    </Popover>
   );
 }
 
@@ -288,7 +321,7 @@ function HeaderMeetingAction({
     if (sessionMode === "active") {
       return {
         label: t`Stop`,
-        title: t`Stop listening`,
+        title: t`Stop recording`,
         icon: <Square className="text-destructive size-3" />,
         onClick: stopListening,
       };
@@ -316,9 +349,10 @@ function HeaderMeetingAction({
       };
     }
 
+    // Fork: shared recording vocabulary (ux-audit-oct3 C, NN/g #4).
     return {
-      label: t`Record`,
-      title: t`Record`,
+      label: t`Start recording`,
+      title: t`Start recording`,
       icon: <RecordingIcon />,
       onClick: start,
     };

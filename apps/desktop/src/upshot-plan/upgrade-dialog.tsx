@@ -24,6 +24,7 @@ import {
 import { Input } from "@anlg/ui/components/ui/input";
 
 import {
+  type AccountMode,
   closeUpgradeDialog,
   signInUpshot,
   startCheckout,
@@ -31,6 +32,7 @@ import {
   useUpshotAccount,
   useUpshotPro,
 } from "./index";
+import { UpshotRequestError } from "./session";
 
 import {
   GlassDialogCancelButton,
@@ -49,9 +51,15 @@ export function TestCardNote() {
 }
 
 export function UpshotUpgradeDialog() {
-  const { open, interval, checkout, error } = useUpgradeDialog();
+  const {
+    open,
+    mode: openMode,
+    interval,
+    checkout,
+    error,
+  } = useUpgradeDialog();
   const signedIn = useUpshotAccount((state) => !!state.session);
-  const [mode, setMode] = useState<"signup" | "signin">("signup");
+  const [mode, setMode] = useState<AccountMode>(openMode);
   const [step, setStep] = useState<"form" | "browser">("form");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -62,6 +70,9 @@ export function UpshotUpgradeDialog() {
   if (syncedOpen !== open) {
     setSyncedOpen(open);
     if (open) {
+      // Fork: "Sign in" opens on sign-in, Upgrade on sign-up (ux-audit-oct3 D,
+      // NN/g #2, #4).
+      setMode(openMode);
       setStep("form");
       setBusy(false);
       setMessage(error);
@@ -88,6 +99,13 @@ export function UpshotUpgradeDialog() {
         closeUpgradeDialog();
       }
     } catch (cause) {
+      // Fork: an existing email switches the form to sign-in (ux-audit-oct3 D).
+      if (
+        cause instanceof UpshotRequestError &&
+        cause.code === "account_exists"
+      ) {
+        setMode("signin");
+      }
       setMessage(cause instanceof Error ? cause.message : String(cause));
     } finally {
       setBusy(false);
@@ -177,7 +195,8 @@ export function UpshotUpgradeDialog() {
                 <button
                   type="button"
                   disabled={busy}
-                  className="text-muted-foreground hover:text-foreground text-xs transition-colors"
+                  // Fork: a 24px target (ux-audit-oct3 D, WCAG 2.5.8).
+                  className="text-muted-foreground hover:text-foreground min-h-6 py-1 text-xs transition-colors"
                   onClick={() => {
                     setMode(mode === "signup" ? "signin" : "signup");
                     setMessage(null);

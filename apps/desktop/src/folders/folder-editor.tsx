@@ -28,8 +28,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@anlg/ui/components/ui/select";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
+import { FolderNotes } from "./folder-notes";
 import { useFolderSelection } from "./selection";
 
 import { useOptionalAuth } from "~/auth";
@@ -65,6 +67,7 @@ import { folderDisplayName, normalizeFolderPath } from "~/session/folders";
 import { useFolderIcons } from "~/session/queries";
 import { useFolderMaterialUpload } from "~/shared/hooks/useFileUpload";
 import { DestructiveConfirmationDialog } from "~/shared/ui/destructive-confirmation-dialog";
+import { FolderNameDialog } from "~/sidebar/folder-name-dialog";
 import { TemplateIconPicker } from "~/templates/template-icon-picker";
 
 const PERSONAL_WORKSPACE_VALUE = "__personal__";
@@ -102,6 +105,11 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
   const [busy, setBusy] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [removingMaterial, setRemovingMaterial] = useState<{
+    filename: string;
+    relativePath: string;
+  } | null>(null);
   const [workspaceConfirmation, setWorkspaceConfirmation] = useState<{
     id: string;
     name: string;
@@ -120,6 +128,57 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
   const displayName = folderDisplayName(folderPath);
   const [draft, setDraft] = useState(displayName);
 
+  // Throws on failure; callers say why (title field: toast, Rename dialog:
+  // inline error).
+  const renameTo = useCallback(
+    async (normalizedName: string) => {
+      const separatorIndex = folderPath.lastIndexOf("/");
+      const parentPath =
+        separatorIndex === -1 ? "" : folderPath.slice(0, separatorIndex);
+      const renamedPath = parentPath
+        ? `${parentPath}/${normalizedName}`
+        : normalizedName;
+      if (renamedPath === folderPath) {
+        setDraft(displayName);
+        return;
+      }
+
+      setBusy(true);
+      try {
+        const renamed = await renameNamedFolder(folderPath, renamedPath);
+        if (ownedShare && auth) {
+          try {
+            await moveSharedResource(requireResourceSharingContext(auth), {
+              shareId: ownedShare.shareId,
+              sourceId: renamed,
+              title: folderDisplayName(renamed),
+              payload: await sharedFolderPayload(renamed),
+            });
+          } catch (error) {
+            await renameNamedFolder(renamed, folderPath);
+            throw error;
+          }
+          void queryClient.invalidateQueries({
+            queryKey: sharedResourcesQueryKey(auth.session?.user.id, "folder"),
+          });
+        }
+        rekeyIconOverride(folderPath, renamed);
+        setSelectedPath(renamed);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [
+      auth,
+      displayName,
+      folderPath,
+      ownedShare,
+      queryClient,
+      rekeyIconOverride,
+      setSelectedPath,
+    ],
+  );
+
   const commitTitle = useCallback(async () => {
     if (skipTitleCommit.current) {
       skipTitleCommit.current = false;
@@ -127,59 +186,29 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
       return;
     }
 
-    const normalizedName = normalizeFolderPath(draft.trim());
+    // Fork: say why a rename failed instead of silently reverting
+    // (ux-audit-oct3 B; NN/g #9). Same strings as the folder name dialog.
+    const trimmed = draft.trim();
+    const normalizedName = normalizeFolderPath(trimmed);
     if (!normalizedName || normalizedName.includes("/")) {
       setDraft(displayName);
+      if (trimmed) toast.error(t`Enter a valid folder name.`);
       return;
     }
 
-    const separatorIndex = folderPath.lastIndexOf("/");
-    const parentPath =
-      separatorIndex === -1 ? "" : folderPath.slice(0, separatorIndex);
-    const renamedPath = parentPath
-      ? `${parentPath}/${normalizedName}`
-      : normalizedName;
-    if (renamedPath === folderPath) {
-      setDraft(displayName);
-      return;
-    }
-
-    setBusy(true);
     try {
-      const renamed = await renameNamedFolder(folderPath, renamedPath);
-      if (ownedShare && auth) {
-        try {
-          await moveSharedResource(requireResourceSharingContext(auth), {
-            shareId: ownedShare.shareId,
-            sourceId: renamed,
-            title: folderDisplayName(renamed),
-            payload: await sharedFolderPayload(renamed),
-          });
-        } catch (error) {
-          await renameNamedFolder(renamed, folderPath);
-          throw error;
-        }
-        void queryClient.invalidateQueries({
-          queryKey: sharedResourcesQueryKey(auth.session?.user.id, "folder"),
-        });
-      }
-      rekeyIconOverride(folderPath, renamed);
-      setSelectedPath(renamed);
-    } catch {
+      await renameTo(normalizedName);
+    } catch (cause) {
       setDraft(displayName);
-    } finally {
-      setBusy(false);
+      toast.error(
+        String(cause instanceof Error ? cause.message : cause).includes(
+          "folder_target_exists",
+        )
+          ? t`A folder with this name already exists.`
+          : t`Could not save the folder.`,
+      );
     }
-  }, [
-    auth,
-    displayName,
-    draft,
-    folderPath,
-    ownedShare,
-    queryClient,
-    rekeyIconOverride,
-    setSelectedPath,
-  ]);
+  }, [displayName, draft, renameTo, t]);
 
   return (
     <section className="flex h-full flex-1 flex-col" aria-label={folderPath}>
@@ -252,10 +281,18 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
             </DropdownMenuTrigger>
             <DropdownMenuContent variant="app" align="end">
               <AppFloatingPanel className={appFloatingMenuPanelClassName}>
+                {/* Fork: Rename in the actions menu (ux-audit-oct3 B; NN/g #6). */}
+                <DropdownMenuItem
+                  disabled={busy}
+                  onClick={() => setRenaming(true)}
+                  className="cursor-pointer"
+                >
+                  <Trans>Rename</Trans>
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   disabled={busy}
                   onClick={() => setDeleting(true)}
-                  className="cursor-pointer text-destructive focus:text-destructive"
+                  className="text-destructive focus:text-destructive cursor-pointer"
                 >
                   <Trans>Delete</Trans>
                 </DropdownMenuItem>
@@ -267,6 +304,8 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
 
       <div className="scrollbar-hide flex-1 overflow-y-auto px-3 pt-3 pb-6">
         <div className="flex max-w-2xl flex-col gap-6">
+          <FolderNotes folderPath={folderPath} />
+
           {auth?.session?.user.id && availableWorkspaces.length > 0 ? (
             <div className="flex items-start justify-between gap-4">
               <div className="flex flex-col gap-1.5">
@@ -389,19 +428,14 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
                         "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-hidden",
                         "disabled:opacity-50",
                       ])}
-                      onClick={async () => {
-                        setBusy(true);
-                        try {
-                          await deleteLocalFolderMaterial({
-                            folderPath,
-                            attachmentId: diskAttachmentId(
-                              material.relativePath,
-                            ),
-                          });
-                        } finally {
-                          setBusy(false);
-                        }
-                      }}
+                      // Fork: confirm before deleting a file (ux-audit-oct3 B;
+                      // NN/g #5, error prevention).
+                      onClick={() =>
+                        setRemovingMaterial({
+                          filename: material.filename,
+                          relativePath: material.relativePath,
+                        })
+                      }
                     >
                       <X size={12} />
                     </button>
@@ -456,14 +490,55 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
         </DialogContent>
       </Dialog>
 
+      <FolderNameDialog
+        open={renaming}
+        title={t`Rename folder`}
+        confirmLabel={t`Rename`}
+        initialValue={displayName}
+        onOpenChange={setRenaming}
+        onSubmit={renameTo}
+      />
+
+      <DestructiveConfirmationDialog
+        open={removingMaterial !== null}
+        onOpenChange={(open) => {
+          if (!open) setRemovingMaterial(null);
+        }}
+        title={<Trans>Remove “{removingMaterial?.filename}”?</Trans>}
+        description={<Trans>This can't be undone.</Trans>}
+        confirmLabel={<Trans>Remove file</Trans>}
+        isPending={busy}
+        onConfirm={() => {
+          const material = removingMaterial;
+          if (!material) return;
+          void (async () => {
+            setBusy(true);
+            try {
+              await deleteLocalFolderMaterial({
+                folderPath,
+                attachmentId: diskAttachmentId(material.relativePath),
+              });
+              setRemovingMaterial(null);
+            } catch (error) {
+              console.error("[folder-editor] failed to remove file", error);
+              toast.error(t`Could not remove the file.`);
+            } finally {
+              setBusy(false);
+            }
+          })();
+        }}
+      />
+
+      {/* Fork: alert names the folder and says notes stay on Home
+          (ux-audit-oct3 B; HIG alerts). */}
       <DestructiveConfirmationDialog
         open={deleting}
         onOpenChange={setDeleting}
-        title={<Trans>Delete folder</Trans>}
+        title={<Trans>Delete “{displayName}”?</Trans>}
         description={
-          <Trans id="Notes stay in All notes. Materials in this folder will be deleted.">
-            Notes stay in All notes. This folder, its nested folders, and all
-            their materials will be deleted.
+          <Trans>
+            Notes stay on Home. This folder, its nested folders and their
+            materials will be deleted.
           </Trans>
         }
         confirmLabel={<Trans>Delete folder</Trans>}

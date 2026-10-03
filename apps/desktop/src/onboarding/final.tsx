@@ -4,9 +4,8 @@ import { platform } from "@tauri-apps/plugin-os";
 import { useRef, useState } from "react";
 
 import { commands as analyticsCommands } from "@anlg/plugin-analytics";
-import { commands as openerCommands } from "@anlg/plugin-opener2";
 import { commands as sfxCommands } from "@anlg/plugin-sfx";
-import { CircleNotch, GithubLogo } from "@anlg/ui/components/icons";
+import { CircleNotch } from "@anlg/ui/components/icons";
 
 import { seedExampleSessionOnce } from "./example-note";
 import { OnboardingButton } from "./shared";
@@ -23,40 +22,14 @@ import { flushAutomaticRelaunch } from "~/shared/relaunch";
 import { MEETING_DISCLOSURE_MESSAGE } from "~/stt/meeting-disclosure";
 import { commands } from "~/types/tauri.gen";
 
-// Fork: upstream's Discord and X channels are not ours; only the repo stays.
-const SOCIALS = [
-  {
-    label: "GitHub",
-    icon: GithubLogo,
-    url: "https://github.com/AdamWebsiteFormula/grandmaster-app",
-  },
-] as const;
-
-const SOCIAL_ICON_SIZE = 18;
-
+// Fork: no community links (none exists, and the repo has Issues off); the
+// last step says how to record instead (UX audit Oct 3, A: NN/g #2, WCAG 2.5.8).
 export function FinalDescription() {
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-      <span>
-        <Trans>Join our community and stay updated:</Trans>
-      </span>
-      <div className="flex items-center gap-2">
-        {SOCIALS.map((social) => {
-          const SocialIcon = social.icon;
-
-          return (
-            <button
-              key={social.label}
-              onClick={() => void openerCommands.openUrl(social.url, null)}
-              className="text-muted-foreground hover:text-muted-foreground inline-flex size-5 items-center justify-center rounded-md transition-colors duration-150"
-              aria-label={social.label}
-            >
-              <SocialIcon size={SOCIAL_ICON_SIZE} />
-            </button>
-          );
-        })}
-      </div>
-    </div>
+    <Trans>
+      Click New note at the top right, or press ⌘N, to record your first
+      meeting.
+    </Trans>
   );
 }
 

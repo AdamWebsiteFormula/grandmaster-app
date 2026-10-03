@@ -61,7 +61,7 @@ import {
   requestSyncDevices,
 } from "~/auth/sync-devices";
 import { captureOperationalError } from "~/error-reporting";
-import { SettingsPageTitle } from "~/settings/page-title";
+import { SettingsPageTitle, SettingsSectionTitle } from "~/settings/page-title";
 import { PlanGate } from "~/settings/plan-gate";
 import {
   setSettingValue,
@@ -294,9 +294,9 @@ function SyncSettingsPreview() {
         </Button>
       </div>
       <div>
-        <h2 className="mb-4 font-sans text-base font-semibold">
+        <SettingsSectionTitle className="mb-4">
           <Trans>Devices</Trans>
-        </h2>
+        </SettingsSectionTitle>
         <div className="border-border/60 overflow-hidden rounded-xl border">
           <p className="text-muted-foreground px-4 py-5 text-center text-xs">
             <Trans>No devices registered yet.</Trans>
@@ -748,7 +748,7 @@ export function SettingsSync() {
           : ("syncing" as const),
         label: status.recovery_delayed
           ? t`Cloud sync delayed`
-          : t`Restoring cloud sync...`,
+          : t`Restoring cloud sync…`,
         description: status.recovery_delayed
           ? t`Your notes remain available locally. Upshot will keep retrying.`
           : t`Your notes remain available locally.`,
@@ -760,7 +760,7 @@ export function SettingsSync() {
     if (!status || !status.configured || !status.running) {
       return {
         kind: "syncing" as const,
-        label: t`Connecting...`,
+        label: t`Connecting…`,
         description: t`Setting up encrypted cloud sync.`,
         detail: status?.configuration_error ?? null,
       };
@@ -772,7 +772,7 @@ export function SettingsSync() {
     ) {
       return {
         kind: "syncing" as const,
-        label: t`Syncing...`,
+        label: t`Syncing…`,
         description: t`Sending and receiving your latest changes.`,
       };
     }
@@ -896,14 +896,14 @@ export function SettingsSync() {
 
       <section>
         <div className="mb-4 flex items-center justify-between gap-4">
-          <h2 className="font-sans text-lg font-semibold">
+          <SettingsSectionTitle>
             <Trans>Devices</Trans>
             {devicesQuery.data && (
               <span className="text-muted-foreground ml-2 font-normal">
                 {usedDeviceSlots} / {devicesQuery.data.maxDevices}
               </span>
             )}
-          </h2>
+          </SettingsSectionTitle>
           <div className="flex items-center gap-2">
             {devicesQuery.data &&
               (usedDeviceSlots >= devicesQuery.data.maxDevices ||

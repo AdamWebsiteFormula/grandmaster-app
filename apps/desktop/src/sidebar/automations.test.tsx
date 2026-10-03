@@ -240,7 +240,7 @@ describe("AutomationsNav", () => {
   it("filters starters and chat automations together", () => {
     render(<AutomationsNav />);
 
-    fireEvent.change(screen.getByPlaceholderText("Search automations..."), {
+    fireEvent.change(screen.getByPlaceholderText("Search automations…"), {
       target: { value: "project" },
     });
 
@@ -253,7 +253,7 @@ describe("AutomationsNav", () => {
 
     expect(screen.getByText("Share weekly recap")).toBeTruthy();
 
-    fireEvent.change(screen.getByPlaceholderText("Search automations..."), {
+    fireEvent.change(screen.getByPlaceholderText("Search automations…"), {
       target: { value: "zzz" },
     });
 

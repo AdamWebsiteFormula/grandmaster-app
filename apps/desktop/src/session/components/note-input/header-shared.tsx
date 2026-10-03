@@ -1,4 +1,11 @@
-import { json2md, parseJsonContent } from "@anlg/editor/markdown";
+import { DOMSerializer, Node as PMNode } from "prosemirror-model";
+
+import {
+  json2md,
+  markdownSchema,
+  md2json,
+  parseJsonContent,
+} from "@anlg/editor/markdown";
 import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
@@ -105,7 +112,7 @@ export function iconHeaderViewClassName(
           "dark:bg-accent dark:text-foreground dark:shadow-none",
         ]
       : [
-          "text-muted-foreground/70",
+          "text-muted-foreground",
           "hover:bg-background/60 hover:text-foreground",
           "dark:hover:bg-accent/80 dark:hover:text-foreground",
         ],
@@ -145,27 +152,71 @@ export function getEnhancedNoteTitle({
   return title;
 }
 
+// Fork: Copy notes pasted raw Markdown into Gmail and Docs. Render the note
+// through the editor's own Markdown schema to HTML so rich-text apps keep the
+// headings and lists (ux-audit-oct3 C, NN/g #2).
+export function markdownToClipboardHtml(markdown: string): string | null {
+  if (!markdown.trim() || typeof document === "undefined") {
+    return null;
+  }
+
+  try {
+    const doc = PMNode.fromJSON(markdownSchema, md2json(markdown));
+    const fragment = DOMSerializer.fromSchema(markdownSchema).serializeFragment(
+      doc.content,
+    );
+    const container = document.createElement("div");
+    container.appendChild(fragment);
+    return container.innerHTML || null;
+  } catch (error) {
+    console.error("Failed to render note HTML for the clipboard", error);
+    return null;
+  }
+}
+
+function clipboardBlobs(types: Record<string, string>) {
+  return Object.fromEntries(
+    Object.entries(types).map(([type, value]) => [
+      type,
+      new Blob([value], { type }),
+    ]),
+  );
+}
+
 export async function copyTextToClipboard(
   text: string,
   messages?: {
     success: string;
     error: string;
   },
+  options?: {
+    /** Also write text/html rendered from `text` as Markdown. */
+    html?: boolean;
+  },
 ) {
   try {
-    try {
-      await navigator.clipboard.write([
-        new ClipboardItem({
-          "text/plain": new Blob([text], {
-            type: "text/plain",
-          }),
-          "text/markdown": new Blob([text], {
-            type: "text/markdown",
-          }),
-        }),
-      ]);
-    } catch {
-      // Fallback for environments that do not support text/markdown
+    const html = options?.html ? markdownToClipboardHtml(text) : null;
+    const attempts: Record<string, string>[] = html
+      ? [
+          { "text/plain": text, "text/html": html, "text/markdown": text },
+          { "text/plain": text, "text/html": html },
+        ]
+      : [{ "text/plain": text, "text/markdown": text }];
+
+    let written = false;
+    for (const types of attempts) {
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem(clipboardBlobs(types)),
+        ]);
+        written = true;
+        break;
+      } catch {
+        // WebKit rejects types it doesn't know (text/markdown); try fewer.
+      }
+    }
+
+    if (!written) {
       await navigator.clipboard.writeText(text);
     }
 

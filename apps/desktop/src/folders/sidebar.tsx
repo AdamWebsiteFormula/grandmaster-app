@@ -12,6 +12,7 @@ import { Button } from "@anlg/ui/components/ui/button";
 import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
 import { cn } from "@anlg/utils";
 
+import { NewFolderButton } from "./new-folder-button";
 import { useActiveFolderPath, useFolderSelection } from "./selection";
 
 import { useOptionalAuth } from "~/auth";
@@ -88,7 +89,7 @@ export function FoldersSidebar() {
                   setSearch("");
                 }
               }}
-              placeholder={t`Search folders...`}
+              placeholder={t`Search folders…`}
               className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm placeholder:text-sm focus:outline-hidden"
             />
             {search ? (
@@ -123,6 +124,13 @@ export function FoldersSidebar() {
                 <Trans>No folders yet</Trans>
               )}
             </p>
+            {/* Fork: empty state offers the next step (ux-audit-oct3 B;
+                NN/g empty states). */}
+            {search ? null : (
+              <div className="mt-4">
+                <NewFolderButton onClick={() => setCreating(true)} />
+              </div>
+            )}
           </div>
         ) : (
           <ul className="flex flex-col">
@@ -151,7 +159,10 @@ export function FoldersSidebar() {
                         )}
                         className="size-4 text-sm"
                       />
-                      <span className="min-w-0 truncate">{folder}</span>
+                      {/* Fork: full name on hover (ux-audit-oct3 B, WCAG 1.3.1). */}
+                      <span title={folder} className="min-w-0 truncate">
+                        {folder}
+                      </span>
                       {folderWorkspaces[folder]?.workspaceId ? (
                         <span
                           className="text-muted-foreground shrink-0"

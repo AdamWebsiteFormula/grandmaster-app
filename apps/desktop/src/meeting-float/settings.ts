@@ -31,7 +31,9 @@ type FloatingOverlaySettingsStorage = Pick<
 
 export const DEFAULT_FLOATING_OVERLAY_SETTINGS: FloatingOverlaySettings = {
   floatingBarOpacity: 0.78,
-  liveCaptionOpacity: 0.3,
+  // 0.6 keeps white captions at 5.7:1 over a white desktop (WCAG 2.2
+  // SC 1.4.3); 0.3 was 2.1:1.
+  liveCaptionOpacity: 0.6,
   liveCaptionWidth: 440,
   liveCaptionLineCount: 1,
   liveCaptionPosition: "topCenter",

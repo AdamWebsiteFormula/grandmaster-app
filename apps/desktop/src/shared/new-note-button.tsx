@@ -1,4 +1,4 @@
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 
 import { Plus } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
@@ -8,6 +8,7 @@ import { useListener } from "~/stt/contexts";
 
 // Fork: Granola-style "New note" in the top right. Creates a note and starts recording.
 export function NewNoteButton({ className }: { className?: string }) {
+  const { t } = useLingui();
   const newNoteAndListen = useNewNoteAndListen();
   // While recording, Stop is the main action, so this button steps back.
   const recording = useListener((state) => state.live?.status === "active");
@@ -17,6 +18,8 @@ export function NewNoteButton({ className }: { className?: string }) {
       type="button"
       data-tauri-drag-region="false"
       onClick={newNoteAndListen}
+      // Fork: say that it records and name the shortcut (UX audit Oct 3, A).
+      title={t`New note and start recording (⌘N)`}
       className={cn([
         recording
           ? "bg-secondary text-secondary-foreground hover:bg-accent"

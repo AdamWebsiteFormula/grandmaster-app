@@ -81,7 +81,7 @@ describe("getFloatingRouteState", () => {
       status: "recording",
       colorScheme: "dark",
       opacity: 0.78,
-      liveCaptionOpacity: 0.3,
+      liveCaptionOpacity: 0.6,
       liveCaptionWidth: 440,
       liveCaptionLineCount: 1,
       liveCaptionPosition: "topCenter",

@@ -413,7 +413,8 @@ export async function handleBilling(request, env, pathname) {
     return page({
       title: "Upshot Pro",
       heading: "You're on Upshot Pro",
-      line: "Pro is ready in Upshot. You can close this tab.",
+      // Fork: the webhook may land after this page (ux-audit-oct3 D, NN/g #1).
+      line: "Pro turns on in Upshot within a minute. You can close this tab.",
       check: true,
     });
   }

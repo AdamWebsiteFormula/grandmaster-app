@@ -146,8 +146,10 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  // Fork: ⌘H is Hide in every Mac app; replace moves to ⌥⌘F (UX audit Oct 3,
+  // A: HIG keyboards).
   useHotkeys(
-    "mod+h",
+    "mod+alt+f",
     (event) => {
       event.preventDefault();
       dispatch({ type: "open_visible" });

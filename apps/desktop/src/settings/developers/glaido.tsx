@@ -10,6 +10,7 @@ import { toast } from "@anlg/ui/components/ui/toast";
 
 import { copyText } from "./clipboard";
 
+import { SettingsSectionTitle } from "~/settings/page-title";
 import { commands, type McpServerPaths } from "~/types/tauri.gen";
 
 // Glaido imports a folder whose root mcp.json names a local stdio server.
@@ -104,7 +105,7 @@ export function GlaidoSection() {
     <section className="flex flex-col gap-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h2 className="font-sans text-lg font-semibold">{t`Glaido`}</h2>
+          <SettingsSectionTitle>{t`Glaido`}</SettingsSectionTitle>
           <p className="text-muted-foreground mt-1 text-sm">
             {t`Ask about your meetings from anywhere with your Glaido key.`}
           </p>
@@ -121,8 +122,11 @@ export function GlaidoSection() {
               {t`Reveal in Finder`}
             </Button>
           )}
+          {/* Fork: outline, so the CLI Install stays the one primary on
+              the page (ux-audit-oct3 E, design-system). */}
           <Button
             type="button"
+            variant="outline"
             size="sm"
             disabled={connect.isPending}
             onClick={() => connect.mutate()}
@@ -130,7 +134,7 @@ export function GlaidoSection() {
             {connect.isPending && (
               <CircleNotch className="size-3.5 animate-spin" />
             )}
-            {folder ? t`Update folder` : t`Connect to Glaido`}
+            {folder ? t`Update folder` : t`Create Glaido folder`}
           </Button>
         </div>
       </div>

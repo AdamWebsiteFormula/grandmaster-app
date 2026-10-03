@@ -26,13 +26,14 @@ export function DeleteNote({ sessionId }: { sessionId: string }) {
     <DropdownMenuItem
       onClick={handleDeleteNote}
       className={cn([
-        "cursor-pointer text-destructive",
+        "text-destructive cursor-pointer",
         "hover:bg-destructive/10 hover:text-destructive",
       ])}
     >
       <Trash />
       <span>
-        <Trans>Delete</Trans>
+        {/* Fork: names what goes, next to Delete recording (ux-audit-oct3 C, HIG menus). */}
+        <Trans>Delete note</Trans>
       </span>
     </DropdownMenuItem>
   );

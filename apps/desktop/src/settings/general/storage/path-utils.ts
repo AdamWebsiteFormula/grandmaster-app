@@ -13,7 +13,7 @@ export function displayPath(
   path: string | undefined,
   home: string | undefined,
 ): string {
-  if (!path) return "Loading...";
+  if (!path) return "Loading…";
   const tildified = home ? tildify(path, home) : path;
   return shortenPath(tildified);
 }

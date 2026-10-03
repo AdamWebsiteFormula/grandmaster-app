@@ -107,7 +107,7 @@ export function ChatMessageInput({
           <div
             data-chat-history-indicator
             className={cn([
-              "text-muted-foreground/80 pb-1 text-xs leading-none",
+              "text-muted-foreground pb-1 text-xs leading-none",
               isFloating ? "px-4" : "px-2",
             ])}
           >
@@ -242,7 +242,7 @@ function Container({
           "flex max-h-full border",
           isFloating
             ? [
-                "border-border/70 text-card-foreground max-h-40 min-h-[38px] flex-row overflow-hidden rounded-[19px] bg-white pr-[6px] pl-4 text-sm shadow-none",
+                "border-input text-card-foreground max-h-40 min-h-[38px] flex-row overflow-hidden rounded-[19px] bg-white pr-[6px] pl-4 text-sm shadow-none",
                 "dark:bg-card dark:text-card-foreground",
                 hasVoiceStatus ? "items-stretch py-2" : "items-center py-[3px]",
               ]

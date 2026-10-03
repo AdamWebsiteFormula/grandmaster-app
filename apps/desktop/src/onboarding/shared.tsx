@@ -25,6 +25,7 @@ export function OnboardingSection({
   onNext,
   onSkip,
   skippable = true,
+  progress,
   children,
 }: {
   title: ReactNode;
@@ -35,6 +36,7 @@ export function OnboardingSection({
   onNext?: () => void;
   onSkip?: () => void;
   skippable?: boolean;
+  progress?: { current: number; total: number };
   children: ReactNode;
 }) {
   const { t } = useLingui();
@@ -73,21 +75,30 @@ export function OnboardingSection({
               className={cn([
                 "transition-all duration-300",
                 isCompleted
-                  ? "text-muted-foreground/70 text-xs font-normal"
+                  ? "text-muted-foreground text-xs font-normal"
                   : "text-foreground font-sans text-xl font-semibold",
               ])}
             >
               {isCompleted ? (completedTitle ?? title) : title}
             </h2>
+            {/* Fork: a step count and an always-visible Back (UX audit Oct 3,
+                A: NN/g #1, #3). */}
+            {isActive && progress && (
+              <span className="text-muted-foreground text-xs">
+                <Trans>
+                  Step {progress.current} of {progress.total}
+                </Trans>
+              </span>
+            )}
             {isActive && (
               <div className="flex items-center gap-2">
-                {import.meta.env.DEV && onBack && (
+                {onBack && (
                   <button
                     onClick={onBack}
-                    aria-label={t`Go to previous section`}
-                    className="text-muted-foreground hover:text-muted-foreground rounded p-0.5 transition-colors"
+                    className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-sm transition-colors"
                   >
                     <CaretLeft className="size-3" />
+                    <Trans>Back</Trans>
                   </button>
                 )}
                 {onNext &&
@@ -100,7 +111,7 @@ export function OnboardingSection({
                           onNext?.();
                         }
                       }}
-                      className="text-muted-foreground hover:text-muted-foreground flex items-center gap-1 text-sm transition-colors"
+                      className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-sm transition-colors"
                     >
                       <Trans>Skip</Trans>
                       <CaretRight className="size-3" />
@@ -109,7 +120,7 @@ export function OnboardingSection({
                     <button
                       onClick={onNext}
                       aria-label={t`Go to next section`}
-                      className="text-muted-foreground hover:text-muted-foreground rounded p-0.5 transition-colors"
+                      className="text-muted-foreground hover:text-foreground rounded p-0.5 transition-colors"
                     >
                       <CaretRight className="size-3" />
                     </button>
@@ -154,11 +165,10 @@ export function OnboardingButton({
       className={cn([
         "w-fit rounded-full px-6 py-2.5 text-sm font-medium transition-all duration-200",
         variant === "primary" &&
-          "border-primary bg-primary text-primary-foreground hover:bg-primary/90 border-2 shadow-[0_2px_6px_rgba(0,0,0,0.22),0_10px_18px_-10px_rgba(0,0,0,0.65)]",
+          "border-primary bg-primary text-primary-foreground hover:bg-primary/90 border-2",
         variant === "secondary" &&
-          "border-border/60 bg-card/55 text-muted-foreground hover:bg-card/75 hover:text-foreground border shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-sm disabled:opacity-50",
-        variant === "ghost" &&
-          "text-muted-foreground hover:text-muted-foreground",
+          "border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground border disabled:opacity-50",
+        variant === "ghost" && "text-muted-foreground hover:text-foreground",
         className,
       ])}
     />

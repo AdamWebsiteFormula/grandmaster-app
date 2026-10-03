@@ -61,7 +61,8 @@ export function describeStartFailure(kind: StartFailureKind): {
       return {
         title: "Upshot couldn't prepare storage for this recording",
         description:
-          "Check that your vault folder is available and your disk has free space, then try again.",
+          // Fork: no "vault" jargon (ux-audit-oct3 C, NN/g #2).
+          "Check that your notes folder is available and your disk has free space, then try again.",
       };
     case "microphone_permission":
       return {

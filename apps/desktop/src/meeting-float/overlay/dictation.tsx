@@ -30,10 +30,10 @@ export function DictationTranscript({
         <>
           {dictation.text}
           {dictation.text && dictation.partial ? " " : ""}
-          <span className="opacity-60">{dictation.partial}</span>
+          <span className="italic">{dictation.partial}</span>
         </>
       ) : (
-        <span className="opacity-60">{empty}</span>
+        <span className="italic">{empty}</span>
       )}
     </p>
   );

@@ -93,7 +93,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       const { model: eventModel, status } = event.payload;
       const isFailed = typeof status === "object" && "failed" in status;
 
-      if (isFailed) {
+      // Fork: a user-initiated cancel arrives as Failed("Download cancelled")
+      // (crates/model-downloader manager.rs); it isn't an error to report.
+      const isCancelled = isFailed && /cancel/i.test(status.failed);
+      if (isFailed && !isCancelled) {
         const modelName = MODEL_DISPLAY_NAMES[eventModel] ?? eventModel;
         toast.error(`Couldn’t download ${modelName}`, {
           description: status.failed,

@@ -131,7 +131,7 @@ export function AppLockGate({ children }: { children: ReactNode }) {
       {locked ? (
         <div className="absolute inset-0">
           <LockScreen
-            title={t`Upshot is Locked`}
+            title={t`Upshot is locked`}
             description={hint}
             action={t`View Upshot`}
             authenticating={authenticating}

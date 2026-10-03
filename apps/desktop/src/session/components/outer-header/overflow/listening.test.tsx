@@ -60,7 +60,7 @@ describe("Listening", () => {
   it("resumes listening when the session already has content", () => {
     render(<Listening sessionId="session-1" resume />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Resume listening" }));
+    fireEvent.click(screen.getByRole("button", { name: "Resume recording" }));
 
     expect(startListeningMock).toHaveBeenCalledTimes(1);
   });
@@ -68,7 +68,7 @@ describe("Listening", () => {
   it("starts listening directly in the main window before transcript exists", () => {
     render(<Listening sessionId="session-1" resume={false} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Start listening" }));
+    fireEvent.click(screen.getByRole("button", { name: "Start recording" }));
 
     expect(startListeningMock).toHaveBeenCalledTimes(1);
     expect(requestMainListenerControlMock).not.toHaveBeenCalled();
@@ -85,7 +85,7 @@ describe("Listening", () => {
     render(<Listening sessionId="session-1" resume />);
 
     const resumeButton = screen.getByRole("button", {
-      name: "Resume listening",
+      name: "Resume recording",
     });
     expect(resumeButton.hasAttribute("disabled")).toBe(false);
 
@@ -99,7 +99,7 @@ describe("Listening", () => {
 
     render(<Listening sessionId="session-1" resume={false} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Start listening" }));
+    fireEvent.click(screen.getByRole("button", { name: "Start recording" }));
 
     expect(requestMainListenerControlMock).toHaveBeenCalledWith(
       "start",
@@ -119,7 +119,7 @@ describe("Listening", () => {
 
     render(<Listening sessionId="session-1" resume />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Stop listening" }));
+    fireEvent.click(screen.getByRole("button", { name: "Stop recording" }));
 
     expect(requestMainListenerControlMock).toHaveBeenCalledWith(
       "stop",
@@ -139,7 +139,7 @@ describe("Listening", () => {
 
     render(<Listening sessionId="session-1" resume />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Resume listening" }));
+    fireEvent.click(screen.getByRole("button", { name: "Resume recording" }));
 
     expect(requestMainListenerControlMock).toHaveBeenCalledWith(
       "start",

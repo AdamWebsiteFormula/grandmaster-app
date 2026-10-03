@@ -23,6 +23,8 @@ export interface SearchableSelectOption {
   value: string;
   label: string;
   detail?: string;
+  // Extra words that match in search but are not shown.
+  keywords?: string;
 }
 
 interface SearchableSelectProps {
@@ -97,7 +99,7 @@ export function SearchableSelect({
               ? selectedOption.detail
                 ? `${selectedOption.label} (${selectedOption.detail})`
                 : selectedOption.label
-              : (placeholder ?? t`Select...`)}
+              : (placeholder ?? t`Select…`)}
           </span>
           <CaretDown className="-mr-1 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -118,7 +120,7 @@ export function SearchableSelect({
             className="rounded-[inherit] border-0 bg-transparent"
           >
             <CommandInput
-              placeholder={searchPlaceholder ?? t`Search...`}
+              placeholder={searchPlaceholder ?? t`Search…`}
               value={query}
               onValueChange={setQuery}
             />
@@ -132,11 +134,9 @@ export function SearchableSelect({
                 {options.map((option) => (
                   <CommandItem
                     key={option.value}
-                    value={
-                      option.detail
-                        ? `${option.label} ${option.detail}`
-                        : option.label
-                    }
+                    value={[option.label, option.detail, option.keywords]
+                      .filter(Boolean)
+                      .join(" ")}
                     onSelect={() => handleSelect(option.value)}
                     className={cn([
                       "cursor-pointer",

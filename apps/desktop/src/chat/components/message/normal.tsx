@@ -122,17 +122,22 @@ export function NormalMessage({
         <div className="mt-1 flex min-h-6 items-center gap-1 opacity-0 transition-opacity group-focus-within/message:opacity-100 group-hover/message:opacity-100">
           {!isUser && (
             <>
+              {/* Fork: 26px targets, and "Copied" is announced (ux-audit-oct3 D,
+                  WCAG 2.5.8, 4.1.3). */}
               <button
                 onClick={handleCopy}
-                className={`p-1 transition-colors ${copied ? "text-green-500" : "text-muted-foreground hover:text-foreground"}`}
-                aria-label={t`Copy message`}
+                className={`p-1.5 transition-colors ${copied ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                aria-label={copied ? t`Copied` : t`Copy message`}
               >
                 {copied ? <Check size={14} /> : <Copy size={14} />}
               </button>
+              <span className="sr-only" aria-live="polite">
+                {copied ? t`Copied` : ""}
+              </span>
               {handleReload && (
                 <button
                   onClick={handleReload}
-                  className="text-muted-foreground hover:text-foreground p-1 transition-colors"
+                  className="text-muted-foreground hover:text-foreground p-1.5 transition-colors"
                   aria-label={t`Regenerate message`}
                 >
                   <ArrowCounterClockwise size={14} />

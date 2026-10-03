@@ -62,7 +62,7 @@ export const SETTING_DEFINITIONS = {
   live_caption_opacity: {
     type: "number",
     path: ["general", "live_caption_opacity"],
-    default: 0.3 as number,
+    default: 0.6 as number,
   },
   live_caption_width: {
     type: "number",

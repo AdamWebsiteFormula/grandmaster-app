@@ -123,7 +123,7 @@ export function LegacyMigrationCleanupRow() {
     if (migrationQuery.isPending && !migrationQuery.error) {
       return {
         state: "loading" as const,
-        label: t`Checking migration...`,
+        label: t`Checking migration…`,
         description: t`Verifying the SQLite migration status`,
       };
     }
@@ -145,10 +145,10 @@ export function LegacyMigrationCleanupRow() {
             <CircleNotch className="text-muted-foreground mt-0.5 size-4 shrink-0 animate-spin" />
           )}
           {statusCopy.state === "success" && (
-            <CheckCircle className="mt-0.5 size-4 shrink-0 text-primary" />
+            <CheckCircle className="text-primary mt-0.5 size-4 shrink-0" />
           )}
           {statusCopy.state === "warning" && (
-            <Warning className="mt-0.5 size-4 shrink-0 text-primary" />
+            <Warning className="text-primary mt-0.5 size-4 shrink-0" />
           )}
           {statusCopy.state === "unavailable" && (
             <Info className="text-muted-foreground mt-0.5 size-4 shrink-0" />
@@ -211,7 +211,7 @@ export function LegacyMigrationCleanupRow() {
             </DialogHeader>
 
             {cleanupMutation.error && (
-              <p className="mx-4 mt-3 text-center text-xs text-destructive">
+              <p className="text-destructive mx-4 mt-3 text-center text-xs">
                 {cleanupMutation.error.message}
               </p>
             )}
@@ -231,7 +231,7 @@ export function LegacyMigrationCleanupRow() {
                 onClick={() => cleanupMutation.mutate()}
                 disabled={cleanupMutation.isPending}
               >
-                {cleanupMutation.isPending ? t`Cleaning up...` : t`Clean up`}
+                {cleanupMutation.isPending ? t`Cleaning up…` : t`Clean up`}
               </Button>
             </DialogFooter>
           </DialogContent>

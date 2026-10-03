@@ -175,9 +175,9 @@ describe("Enhanced", () => {
 
     expect(screen.queryByTestId("enhanced-editor")).toBeNull();
     expect(screen.getByRole("status")).not.toBeNull();
-    expect(screen.getByText("Analyzing structure...")).not.toBeNull();
+    expect(screen.getByText("Writing your summary…")).not.toBeNull();
     expect(
-      screen.getByText("Tip: The Upshot team loves our users!"),
+      screen.getByText("Your summary appears here as it's written."),
     ).not.toBeNull();
   });
 
@@ -195,7 +195,7 @@ describe("Enhanced", () => {
     expect(screen.queryByTestId("enhanced-editor")).toBeNull();
     expect(screen.getByText("Streaming summary")).not.toBeNull();
     expect(screen.getByTestId("summary-title-space")).not.toBeNull();
-    expect(screen.getByText("Generating title...")).not.toBeNull();
+    expect(screen.getByText("Generating title…")).not.toBeNull();
     expect(screen.queryByRole("status")).toBeNull();
   });
 
@@ -289,7 +289,7 @@ describe("Enhanced", () => {
     expect(screen.getByText("Streaming summary")).not.toBeNull();
     expect(screen.getByTestId("summary-title-space")).not.toBeNull();
     expect(screen.getByText("Existing title")).not.toBeNull();
-    expect(screen.queryByText("Generating title...")).toBeNull();
+    expect(screen.queryByText("Generating title…")).toBeNull();
   });
 
   it("shows the generated title while the summary is still streaming", () => {
@@ -312,7 +312,7 @@ describe("Enhanced", () => {
 
     expect(screen.getByTestId("summary-title-space")).not.toBeNull();
     expect(screen.getByText("Generated Session Title")).not.toBeNull();
-    expect(screen.queryByText("Generating title...")).toBeNull();
+    expect(screen.queryByText("Generating title…")).toBeNull();
   });
 
   it("hides in-progress title reasoning while the summary is streaming", () => {
@@ -334,7 +334,7 @@ describe("Enhanced", () => {
     render(<Enhanced sessionId="session-1" enhancedNoteId="note-1" />);
 
     expect(screen.queryByText("We need to output a concise title.")).toBeNull();
-    expect(screen.getByText("Generating title...")).not.toBeNull();
+    expect(screen.getByText("Generating title…")).not.toBeNull();
   });
 
   it("renders the editor after an empty enhance task returns idle", () => {

@@ -273,7 +273,7 @@ describe("ChatSession", () => {
         role: "assistant",
         createdAt: new Date(userCreatedAt + 1).toISOString(),
         content:
-          "This recording is using batch transcription, so the transcript isn't available to chat yet. Ask again after transcription finishes, or pick a Live model in Settings > Transcription.",
+          "The transcript is still being processed, so chat can't read it yet. Ask again when it's done, or pick a Live model in Settings › Transcription.",
       }),
     );
   });

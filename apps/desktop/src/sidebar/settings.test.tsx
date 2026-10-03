@@ -165,7 +165,11 @@ describe("SettingsNav", () => {
   ])("opens the %s workspace in a new tab", (label, type) => {
     render(<SettingsNav />);
 
-    fireEvent.click(screen.getByRole("button", { name: label }));
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `${label}, opens outside Settings`,
+      }),
+    );
 
     expect(mocks.openNew).toHaveBeenCalledWith({ type });
   });
@@ -175,7 +179,7 @@ describe("SettingsNav", () => {
     render(<SettingsNav />);
     expect(screen.queryByRole("button", { name: "Stats" })).toBeNull();
 
-    fireEvent.change(screen.getByPlaceholderText("Search settings..."), {
+    fireEvent.change(screen.getByRole("textbox", { name: "Search settings" }), {
       target: { value: "insights" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Insights" }));
@@ -228,7 +232,7 @@ describe("SettingsNav", () => {
 
   it("filters nav items by item or group label", () => {
     render(<SettingsNav />);
-    const input = screen.getByPlaceholderText("Search settings...");
+    const input = screen.getByRole("textbox", { name: "Search settings" });
 
     fireEvent.change(input, { target: { value: "appear" } });
     expect(screen.getByText("Appearance")).toBeTruthy();
@@ -243,7 +247,7 @@ describe("SettingsNav", () => {
   it("shows an empty state when no settings match", () => {
     render(<SettingsNav />);
 
-    fireEvent.change(screen.getByPlaceholderText("Search settings..."), {
+    fireEvent.change(screen.getByRole("textbox", { name: "Search settings" }), {
       target: { value: "zzzzzz" },
     });
 
@@ -260,15 +264,18 @@ describe("SettingsNav", () => {
     [
       "Escape",
       () => {
-        fireEvent.keyDown(screen.getByPlaceholderText("Search settings..."), {
-          key: "Escape",
-        });
+        fireEvent.keyDown(
+          screen.getByRole("textbox", { name: "Search settings" }),
+          {
+            key: "Escape",
+          },
+        );
       },
     ],
   ])("restores the full list when search is cleared with %s", (_, clear) => {
     render(<SettingsNav />);
 
-    fireEvent.change(screen.getByPlaceholderText("Search settings..."), {
+    fireEvent.change(screen.getByRole("textbox", { name: "Search settings" }), {
       target: { value: "audio" },
     });
     expect(screen.queryByText("Appearance")).toBeNull();
@@ -276,5 +283,47 @@ describe("SettingsNav", () => {
     clear();
 
     expect(screen.getByText("Appearance")).toBeTruthy();
+  });
+
+  it("matches what is inside a page, not only its name", () => {
+    render(<SettingsNav />);
+    const input = screen.getByRole("textbox", { name: "Search settings" });
+
+    fireEvent.change(input, { target: { value: "dark" } });
+    expect(screen.getByText("Appearance")).toBeTruthy();
+    expect(screen.queryByText("Meetings")).toBeNull();
+
+    fireEvent.change(input, { target: { value: "microphone" } });
+    expect(screen.getByText("Meetings")).toBeTruthy();
+    expect(screen.getByText("Permissions")).toBeTruthy();
+
+    fireEvent.change(input, { target: { value: "touch id" } });
+    expect(screen.getByText("Privacy")).toBeTruthy();
+  });
+
+  it("keeps Esc from closing Settings while it clears the search", () => {
+    render(<SettingsNav />);
+    const input = screen.getByRole("textbox", { name: "Search settings" });
+
+    fireEvent.change(input, { target: { value: "dark" } });
+    const clearing = fireEvent.keyDown(input, { key: "Escape" });
+    expect(clearing).toBe(false);
+
+    const empty = fireEvent.keyDown(input, { key: "Escape" });
+    expect(empty).toBe(true);
+  });
+
+  it("marks the open page with aria-current", () => {
+    mocks.currentTab = { type: "settings", state: { tab: "plan" } };
+    render(<SettingsNav />);
+
+    expect(
+      screen.getByRole("button", { name: "Plan" }).getAttribute("aria-current"),
+    ).toBe("page");
+    expect(
+      screen
+        .getByRole("button", { name: "General" })
+        .getAttribute("aria-current"),
+    ).toBeNull();
   });
 });

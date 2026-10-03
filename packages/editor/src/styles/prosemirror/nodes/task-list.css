@@ -103,8 +103,9 @@
   }
 
   &[data-selected="true"] {
+    /* 60% foreground: 3:1+ in both themes (WCAG 2.2 SC 1.4.11). */
     outline: 2px solid
-      color-mix(in oklab, var(--color-foreground, #111827), transparent 55%);
+      color-mix(in oklab, var(--color-foreground, #111827), transparent 40%);
     outline-offset: 1px;
   }
 }
@@ -112,7 +113,8 @@
 /* Checked: fade only the content (the checkbox keeps its real foreground
  * color) and grow a strikethrough across the task text. */
 .note-typography ul[data-type="taskList"] > li[data-checked="true"] > div {
-  opacity: 0.5;
+  /* Muted, not faded: 50% opacity was 3.3:1 in light (WCAG 2.2 SC 1.4.3). */
+  color: var(--color-muted-foreground, #6b6460);
 }
 
 .note-typography ul[data-type="taskList"] > li > div > p {

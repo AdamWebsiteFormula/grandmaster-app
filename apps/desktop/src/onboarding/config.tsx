@@ -59,3 +59,13 @@ export function getStepStatus(
   if (stepIdx === currentIdx) return "active";
   return "upcoming";
 }
+
+// Fork: "Step n of total" for the active section (UX audit Oct 3, A: NN/g #1).
+export function getStepProgress(
+  step: OnboardingStep,
+): { current: number; total: number } | undefined {
+  const steps = getOnboardingSteps();
+  const idx = steps.indexOf(step);
+  if (idx === -1) return undefined;
+  return { current: idx + 1, total: steps.length };
+}

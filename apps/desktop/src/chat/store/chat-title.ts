@@ -83,5 +83,6 @@ function truncateTitle(title: string, maxLength: number): string {
       ? truncated.slice(0, lastSpace)
       : truncated;
 
-  return `${titlePrefix}...`;
+  // Fork: the ellipsis character (ux-audit-oct3 shared vocabulary).
+  return `${titlePrefix}…`;
 }

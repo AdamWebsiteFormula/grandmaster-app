@@ -86,7 +86,7 @@ describe("CustomSidebarHeader", () => {
   it("opens home from the back button", () => {
     render(<CustomSidebarHeader />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Go home" }));
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
 
     expect(mocks.openCurrent).toHaveBeenCalledWith({ type: "empty" });
   });
@@ -97,7 +97,7 @@ describe("CustomSidebarHeader", () => {
 
     render(<CustomSidebarHeader />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Go home" }));
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
 
     expect(mocks.select).toHaveBeenCalledWith(homeTab);
     expect(mocks.openCurrent).not.toHaveBeenCalled();
@@ -115,7 +115,7 @@ describe("CustomSidebarHeader", () => {
 
     render(<CustomSidebarHeader />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Go home" }));
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
 
     expect(mocks.select).toHaveBeenCalledWith(settingsTab);
     expect(mocks.openCurrent).not.toHaveBeenCalled();
@@ -128,7 +128,7 @@ describe("CustomSidebarHeader", () => {
 
       render(<CustomSidebarHeader />);
 
-      fireEvent.click(screen.getByRole("button", { name: "Go home" }));
+      fireEvent.click(screen.getByRole("button", { name: "Back" }));
 
       expect(mocks.sendEvent).toHaveBeenCalledWith({ type: "CLOSE" });
       expect(mocks.openCurrent).not.toHaveBeenCalled();
@@ -141,7 +141,7 @@ describe("CustomSidebarHeader", () => {
 
     render(<CustomSidebarHeader />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Go home" }));
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
 
     expect(mocks.openCurrent).toHaveBeenCalledWith({ type: "empty" });
     expect(mocks.sendEvent).not.toHaveBeenCalled();

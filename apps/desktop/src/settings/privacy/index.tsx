@@ -35,14 +35,6 @@ export function SettingsPrivacy() {
     return null;
   }
 
-  const posthogEnabled = resolveConfigValue(
-    "telemetry_consent",
-    settingsQuery.data,
-  );
-  const sentryEnabled = resolveConfigValue(
-    "crash_reporting_consent",
-    settingsQuery.data,
-  );
   const lockAppEnabled = resolveConfigValue("lock_app", settingsQuery.data);
   const authAvailable = available === true;
   const lockAppDescription = !authAvailable
@@ -74,25 +66,14 @@ export function SettingsPrivacy() {
             })();
           }}
         />
-        <SettingSwitchRow
-          title={i18n._(privacyMessages.posthogTitle)}
-          description={i18n._(privacyMessages.posthogDescription)}
-          checked={posthogEnabled}
-          onChange={(telemetryConsent) => {
-            setSettingValues({ telemetry_consent: telemetryConsent });
-          }}
-        />
-        <SettingSwitchRow
-          title={t`Error`}
-          description={t`Send sanitized crash and error reports to help improve Upshot.`}
-          checked={sentryEnabled}
-          onChange={(crashReportingConsent) => {
-            setSettingValues({
-              crash_reporting_consent: crashReportingConsent,
-            });
-          }}
-        />
       </section>
+
+      {/* Fork: the usage-data and error-report switches did nothing (no
+          telemetry keys ship in Upshot), so they are gone; say so plainly
+          instead (ux-audit-oct3 E, NN/g #1, #2). */}
+      <p className="text-muted-foreground text-xs">
+        {t`Upshot sends no usage data or crash reports.`}
+      </p>
     </div>
   );
 }

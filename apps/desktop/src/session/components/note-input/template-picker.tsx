@@ -116,7 +116,8 @@ export function TemplatePickerPopover({
 
   const handleCreateTemplate = useCallback(
     (title?: string) => {
-      const nextTitle = title?.trim() || "New Template";
+      // Fork: sentence case (ux-audit-oct3 C).
+      const nextTitle = title?.trim() || "New template";
 
       setOpen(false);
       setSearch("");
@@ -309,7 +310,7 @@ export function TemplatePickerPopover({
       {
         key: "create",
         title: "Create new template",
-        icon: <Plus className="h-3.5 w-3.5 text-primary" />,
+        icon: <Plus className="text-primary h-3.5 w-3.5" />,
         uppercase: false,
         items: [
           {
@@ -407,13 +408,17 @@ export function TemplatePickerPopover({
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={handleSearchInputKeyDown}
-                  placeholder={t`Search templates...`}
+                  placeholder={t`Search templates…`}
                   className="placeholder:text-muted-foreground flex-1 bg-transparent text-sm focus:outline-hidden"
                 />
+                {/* Fork: named, 24 px target (ux-audit-oct3 C, WCAG 4.1.2, 2.5.8). */}
                 {search && (
                   <button
+                    type="button"
+                    aria-label={t`Clear search`}
+                    title={t`Clear search`}
                     onClick={() => setSearch("")}
-                    className="hover:bg-accent rounded-xs p-0.5"
+                    className="hover:bg-accent flex size-6 items-center justify-center rounded-full"
                   >
                     <X className="text-muted-foreground h-3 w-3" />
                   </button>
@@ -558,7 +563,8 @@ function TemplateSection({
           {icon}
           <p
             className={cn([
-              "text-muted-foreground font-mono text-xs font-medium",
+              // Fork: words are not set in mono (ux-audit-oct3 C, design-system).
+              "text-muted-foreground text-xs font-medium",
               uppercase && "uppercase",
             ])}
           >
@@ -610,7 +616,7 @@ function TemplateResultButton({
           {title}
         </span>
         {isFavorite ? (
-          <Heart aria-hidden className="size-3.5 shrink-0 text-primary" />
+          <Heart aria-hidden className="text-primary size-3.5 shrink-0" />
         ) : null}
       </button>
       {regenerateLabel && onRegenerate ? (

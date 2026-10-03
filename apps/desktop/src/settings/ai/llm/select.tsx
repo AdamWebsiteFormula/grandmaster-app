@@ -75,6 +75,7 @@ import {
   getConfiguredProviders,
   getVisibleModelSelection,
 } from "~/settings/ai/shared/selection";
+import { SettingsSectionTitle } from "~/settings/page-title";
 import { getStoredAiProvider, useAiProvidersState } from "~/settings/providers";
 import {
   setSettingValues,
@@ -414,9 +415,9 @@ export function SelectProviderAndModel() {
         lifecycle="condition-bound"
       />
 
-      <h3 className="text-md font-sans font-semibold">
+      <SettingsSectionTitle>
         <Trans>Model being used</Trans>
-      </h3>
+      </SettingsSectionTitle>
       {showAddKeyHint ? (
         // Fork: no usable model yet (Apple Intelligence is never the default),
         // so point to the one-step fix. Gemini has a free tier:

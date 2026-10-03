@@ -19,8 +19,10 @@ vi.mock("@anlg/plugin-windows", () => ({
   getCurrentWebviewWindowLabel: () => mocks.windowLabel,
 }));
 
+const newNote = vi.hoisted(() => ({ openNewNoteAndListen: vi.fn() }));
+
 vi.mock("./useNewNote", () => ({
-  openNewNoteAndListen: vi.fn(),
+  openNewNoteAndListen: newNote.openNewNoteAndListen,
   openSessionAndListen: vi.fn(),
   useNewNote: () => vi.fn(),
 }));
@@ -70,7 +72,12 @@ vi.mock("~/store/zustand/tabs", () => ({
   useTabs: () => vi.fn(),
 }));
 
-import MainAppLayout from "./main-app-layout";
+import MainAppLayout, {
+  routeNewNote,
+  routeNewSessionTab,
+  runMenuAction,
+  trackHandledShortcuts,
+} from "./main-app-layout";
 
 describe("MainAppLayout", () => {
   beforeEach(() => {
@@ -102,5 +109,73 @@ describe("MainAppLayout", () => {
     expect(screen.queryByTestId("meeting-import-sync")).toBeNull();
     expect(screen.queryByTestId("enterprise-capture-sync")).toBeNull();
     expect(screen.queryByTestId("workspace-invitation-toasts")).toBeNull();
+  });
+});
+
+// UX audit Oct 3, A P1/P2: the tray, File menu and Dock New note record.
+describe("native New note routing", () => {
+  beforeEach(() => {
+    newNote.openNewNoteAndListen.mockClear();
+  });
+
+  it("starts recording when the tray asks for autoStart", () => {
+    const openNewNote = vi.fn();
+
+    routeNewSessionTab(true, { openNewNote });
+
+    expect(newNote.openNewNoteAndListen).toHaveBeenCalledWith({
+      behavior: "new",
+    });
+    expect(openNewNote).not.toHaveBeenCalled();
+  });
+
+  it("opens a blank note when autoStart is not set", () => {
+    const openNewNote = vi.fn();
+
+    routeNewSessionTab(null, { openNewNote });
+
+    expect(openNewNote).toHaveBeenCalledTimes(1);
+    expect(newNote.openNewNoteAndListen).not.toHaveBeenCalled();
+  });
+
+  it("records for /app/new with no search, and record=false is blank", () => {
+    const openNewNote = vi.fn();
+
+    routeNewNote(null, { openNewNote });
+    expect(newNote.openNewNoteAndListen).toHaveBeenCalledTimes(1);
+
+    routeNewNote({ record: "false" }, { openNewNote });
+    expect(openNewNote).toHaveBeenCalledTimes(1);
+    expect(newNote.openNewNoteAndListen).toHaveBeenCalledTimes(1);
+  });
+
+  it("replays Edit › Find as the web ⌘F hotkey", () => {
+    const seen: string[] = [];
+    const onKey = (event: KeyboardEvent) => {
+      if (event.metaKey) seen.push(event.code);
+    };
+    document.addEventListener("keydown", onKey);
+
+    runMenuAction("find");
+
+    document.removeEventListener("keydown", onKey);
+    expect(seen).toEqual(["KeyF"]);
+  });
+
+  it("drops the menu event when a web hotkey already took the key press", () => {
+    const stop = trackHandledShortcuts();
+    const event = new KeyboardEvent("keydown", {
+      key: "n",
+      code: "KeyN",
+      metaKey: true,
+      cancelable: true,
+    });
+    event.preventDefault();
+    window.dispatchEvent(event);
+
+    routeNewNote(null, { openNewNote: vi.fn() });
+
+    stop();
+    expect(newNote.openNewNoteAndListen).not.toHaveBeenCalled();
   });
 });

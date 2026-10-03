@@ -1,13 +1,23 @@
 import { useLingui } from "@lingui/react/macro";
 import { useCallback, useMemo } from "react";
 
-import { CheckCircle, PencilSimple } from "@anlg/ui/components/icons";
+import { CheckCircle, Copy, PencilSimple } from "@anlg/ui/components/icons";
 import { DancingSticks } from "@anlg/ui/components/ui/dancing-sticks";
 import { Spinner } from "@anlg/ui/components/ui/spinner";
 import { toast } from "@anlg/ui/components/ui/toast";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@anlg/ui/components/ui/tooltip";
 import { cn } from "@anlg/utils";
 
-import { IconHeaderView, copyTextToClipboard } from "./header-shared";
+import {
+  IconHeaderView,
+  copyTextToClipboard,
+  iconHeaderViewClassName,
+} from "./header-shared";
 import { TranscriptAudioIcon } from "./header-transcript-icon";
 
 import * as AudioPlayer from "~/audio-player";
@@ -79,6 +89,7 @@ function HeaderViewTranscriptButton({
   live,
   suffixIcon,
   pressed,
+  title,
 }: {
   isActive: boolean;
   isTranscribing: boolean;
@@ -86,6 +97,7 @@ function HeaderViewTranscriptButton({
   onContextMenu?: React.MouseEventHandler<HTMLButtonElement>;
   suffixIcon?: React.ReactNode;
   pressed?: boolean;
+  title?: string;
   live?: {
     amplitude: number;
     muted: boolean;
@@ -111,7 +123,7 @@ function HeaderViewTranscriptButton({
       pressed={pressed}
       onClick={onClick}
       onContextMenu={onContextMenu}
-      title={undefined}
+      title={title}
       className={cn([
         live
           ? [
@@ -199,11 +211,13 @@ function HeaderViewTranscriptActive({
   const regenerate = useRegenerateTranscript(sessionId);
   const startListening = useStartListeningWithBatchOverride(sessionId);
   const hasTranscript = useHasTranscript(sessionId);
-  const transcriptMetadata = useSessionTranscriptMetadata(sessionId);
+  const { t } = useLingui();
+  const { canCopyTranscript, copyTranscript: handleCopyTranscript } =
+    useCopyTranscript(sessionId);
   const {
     audioExists,
     audioExistsResolved,
-    deleteRecording,
+    requestDeleteRecording,
     isDeletingRecording,
   } = AudioPlayer.useAudioPlayer();
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
@@ -217,35 +231,10 @@ function HeaderViewTranscriptActive({
 
     onClick?.();
   }, [canEdit, editMode, onClick, onEditModeChange]);
-  const canCopyTranscript = transcriptMetadata.some((t) => t.hasWords);
-  const handleCopyTranscript = useCallback(async () => {
-    try {
-      const transcriptExportRequest =
-        await getSessionTranscriptRenderRequest(sessionId);
-      if (!transcriptExportRequest) {
-        return;
-      }
-
-      const transcriptSegments = await buildTranscriptExportSegments(
-        transcriptExportRequest,
-      );
-      const transcriptText = formatTranscriptExportSegments(transcriptSegments);
-      if (!transcriptText) {
-        return;
-      }
-
-      await copyTextToClipboard(transcriptText, {
-        success: "Transcript copied to clipboard",
-        error: "Failed to copy transcript",
-      });
-    } catch (error) {
-      console.error("Failed to copy transcript", error);
-      toast.error("Failed to copy transcript");
-    }
-  }, [sessionId]);
+  // Fork: Delete recording asks first (ux-audit-oct3 C, HIG alerts).
   const handleDeleteRecording = useCallback(() => {
-    void deleteRecording();
-  }, [deleteRecording]);
+    requestDeleteRecording();
+  }, [requestDeleteRecording]);
   const handleResumeListening = useCallback(() => {
     if (!isMainWebviewWindow()) {
       void requestMainListenerControl("start", sessionId);
@@ -258,7 +247,7 @@ function HeaderViewTranscriptActive({
     const items: MenuItemDef[] = [
       {
         id: `copy-transcript-${sessionId}`,
-        text: "Copy",
+        text: t`Copy transcript`,
         action: () => {
           void handleCopyTranscript();
         },
@@ -269,7 +258,8 @@ function HeaderViewTranscriptActive({
     if (sessionMode === "inactive" || sessionMode === "running_batch") {
       items.push({
         id: `resume-listening-${sessionId}`,
-        text: "Resume listening",
+        // Fork: shared recording vocabulary (ux-audit-oct3 C, NN/g #4).
+        text: t`Resume recording`,
         action: handleResumeListening,
       });
     }
@@ -277,7 +267,7 @@ function HeaderViewTranscriptActive({
     if (audioExistsResolved && sessionMode === "inactive" && audioExists) {
       items.push({
         id: `regenerate-transcript-${sessionId}`,
-        text: "Re-transcribe",
+        text: t`Transcribe again`,
         action: () => {
           void regenerate();
         },
@@ -287,7 +277,7 @@ function HeaderViewTranscriptActive({
     if (audioExists) {
       items.push({
         id: `delete-recording-${sessionId}`,
-        text: "Delete recording",
+        text: t`Delete recording`,
         action: handleDeleteRecording,
         disabled: isDeletingRecording,
       });
@@ -305,26 +295,107 @@ function HeaderViewTranscriptActive({
     regenerate,
     sessionMode,
     sessionId,
+    t,
   ]);
   const showContextMenu = useNativeContextMenu(contextMenu);
 
   return (
-    <HeaderViewTranscriptButton
-      isActive={isActive}
-      isTranscribing={isTranscribing}
-      onClick={handleClick}
-      onContextMenu={showContextMenu}
-      live={live}
-      suffixIcon={
-        canEdit ? (
-          editMode ? (
-            <CheckCircle aria-hidden className="size-3.5" />
-          ) : (
-            <PencilSimple aria-hidden className="size-3.5" />
-          )
-        ) : undefined
-      }
-      pressed={canEdit ? editMode : undefined}
-    />
+    <>
+      <HeaderViewTranscriptButton
+        isActive={isActive}
+        isTranscribing={isTranscribing}
+        onClick={handleClick}
+        onContextMenu={showContextMenu}
+        live={live}
+        // Fork: the edit toggle had no tooltip (ux-audit-oct3 C, NN/g #6).
+        title={
+          canEdit
+            ? editMode
+              ? t`Done editing`
+              : t`Edit transcript`
+            : undefined
+        }
+        suffixIcon={
+          canEdit ? (
+            editMode ? (
+              <CheckCircle aria-hidden className="size-3.5" />
+            ) : (
+              <PencilSimple aria-hidden className="size-3.5" />
+            )
+          ) : undefined
+        }
+        pressed={canEdit ? editMode : undefined}
+      />
+      {canCopyTranscript ? (
+        <CopyTranscriptButton
+          onCopy={() => {
+            void handleCopyTranscript();
+          }}
+        />
+      ) : null}
+    </>
   );
+}
+
+// Fork: Copy transcript was only in the right-click menu; Granola shows a
+// visible copy for the transcript (ux-audit-oct3 C; HIG context menus).
+function CopyTranscriptButton({ onCopy }: { onCopy: () => void }) {
+  const { t } = useLingui();
+  const label = t`Copy transcript`;
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            data-main-area-window-drag-region
+            data-tauri-drag-region="false"
+            type="button"
+            aria-label={label}
+            onClick={(event) => {
+              event.stopPropagation();
+              onCopy();
+            }}
+            className={iconHeaderViewClassName(false, "tray", "px-1.5")}
+          >
+            <Copy className="size-3.5" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">{label}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+export function useCopyTranscript(sessionId: string) {
+  const { t } = useLingui();
+  const transcriptMetadata = useSessionTranscriptMetadata(sessionId);
+  const canCopyTranscript = transcriptMetadata.some((item) => item.hasWords);
+  const copyTranscript = useCallback(async () => {
+    try {
+      const transcriptExportRequest =
+        await getSessionTranscriptRenderRequest(sessionId);
+      if (!transcriptExportRequest) {
+        return;
+      }
+
+      const transcriptSegments = await buildTranscriptExportSegments(
+        transcriptExportRequest,
+      );
+      const transcriptText = formatTranscriptExportSegments(transcriptSegments);
+      if (!transcriptText) {
+        return;
+      }
+
+      await copyTextToClipboard(transcriptText, {
+        success: t`Transcript copied to clipboard`,
+        error: t`Couldn't copy the transcript. Try again.`,
+      });
+    } catch (error) {
+      console.error("Failed to copy transcript", error);
+      toast.error(t`Couldn't copy the transcript. Try again.`);
+    }
+  }, [sessionId, t]);
+
+  return { canCopyTranscript, copyTranscript };
 }

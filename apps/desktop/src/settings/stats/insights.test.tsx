@@ -92,7 +92,7 @@ describe("personal insights page", () => {
     mocks.activity.error = new Error("Database unavailable");
     rerender(<SettingsInsights />);
     expect(screen.getByRole("alert").textContent).toContain(
-      "Couldn't load your insights",
+      "Couldn’t load your insights",
     );
     expect(screen.queryByText("A little more history will help")).toBeNull();
     mocks.activity.error = null;

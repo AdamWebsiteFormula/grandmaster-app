@@ -7,6 +7,7 @@ import { CircleNotch, LockSimple } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
 import { useBillingAccess } from "~/auth/billing-context";
+import { SettingsSectionTitle } from "~/settings/page-title";
 import { useNotifyPlanRequired } from "~/settings/plan-gate";
 import { useSetSettingValue } from "~/settings/queries";
 import { useConfigValue } from "~/shared/config";
@@ -74,9 +75,9 @@ export function AppIconSelector() {
   return (
     <section className="flex flex-col gap-4">
       <div>
-        <h3 className="text-lg font-semibold">
+        <SettingsSectionTitle>
           <Trans>App icon</Trans>
-        </h3>
+        </SettingsSectionTitle>
         <p className="text-muted-foreground mt-1 text-sm">
           <Trans>Choose how Upshot appears in the Dock.</Trans>
         </p>

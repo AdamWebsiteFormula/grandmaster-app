@@ -1,6 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useForm } from "@tanstack/react-form";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import {
   BookOpen,
@@ -20,9 +20,7 @@ import {
 } from "@anlg/ui/components/ui/input-group";
 
 import { trackAnalyticsEvent } from "~/analytics";
-import { useBillingAccess } from "~/auth/billing-context";
 import { SettingsPageTitle } from "~/settings/page-title";
-import { PlanGate } from "~/settings/plan-gate";
 import { useSetSettingValue } from "~/settings/queries";
 import { useConfigValue } from "~/shared/config";
 import { normalizeKeywordList, parseDictionaryTermsText } from "~/stt/keywords";
@@ -30,14 +28,14 @@ import { normalizeKeywordList, parseDictionaryTermsText } from "~/stt/keywords";
 export function SettingsDictionary() {
   const terms = useConfigValue("personalization_dictionary_terms");
   const setTerms = useSetSettingValue("personalization_dictionary_terms");
-  const { isPro } = useBillingAccess();
 
+  // Fork: Dictionary is local (terms feed transcription and summaries on
+  // this Mac), so it is open to everyone instead of a dimmed Pro form with
+  // no explanation (ux-audit-oct3 E, NN/g #1, #6).
   return (
     <div className="flex flex-col gap-8">
       <SettingsPageTitle title={<Trans>Dictionary</Trans>} />
-      <PlanGate plan="pro" allowed={isPro}>
-        <DictionarySettings terms={terms} onSave={setTerms} />
-      </PlanGate>
+      <DictionarySettings terms={terms} onSave={setTerms} />
     </div>
   );
 }
@@ -50,6 +48,7 @@ export function DictionarySettings({
   onSave: (value: string) => void;
 }) {
   const { t } = useLingui();
+  const hintId = useId();
   const normalizedTerms = normalizeKeywordList(terms);
 
   const form = useForm({
@@ -103,12 +102,14 @@ export function DictionarySettings({
         void form.handleSubmit();
       }}
     >
-      <InputGroup className="border-border bg-card has-[[data-slot=input-group-control]:focus-visible]:border-border rounded-full shadow-none has-[[data-slot=input-group-control]:focus-visible]:ring-0">
+      <InputGroup className="border-input bg-card has-[[data-slot=input-group-control]:focus-visible]:border-input rounded-full shadow-none has-[[data-slot=input-group-control]:focus-visible]:ring-0">
         <form.Field name="term">
           {(field) => (
             <InputGroupInput
               className="pr-4 pl-4"
-              placeholder={t`Add names, jargon, or product terms to prefer`}
+              aria-label={t`Add a term`}
+              aria-describedby={hintId}
+              placeholder={t`Add a term`}
               value={field.state.value}
               onChange={(event) => field.handleChange(event.target.value)}
               onBlur={field.handleBlur}
@@ -139,6 +140,11 @@ export function DictionarySettings({
           </form.Subscribe>
         </InputGroupAddon>
       </InputGroup>
+      <p id={hintId} className="text-muted-foreground -mt-2 px-4 text-xs">
+        <Trans>
+          Names, jargon, and product terms Upshot should spell your way.
+        </Trans>
+      </p>
 
       <form.Subscribe selector={(state) => state.values.term}>
         {(value) => {

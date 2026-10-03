@@ -1,6 +1,7 @@
 import { useLingui } from "@lingui/react/macro";
 import type { ReactNode } from "react";
 
+import { Kbd } from "@anlg/ui/components/ui/kbd";
 import { cn } from "@anlg/utils";
 
 import { useShell } from "~/contexts/shell";
@@ -29,7 +30,10 @@ export function ChatCTA({
     <button
       type="button"
       data-chat-cta-trigger
-      aria-label={ariaLabel ?? t`Ask Upshot anything`}
+      // Fork: the accessible name is the visible label ("Ask anything") and the
+      // ⌘J shortcut is announced (ux-audit-oct3 D, WCAG 2.5.3; NN/g #6).
+      aria-label={ariaLabel}
+      aria-keyshortcuts="Meta+J"
       onClick={handleClick}
       className="group/anarlog-chat-cta relative h-10 w-[150px] max-w-full cursor-text focus-visible:outline-none"
     >
@@ -38,10 +42,10 @@ export function ChatCTA({
         aria-hidden="true"
         className={cn([
           // Fork: always labeled (Granola-style "Ask anything"), grows on hover.
-          "rounded-pill border-border bg-popover pointer-events-none absolute bottom-0 left-1/2 inline-flex h-9 w-[150px] -translate-x-1/2 items-center overflow-hidden border px-4 text-sm",
-          "origin-bottom transition-[width,height,background-color,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)]",
+          "rounded-pill border-input bg-popover pointer-events-none absolute bottom-0 left-1/2 inline-flex h-9 w-[150px] -translate-x-1/2 items-center overflow-hidden border px-4 text-sm",
+          // Fork: flat, no drop shadow (design-system Shape and space).
+          "origin-bottom transition-[width,height,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)]",
           "group-hover/anarlog-chat-cta:bg-card group-focus-visible/anarlog-chat-cta:bg-card",
-          "group-hover/anarlog-chat-cta:shadow-[0_18px_52px_rgba(0,0,0,0.64)] group-focus-visible/anarlog-chat-cta:shadow-[0_18px_52px_rgba(0,0,0,0.64)]",
           "group-hover/anarlog-chat-cta:h-10 group-hover/anarlog-chat-cta:w-[min(640px,calc(100cqw_-_2rem))]",
           "group-focus-visible/anarlog-chat-cta:h-10 group-focus-visible/anarlog-chat-cta:w-[min(640px,calc(100cqw_-_2rem))]",
           "group-focus-visible/anarlog-chat-cta:ring-ring group-focus-visible/anarlog-chat-cta:ring-2 group-focus-visible/anarlog-chat-cta:ring-offset-2",
@@ -55,7 +59,9 @@ export function ChatCTA({
         >
           {resolvedLabel}
         </span>
+        <Kbd className="ml-2 shrink-0">⌘ J</Kbd>
       </span>
+      <span className="sr-only">{resolvedLabel}</span>
     </button>
   );
 }

@@ -1,3 +1,5 @@
+import { useLingui } from "@lingui/react/macro";
+
 import { Waveform } from "@anlg/ui/components/icons";
 import { Spinner } from "@anlg/ui/components/ui/spinner";
 
@@ -6,6 +8,7 @@ export function TranscriptListeningState({
 }: {
   status: "listening" | "finalizing";
 }) {
+  const { t } = useLingui();
   const isFinalizing = status === "finalizing";
 
   return (
@@ -25,12 +28,13 @@ export function TranscriptListeningState({
       )}
       <div className="flex max-w-md flex-col gap-2">
         <p className="text-base font-medium">
-          {isFinalizing ? "Finalizing transcript..." : "Listening..."}
+          {/* Fork: plain words, no "first segment" jargon (ux-audit-oct3 C, NN/g #2). */}
+          {isFinalizing ? t`Finishing transcript…` : t`Listening…`}
         </p>
         <p className="text-muted-foreground text-sm leading-relaxed">
           {isFinalizing
-            ? "Transcript is still being written."
-            : "Transcript will appear here when the first segment arrives."}
+            ? t`Transcript is still being written.`
+            : t`Words appear here as people talk.`}
         </p>
       </div>
     </div>

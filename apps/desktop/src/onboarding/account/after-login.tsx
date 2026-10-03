@@ -85,7 +85,7 @@ export function AfterLogin({ onContinue }: { onContinue: () => void }) {
   }
 
   return (
-    <div className="flex items-center gap-2 text-sm text-emerald-600">
+    <div className="text-foreground flex items-center gap-2 text-sm">
       <CheckCircle className="size-4" />
       <span>
         <Trans>Signed in</Trans>

@@ -373,7 +373,7 @@ export function TemplateIconPicker({
               <SearchField
                 value={iconSearch}
                 onChange={setIconSearch}
-                placeholder={t`Search icons...`}
+                placeholder={t`Search icons…`}
               />
               <div className="scroll-fade-y max-h-[360px] overflow-y-auto p-3">
                 <div className="grid grid-cols-12 gap-1">
@@ -410,7 +410,7 @@ export function TemplateIconPicker({
               <SearchField
                 value={emojiSearch}
                 onChange={setEmojiSearch}
-                placeholder={t`Search emoji...`}
+                placeholder={t`Search emoji…`}
               />
               <div className="scroll-fade-y max-h-[480px] overflow-y-auto px-4 py-3">
                 {!emojiSearch.trim() ? (

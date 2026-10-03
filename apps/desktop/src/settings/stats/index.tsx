@@ -15,12 +15,14 @@ import { Tracker } from "./tremor/tracker";
 import { useNow, useTimezone, useWeekStartsOn } from "~/calendar/hooks";
 import { SettingsPageTitle } from "~/settings/page-title";
 
+// Any activity (level 1+) meets 3:1 against the panel (WCAG 2.2 SC 1.4.11);
+// level 0 is the empty cell.
 const ACTIVITY_COLORS = [
   "bg-foreground/10",
-  "bg-foreground/20",
-  "bg-foreground/40",
-  "bg-foreground/60",
+  "bg-foreground/50",
+  "bg-foreground/65",
   "bg-foreground/80",
+  "bg-foreground",
 ];
 
 const STATS_BORDER = {
@@ -66,11 +68,13 @@ export function SettingsInsights() {
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-8">
-      <SettingsPageTitle title={<Trans>Your insights</Trans>} />
+      {/* Fork: the title matches the nav item; weekday labels use the type
+          scale (ux-audit-oct3 E, HIG typography). */}
+      <SettingsPageTitle title={<Trans>Insights</Trans>} />
       {activity.error ? (
         <p role="alert" className="text-muted-foreground text-sm">
           <Trans>
-            Couldn't load your insights. Reopen this page to try again.
+            Couldn’t load your insights. Reopen this page to try again.
           </Trans>
         </p>
       ) : activity.isLoading ? (
@@ -119,7 +123,7 @@ export function SettingsInsights() {
             >
               <div className="min-w-[620px]">
                 <div
-                  className="text-muted-foreground mb-2 ml-10 grid auto-cols-fr grid-flow-col gap-[3px] text-xs"
+                  className="text-muted-foreground mb-2 ml-12 grid auto-cols-fr grid-flow-col gap-[3px] text-xs"
                   aria-hidden="true"
                 >
                   {columns.map((day, index) => (
@@ -145,7 +149,7 @@ export function SettingsInsights() {
                 </div>
                 <div className="flex gap-2">
                   <div
-                    className="text-muted-foreground grid w-8 shrink-0 grid-rows-7 gap-[3px] text-[9px]"
+                    className="text-muted-foreground grid w-10 shrink-0 grid-rows-7 gap-[3px] text-xs"
                     aria-hidden="true"
                   >
                     {stats.days.slice(0, 7).map((day, index) => (

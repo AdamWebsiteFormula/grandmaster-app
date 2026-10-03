@@ -67,7 +67,15 @@ function SidebarTimelineChrome({
       <div data-tauri-drag-region className="flex items-center gap-0">
         {showSidebarToggle && (
           <LeftSurfaceChromeButton
-            ariaLabel={sidebarExpanded ? "Hide sidebar" : "Show sidebar"}
+            ariaLabel={
+              sidebarExpanded
+                ? "Hide sidebar"
+                : // Fork: the badge is said, not only shown (ux-audit-oct3 B,
+                  // WCAG 1.4.1).
+                  collapsedBadge
+                  ? "Show sidebar, meeting coming up"
+                  : "Show sidebar"
+            }
             badge={collapsedBadge}
             onClick={onToggleSidebar}
           >
@@ -139,7 +147,9 @@ export function LeftSurfaceChromeButton({
         <span
           aria-hidden="true"
           data-testid="collapsed-sidebar-upcoming-meeting-badge"
-          className="ring-background pointer-events-none absolute top-1 right-1 size-1.5 rounded-full bg-red-500 ring-2"
+          // Fork: the one accent, not red (ux-audit-oct3 B; red is for
+          // errors and Stop, design-system.md).
+          className="ring-background bg-primary pointer-events-none absolute top-1 right-1 size-1.5 rounded-full ring-2"
         />
       ) : null}
     </button>

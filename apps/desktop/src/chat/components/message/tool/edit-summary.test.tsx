@@ -90,7 +90,7 @@ describe("ToolEditSummary", () => {
     });
 
     render(<ToolEditSummary part={part} />);
-    fireEvent.click(screen.getByRole("button", { name: "Decline" }));
+    fireEvent.click(screen.getByRole("button", { name: "Discard" }));
 
     expect(reviewMocks.declineProposalReview).toHaveBeenCalledWith(
       "tool-call-1",
@@ -100,7 +100,7 @@ describe("ToolEditSummary", () => {
   it("hides review actions when the edit is no longer pending", () => {
     render(<ToolEditSummary part={part} />);
 
-    expect(screen.queryByRole("button", { name: "Decline" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Discard" })).toBeNull();
     expect(
       screen.queryByRole("button", { name: "Apply to summary" }),
     ).toBeNull();

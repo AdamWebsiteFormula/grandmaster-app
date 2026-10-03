@@ -26,7 +26,7 @@ export function AccountProfile() {
   if (!humanId)
     return (
       <p role="status">
-        <Trans>Loading...</Trans>
+        <Trans>Loading…</Trans>
       </p>
     );
   return <ProfileLoader key={humanId} humanId={humanId} />;
@@ -45,7 +45,7 @@ function ProfileLoader({ humanId }: { humanId: string }) {
   if (isLoading || data === undefined)
     return (
       <p role="status">
-        <Trans>Loading...</Trans>
+        <Trans>Loading…</Trans>
       </p>
     );
   return <ProfileForm humanId={humanId} human={data} />;
@@ -198,7 +198,7 @@ function ProfileForm({
       )}
       {(save.isPending || save.isSuccess) && (
         <span role="status" className="text-muted-foreground text-sm">
-          {save.isPending ? t`Saving...` : t`Saved`}
+          {save.isPending ? t`Saving…` : t`Saved`}
         </span>
       )}
     </form>

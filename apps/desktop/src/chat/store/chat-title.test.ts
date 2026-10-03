@@ -21,7 +21,7 @@ describe("chat title", () => {
       "  Please   summarize this request for tomorrow's roadmap planning and share action items  ",
     );
 
-    expect(title).toBe("Please summarize this request for tomorrow's...");
+    expect(title).toBe("Please summarize this request for tomorrow's…");
     expect(title.length).toBeLessThanOrEqual(50);
   });
 

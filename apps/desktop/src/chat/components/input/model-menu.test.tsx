@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   isPro: false,
   model: "Auto" as string,
   setModel: vi.fn(),
-  openUpgrade: vi.fn(),
+  openNew: vi.fn(),
 }));
 
 vi.mock("@anlg/ui/components/ui/dropdown-menu", () => ({
@@ -72,7 +72,9 @@ vi.mock("~/shared/config", () => ({
 }));
 vi.mock("~/upshot-plan", () => ({
   useUpshotPro: () => mocks.isPro,
-  openUpgrade: mocks.openUpgrade,
+}));
+vi.mock("~/store/zustand/tabs", () => ({
+  useTabs: { getState: () => ({ openNew: mocks.openNew }) },
 }));
 
 import { ChatModelMenu } from "./model-menu";
@@ -85,22 +87,36 @@ describe("ChatModelMenu", () => {
     mocks.isPro = false;
     mocks.model = "Auto";
     mocks.setModel.mockReset();
-    mocks.openUpgrade.mockReset();
+    mocks.openNew.mockReset();
   });
 
-  it("shows Auto to free users, with current models locked behind Pro", () => {
+  it("shows Auto to free users, with current models tagged Pro", () => {
     mocks.model = "openai/gpt-6.1-sol";
     render(<ChatModelMenu />);
 
     expect(screen.getByRole("button", { name: "Model, Auto" })).not.toBeNull();
     const sonnet = screen.getByRole("menuitem", { name: /Claude Sonnet 5.5/ });
-    expect(sonnet.hasAttribute("disabled")).toBe(true);
+    expect(sonnet.hasAttribute("disabled")).toBe(false);
     expect(sonnet.textContent).toContain("Pro");
+  });
+
+  // Fork: a Pro model or Upgrade opens Settings › Plan (ux-audit-oct3 D).
+  it("opens Settings › Plan when a free user picks a Pro model or Upgrade", () => {
+    render(<ChatModelMenu />);
+
+    fireEvent.click(
+      screen.getByRole("menuitem", { name: /Claude Sonnet 5.5/ }),
+    );
+    expect(mocks.setModel).not.toHaveBeenCalled();
+    expect(mocks.openNew).toHaveBeenCalledWith({
+      type: "settings",
+      state: { tab: "plan" },
+    });
 
     fireEvent.click(
       screen.getByRole("menuitem", { name: "Upgrade to pick a model" }),
     );
-    expect(mocks.openUpgrade).toHaveBeenCalledOnce();
+    expect(mocks.openNew).toHaveBeenCalledTimes(2);
   });
 
   it("lets Pro users pick a model and go back to Auto", () => {

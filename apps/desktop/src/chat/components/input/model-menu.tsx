@@ -21,7 +21,15 @@ import {
 import { useModelRegistry } from "~/settings/ai/shared/use-model-registry";
 import { useSetSettingValue } from "~/settings/queries";
 import { useConfigValue } from "~/shared/config";
-import { openUpgrade, useUpshotPro } from "~/upshot-plan";
+import { useTabs } from "~/store/zustand/tabs";
+import { useUpshotPro } from "~/upshot-plan";
+
+// Fork: free users who pick a Pro model (or Upgrade) land on Settings › Plan,
+// where the price, the billing toggle and the status live (ux-audit-oct3 D;
+// NN/g #4, #9; FTC clear terms).
+export function openPlan() {
+  useTabs.getState().openNew({ type: "settings", state: { tab: "plan" } });
+}
 
 // Fork: Granola's chat composer has an "Auto" model menu; free plans get
 // Auto only, paid plans pick a standard or thinking model from OpenAI,
@@ -83,13 +91,15 @@ export function ChatModelMenu({
           {models.map((model) => (
             <DropdownMenuItem
               key={model.id}
-              disabled={!isPro}
-              onSelect={() => setModel(model.id)}
-              className="cursor-pointer"
+              onSelect={() => (isPro ? setModel(model.id) : openPlan())}
+              className={cn([
+                "cursor-pointer",
+                !isPro && "text-muted-foreground",
+              ])}
             >
               <span className="flex-1 truncate">{model.name}</span>
               {!isPro ? (
-                <span className="text-muted-foreground border-border rounded-full border px-1.5 text-[10px] leading-4">
+                <span className="text-muted-foreground border-border rounded-full border px-1.5 text-xs leading-4">
                   <Trans>Pro</Trans>
                 </span>
               ) : selected === model.id ? (
@@ -100,10 +110,7 @@ export function ChatModelMenu({
           {!isPro && models.length > 0 && (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={() => openUpgrade()}
-                className="cursor-pointer"
-              >
+              <DropdownMenuItem onSelect={openPlan} className="cursor-pointer">
                 <Trans>Upgrade to pick a model</Trans>
               </DropdownMenuItem>
             </>

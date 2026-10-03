@@ -1,3 +1,4 @@
+import { useLingui } from "@lingui/react/macro";
 import { useMutation } from "@tanstack/react-query";
 import { platform } from "@tauri-apps/plugin-os";
 
@@ -7,7 +8,8 @@ import { CircleNotch, FolderOpen } from "@anlg/ui/components/icons";
 import { DropdownMenuItem } from "@anlg/ui/components/ui/dropdown-menu";
 
 export function ShowInFolder({ sessionId }: { sessionId: string }) {
-  const label = platform() === "macos" ? "Show in Finder" : "Show in folder";
+  const { t } = useLingui();
+  const label = platform() === "macos" ? t`Show in Finder` : t`Show in folder`;
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
       const result = await fsSyncCommands.sessionDir(sessionId);
@@ -32,7 +34,7 @@ export function ShowInFolder({ sessionId }: { sessionId: string }) {
       ) : (
         <FolderOpen data-testid="show-in-folder-icon" />
       )}
-      <span>{isPending ? "Opening..." : label}</span>
+      <span>{isPending ? t`Opening…` : label}</span>
     </DropdownMenuItem>
   );
 }

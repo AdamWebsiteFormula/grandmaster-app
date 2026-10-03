@@ -12,6 +12,7 @@ import {
   ProviderSearch,
   StyledStreamdown,
 } from "~/settings/ai/shared";
+import { SettingsSectionTitle } from "~/settings/page-title";
 import { useConfigValue } from "~/shared/config";
 
 export function ConfigureProviders() {
@@ -26,9 +27,9 @@ export function ConfigureProviders() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-3">
-        <h3 className="text-md font-sans font-semibold">
-          <Trans>Configure Providers</Trans>
-        </h3>
+        <SettingsSectionTitle>
+          <Trans>Configure providers</Trans>
+        </SettingsSectionTitle>
         <ProviderSearch value={search} onChange={setSearch} />
       </div>
       <Accordion

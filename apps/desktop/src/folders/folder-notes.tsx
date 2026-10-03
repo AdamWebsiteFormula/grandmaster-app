@@ -1,0 +1,39 @@
+// Fork: a folder page lists its notes, grouped by day like Home, with
+// "Show more" and the same right-click menu (ux-audit-oct3 B P1; Granola
+// folders, docs.granola.ai/help-center/sharing/folders/spaces-and-folders;
+// NN/g #6, recognition rather than recall).
+import { Trans } from "@lingui/react/macro";
+import { useState } from "react";
+
+import { RECENT_PAGE_SIZE, useFolderNotes } from "~/home/home-data";
+import { RecentNotes } from "~/home/home-view";
+
+export function FolderNotes({ folderPath }: { folderPath: string }) {
+  const [limit, setLimit] = useState(RECENT_PAGE_SIZE);
+  const notes = useFolderNotes(folderPath, limit);
+
+  if (notes.isLoading) return null;
+
+  if (!notes.hasNotes) {
+    return (
+      <section aria-labelledby="folder-notes" className="flex flex-col gap-1.5">
+        <h4 id="folder-notes" className="text-sm font-medium">
+          <Trans>Notes</Trans>
+        </h4>
+        <p className="text-muted-foreground text-sm">
+          <Trans>No notes in this folder yet</Trans>
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <RecentNotes
+      headingId="folder-notes"
+      compactHeading
+      groups={notes.groups}
+      hasMore={notes.hasMore}
+      onShowMore={() => setLimit((value) => value + RECENT_PAGE_SIZE)}
+    />
+  );
+}

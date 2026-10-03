@@ -99,7 +99,7 @@ describe("merged insights page", () => {
   it("reports query errors without showing misleading totals", () => {
     mocks.activity.error = new Error("Database unavailable");
     render(<SettingsInsights />);
-    expect(screen.getByRole("alert").textContent).toContain("Couldn't load");
+    expect(screen.getByRole("alert").textContent).toContain("Couldn’t load");
     expect(screen.queryByText("Conversations")).toBeNull();
   });
 });

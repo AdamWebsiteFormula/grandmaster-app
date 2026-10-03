@@ -50,6 +50,11 @@ export function useMainShortcuts() {
     };
   });
 
+  const newNoteAndListen = useNewNoteAndListen();
+
+  // Fork: ⌘N is "New note": create a note and start recording, as the orange
+  // button and Granola do; ⇧⌘N is "Blank note" (UX audit Oct 3, A: NN/g #4,
+  // docs.granola.ai/help-center/getting-started/granola-101).
   useHotkeys(
     "mod+n",
     () => {
@@ -58,6 +63,19 @@ export function useMainShortcuts() {
         return;
       }
 
+      newNoteAndListen();
+    },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [chat, newNoteAndListen],
+  );
+
+  useHotkeys(
+    "mod+shift+n",
+    () => {
       if (currentTab?.type === "empty") {
         newNoteCurrent();
       } else {
@@ -69,20 +87,7 @@ export function useMainShortcuts() {
       enableOnFormTags: true,
       enableOnContentEditable: true,
     },
-    [chat, currentTab, newNote, newNoteCurrent],
-  );
-
-  const newNoteAndListen = useNewNoteAndListen();
-
-  useHotkeys(
-    "mod+shift+n",
-    () => newNoteAndListen(),
-    {
-      preventDefault: true,
-      enableOnFormTags: true,
-      enableOnContentEditable: true,
-    },
-    [newNoteAndListen],
+    [currentTab, newNote, newNoteCurrent],
   );
 
   return { runEscapeShortcut };

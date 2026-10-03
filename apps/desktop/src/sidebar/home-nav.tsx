@@ -92,7 +92,10 @@ export function SidebarHomeNav() {
                 }
                 onClick={() => openFolder(folder)}
               >
-                <span className="min-w-0 truncate">{folder}</span>
+                {/* Fork: full name on hover (ux-audit-oct3 B, WCAG 1.3.1). */}
+                <span title={folder} className="min-w-0 truncate">
+                  {folder}
+                </span>
               </NavItem>
             </li>
           ))}

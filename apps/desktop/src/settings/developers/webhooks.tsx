@@ -2,6 +2,7 @@ import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useId, useState } from "react";
 
 import {
   commands as webhookCommands,
@@ -14,6 +15,9 @@ import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
 import { copyText } from "./clipboard";
+
+import { SettingsSectionTitle } from "~/settings/page-title";
+import { DestructiveConfirmationDialog } from "~/shared/ui/destructive-confirmation-dialog";
 
 const WEBHOOKS_QUERY_KEY = ["webhooks"] as const;
 
@@ -81,11 +85,20 @@ export function WebhooksSection() {
 
   const createdWebhook = createMutation.data;
   const webhooks = webhooksQuery.data ?? [];
+  const urlInputId = useId();
+  const [webhookToDelete, setWebhookToDelete] = useState<WebhookInfo | null>(
+    null,
+  );
 
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="font-sans text-lg font-semibold">{t`Webhooks`}</h2>
+      <SettingsSectionTitle>{t`Webhooks`}</SettingsSectionTitle>
       <div>
+        {/* Fork: a visible label, an Upshot placeholder, and a confirm before
+            delete (ux-audit-oct3 E, WCAG 4.1.2, NN/g #5). */}
+        <label htmlFor={urlInputId} className="mb-2 block text-xs font-medium">
+          <Trans>Webhook URL</Trans>
+        </label>
         <form
           className="flex gap-2"
           onSubmit={(event) => {
@@ -97,8 +110,9 @@ export function WebhooksSection() {
           <form.Field name="url">
             {(field) => (
               <Input
+                id={urlInputId}
                 className="h-8 max-w-md text-sm"
-                placeholder="https://example.com/webhooks/anarlog"
+                placeholder="https://example.com/webhooks/upshot"
                 value={field.state.value}
                 onChange={(event) => field.handleChange(event.target.value)}
               />
@@ -155,7 +169,7 @@ export function WebhooksSection() {
                 key={webhook.id}
                 webhook={webhook}
                 onTest={() => testMutation.mutate(webhook.id)}
-                onDelete={() => deleteMutation.mutate(webhook.id)}
+                onDelete={() => setWebhookToDelete(webhook)}
                 onToggleActive={() =>
                   setActiveMutation.mutate({
                     id: webhook.id,
@@ -168,6 +182,23 @@ export function WebhooksSection() {
           </ul>
         )}
       </div>
+      <DestructiveConfirmationDialog
+        open={webhookToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setWebhookToDelete(null);
+        }}
+        title={t`Delete this webhook?`}
+        description={t`${webhookToDelete?.url ?? ""} stops receiving events from Upshot.`}
+        confirmLabel={t`Delete`}
+        pendingLabel={t`Deleting…`}
+        isPending={deleteMutation.isPending}
+        onConfirm={() => {
+          if (!webhookToDelete) return;
+          deleteMutation.mutate(webhookToDelete.id, {
+            onSettled: () => setWebhookToDelete(null),
+          });
+        }}
+      />
     </section>
   );
 }
@@ -187,7 +218,6 @@ function WebhookRow({
 }) {
   const statusParts = [
     !webhook.active ? t`Paused` : null,
-    !webhook.active ? t`not receiving events` : null,
     webhook.events.length > 0 ? webhook.events.join(", ") : t`All events`,
     webhook.last_delivery_at
       ? t`Last delivery ${webhook.last_delivery_status}`
@@ -198,9 +228,10 @@ function WebhookRow({
     <li className="flex items-center justify-between gap-3 text-sm">
       <div className="flex min-w-0 flex-col">
         <span
+          title={webhook.url}
           className={cn([
             "truncate",
-            !webhook.active && "text-muted-foreground line-through",
+            !webhook.active && "text-muted-foreground",
           ])}
         >
           {webhook.url}
@@ -217,7 +248,7 @@ function WebhookRow({
           className="h-7"
           onClick={onToggleActive}
         >
-          {webhook.active ? t`Pause` : t`Enable`}
+          {webhook.active ? t`Pause` : t`Resume`}
         </Button>
         <Button
           type="button"
@@ -234,6 +265,7 @@ function WebhookRow({
           variant="ghost"
           size="sm"
           className="text-destructive h-7"
+          aria-label={t`Delete webhook`}
           onClick={onDelete}
         >
           <Trash className="size-3.5" />

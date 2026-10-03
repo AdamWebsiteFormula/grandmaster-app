@@ -1,6 +1,6 @@
 import { t } from "@lingui/core/macro";
 import { useQueryClient } from "@tanstack/react-query";
-import { type CSSProperties, useCallback, useMemo } from "react";
+import { type CSSProperties, useCallback, useEffect, useMemo } from "react";
 
 import { toast } from "@anlg/ui/components/ui/toast";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
@@ -126,8 +126,43 @@ function useRestoreGroup() {
   );
 }
 
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable) return true;
+  return ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
+}
+
+// Fork: ⌘Z restores the latest deleted note while its Undo toast shows,
+// outside text fields and editors, which keep their own undo
+// (ux-audit-oct3 B; Apple HIG, Keyboards: ⌘Z is Undo).
+function useUndoShortcut(groups: ToastGroup[]) {
+  const restoreGroup = useRestoreGroup();
+  const latest = groups[groups.length - 1];
+
+  useEffect(() => {
+    if (!latest) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (
+        !(event.metaKey || event.ctrlKey) ||
+        event.shiftKey ||
+        event.altKey ||
+        event.key.toLowerCase() !== "z" ||
+        event.defaultPrevented ||
+        isEditableTarget(event.target)
+      ) {
+        return;
+      }
+      event.preventDefault();
+      restoreGroup(latest);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [latest, restoreGroup]);
+}
+
 export function UndoDeleteToast() {
   const groups = useToastGroups();
+  useUndoShortcut(groups);
 
   return groups.map((group) => (
     <UndoDeleteNotificationToast

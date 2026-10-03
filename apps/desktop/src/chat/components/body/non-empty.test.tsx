@@ -61,9 +61,9 @@ describe("ChatBodyNonEmpty", () => {
     render(<ChatBodyNonEmpty messages={[message]} status="streaming" />);
 
     if (expectThinking) {
-      expect(screen.getByText("Thinking...")).not.toBeNull();
+      expect(screen.getByText("Thinking…")).not.toBeNull();
     } else {
-      expect(screen.queryByText("Thinking...")).toBeNull();
+      expect(screen.queryByText("Thinking…")).toBeNull();
     }
   });
 });

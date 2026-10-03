@@ -96,17 +96,39 @@ function isMarkActive(state: EditorState, type: MarkType): boolean {
   return state.doc.rangeHasMark(from, to, type);
 }
 
+// Fork: every format button has a name and shortcut hint (ux-audit-oct3 C, WCAG 4.1.2).
 const TOOLBAR_BUTTONS: {
   id: string;
+  label: string;
   icon: React.ComponentType<{ className?: string }>;
   markType: MarkType;
 }[] = [
-  { id: "bold", icon: TextB, markType: schema.marks.bold },
-  { id: "italic", icon: TextItalic, markType: schema.marks.italic },
-  { id: "underline", icon: TextUnderline, markType: schema.marks.underline },
-  { id: "strike", icon: TextStrikethrough, markType: schema.marks.strike },
-  { id: "code", icon: Code, markType: schema.marks.code },
-  { id: "highlight", icon: Highlighter, markType: schema.marks.highlight },
+  { id: "bold", label: "Bold ⌘B", icon: TextB, markType: schema.marks.bold },
+  {
+    id: "italic",
+    label: "Italic ⌘I",
+    icon: TextItalic,
+    markType: schema.marks.italic,
+  },
+  {
+    id: "underline",
+    label: "Underline ⌘U",
+    icon: TextUnderline,
+    markType: schema.marks.underline,
+  },
+  {
+    id: "strike",
+    label: "Strikethrough",
+    icon: TextStrikethrough,
+    markType: schema.marks.strike,
+  },
+  { id: "code", label: "Code", icon: Code, markType: schema.marks.code },
+  {
+    id: "highlight",
+    label: "Highlight",
+    icon: Highlighter,
+    markType: schema.marks.highlight,
+  },
 ];
 
 export function FormatToolbar({
@@ -236,6 +258,9 @@ export function FormatToolbar({
           return (
             <button
               key={button.id}
+              type="button"
+              aria-label={button.label}
+              title={button.label}
               aria-pressed={active}
               className={cn([
                 "flex size-7 items-center justify-center rounded-md",

@@ -261,12 +261,20 @@ function ProCard({
       ) : (
         <div className="flex flex-col gap-3">
           <IntervalToggle value={interval} onChange={setBillingInterval} />
+          {/* Fork: disabled while checkout opens; once it is open, the button
+              says it reopens it rather than starting over (ux-audit-oct3 D,
+              NN/g #1, #5). */}
           <Button
+            variant={checkoutPending ? "outline" : "default"}
             className="h-9 w-full text-sm"
             disabled={busy || isLoading}
             onClick={() => void run(() => openUpgrade(interval))}
           >
-            <Trans>Upgrade to Pro</Trans>
+            {checkoutPending ? (
+              <Trans>Reopen checkout</Trans>
+            ) : (
+              <Trans>Upgrade to Pro</Trans>
+            )}
           </Button>
           {checkoutPending ? (
             <div className="flex items-center justify-between gap-2">
@@ -318,8 +326,9 @@ function ProStatusLine({ plan }: { plan: UpshotPlanStatus | null }) {
     return date ? <Trans>Trial, ends {date}</Trans> : <Trans>Trial</Trans>;
   }
   if (!date) return <Trans>Active</Trans>;
+  // Fork: a canceled plan must not read as active (ux-audit-oct3 D, NN/g #1).
   return plan?.cancel_at_period_end ? (
-    <Trans>Active, ends {date}</Trans>
+    <Trans>Canceled. Pro stays on until {date}.</Trans>
   ) : (
     <Trans>Active, renews {date}</Trans>
   );

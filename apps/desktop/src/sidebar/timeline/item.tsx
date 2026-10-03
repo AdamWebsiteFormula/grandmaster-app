@@ -253,8 +253,12 @@ const ItemBase = memo(function ItemBase({
             "bg-destructive text-destructive-foreground hover:bg-destructive/90",
             "focus-visible:ring-destructive/40 focus-visible:ring-2 focus-visible:outline-hidden",
           ],
-          ignored && "opacity-40",
-          !ignored && muted && !isLive && !isUpcoming && "opacity-65",
+          ignored && "text-muted-foreground",
+          !ignored &&
+            muted &&
+            !isLive &&
+            !isUpcoming &&
+            "text-muted-foreground",
         ])}
         draggable={draggable}
       >
@@ -265,7 +269,7 @@ const ItemBase = memo(function ItemBase({
                 className={cn([
                   "pointer-events-none flex min-w-0 items-center gap-1 text-xs leading-4",
                   isLive
-                    ? "text-destructive-foreground/65"
+                    ? "text-destructive-foreground"
                     : "text-muted-foreground",
                 ])}
               >
@@ -287,7 +291,7 @@ const ItemBase = memo(function ItemBase({
                   // Fork: sans with tabular numbers (design-system.md).
                   "text-xs tabular-nums",
                   isLive
-                    ? "text-destructive-foreground/65"
+                    ? "text-destructive-foreground"
                     : "text-muted-foreground",
                 ])}
               >
@@ -299,7 +303,7 @@ const ItemBase = memo(function ItemBase({
                 className={cn([
                   "pointer-events-none min-w-0 truncate text-xs leading-4",
                   isLive
-                    ? "text-destructive-foreground/65"
+                    ? "text-destructive-foreground"
                     : "text-muted-foreground",
                 ])}
               >
@@ -849,7 +853,7 @@ export function useSessionContextMenu({
     const menu: MenuItemDef[] = [
       {
         id: "open-new-window",
-        text: t`Open in New Window`,
+        text: t`Open in new window`, // Fork: sentence case (ux-audit-oct3 B).
         action: handleOpenStandaloneWindow,
       },
       {

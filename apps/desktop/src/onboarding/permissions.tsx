@@ -16,6 +16,8 @@ import {
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 import { cn } from "@anlg/utils";
 
+import { OnboardingButton } from "./shared";
+
 import { useLatestRef } from "~/shared/hooks/useLatestRef";
 import {
   trackPermissionRequested,
@@ -36,9 +38,9 @@ function PermissionBlock({
   permissionName,
   status,
   isPending,
+  error,
   onAction,
   actionLabel,
-  assisted = false,
   opensSettingsWhenDenied = true,
   isNext = false,
 }: {
@@ -50,75 +52,79 @@ function PermissionBlock({
   permissionName: string;
   status: PermissionStatus | undefined;
   isPending: boolean;
+  error?: string | null;
   onAction: () => void;
   actionLabel?: string;
-  assisted?: boolean;
   opensSettingsWhenDenied?: boolean;
   isNext?: boolean;
 }) {
   const { t } = useLingui();
   const isAuthorized = status === "authorized";
-  const opensSettings =
-    isAuthorized ||
-    assisted ||
-    (opensSettingsWhenDenied && status === "denied");
-  const title = isAuthorized ? enabledLabel : enableLabel;
+  // Fork: a denied permission says where to fix it, and the visible title is
+  // the accessible name (UX audit Oct 3, A: NN/g #9, WCAG 2.5.3).
+  const isDeniedInSettings = opensSettingsWhenDenied && status === "denied";
+  const title = isAuthorized
+    ? enabledLabel
+    : isDeniedInSettings
+      ? t`Turn on ${permissionName.toLowerCase()} in System Settings`
+      : (actionLabel ?? enableLabel);
   const body = isAuthorized ? enabledBody : enableBody;
 
   return (
-    <button
-      type="button"
-      onClick={onAction}
-      disabled={isPending || isAuthorized}
-      title={body}
-      className={cn([
-        "group flex w-full min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all",
-        isAuthorized
-          ? "border-border bg-card border"
-          : "border-border bg-card hover:bg-accent border active:scale-[0.98]",
-        (isPending || isAuthorized) && "cursor-default",
-        isPending && "opacity-50",
-      ])}
-      aria-label={
-        opensSettings
-          ? t`Open ${permissionName.toLowerCase()} settings`
-          : (actionLabel ?? t`Enable ${permissionName.toLowerCase()}`)
-      }
-    >
-      <div
+    <div className="flex flex-col gap-1">
+      <button
+        type="button"
+        onClick={onAction}
+        disabled={isPending || isAuthorized}
+        title={body}
         className={cn([
-          "flex size-6 shrink-0 items-center justify-center rounded-md",
+          "group flex w-full min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all",
           isAuthorized
-            ? "text-muted-foreground"
-            : isNext
-              ? "bg-primary text-primary-foreground"
-              : "bg-secondary text-muted-foreground",
+            ? "border-border bg-card border"
+            : "border-border bg-card hover:bg-accent border active:scale-[0.98]",
+          (isPending || isAuthorized) && "cursor-default",
+          isPending && "opacity-50",
         ])}
       >
-        {isAuthorized ? (
-          <Check className="size-3.5" />
-        ) : (
-          <Icon className="size-3.5" />
-        )}
-      </div>
-      <span
-        className={cn([
-          "min-w-0 flex-1 truncate text-sm font-medium",
-          isAuthorized ? "text-muted-foreground" : "text-foreground",
-        ])}
-      >
-        {title}
-      </span>
-      {!isAuthorized && (
-        <ArrowRight
+        <div
           className={cn([
-            "size-4 shrink-0 transition-transform group-hover:translate-x-0.5",
-            isNext ? "text-primary" : "text-muted-foreground",
+            "flex size-6 shrink-0 items-center justify-center rounded-md",
+            isAuthorized
+              ? "text-muted-foreground"
+              : isNext
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary text-muted-foreground",
           ])}
-          data-testid="permission-action-arrow"
-        />
+        >
+          {isAuthorized ? (
+            <Check className="size-3.5" />
+          ) : (
+            <Icon className="size-3.5" />
+          )}
+        </div>
+        <span
+          className={cn([
+            "min-w-0 flex-1 truncate text-sm font-medium",
+            isAuthorized ? "text-muted-foreground" : "text-foreground",
+          ])}
+        >
+          {title}
+        </span>
+        {!isAuthorized && (
+          <ArrowRight
+            className={cn([
+              "size-4 shrink-0 transition-transform group-hover:translate-x-0.5",
+              isNext ? "text-primary" : "text-muted-foreground",
+            ])}
+            data-testid="permission-action-arrow"
+          />
+        )}
+      </button>
+      {/* Fork: errors show as text, not only in the tooltip (WCAG 3.3.1). */}
+      {!isAuthorized && error && (
+        <p className="text-destructive px-3 text-xs">{error}</p>
       )}
-    </button>
+    </div>
   );
 }
 
@@ -182,11 +188,13 @@ function useAccessibilityReturnCheck(
 
 function PermissionsSectionContent({
   onContinue,
+  continuedRef,
   accessibility,
   accessibilityGuidance,
   runtimeCapabilities = false,
 }: {
   onContinue?: () => void;
+  continuedRef?: { current: boolean };
   accessibility?: ReturnType<typeof usePermission>;
   accessibilityGuidance?: ReturnType<typeof usePermissionGuidance>;
   runtimeCapabilities?: boolean;
@@ -194,7 +202,8 @@ function PermissionsSectionContent({
   const { t } = useLingui();
   const mic = usePermission("microphone");
   const systemAudio = usePermission("systemAudio");
-  const hasContinuedRef = useRef(false);
+  const localContinuedRef = useRef(false);
+  const hasContinuedRef = continuedRef ?? localContinuedRef;
   const accessibilityReturn = useAccessibilityReturnCheck(accessibility);
   usePermissionAnalytics("microphone", mic.confirmedStatus, "onboarding");
   usePermissionAnalytics(
@@ -210,10 +219,14 @@ function PermissionsSectionContent({
 
   // Fork: complete only on the confirmed macOS status, not the optimistic
   // "authorized" shown for a moment after a click.
+  // Fork: mic + system audio are enough to record; Accessibility (meeting
+  // details) is optional, as in Granola (UX audit Oct 3, A: NN/g #3,
+  // docs.granola.ai/help-center/taking-notes/speaker-attribution).
   const isComplete =
     mic.confirmedStatus === "authorized" &&
-    systemAudio.confirmedStatus === "authorized" &&
-    (!accessibility || accessibility.confirmedStatus === "authorized");
+    systemAudio.confirmedStatus === "authorized";
+  const hasMeetingDetails =
+    !accessibility || accessibility.confirmedStatus === "authorized";
 
   // Design: one accent per screen, so only the next pending row is orange.
   const nextPending = [
@@ -251,7 +264,7 @@ function PermissionsSectionContent({
 
   return (
     <div>
-      {isComplete && (
+      {isComplete && hasMeetingDetails && (
         <ContinueWhenComplete
           onContinue={onContinue}
           hasContinuedRef={hasContinuedRef}
@@ -268,6 +281,7 @@ function PermissionsSectionContent({
           permissionName={t`Microphone`}
           status={mic.status}
           isPending={mic.isPending}
+          error={mic.error}
           onAction={() => handleAction("microphone", mic, !runtimeCapabilities)}
           actionLabel={
             runtimeCapabilities && mic.status === "denied"
@@ -289,6 +303,7 @@ function PermissionsSectionContent({
           permissionName={t`System audio`}
           status={systemAudio.status}
           isPending={systemAudio.isPending}
+          error={systemAudio.error}
           onAction={() =>
             handleAction("system_audio", systemAudio, !runtimeCapabilities)
           }
@@ -315,6 +330,7 @@ function PermissionsSectionContent({
             permissionName={t`Accessibility`}
             status={accessibility.status}
             isPending={accessibility.isPending}
+            error={accessibility.error}
             onAction={() => {
               accessibilityReturn.markOpened();
               handleAction(
@@ -324,7 +340,6 @@ function PermissionsSectionContent({
                 Boolean(accessibilityGuidance),
               );
             }}
-            assisted={Boolean(accessibilityGuidance)}
             opensSettingsWhenDenied={false}
             isNext={nextPending === "accessibility"}
           />
@@ -341,11 +356,39 @@ function PermissionsSectionContent({
           </button>
         )}
       </div>
+
+      {isComplete && (
+        <div className="mt-4 flex flex-col items-start gap-2">
+          {hasMeetingDetails ? (
+            <OnboardingButton onClick={() => onContinue?.()}>
+              {t`Continue`}
+            </OnboardingButton>
+          ) : (
+            <>
+              <OnboardingButton
+                variant="secondary"
+                onClick={() => onContinue?.()}
+              >
+                {t`Continue without meeting details`}
+              </OnboardingButton>
+              <p className="text-muted-foreground text-xs">
+                {t`You can turn this on later in Settings.`}
+              </p>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-function MacOSPermissionsSection({ onContinue }: { onContinue?: () => void }) {
+function MacOSPermissionsSection({
+  onContinue,
+  continuedRef,
+}: {
+  onContinue?: () => void;
+  continuedRef?: { current: boolean };
+}) {
   const accessibility = usePermission("accessibility");
   const accessibilityGuidance = usePermissionGuidance("accessibility");
 
@@ -356,6 +399,7 @@ function MacOSPermissionsSection({ onContinue }: { onContinue?: () => void }) {
   return (
     <PermissionsSectionContent
       onContinue={onContinue}
+      continuedRef={continuedRef}
       accessibility={accessibility}
       accessibilityGuidance={accessibilityGuidance}
     />
@@ -364,14 +408,27 @@ function MacOSPermissionsSection({ onContinue }: { onContinue?: () => void }) {
 
 export function PermissionsSection({
   onContinue,
+  continuedRef,
 }: {
   onContinue?: () => void;
+  // Fork: owned by the onboarding screen, so going Back to this step shows a
+  // Continue button instead of skipping forward again on its own.
+  continuedRef?: { current: boolean };
 }) {
   if (platform() === "macos") {
-    return <MacOSPermissionsSection onContinue={onContinue} />;
+    return (
+      <MacOSPermissionsSection
+        onContinue={onContinue}
+        continuedRef={continuedRef}
+      />
+    );
   }
 
   return (
-    <PermissionsSectionContent onContinue={onContinue} runtimeCapabilities />
+    <PermissionsSectionContent
+      onContinue={onContinue}
+      continuedRef={continuedRef}
+      runtimeCapabilities
+    />
   );
 }

@@ -38,7 +38,8 @@ html[data-rounded-window] #root {
 }
 
 .undo-delete-toast-gauge {
-  animation: undo-delete-toast-gauge var(--undo-delete-duration) linear forwards;
+  animation: undo-delete-toast-gauge var(--undo-delete-duration) linear
+    forwards;
   transform: scaleX(var(--undo-delete-progress));
   transform-origin: left;
 }
@@ -135,6 +136,11 @@ html[data-rounded-window] #root {
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
   --color-primary: hsl(var(--primary));
+  /* Text-only shades (Tailwind reads --text-color-* before --color-* for
+   * text-*): orange and red text meet 4.5:1 (WCAG 2.2 SC 1.4.3) in both
+   * themes, while bg-primary and bg-destructive keep their fill shades. */
+  --text-color-primary: hsl(var(--primary-text));
+  --text-color-destructive: hsl(var(--destructive-text));
   --color-primary-foreground: hsl(var(--primary-foreground));
   --color-secondary: hsl(var(--secondary));
   --color-secondary-foreground: hsl(var(--secondary-foreground));
@@ -159,8 +165,10 @@ html[data-rounded-window] #root {
   --animate-shimmer: shimmer 2s infinite;
   --animate-logo-shimmer-sweep: logo-shimmer-sweep 2.4s ease-in-out infinite;
   --animate-reveal-left: reveal-left 0.5s ease-out forwards;
-  --animate-title-hover-scroll: title-hover-scroll
-    var(--title-hover-scroll-duration, 4s) ease-in-out forwards;
+  --animate-title-hover-scroll: title-hover-scroll var(
+    --title-hover-scroll-duration,
+    4s
+  ) ease-in-out forwards;
   --animate-kbd-press: kbd-press 0.4s ease-out forwards;
 
   --animate-wiggle: wiggle 1s ease-in-out infinite;

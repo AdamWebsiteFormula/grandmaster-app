@@ -44,3 +44,30 @@ describe("getChatErrorText", () => {
     expect(getChatErrorText(undefined)).toBe("undefined");
   });
 });
+
+// Fork: no upstream docs link; plain words for a context-length error
+// (ux-audit-oct3 D).
+describe("ErrorMessage context length", () => {
+  beforeEach(() => {
+    cleanup();
+  });
+
+  it("says to start a new chat and shows a visible Retry", () => {
+    const onRetry = vi.fn();
+    render(
+      <ErrorMessage
+        error={new Error("This model's context length is 8192 tokens")}
+        onRetry={onRetry}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        "This chat is too long. Start a new chat and try again.",
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByText("Learn how to fix this")).toBeNull();
+    screen.getByRole("button", { name: "Retry" }).click();
+    expect(onRetry).toHaveBeenCalledOnce();
+  });
+});

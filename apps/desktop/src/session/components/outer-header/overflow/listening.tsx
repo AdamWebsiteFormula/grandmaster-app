@@ -1,3 +1,5 @@
+import { useLingui } from "@lingui/react/macro";
+
 import { Microphone, MicrophoneSlash } from "@anlg/ui/components/icons";
 import { DropdownMenuItem } from "@anlg/ui/components/ui/dropdown-menu";
 
@@ -15,6 +17,7 @@ export function Listening({
   sessionId: string;
   resume: boolean;
 }) {
+  const { t } = useLingui();
   const { mode, stop } = useListener((state) => ({
     mode: state.getSessionMode(sessionId),
     stop: state.stop,
@@ -40,8 +43,9 @@ export function Listening({
     }
   };
 
+  // Fork: shared recording vocabulary (ux-audit-oct3 C, NN/g #4).
   const startLabel =
-    resume || isBatching ? "Resume listening" : "Start listening";
+    resume || isBatching ? t`Resume recording` : t`Start recording`;
 
   return (
     <DropdownMenuItem
@@ -50,7 +54,7 @@ export function Listening({
       disabled={isFinalizing}
     >
       {isListening ? <MicrophoneSlash /> : <Microphone />}
-      <span>{isListening ? "Stop listening" : startLabel}</span>
+      <span>{isListening ? t`Stop recording` : startLabel}</span>
     </DropdownMenuItem>
   );
 }

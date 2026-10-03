@@ -63,7 +63,7 @@ export function CalendarSelection({
           <>
             <CircleNotch className="text-muted-foreground/70 mb-2 size-6 animate-spin" />
             <p className="text-muted-foreground text-xs">
-              <Trans>Loading calendars...</Trans>
+              <Trans>Loading calendars…</Trans>
             </p>
           </>
         ) : (

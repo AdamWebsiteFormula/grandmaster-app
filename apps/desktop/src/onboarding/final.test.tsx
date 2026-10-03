@@ -170,16 +170,13 @@ it("ignores concurrent finish attempts", async () => {
   expect(onContinue).toHaveBeenCalledTimes(1);
 });
 
-it("links only to the Upshot repository, not upstream channels", () => {
+it("says how to record the first meeting, with no community links", () => {
   render(<FinalDescription />);
 
-  expect(screen.queryByRole("button", { name: "Discord" })).toBeNull();
-  expect(screen.queryByRole("button", { name: "X" })).toBeNull();
-  fireEvent.click(screen.getByRole("button", { name: "GitHub" }));
-  expect(mocks.openUrl).toHaveBeenCalledWith(
-    "https://github.com/AdamWebsiteFormula/grandmaster-app",
-    null,
-  );
+  expect(screen.queryByRole("button")).toBeNull();
+  expect(
+    screen.getByText(/press ⌘N, to record your first meeting/),
+  ).toBeTruthy();
 });
 
 it("reminds you to tell people and shows the chat notice switch, off by default", () => {

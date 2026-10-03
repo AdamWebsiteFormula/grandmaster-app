@@ -163,8 +163,12 @@ export function useUpshotPro(): boolean {
 
 // ---------- the account dialog (sign up or sign in, then checkout) ----------
 
+export type AccountMode = "signup" | "signin";
+
 type UpgradeDialogState = {
   open: boolean;
+  /** Fork: "Sign in" opens the sign-in form, Upgrade the sign-up form (ux-audit-oct3 D). */
+  mode: AccountMode;
   interval: PlanInterval;
   /** Go on to checkout after sign-in (false for a plain "Sign in"). */
   checkout: boolean;
@@ -173,6 +177,7 @@ type UpgradeDialogState = {
 
 export const useUpgradeDialog = create<UpgradeDialogState>(() => ({
   open: false,
+  mode: "signup",
   interval: "month",
   checkout: true,
   error: null,
@@ -182,6 +187,7 @@ export const useUpgradeDialog = create<UpgradeDialogState>(() => ({
 export function openUpshotSignIn(): void {
   useUpgradeDialog.setState({
     open: true,
+    mode: "signin",
     interval: "month",
     checkout: false,
     error: null,
@@ -218,6 +224,7 @@ export async function openUpgrade(interval: PlanInterval = "month") {
   if (!useUpshotAccount.getState().session) {
     useUpgradeDialog.setState({
       open: true,
+      mode: "signup",
       interval,
       checkout: true,
       error: null,
@@ -229,6 +236,7 @@ export async function openUpgrade(interval: PlanInterval = "month") {
   } catch (error) {
     useUpgradeDialog.setState({
       open: true,
+      mode: "signup",
       interval,
       checkout: true,
       error: error instanceof Error ? error.message : String(error),

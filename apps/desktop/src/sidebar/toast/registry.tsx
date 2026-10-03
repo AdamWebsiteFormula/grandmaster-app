@@ -100,7 +100,7 @@ export function createToastRegistry({
     {
       toast: {
         id: "local-stt-loading",
-        description: t`Starting transcription...`,
+        description: t`Starting transcription…`,
         lifecycle: { type: "condition-bound" },
         loading: true,
       },
@@ -113,9 +113,10 @@ export function createToastRegistry({
     {
       toast: {
         id: "local-stt-unreachable",
-        description: t`Transcription unavailable`,
+        // Fork: say what happened and what to do (ux-audit-oct3 B; NN/g #9).
+        description: t`Transcription stopped. Pick another engine to keep going.`,
         primaryAction: {
-          label: t`Settings`,
+          label: t`Choose engine`,
           onClick: onOpenSTTSettings,
         },
         lifecycle: { type: "condition-bound" },
@@ -154,9 +155,10 @@ export function createToastRegistry({
     {
       toast: {
         id: "missing-stt",
-        description: t`Transcription provider needed`,
+        // Fork: plain words (ux-audit-oct3 B; NN/g #9).
+        description: t`Choose how Upshot transcribes`,
         primaryAction: {
-          label: t`Add`,
+          label: t`Choose`,
           onClick: onOpenSTTSettings,
         },
         lifecycle: { type: "condition-bound" },

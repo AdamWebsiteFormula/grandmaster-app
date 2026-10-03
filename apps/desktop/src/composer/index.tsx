@@ -115,7 +115,7 @@ function ComposerSettingsCard() {
     >
       <div className="flex items-center justify-between gap-3">
         <div data-tauri-drag-region className="min-w-0 flex-1 pr-4">
-          <p className="text-popover-foreground/38 text-xs font-semibold">
+          <p className="text-muted-foreground text-xs font-semibold">
             {t`Composer`}
           </p>
           <p className="text-popover-foreground/72 truncate pt-1 text-sm">
@@ -189,7 +189,7 @@ function ComposerInput({
     >
       <div className="mb-3 flex items-start justify-between gap-4">
         <div data-tauri-drag-region className="min-w-0 flex-1 pr-4">
-          <p className="text-popover-foreground/38 text-xs font-semibold">
+          <p className="text-muted-foreground text-xs font-semibold">
             {t`Composer`}
           </p>
           <p className="text-popover-foreground/90 truncate pt-1 text-[15px]">
@@ -232,7 +232,7 @@ function ComposerInput({
         className={cn([
           "text-popover-foreground max-h-[88px] min-h-[34px] overflow-y-auto text-[15px] leading-6",
           "[&_.ProseMirror]:min-h-[34px] [&_.ProseMirror]:outline-none",
-          "[&_.ProseMirror]:placeholder:text-popover-foreground/28",
+          "[&_.ProseMirror]:placeholder:text-muted-foreground",
         ])}
         initialContent={initialContent}
         mentionConfig={mentionConfig}
@@ -242,7 +242,7 @@ function ComposerInput({
       />
 
       <div className="mt-3 flex items-center justify-between gap-3">
-        <div className="text-popover-foreground/40 flex items-center gap-2 text-xs">
+        <div className="text-muted-foreground flex items-center gap-2 text-xs">
           <span className="bg-popover-foreground/8 rounded-full px-2 py-1">
             {t`Esc to dismiss`}
           </span>

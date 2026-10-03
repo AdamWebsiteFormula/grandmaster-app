@@ -45,7 +45,7 @@ export function AutoTemplateDetails() {
   if (sourceQuery.isLoading) {
     return (
       <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
-        <Trans>Loading Auto format...</Trans>
+        <Trans>Loading Auto format…</Trans>
       </div>
     );
   }
@@ -147,7 +147,7 @@ export function AutoFormatForm({
     >
       <div className="flex h-12 shrink-0 items-center justify-between gap-3 pr-1 pl-3">
         <div className="flex min-w-0 items-center gap-2">
-          <Sparkle className="size-4 shrink-0 text-primary" />
+          <Sparkle className="text-primary size-4 shrink-0" />
           <span className="truncate text-sm font-semibold">Auto</span>
         </div>
         <div className="flex shrink-0 items-center gap-1">
@@ -156,9 +156,9 @@ export function AutoFormatForm({
             size="sm"
             variant="ghost"
             className={cn([
-              "text-muted-foreground shrink-0 hover:text-black",
+              "text-muted-foreground hover:text-foreground shrink-0",
               isDefault
-                ? "text-primary hover:bg-transparent hover:text-primary disabled:opacity-100"
+                ? "text-primary hover:text-primary hover:bg-transparent disabled:opacity-100"
                 : null,
             ])}
             onClick={() => {

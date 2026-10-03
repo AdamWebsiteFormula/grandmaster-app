@@ -31,8 +31,10 @@ describe("ChatCTA", () => {
     render(<ChatCTA />);
 
     const button = screen.getByRole("button", {
-      name: "Ask Upshot anything",
+      name: "Ask anything",
     });
+    expect(button.getAttribute("aria-keyshortcuts")).toBe("Meta+J");
+    expect(button.textContent).toContain("⌘ J");
 
     fireEvent.click(button);
 
@@ -46,9 +48,7 @@ describe("ChatCTA", () => {
 
       render(<ChatCTA />);
 
-      expect(
-        screen.queryByRole("button", { name: "Ask Upshot anything" }),
-      ).toBeNull();
+      expect(screen.queryByRole("button", { name: "Ask anything" })).toBeNull();
     },
   );
 });

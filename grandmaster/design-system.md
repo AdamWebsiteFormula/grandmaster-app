@@ -28,27 +28,33 @@ What we take: the near-black base, one bright accent used sparingly, black text 
 
 Bare HSL triples in `packages/design-system/src/tokens.css`, read as `hsl(var(--x))`. Never put hex or `oklch()` there.
 
-| Token | Dark (default) | Use |
-|---|---|---|
-| `--background` | `0 0% 0%` | Window, sidebar, note body |
-| `--foreground` | `0 0% 96%` | Body text |
-| `--card` | `0 0% 6%` | Raised panels, cards |
-| `--popover` | `0 0% 8%` | Menus and popovers (dialogs: see Dialogs below) |
-| `--secondary`, `--muted` | `0 0% 10%` | Quiet fills, chips, inputs |
-| `--muted-foreground` | `0 0% 60%` | Metadata, hints |
-| `--accent` | `0 0% 13%` | Hover fill; track of a segmented control on a `bg-muted` card (shadcn name, not the brand accent) |
-| `--sidebar-accent` | `0 0% 19%` | Active sidebar row (Home nav and Settings nav), above the 13% hover |
-| `--border` | `0 0% 24%` | Hairlines |
-| `--input` | `0 0% 42%` | Field borders (3.9:1 on black, 3.3:1 on `--muted`) |
-| `--primary` | `20 100% 56%` | The brand accent: primary buttons, links |
-| `--primary-foreground` | `0 0% 0%` | Text on the accent |
-| `--ring` | `20 100% 56%` | Focus ring |
-| `--destructive` | `0 72% 51%` | Delete, errors |
-| `--app-floating-panel` | `0 0% 5%` | Floating bar body, opaque |
+| Token | Dark (default) | Light | Use |
+|---|---|---|---|
+| `--background` | `0 0% 0%` | `60 9% 98%` | Window, sidebar, note body |
+| `--foreground` | `0 0% 96%` | `24 10% 10%` | Body text |
+| `--card` | `0 0% 6%` | `0 0% 100%` | Raised panels, cards |
+| `--popover` | `0 0% 8%` | `0 0% 100%` | Menus and popovers (dialogs: see Dialogs below) |
+| `--secondary`, `--muted` | `0 0% 10%` | `60 5% 96%` | Quiet fills, chips, inputs |
+| `--muted-foreground` | `0 0% 60%` | `25 5% 40%` | Metadata, hints, placeholders (4.6:1 or more on every surface, both themes) |
+| `--accent` | `0 0% 13%` | `60 5% 94%` | Hover fill; track of a segmented control on a `bg-muted` card (shadcn name, not the brand accent) |
+| `--sidebar-accent` | `0 0% 19%` | `60 5% 90%` | Active sidebar row (Home nav and Settings nav), above the 13% hover |
+| `--border` | `0 0% 24%` | `24 6% 90%` | Hairlines |
+| `--input` | `0 0% 42%` | `24 5% 50%` | Field borders (3:1 or more on every surface a field sits on, both themes) |
+| `--primary` | `20 100% 56%` | `20 100% 46%` | The brand accent: fills (primary buttons, checks, gauges). Light is one step deeper so marks reach 3:1 |
+| `--primary-text` | `20 100% 56%` | `20 100% 35%` | Orange text: `text-primary`, note links, hashtags (4.5:1 or more). Read through `--text-color-primary` |
+| `--primary-foreground` | `0 0% 0%` | `0 0% 0%` | Text on the accent |
+| `--ring` | `20 100% 56%` | `20 100% 46%` | Focus ring (3:1 or more, both themes) |
+| `--destructive` | `0 72% 51%` | `0 72% 45%` | Delete buttons (white text 4.6:1 dark, 5.6:1 light) |
+| `--destructive-text` | `0 86% 72%` | `0 72% 45%` | Error text: `text-destructive` (4.5:1 or more). Read through `--text-color-destructive` |
+| `--app-floating-panel` | `0 0% 5%` | `60 9% 98%` | Floating bar body, opaque |
 
 ### Contrast (Oct 3)
 
-Light tokens are unchanged. Dark keeps the pure-black base; only the steps above it moved.
+Dark keeps the pure-black base; only the steps above it moved. The full audit, with every pair in both themes, is `grandmaster/sops/contrast-audit.md`.
+
+- Text never fades below 4.5:1 (WCAG 2.2 SC 1.4.3). Use `text-muted-foreground`, never `text-muted-foreground/70`, `opacity-60` on text, or a fixed Tailwind gray or hue. Fades are for disabled controls and decoration only.
+- Orange and red have a text shade and a fill shade. Tailwind v4 reads `--text-color-*` before `--color-*` for `text-*`, so `text-primary` and `text-destructive` get `--primary-text` and `--destructive-text` while `bg-primary` and `bg-destructive` keep the fill (the Radix scale does the same: step 9 for fills, step 11 for text).
+- Text fields use `border-input`, never `border-border`.
 
 - State indicators need 3:1 against what is next to them (WCAG 2.2 SC 1.4.11 Non-text Contrast, w3.org/WAI/WCAG22/Understanding/non-text-contrast.html). Field borders (`--input`, 42%) meet it. Hairlines (`--border`, 24%) are decoration, not state, so they only need to be seen: 1.8:1 on the 6% panel, up from 1.4:1 at 16%.
 - Steps follow the Radix scale roles (radix-ui.com/colors/docs/palette-composition/understanding-the-scale): app background, then component fills (muted 10%, accent 13%, selected 19%), then borders (24%, field borders 42%).
@@ -66,7 +72,7 @@ Data colors are the one exception: transcript speaker labels get distinct hues s
 
 While recording, the red Stop in the bottom recording bar is the main action. It is the only Stop on screen, and the "New note" button turns gray until recording ends.
 
-Adam picked orange on Oct 2 (the blueprint offered mint or violet). It matches the app icon. To change it later, edit `--primary` and `--ring` in both token blocks, `--selection-overlay` in `dark-theme.css`, and the splash in `apps/desktop/index.html`.
+Adam picked orange on Oct 2 (the blueprint offered mint or violet). It matches the app icon. To change it later, edit `--primary`, `--primary-text` and `--ring` in both token blocks (light uses deeper shades: 46% for fills and the ring, 35% for text), `--selection-overlay` in `dark-theme.css`, and the splash in `apps/desktop/index.html`.
 
 ## Type
 

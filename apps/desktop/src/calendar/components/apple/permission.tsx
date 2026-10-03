@@ -131,7 +131,7 @@ export function AccessPermissionRow({
         <div
           className={cn([
             "mb-1 flex items-center gap-2",
-            !isAuthorized && "text-red-500",
+            !isAuthorized && "text-destructive",
           ])}
         >
           {!isAuthorized && <WarningCircle className="size-4" />}
@@ -172,7 +172,7 @@ export function AccessPermissionRow({
 }
 
 export function TroubleShootingLink({
-  onRequest,
+  onRequest: _onRequest,
   onReset,
   onOpen,
   isPending,
@@ -184,7 +184,6 @@ export function TroubleShootingLink({
   isPending: boolean;
   className?: string;
 }) {
-  const { t } = useLingui();
   const [showActions, setShowActions] = useState(false);
   return (
     <div className={cn(["text-muted-foreground text-xs", className])}>
@@ -198,18 +197,17 @@ export function TroubleShootingLink({
         </button>
       ) : (
         <div>
-          <Trans>You can</Trans>{" "}
-          <ActionLink onClick={onRequest} disabled={isPending}>
-            {t`Request`},
-          </ActionLink>{" "}
-          <ActionLink onClick={onReset} disabled={isPending}>
-            <Trans>Reset</Trans>
-          </ActionLink>{" "}
-          <Trans>or</Trans>{" "}
+          {/* Fork: plain words for what each link does (UX audit Oct 3, A:
+              NN/g #2, #9). */}
+          <Trans>Calendar access is off.</Trans>{" "}
           <ActionLink onClick={onOpen} disabled={isPending}>
-            <Trans>Open</Trans>
+            <Trans>Open System Settings</Trans>
           </ActionLink>{" "}
-          <Trans>permission panel.</Trans>{" "}
+          <Trans>to turn it on, or</Trans>{" "}
+          <ActionLink onClick={onReset} disabled={isPending}>
+            <Trans>Reset calendar access</Trans>
+          </ActionLink>{" "}
+          <Trans>and try again.</Trans>{" "}
           <ActionLink onClick={() => setShowActions(false)}>
             <ArrowLeft className="inline-block size-3 underline" />
             <Trans>Back</Trans>

@@ -1,11 +1,13 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { RecordingBar } from "./recording-bar";
+import { formatElapsed, RecordingBar } from "./recording-bar";
 
 const mocks = vi.hoisted(() => ({
   isMainWebviewWindow: true,
   mode: "active",
+  muted: false,
+  seconds: 0,
   requestMainListenerControl: vi.fn(),
   stop: vi.fn(),
 }));
@@ -14,7 +16,11 @@ vi.mock("~/stt/contexts", () => ({
   useListener: (selector: (state: unknown) => unknown) =>
     selector({
       getSessionMode: () => mocks.mode,
-      live: { amplitude: { mic: 0, speaker: 0 }, muted: false },
+      live: {
+        amplitude: { mic: 0, speaker: 0 },
+        muted: mocks.muted,
+        seconds: mocks.seconds,
+      },
       stop: mocks.stop,
     }),
 }));
@@ -30,6 +36,8 @@ describe("RecordingBar", () => {
   beforeEach(() => {
     mocks.isMainWebviewWindow = true;
     mocks.mode = "active";
+    mocks.muted = false;
+    mocks.seconds = 0;
     mocks.requestMainListenerControl.mockClear();
     mocks.stop.mockClear();
   });
@@ -64,5 +72,43 @@ describe("RecordingBar", () => {
       "session-1",
     );
     expect(mocks.stop).not.toHaveBeenCalled();
+  });
+
+  it("shows the elapsed recording time as mm:ss", () => {
+    mocks.seconds = 125;
+    render(<RecordingBar sessionId="session-1" />);
+
+    expect(screen.getByLabelText("Recording time").textContent).toBe("02:05");
+  });
+
+  it("says the mic is muted, not that recording stopped", () => {
+    mocks.muted = true;
+    render(<RecordingBar sessionId="session-1" />);
+
+    const label = screen.getByText("Your mic is muted");
+    expect(label.getAttribute("title")).toBe(
+      "Unmute in your call to be recorded",
+    );
+  });
+
+  it.each(["finalizing", "running_batch"])(
+    "shows Finishing transcript without Stop while %s",
+    (mode) => {
+      mocks.mode = mode;
+      render(<RecordingBar sessionId="session-1" />);
+
+      expect(screen.getByRole("status").textContent).toContain(
+        "Finishing transcript…",
+      );
+      expect(screen.queryByRole("button", { name: "Stop" })).toBeNull();
+    },
+  );
+});
+
+describe("formatElapsed", () => {
+  it("pads minutes and seconds", () => {
+    expect(formatElapsed(0)).toBe("00:00");
+    expect(formatElapsed(59)).toBe("00:59");
+    expect(formatElapsed(3600)).toBe("60:00");
   });
 });

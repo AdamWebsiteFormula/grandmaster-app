@@ -24,7 +24,10 @@ use crate::{
 };
 
 #[cfg(target_os = "macos")]
-use crate::menu_items::{AppInfo, AppNew, HelpReportBug, HelpSuggestFeature, TrayQuit};
+use crate::menu_items::{
+    AppBlankNote, AppInfo, AppNew, EditFind, HelpAppHelp, HelpKeyboardShortcuts, HelpReportBug,
+    HelpSuggestFeature, TrayQuit, ViewSidebar,
+};
 use crate::menu_items::{
     MenuItemHandler, TrayCheckUpdate, TrayHide, TrayOpen, TrayQuitCompletely, TraySettings,
     TrayShowEvents, TrayStart, TrayVersion, build_agenda_item,
@@ -90,12 +93,16 @@ pub fn build_app_menu(app: &AppHandle<tauri::Wry>) -> Result<Menu<tauri::Wry>> {
             ],
         )?
     };
+    // Fork: HIG menu bar: one Close (in File), Bring all to front, View ›
+    // sidebar, Edit › Find, and Help items (UX audit Oct 3, A).
     let file_submenu = Submenu::with_items(
         app,
         "File",
         true,
         &[
             &AppNew::build(app)?,
+            &AppBlankNote::build(app)?,
+            &PredefinedMenuItem::separator(app)?,
             &PredefinedMenuItem::close_window(app, None)?,
         ],
     )?;
@@ -111,13 +118,19 @@ pub fn build_app_menu(app: &AppHandle<tauri::Wry>) -> Result<Menu<tauri::Wry>> {
             &PredefinedMenuItem::copy(app, None)?,
             &PredefinedMenuItem::paste(app, None)?,
             &PredefinedMenuItem::select_all(app, None)?,
+            &PredefinedMenuItem::separator(app)?,
+            &EditFind::build(app)?,
         ],
     )?;
     let view_submenu = Submenu::with_items(
         app,
         "View",
         true,
-        &[&PredefinedMenuItem::fullscreen(app, None)?],
+        &[
+            &ViewSidebar::build(app)?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::fullscreen(app, None)?,
+        ],
     )?;
     let window_submenu = Submenu::with_id_and_items(
         app,
@@ -128,7 +141,7 @@ pub fn build_app_menu(app: &AppHandle<tauri::Wry>) -> Result<Menu<tauri::Wry>> {
             &PredefinedMenuItem::minimize(app, None)?,
             &PredefinedMenuItem::maximize(app, None)?,
             &PredefinedMenuItem::separator(app)?,
-            &PredefinedMenuItem::close_window(app, None)?,
+            &PredefinedMenuItem::bring_all_to_front(app, None)?,
         ],
     )?;
     let help_submenu = Submenu::with_id_and_items(
@@ -137,6 +150,9 @@ pub fn build_app_menu(app: &AppHandle<tauri::Wry>) -> Result<Menu<tauri::Wry>> {
         "Help",
         true,
         &[
+            &HelpAppHelp::build(app)?,
+            &HelpKeyboardShortcuts::build(app)?,
+            &PredefinedMenuItem::separator(app)?,
             &HelpReportBug::build(app)?,
             &HelpSuggestFeature::build(app)?,
         ],

@@ -151,10 +151,14 @@ function HeaderViewEnhancedActive({
   const noteMarkdown = useMemo(() => getStoredNoteMarkdown(content), [content]);
 
   const handleCopy = useCallback(() => {
-    return copyTextToClipboard(noteMarkdown, {
-      success: `${viewTitle} copied to clipboard`,
-      error: `Failed to copy ${viewTitle}`,
-    });
+    return copyTextToClipboard(
+      noteMarkdown,
+      {
+        success: `${viewTitle} copied to clipboard`,
+        error: `Failed to copy ${viewTitle}`,
+      },
+      { html: true },
+    );
   }, [noteMarkdown, viewTitle]);
   const handleRegenerate = useCallback(() => {
     void onRegenerate(null);

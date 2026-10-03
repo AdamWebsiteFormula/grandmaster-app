@@ -1,3 +1,5 @@
+import { useLingui } from "@lingui/react/macro";
+
 import { DancingSticks } from "@anlg/ui/components/ui/dancing-sticks";
 
 import { LiveTranscriptInterruptedNotice } from "./interrupted";
@@ -9,6 +11,7 @@ export function BatchState({
 }: {
   requestedLiveTranscription: boolean | null;
 }) {
+  const { t } = useLingui();
   const amplitude = useListener((state) => state.live.amplitude);
 
   if (requestedLiveTranscription === true) {
@@ -35,9 +38,10 @@ export function BatchState({
         />
       </div>
       <div className="flex max-w-md flex-col gap-2">
-        <p className="text-base font-medium">Batch transcription mode</p>
+        {/* Fork: no "batch" jargon (ux-audit-oct3 C, NN/g #2). */}
+        <p className="text-base font-medium">{t`Transcript comes after you stop`}</p>
         <p className="text-muted-foreground text-sm leading-relaxed">
-          Recording continues. Your transcript will be generated after you stop.
+          {t`Recording continues. Your transcript appears here after you click Stop.`}
         </p>
       </div>
     </div>

@@ -68,7 +68,10 @@ describe("ChatToolbarControls", () => {
     );
 
     expect(onOpenRightPanel).toHaveBeenCalledOnce();
-    expect(screen.queryByRole("button", { name: "Close chat" })).toBeNull();
+    // Fork: the floating chat has a close button too (ux-audit-oct3 D).
+    fireEvent.click(screen.getByRole("button", { name: "Close chat" }));
+    expect(onClose).toHaveBeenCalledOnce();
+    onClose.mockClear();
 
     rerender(
       <ChatToolbarControls

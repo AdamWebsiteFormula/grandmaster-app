@@ -13,7 +13,9 @@ impl MenuItemHandler for TraySettings {
     const ID: &'static str = "anlg_tray_settings";
 
     fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
-        let item = MenuItem::with_id(app, Self::ID, "Settings", true, None::<&str>)?;
+        // Fork: HIG App menu: "Settings…" with ⌘, (UX audit Oct 3, A). The web
+        // mod+, hotkey is gone so it never fires twice.
+        let item = MenuItem::with_id(app, Self::ID, "Settings…", true, Some("CmdOrCtrl+,"))?;
         Ok(MenuItemKind::MenuItem(item))
     }
 

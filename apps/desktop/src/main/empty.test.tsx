@@ -51,7 +51,7 @@ describe("TabContentEmpty", () => {
 
     expect(screen.getByText("Home view")).toBeTruthy();
     expect(
-      screen.getByRole("button", { name: "Ask Upshot anything" }),
+      screen.getByRole("button", { name: "Ask anything" }),
     ).toBeTruthy();
   });
 });

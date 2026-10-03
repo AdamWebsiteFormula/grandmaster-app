@@ -40,6 +40,8 @@ export function GenerateSummary({
         onClick={handleGenerate}
         disabled={!model}
         size="sm"
+        // Fork: one orange accent per screen (ux-audit-oct3 C, design-system).
+        variant="secondary"
         className="shrink-0 gap-2"
       >
         <Sparkle size={16} />

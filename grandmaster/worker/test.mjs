@@ -462,7 +462,10 @@ test("billing pages: white, logo, checkmark on success, a way back", async () =>
   );
   assert.match(html, /class="check"/);
   assert.match(html, /You're on Upshot Pro/);
-  assert.match(html, /Pro is ready in Upshot. You can close this tab./);
+  assert.match(
+    html,
+    /Pro turns on in Upshot within a minute. You can close this tab./,
+  );
   assert.match(html, /href="upshot:\/\/">Open Upshot</);
   assert.match(html, /class="note">Test mode/);
   assert.match(done.headers.get("content-security-policy"), /img-src 'self'/);
@@ -641,6 +644,72 @@ test("checkout route posts form data to Stripe and returns the url", async () =>
     });
     assert.equal(form.get("line_items[0][price]"), "price_year");
     assert.equal(form.get("cancel_url"), "https://upshot.test/billing/cancel");
+  } finally {
+    mock.restore();
+  }
+});
+
+test("auth: wrong password and existing email get plain messages", async () => {
+  const signupBodies = [
+    [
+      422,
+      {
+        code: 422,
+        error_code: "user_already_exists",
+        msg: "User already registered",
+      },
+    ],
+    [200, { id: "fake", email: "judge@example.com", identities: [] }],
+  ];
+  let signupCall = 0;
+  const mock = mockFetch([
+    [
+      "https://sb.test/auth/v1/token?grant_type=password",
+      () =>
+        Response.json(
+          {
+            error: "invalid_grant",
+            error_description: "Invalid login credentials",
+          },
+          { status: 400 },
+        ),
+    ],
+    [
+      "https://sb.test/auth/v1/signup",
+      () => {
+        const [status, body] = signupBodies[signupCall++];
+        return Response.json(body, { status });
+      },
+    ],
+  ]);
+  const post = (path) =>
+    worker.fetch(
+      new Request(`https://w${path}`, {
+        method: "POST",
+        body: JSON.stringify({
+          email: "judge@example.com",
+          password: "password123",
+        }),
+      }),
+      baseEnv,
+    );
+  try {
+    const login = await post("/auth/login");
+    assert.equal(login.status, 400);
+    assert.deepEqual(await login.json(), {
+      error: { message: "Wrong email or password." },
+    });
+    for (let i = 0; i < signupBodies.length; i++) {
+      const signup = await post("/auth/signup");
+      assert.equal(signup.status, 409);
+      assert.deepEqual(await signup.json(), {
+        error: {
+          message:
+            "An account with this email already exists. Sign in instead.",
+          code: "account_exists",
+        },
+      });
+    }
   } finally {
     mock.restore();
   }

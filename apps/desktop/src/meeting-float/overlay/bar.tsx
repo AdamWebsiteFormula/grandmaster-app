@@ -35,10 +35,12 @@ export function FloatingBarOverlay({
   state,
   onStop,
   onToggleExpanded,
+  onOpenMain,
 }: {
   state: FloatingBarState;
   onStop: () => void;
   onToggleExpanded: (expanded: boolean) => void;
+  onOpenMain?: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
   const isExpanded =
@@ -80,6 +82,14 @@ export function FloatingBarOverlay({
             hovered && !isExpanded ? colors.envelopeSurface : colors.surface,
           boxShadow: `inset 0 0 0 0.5px ${colors.outerStroke}`,
         }}
+        // Fork: clicking the bar body brings back the note being recorded
+        // (ux-audit-oct3 C, NN/g #3). Buttons and the live transcript keep their own clicks.
+        onClick={(event) => {
+          if (!onOpenMain || state.dictation) return;
+          const target = event.target as HTMLElement;
+          if (target.closest("button, [data-floating-transcript]")) return;
+          onOpenMain();
+        }}
       >
         {showsHoverHandle && <HoverHandle color={colors.handle} />}
         <div
@@ -92,6 +102,7 @@ export function FloatingBarOverlay({
         >
           {isExpanded && (
             <div
+              data-floating-transcript
               className="absolute inset-x-0"
               style={{
                 top: expandsUpward ? 0 : FLOATING_BAR_COMPACT_HEIGHT,
@@ -197,7 +208,9 @@ function StopControl({
     <button
       type="button"
       data-tauri-drag-region="false"
-      aria-label={state.dictation ? "Finish dictation" : "Stop listening"}
+      // Fork: shared recording vocabulary, and a visible name before hover (ux-audit-oct3 C, NN/g #1, #4).
+      aria-label={state.dictation ? "Finish dictation" : "Stop recording"}
+      title={state.dictation ? "Finish dictation" : "Stop recording"}
       disabled={state.dictation?.phase === "transcribing"}
       onClick={onStop}
       onMouseEnter={() => setHovered(true)}
@@ -293,7 +306,7 @@ function TranscriptList({
           {!dictation && notice ? (
             <p
               role="status"
-              className="px-3 py-1.5 text-center text-[12px] leading-4"
+              className="px-3 py-1.5 text-center text-xs leading-4"
               style={{
                 color:
                   colorScheme === "dark"
@@ -353,12 +366,22 @@ function TranscriptBubble({
     >
       <div className="max-w-[calc(100%-40px)] text-left">
         {(showsSpeakerLabel || overlapping) && (
-          <p className="mb-1 text-xs font-semibold text-white">
+          <p
+            className={cn([
+              "mb-1 text-xs font-semibold",
+              // Light bar: dark text; white on the pale surface is 1.3:1
+              // (WCAG 2.2 SC 1.4.3).
+              colorScheme === "dark" ? "text-white" : "text-[rgb(31,28,26)]",
+            ])}
+          >
             {showsSpeakerLabel ? bubble.speakerLabel : ""}
           </p>
         )}
         <p
-          className="rounded-[11px] px-2.5 py-2 text-sm leading-5 text-white"
+          className={cn([
+            "rounded-[11px] px-2.5 py-2 text-sm leading-5",
+            colorScheme === "dark" ? "text-white" : "text-[rgb(31,28,26)]",
+          ])}
           style={{
             background: bubble.isSelf
               ? `rgba(0, 0, 0, ${colorScheme === "dark" ? 0.34 : 0.24})`

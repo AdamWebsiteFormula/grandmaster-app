@@ -1,3 +1,4 @@
+import { useLingui } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 
@@ -51,7 +52,10 @@ function useDeepgramHealth(enabled: boolean, apiKey?: string) {
   });
 }
 
+// Fork: every error says how to fix it, in American English through t()
+// (ux-audit-oct3 E, NN/g #9).
 export function useConnectionHealth(): HealthStatus {
+  const { t } = useLingui();
   const { conn, local } = useSTTConnection();
   const { current_stt_provider, current_stt_model } = useConfigValues([
     "current_stt_provider",
@@ -77,7 +81,7 @@ export function useConnectionHealth(): HealthStatus {
   if (isManagedProvider && current_stt_model && !isCloud && !isLocalModel) {
     return {
       status: "error",
-      message: "Selected model is no longer available.",
+      message: t`This model is no longer available. Pick another model above.`,
     };
   }
 
@@ -86,13 +90,13 @@ export function useConnectionHealth(): HealthStatus {
     if (serverStatus === "not_downloaded") {
       return {
         status: "error",
-        message: "Selected model is not downloaded.",
+        message: t`This model isn’t downloaded yet. Open the model menu and choose Download.`,
       };
     }
     if (serverStatus === "not_selected") {
       return {
         status: "error",
-        message: "Choose a local transcription model file.",
+        message: t`No model file chosen yet. Choose one above.`,
       };
     }
     if (serverStatus === "error") {
@@ -101,13 +105,13 @@ export function useConnectionHealth(): HealthStatus {
         message:
           local.data && "error" in local.data
             ? local.data.error
-            : "Could not load the local speech-to-text model.",
+            : t`Couldn’t load the on-device model. Pick another model, or delete and download this one again.`,
       };
     }
     if (serverStatus === "loading") {
       return {
         status: "pending",
-        message: "Local STT server is starting up…",
+        message: t`Starting the on-device model…`,
       };
     }
     if (serverStatus === "ready" && conn) {
@@ -115,22 +119,25 @@ export function useConnectionHealth(): HealthStatus {
     }
     return {
       status: "error",
-      message: "Could not connect to the local speech-to-text model.",
+      message: t`Couldn’t reach the on-device model. Quit and reopen Upshot, or pick another model.`,
     };
   }
 
   if (!conn) {
-    return { status: "error", message: "Provider not configured." };
+    return {
+      status: "error",
+      message: t`This provider isn’t set up. Add its API key under Configure providers.`,
+    };
   }
 
   if (isDeepgram) {
     if (deepgramHealth.isPending) {
-      return { status: "pending", message: "Verifying API key..." };
+      return { status: "pending", message: t`Checking your API key…` };
     }
     if (deepgramHealth.isError) {
       return {
         status: "error",
-        message: `API key verification failed: ${deepgramHealth.error.message}`,
+        message: t`Your API key didn’t work (${deepgramHealth.error.message}). Check it under Configure providers.`,
       };
     }
     if (deepgramHealth.isSuccess) {
@@ -141,7 +148,7 @@ export function useConnectionHealth(): HealthStatus {
   if (usesDeferredProviderAuthentication("stt", current_stt_provider ?? "")) {
     return {
       status: null,
-      message: "Credentials will be checked when transcription starts.",
+      message: t`Credentials will be checked when transcription starts.`,
     };
   }
   return { status: "success" };

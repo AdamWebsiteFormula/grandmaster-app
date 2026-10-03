@@ -181,4 +181,52 @@ describe("UndoDeleteToast", () => {
       }),
     );
   });
+
+  it("restores the latest deleted note with Cmd+Z outside text fields", () => {
+    mocks.restoreDeletedSession.mockImplementation(() => new Promise(() => {}));
+    act(() => {
+      useUndoDelete.getState().addDeletion({
+        session: { id: "session-1", title: "Design sync" },
+        tombstone: "tombstone",
+        deletedAt: Date.now(),
+      });
+    });
+
+    const queryClient = new QueryClient();
+    render(
+      <QueryClientProvider client={queryClient}>
+        <input aria-label="Title" />
+        <UndoDeleteToast />
+      </QueryClientProvider>,
+    );
+
+    // Text fields keep their own undo.
+    const input = document.querySelector("input")!;
+    act(() => {
+      input.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: "z",
+          metaKey: true,
+          bubbles: true,
+        }),
+      );
+    });
+    expect(mocks.restoreDeletedSession).not.toHaveBeenCalled();
+
+    act(() => {
+      document.body.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: "z",
+          metaKey: true,
+          bubbles: true,
+        }),
+      );
+    });
+    expect(mocks.restoreDeletedSession).toHaveBeenCalledOnce();
+    expect(mocks.openCurrent).toHaveBeenCalledWith({
+      type: "sessions",
+      id: "session-1",
+    });
+    expect(useUndoDelete.getState().pendingDeletions).toEqual({});
+  });
 });

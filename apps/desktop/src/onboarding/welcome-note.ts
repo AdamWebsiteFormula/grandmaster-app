@@ -27,7 +27,7 @@ Upshot takes notes for your meetings. No bot joins your call.
 **Finish:** click **Stop** at the bottom. Upshot turns your notes and the transcript into a clear summary with Upshot AI.
 
 
-**See an example:** open **Example: Product sync** in the sidebar for a finished summary and transcript.
+**See an example:** open **Example: Product sync** on Home for a finished summary and transcript.
 
 
 Your notes, transcripts and audio stay on this Mac.`;

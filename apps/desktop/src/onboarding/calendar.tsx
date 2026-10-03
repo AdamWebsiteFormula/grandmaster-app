@@ -44,7 +44,7 @@ function AppleCalendarList() {
       onRefresh={handleRefresh}
       isLoading={isLoading}
       disableHoverTone
-      className="border-border/45 bg-card/28 rounded-xl border p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_24px_-20px_rgba(0,0,0,0.35)] backdrop-blur-md backdrop-saturate-150"
+      className="border-border bg-card rounded-xl border p-4"
     />
   );
 }
@@ -82,7 +82,7 @@ function AppleCalendarProvider({
             onRequest();
           }}
           disabled={isPending}
-          className="border-border bg-card text-foreground hover:bg-accent flex h-full w-full items-center justify-center gap-3 border px-6 shadow-[0_2px_6px_rgba(0,0,0,0.08),0_10px_18px_-10px_rgba(0,0,0,0.22)] transition-all duration-150"
+          className="border-border bg-card text-foreground hover:bg-accent flex h-full w-full items-center justify-center gap-3 border px-6 transition-all duration-150"
         >
           <img
             src="/assets/apple-calendar.png"
@@ -90,7 +90,13 @@ function AppleCalendarProvider({
             aria-hidden="true"
             className="size-6 rounded-[4px] object-cover"
           />
-          <Trans>Connect calendar</Trans>
+          {/* Fork: once access is on, the button says where it goes (UX audit
+              Oct 3, A: NN/g #2). */}
+          {isAuthorized ? (
+            <Trans>Open Calendar settings</Trans>
+          ) : (
+            <Trans>Connect calendar</Trans>
+          )}
         </OnboardingButton>
       </div>
     </>
@@ -118,7 +124,7 @@ function CalendarSectionContent({ onContinue }: { onContinue: () => void }) {
 
       <p className="text-muted-foreground text-sm">
         <Trans>
-          Google or Outlook calendars added in System Settings → Internet
+          Google or Outlook calendars added in System Settings › Internet
           Accounts show up here too.
         </Trans>
       </p>

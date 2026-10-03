@@ -121,8 +121,8 @@ export function SpokenLanguagesView({
       <div className="relative">
         <div
           className={cn([
-            "border-border bg-card focus-within:border-border flex min-h-[38px] w-full flex-wrap items-center gap-1.5 rounded-2xl border px-2 py-1.5",
-            languageInputFocused && "border-border",
+            "border-input bg-card focus-within:border-input flex min-h-[38px] w-full flex-wrap items-center gap-1.5 rounded-2xl border px-2 py-1.5",
+            languageInputFocused && "border-input",
           ])}
           onClick={() =>
             document.getElementById("language-search-input")?.focus()
@@ -139,13 +139,14 @@ export function SpokenLanguagesView({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="ml-0.5 h-3 w-3 p-0 hover:bg-transparent"
+                aria-label={t`Remove ${getBaseLanguageDisplayName(code, i18n.locale)}`}
+                className="-my-1 -mr-1.5 size-6 p-0 hover:bg-transparent"
                 onClick={(e) => {
                   e.stopPropagation();
                   onChange(selectedLanguageCodes.filter((c) => c !== code));
                 }}
               >
-                <X className="h-2.5 w-2.5" />
+                <X className="size-3" />
               </Button>
             </Badge>
           ))}

@@ -6,7 +6,6 @@ import { Check } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogTitle,
 } from "@anlg/ui/components/ui/dialog";
@@ -23,6 +22,10 @@ import type { ActivityRecord } from "./queries";
 import { ProgressBar } from "./tremor/progress-bar";
 
 import { useAuth } from "~/auth";
+import {
+  GlassDialogCancelButton,
+  GlassDialogContent,
+} from "~/shared/ui/glass-dialog";
 import { DEFAULT_USER_ID } from "~/shared/utils";
 import { commands } from "~/types/tauri.gen";
 
@@ -148,35 +151,35 @@ export function BadgeGallery({
       description: t`Create your Upshot account. A place for your conversations to call home.`,
     },
     "all-set": {
-      name: t`All Set`,
+      name: t`All set`,
       description: t`Complete onboarding. You're ready for your next conversation.`,
     },
     "first-words": {
-      name: t`First Words`,
+      name: t`First words`,
       description: t`Capture your first conversation. Every collection starts somewhere.`,
     },
     "good-listener": {
-      name: t`Good Listener`,
+      name: t`Good listener`,
       description: t`Capture 10 conversations. More moments you can return to.`,
     },
     "memory-keeper": {
-      name: t`Memory Keeper`,
+      name: t`Memory keeper`,
       description: t`Capture 50 conversations. A growing collection of ideas and decisions.`,
     },
     "story-collector": {
-      name: t`Story Collector`,
+      name: t`Story collector`,
       description: t`Capture 100 conversations. A hundred stories, saved in your own words.`,
     },
     "living-library": {
-      name: t`Living Library`,
+      name: t`Living library`,
       description: t`Capture 250 conversations. Your own library of shared knowledge.`,
     },
     "finding-rhythm": {
-      name: t`Finding Your Rhythm`,
+      name: t`Finding your rhythm`,
       description: t`Capture conversations in 4 different weeks. They don't need to be consecutive.`,
     },
     "familiar-face": {
-      name: t`Familiar Face`,
+      name: t`Familiar face`,
       description: t`Capture conversations in 12 different weeks. A little at a time, at your own pace.`,
     },
   };
@@ -229,7 +232,6 @@ export function BadgeGallery({
             <button
               type="button"
               onClick={() => setSelectedId(badge.id)}
-              aria-label={badge.name}
               className="bg-background border-border hover:bg-muted focus-visible:outline-ring isolate flex h-full w-full cursor-pointer flex-col items-center gap-3 rounded-2xl border px-3 py-5 text-center focus-visible:outline-2 focus-visible:outline-offset-2"
             >
               <BadgeEmblem id={badge.id} collected={!!badge.collectedAt} />
@@ -261,7 +263,10 @@ export function BadgeGallery({
         }}
       >
         {selected && (
-          <DialogContent className="isolate max-w-sm rounded-2xl">
+          // Fork: the shared sheet with a visible Done; badge names are
+          // sentence case and buttons are named by their text (ux-audit-oct3
+          // E, HIG sheets, WCAG 2.5.3).
+          <GlassDialogContent className="isolate">
             <div className="flex justify-center py-2">
               <BadgeEmblem
                 id={selected.id}
@@ -294,7 +299,13 @@ export function BadgeGallery({
                 />
               </div>
             )}
-          </DialogContent>
+            <GlassDialogCancelButton
+              className="justify-self-center"
+              onClick={() => setSelectedId(null)}
+            >
+              <Trans>Done</Trans>
+            </GlassDialogCancelButton>
+          </GlassDialogContent>
         )}
       </Dialog>
     </section>

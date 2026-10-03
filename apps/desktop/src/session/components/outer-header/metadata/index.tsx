@@ -1,3 +1,5 @@
+import { useLingui } from "@lingui/react/macro";
+
 import { commands as openerCommands } from "@anlg/plugin-opener2";
 import { MapPin, VideoCamera } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
@@ -73,6 +75,7 @@ export function EventDisplay({
   };
   children?: React.ReactNode;
 }) {
+  const { t } = useLingui();
   const timeFormat = useTimeFormat();
   const tz = useConfigValue("timezone") || undefined;
 
@@ -140,7 +143,8 @@ export function EventDisplay({
   return (
     <div className="flex flex-col gap-3">
       <div className="text-foreground min-w-0 text-base font-medium break-words">
-        {event.title || "Untitled Event"}
+        {/* Fork: sentence case (ux-audit-oct3 C). */}
+        {event.title || t`Untitled event`}
       </div>
 
       <div className="bg-accent h-px" />

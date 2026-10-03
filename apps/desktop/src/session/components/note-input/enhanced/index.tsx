@@ -76,7 +76,9 @@ export const Enhanced = forwardRef<
     const isConfigError = shouldShowEmptySummaryConfigError(llmStatus);
 
     if (status === "idle" && isConfigError && !hasContent) {
-      return <ConfigError />;
+      return (
+        <ConfigError sessionId={sessionId} enhancedNoteId={enhancedNoteId} />
+      );
     }
 
     if (showStreaming) {

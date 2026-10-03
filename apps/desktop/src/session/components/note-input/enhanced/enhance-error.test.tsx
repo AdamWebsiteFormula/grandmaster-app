@@ -38,7 +38,10 @@ vi.mock("~/store/zustand/ai-task/task-configs", () => ({
 
 import { EnhanceError } from "./enhance-error";
 
-function renderError(isUnauthenticated: boolean) {
+function renderError(
+  isUnauthenticated: boolean,
+  error = new Error("AI generation did not return any text."),
+) {
   const queryClient = new QueryClient({
     defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
   });
@@ -48,7 +51,7 @@ function renderError(isUnauthenticated: boolean) {
       <EnhanceError
         sessionId="session-1"
         enhancedNoteId="note-1"
-        error={new Error("AI generation did not return any text.")}
+        error={error}
         isUnauthenticated={isUnauthenticated}
       />
     </QueryClientProvider>,
@@ -87,6 +90,9 @@ describe("EnhanceError", () => {
 
     expect(screen.getByText("Summary generation failed")).toBeTruthy();
     expect(
+      screen.getByText("Upshot couldn't write this summary. Click Retry."),
+    ).toBeTruthy();
+    expect(
       screen.getByText("AI generation did not return any text."),
     ).toBeTruthy();
 
@@ -102,5 +108,16 @@ describe("EnhanceError", () => {
       },
     });
     expect(mocks.signIn).not.toHaveBeenCalled();
+  });
+
+  it("explains a network failure in plain words", () => {
+    renderError(false, new TypeError("Failed to fetch"));
+
+    expect(
+      screen.getByText(
+        "Upshot can't reach the internet. Check your connection, then click Retry.",
+      ),
+    ).toBeTruthy();
+    expect(screen.getByText("Failed to fetch")).toBeTruthy();
   });
 });

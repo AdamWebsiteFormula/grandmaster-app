@@ -1,7 +1,13 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { type AnyFieldApi, useForm } from "@tanstack/react-form";
 import { useMutation, useQueries } from "@tanstack/react-query";
-import { type ComponentType, type ReactNode, useMemo, useState } from "react";
+import {
+  type ComponentType,
+  type ReactNode,
+  useId,
+  useMemo,
+  useState,
+} from "react";
 import { Streamdown } from "streamdown";
 
 import { commands as analyticsCommands } from "@anlg/plugin-analytics";
@@ -56,6 +62,7 @@ import {
 } from "~/settings/providers";
 import { setSettingValues } from "~/settings/queries";
 import { staticAssetUrl, fallbackToLocalAsset } from "~/shared/static-assets";
+import { DestructiveConfirmationDialog } from "~/shared/ui/destructive-confirmation-dialog";
 import { SettingsAlertToast } from "~/shared/ui/settings-alert";
 
 export * from "./model-combobox";
@@ -472,6 +479,8 @@ export function NonAnarlogProviderCard({
     }
   };
 
+  const [confirmReset, setConfirmReset] = useState(false);
+
   const handleReset = async () => {
     if (clearProvider.isPending) {
       return;
@@ -502,21 +511,45 @@ export function NonAnarlogProviderCard({
 
   const hasAdvancedFields = (!showBaseUrl && !!config.baseUrl) || !showApiKey;
   const showAdvanced = !config.hideAdvanced && hasAdvancedFields;
+  // Fork: removing a saved key asks first and says what it does
+  // (ux-audit-oct3 E; HIG alerts, NN/g #5).
   const resetAction = hasStoredConfig ? (
     <Button
       type="button"
       variant="ghost"
       size="sm"
-      onClick={() => void handleReset()}
+      onClick={() => setConfirmReset(true)}
       disabled={clearProvider.isPending}
-      className="text-destructive hover:text-destructive/80 h-7 self-start px-0 hover:bg-transparent"
+      className="text-destructive h-7 self-start px-0 hover:bg-transparent hover:underline"
     >
       {clearProvider.isPending ? (
         <CircleNotch className="size-3 animate-spin" aria-hidden="true" />
       ) : null}
-      <Trans>Reset</Trans>
+      {showApiKey ? <Trans>Remove key</Trans> : <Trans>Reset</Trans>}
     </Button>
   ) : null;
+  const resetConfirmation = (
+    <DestructiveConfirmationDialog
+      open={confirmReset}
+      onOpenChange={setConfirmReset}
+      title={
+        showApiKey
+          ? t`Remove your ${config.displayName} key?`
+          : t`Reset ${config.displayName}?`
+      }
+      description={
+        showApiKey
+          ? t`Upshot stops using ${config.displayName} until you add a key again.`
+          : t`Upshot clears the saved ${config.displayName} settings.`
+      }
+      confirmLabel={showApiKey ? t`Remove key` : t`Reset`}
+      pendingLabel={showApiKey ? t`Removing…` : t`Resetting…`}
+      isPending={clearProvider.isPending}
+      onConfirm={() => {
+        void handleReset().then(() => setConfirmReset(false));
+      }}
+    />
+  );
 
   return (
     <AccordionItem
@@ -538,7 +571,7 @@ export function NonAnarlogProviderCard({
           isKeychainRecoveryInProgress
             ? undefined
             : {
-                label: t`Repair Keychain Access`,
+                label: t`Repair Keychain access`,
                 onClick: () => repairMutation.mutate(),
               }
         }
@@ -607,7 +640,7 @@ export function NonAnarlogProviderCard({
               {(field) => (
                 <FormField
                   field={field}
-                  label={t`API Key`}
+                  label={t`API key`}
                   placeholder={t`Enter your API key`}
                   type="password"
                 />
@@ -634,7 +667,7 @@ export function NonAnarlogProviderCard({
                     size="sm"
                     onClick={() => void handleResetSubscription()}
                     disabled={clearSubscription.isPending}
-                    className="text-destructive hover:text-destructive/80 h-7 shrink-0 px-0 hover:bg-transparent"
+                    className="text-destructive h-7 shrink-0 px-0 hover:bg-transparent hover:underline"
                   >
                     {clearSubscription.isPending ? (
                       <CircleNotch
@@ -714,7 +747,7 @@ export function NonAnarlogProviderCard({
                     {(field) => (
                       <FormField
                         field={field}
-                        label={t`API Key`}
+                        label={t`API key`}
                         placeholder={t`Enter your API key (optional)`}
                         type="password"
                       />
@@ -740,6 +773,7 @@ export function NonAnarlogProviderCard({
             )}
         </form>
       </AccordionContent>
+      {resetConfirmation}
     </AccordionItem>
   );
 }
@@ -858,6 +892,9 @@ function FormField({
   placeholder?: string;
   type?: string;
 }) {
+  // Fork: each label is tied to its field (ux-audit-oct3 E, WCAG 3.3.2).
+  const inputId = useId();
+  const errorId = useId();
   const {
     meta: { errors, isTouched },
   } = field.state;
@@ -872,9 +909,13 @@ function FormField({
 
   return (
     <div className="flex flex-col gap-2">
-      <label className="block text-xs font-medium">{label}</label>
+      <label htmlFor={inputId} className="block text-xs font-medium">
+        {label}
+      </label>
       <InputGroup className="bg-card">
         <InputGroupInput
+          id={inputId}
+          aria-describedby={errorMessage ? errorId : undefined}
           name={field.name}
           type={type}
           value={field.state.value}
@@ -884,7 +925,10 @@ function FormField({
         />
       </InputGroup>
       {errorMessage && (
-        <p className="text-destructive flex items-center gap-1.5 text-xs">
+        <p
+          id={errorId}
+          className="text-destructive flex items-center gap-1.5 text-xs"
+        >
           <WarningCircle className="size-3.5 shrink-0" aria-hidden="true" />
           <span>{errorMessage}</span>
         </p>

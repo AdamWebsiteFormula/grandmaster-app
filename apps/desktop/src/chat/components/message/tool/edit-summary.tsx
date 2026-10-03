@@ -1,3 +1,5 @@
+import { Trans } from "@lingui/react/macro";
+
 import { Pencil } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 
@@ -54,14 +56,19 @@ function EditActions({
         variant="outline"
         onClick={() => void declineProposalReview(toolCallId)}
       >
-        Decline
+        {/* Fork: same "Discard" as the other approval cards (ux-audit-oct3 D). */}
+        <Trans>Discard</Trans>
       </Button>
       <Button
         type="button"
         size="sm"
         onClick={() => void applyProposalReview(toolCallId)}
       >
-        Apply to {target}
+        {target === "summary" ? (
+          <Trans>Apply to summary</Trans>
+        ) : (
+          <Trans>Apply to memo</Trans>
+        )}
       </Button>
     </div>
   );

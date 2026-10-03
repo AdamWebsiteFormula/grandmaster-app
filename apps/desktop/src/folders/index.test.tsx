@@ -32,6 +32,49 @@ const mocks = vi.hoisted(() => ({
   workspaceId: "",
   personalWorkspaceId: "",
   workspaces: [] as Array<{ id: string; name: string }>,
+  folderNotes: {
+    isLoading: false,
+    hasNotes: false,
+    groups: [] as unknown[],
+    hasMore: false,
+  },
+  folderNoteCalls: [] as Array<[string, number]>,
+  openCurrent: vi.fn(),
+}));
+
+vi.mock("~/home/home-data", () => ({
+  RECENT_PAGE_SIZE: 20,
+  useFolderNotes: (folderPath: string, limit: number) => {
+    mocks.folderNoteCalls.push([folderPath, limit]);
+    return mocks.folderNotes;
+  },
+}));
+
+vi.mock("~/sidebar/timeline/item", () => ({
+  useSessionContextMenu: () => [],
+}));
+
+vi.mock("~/shared/ui/interactive-button", () => ({
+  InteractiveButton: ({
+    children,
+    onClick,
+  }: {
+    children: ReactNode;
+    onClick: () => void;
+  }) => (
+    <button type="button" onClick={onClick}>
+      {children}
+    </button>
+  ),
+}));
+
+vi.mock("~/shared/hooks/useTimeFormat", () => ({
+  useTimeFormat: () => "h:mm a",
+}));
+
+vi.mock("~/store/zustand/tabs", () => ({
+  useTabs: (selector: (state: { openCurrent: () => void }) => unknown) =>
+    selector({ openCurrent: mocks.openCurrent }),
 }));
 
 vi.mock("~/auth", () => ({
@@ -141,6 +184,14 @@ describe("Folders workspace", () => {
     mocks.workspaceId = "";
     mocks.personalWorkspaceId = "";
     mocks.workspaces = [];
+    mocks.folderNotes = {
+      isLoading: false,
+      hasNotes: false,
+      groups: [],
+      hasMore: false,
+    };
+    mocks.folderNoteCalls = [];
+    mocks.openCurrent.mockReset();
     mocks.createNamedFolder.mockResolvedValue("CS 101");
     mocks.deleteNamedFolder.mockResolvedValue(undefined);
     mocks.renameNamedFolder.mockResolvedValue("Algorithms");
@@ -163,10 +214,14 @@ describe("Folders workspace", () => {
     cleanup();
   });
 
-  it("creates the first folder", async () => {
+  it("creates the first folder from the empty state", async () => {
     renderFoldersWorkspace();
 
-    fireEvent.click(screen.getByRole("button", { name: "New folder" }));
+    // Header icon, sidebar empty state and main empty state.
+    expect(screen.getAllByRole("button", { name: "New folder" })).toHaveLength(
+      3,
+    );
+    fireEvent.click(screen.getAllByRole("button", { name: "New folder" })[2]);
     fireEvent.change(screen.getByLabelText("Folder name"), {
       target: { value: "CS 101" },
     });
@@ -282,9 +337,10 @@ describe("Folders workspace", () => {
       { button: 0, ctrlKey: false },
     );
     fireEvent.click(await screen.findByRole("menuitem", { name: "Delete" }));
+    expect(screen.getByText("Delete “Work”?")).toBeTruthy();
     expect(
       screen.getByText(
-        "Notes stay in All notes. This folder, its nested folders, and all their materials will be deleted.",
+        "Notes stay on Home. This folder, its nested folders and their materials will be deleted.",
       ),
     ).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Delete folder" }));
@@ -340,5 +396,113 @@ describe("Folders workspace", () => {
       expect(useFolderSelection.getState().iconOverrides.Work).toBeUndefined();
     });
     consoleError.mockRestore();
+  });
+
+  it("lists the folder's notes by day and opens one", () => {
+    mocks.folders = ["Work"];
+    const nineAm = new Date(2026, 9, 3, 9).getTime();
+    mocks.folderNotes = {
+      isLoading: false,
+      hasNotes: true,
+      groups: [
+        {
+          key: "today",
+          kind: "today",
+          dayMs: new Date(2026, 9, 3).getTime(),
+          notes: [
+            {
+              id: "note-1",
+              title: "Weekly sync",
+              timeMs: nineAm,
+              attendees: 0,
+              locked: false,
+              trackingId: null,
+            },
+          ],
+        },
+      ],
+      hasMore: true,
+    };
+
+    renderFoldersWorkspace();
+
+    expect(mocks.folderNoteCalls[mocks.folderNoteCalls.length - 1]).toEqual([
+      "Work",
+      20,
+    ]);
+    expect(screen.getByRole("heading", { name: "Notes" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Today" })).toBeTruthy();
+    fireEvent.click(screen.getByText("Weekly sync"));
+    expect(mocks.openCurrent).toHaveBeenCalledWith({
+      type: "sessions",
+      id: "note-1",
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Show more" }));
+    expect(mocks.folderNoteCalls[mocks.folderNoteCalls.length - 1]).toEqual([
+      "Work",
+      40,
+    ]);
+  });
+
+  it("says when a folder has no notes yet", () => {
+    mocks.folders = ["Work"];
+
+    renderFoldersWorkspace();
+
+    expect(screen.getByRole("heading", { name: "Notes" })).toBeTruthy();
+    expect(screen.getByText("No notes in this folder yet")).toBeTruthy();
+  });
+
+  it("renames the folder from the actions menu", async () => {
+    mocks.folders = ["Work"];
+
+    renderFoldersWorkspace();
+
+    fireEvent.pointerDown(
+      screen.getByRole("button", { name: "Folder actions" }),
+      { button: 0, ctrlKey: false },
+    );
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Rename" }));
+    const nameFields = screen.getAllByLabelText("Folder name");
+    const dialogInput = nameFields[nameFields.length - 1];
+    fireEvent.change(dialogInput, { target: { value: "Algorithms" } });
+    fireEvent.click(screen.getByRole("button", { name: "Rename" }));
+
+    await waitFor(() => {
+      expect(mocks.renameNamedFolder).toHaveBeenCalledWith(
+        "Work",
+        "Algorithms",
+      );
+    });
+  });
+
+  it("asks before removing a material", async () => {
+    mocks.folders = ["Work"];
+    mocks.materials = [
+      {
+        id: "mat-1",
+        filename: "syllabus.pdf",
+        contentType: "application/pdf",
+        sizeBytes: 12,
+        relativePath: "materials/syllabus.pdf",
+      },
+    ];
+
+    renderFoldersWorkspace();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Remove syllabus.pdf" }),
+    );
+    expect(mocks.deleteLocalFolderMaterial).not.toHaveBeenCalled();
+    expect(screen.getByText("Remove “syllabus.pdf”?")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Remove file" }));
+
+    await waitFor(() => {
+      expect(mocks.deleteLocalFolderMaterial).toHaveBeenCalledWith({
+        folderPath: "Work",
+        attachmentId: "syllabus.pdf",
+      });
+    });
   });
 });

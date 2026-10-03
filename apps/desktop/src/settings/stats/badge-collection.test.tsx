@@ -122,10 +122,10 @@ describe("badge collection", () => {
       />,
     );
     expect(screen.getByText("1 of 8 collected")).toBeTruthy();
-    const first = screen.getByRole("button", { name: "First Words" });
+    const first = screen.getByRole("button", { name: /^First words/ });
     expect(within(first).getByText("Collected")).toBeTruthy();
     fireEvent.click(first);
-    const dialog = screen.getByRole("dialog", { name: "First Words" });
+    const dialog = screen.getByRole("dialog", { name: "First words" });
     expect(within(dialog).getByText(/Collected Sep 1, 2026/)).toBeTruthy();
     expect(within(dialog).queryByRole("progressbar")).toBeNull();
   });
@@ -143,8 +143,8 @@ describe("badge collection", () => {
         collected={{}}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Good Listener" }));
-    const dialog = screen.getByRole("dialog", { name: "Good Listener" });
+    fireEvent.click(screen.getByRole("button", { name: /^Good listener/ }));
+    const dialog = screen.getByRole("dialog", { name: "Good listener" });
     expect(within(dialog).getByText("1 / 10 conversations")).toBeTruthy();
     expect(
       within(dialog).getByRole("progressbar").getAttribute("aria-valuenow"),

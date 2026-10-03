@@ -50,7 +50,7 @@ export function SessionViewSwitcher({
   return (
     <div
       role="group"
-      aria-label={t`Session note views`}
+      aria-label={t`Note views`}
       data-tauri-drag-region="false"
       className={cn([
         "pointer-events-auto relative z-10 w-fit max-w-full shrink-0 overflow-visible",

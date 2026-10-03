@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   onOpenChange: vi.fn(),
   save: vi.fn(),
   isAppStoreBuild: vi.fn(),
+  enhancedNotes: [] as { id: string; content: string }[],
 }));
 
 vi.mock("@tauri-apps/api/path", () => ({
@@ -41,7 +42,9 @@ vi.mock("~/shared/app-store", () => ({
 }));
 vi.mock("~/session/queries", () => ({
   useSession: () => ({ title: "Project review" }),
-  useEnhancedNote: () => undefined,
+  useEnhancedNote: (id: string) =>
+    mocks.enhancedNotes.find((note) => note.id === id),
+  useEnhancedNoteRecords: () => mocks.enhancedNotes,
   useSessionParticipants: () => [],
 }));
 vi.mock("~/session/utils", () => ({ getSessionEvent: () => null }));
@@ -76,8 +79,36 @@ describe("ExportModal destination", () => {
     mocks.exportPdf.mockResolvedValue({ status: "ok", data: null });
     mocks.writeTextFile.mockResolvedValue({ status: "ok", data: null });
     mocks.isAppStoreBuild.mockReturnValue(false);
+    mocks.enhancedNotes = [];
   });
   afterEach(cleanup);
+
+  it("falls back to the first summary when exporting from My notes", async () => {
+    const doc = (text: string) =>
+      JSON.stringify({
+        type: "doc",
+        content: [{ type: "paragraph", content: [{ type: "text", text }] }],
+      });
+    mocks.enhancedNotes = [
+      { id: "summary-1", content: doc("First summary text") },
+      { id: "summary-2", content: doc("Second summary text") },
+    ];
+    renderModal();
+    fireEvent.click(screen.getByRole("radio", { name: "Markdown" }));
+    fireEvent.click(screen.getByRole("button", { name: "Export" }));
+    await waitFor(() => expect(mocks.writeTextFile).toHaveBeenCalled());
+    const content = mocks.writeTextFile.mock.calls[0][1] as string;
+    expect(content).toContain("## Summary");
+    expect(content).toContain("First summary text");
+    expect(content).not.toContain("Second summary text");
+  });
+
+  it("closes from Cancel without exporting", () => {
+    renderModal();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(mocks.onOpenChange).toHaveBeenCalledWith(false);
+    expect(mocks.exportPdf).not.toHaveBeenCalled();
+  });
 
   it.each([
     ["PDF", "pdf"],

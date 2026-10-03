@@ -1,16 +1,9 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 
-import { commands as openerCommands } from "@anlg/plugin-opener2";
-import {
-  ArrowCounterClockwise,
-  ArrowSquareOut,
-} from "@anlg/ui/components/icons";
+import { ArrowCounterClockwise } from "@anlg/ui/components/icons";
+import { cn } from "@anlg/utils";
 
-import { ActionButton, MessageBubble, MessageContainer } from "./shared";
-
-import { env } from "~/env";
-
-const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
+import { MessageBubble, MessageContainer } from "./shared";
 
 // `useChat().error` is typed as Error but holds whatever the transport threw.
 export function getChatErrorText(error: unknown): string {
@@ -20,7 +13,7 @@ export function getChatErrorText(error: unknown): string {
   return typeof error === "string" ? error : String(error);
 }
 
-function isContextLengthError(message: string): boolean {
+export function isContextLengthError(message: string): boolean {
   const lowerMessage = message.toLowerCase();
   return (
     (lowerMessage.includes("n_keep") && lowerMessage.includes("n_ctx")) ||
@@ -38,36 +31,34 @@ export function ErrorMessage({
   onRetry?: () => void;
 }) {
   const { t } = useLingui();
-  const message = getChatErrorText(error);
-  const showContextLengthHelp = isContextLengthError(message);
-
-  const handleOpenFaq = () => {
-    void openerCommands.openUrl(
-      `${WEB_APP_BASE_URL}/docs/faq/local-llm-setup#context-length-error`,
-      null,
-    );
-  };
+  const raw = getChatErrorText(error);
+  // Fork: no "Learn how to fix this" link (it opened upstream docs on
+  // localhost); a context-length error says what to do instead (ux-audit-oct3
+  // D, NN/g #10).
+  const message = isContextLengthError(raw)
+    ? t`This chat is too long. Start a new chat and try again.`
+    : raw;
 
   return (
     <MessageContainer align="start">
-      <MessageBubble variant="error" withActionButton={!!onRetry}>
+      <MessageBubble variant="error">
         <p className="text-sm">{message}</p>
-        {showContextLengthHelp && (
-          <button
-            onClick={handleOpenFaq}
-            className="mt-2 flex items-center gap-1 text-xs text-destructive underline hover:text-destructive"
-          >
-            <ArrowSquareOut className="h-3 w-3" />
-            <Trans>Learn how to fix this</Trans>
-          </button>
-        )}
         {onRetry && (
-          <ActionButton
+          // Fork: a visible text button, not a hover-only 20px icon (ux-audit-oct3 D,
+          // WCAG 2.4.7, 2.5.8).
+          <button
+            type="button"
             onClick={onRetry}
-            variant="error"
-            icon={ArrowCounterClockwise}
-            label={t`Retry`}
-          />
+            className={cn([
+              "mt-1 mb-0.5 -ml-1.5 inline-flex min-h-6 items-center gap-1 rounded-md px-1.5 py-1",
+              "text-destructive text-xs font-medium",
+              "hover:bg-destructive/15",
+              "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
+            ])}
+          >
+            <ArrowCounterClockwise className="h-3 w-3" aria-hidden />
+            <Trans>Retry</Trans>
+          </button>
         )}
       </MessageBubble>
     </MessageContainer>

@@ -9,6 +9,7 @@ import { cn } from "@anlg/utils";
 
 import { SkillsRow } from "./skills";
 
+import { SettingsSectionTitle } from "~/settings/page-title";
 import { commands, type EmbeddedCliStatus } from "~/types/tauri.gen";
 
 const CLI_STATUS_QUERY_KEY = ["embedded-cli-status"] as const;
@@ -37,8 +38,11 @@ async function copyText(
 export function buildMcpConfiguration(command: string) {
   return JSON.stringify(
     {
+      // Fork: the server key users see in their MCP client is "upshot". The
+      // command itself stays "anarlog" because the bundled agent skill
+      // (skills/anarlog) runs it by that name (ux-audit-oct3 E, NN/g #4).
       mcpServers: {
-        anarlog: {
+        upshot: {
           command,
           args: ["mcp"],
         },
@@ -53,13 +57,13 @@ export function getCliInstallNotification(status: EmbeddedCliStatus) {
   if (status.state === "installed") {
     return {
       type: "success" as const,
-      message: t`${status.commandName} is ready to use`,
+      message: t`Upshot CLI is ready to use`,
     };
   }
 
   return {
     type: "error" as const,
-    message: status.details ?? t`${status.commandName} could not be installed`,
+    message: status.details ?? t`Upshot CLI couldn’t be installed`,
   };
 }
 
@@ -123,7 +127,7 @@ function CliSection({
 
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="font-sans text-lg font-semibold">{t`CLI & MCP`}</h2>
+      <SettingsSectionTitle>{t`CLI & MCP`}</SettingsSectionTitle>
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">

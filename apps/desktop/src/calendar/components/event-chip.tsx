@@ -11,6 +11,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@anlg/ui/components/ui/popover";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
 import { toTz, useTimezone } from "~/calendar/hooks";
@@ -34,7 +35,8 @@ export function EventChip({
 }) {
   const tz = useTimezone();
   const timeFormat = useTimeFormat();
-  const { ignoreEvent, ignoreSeries } = useIgnoredEvents();
+  const { ignoreEvent, ignoreSeries, unignoreEvent, unignoreSeries } =
+    useIgnoredEvents();
   const title = event?.title || t`Busy`;
   const trackingId = event?.tracking_id_event ?? undefined;
   const recurrenceSeriesId = event?.recurrence_series_id ?? undefined;
@@ -51,7 +53,12 @@ export function EventChip({
     }
 
     ignoreEvent(trackingId);
-  }, [trackingId, ignoreEvent]);
+    // Fork: the item hides the event (it never deletes it from the calendar),
+    // so say so and offer Undo (ux-audit-oct3 B; NN/g #2, #3).
+    toast.message(t`Event hidden`, {
+      action: { label: t`Undo`, onClick: () => unignoreEvent(trackingId) },
+    });
+  }, [trackingId, ignoreEvent, unignoreEvent]);
 
   const handleIgnoreSeries = useCallback(() => {
     if (!recurrenceSeriesId) {
@@ -59,13 +66,19 @@ export function EventChip({
     }
 
     ignoreSeries(recurrenceSeriesId);
-  }, [recurrenceSeriesId, ignoreSeries]);
+    toast.message(t`Events hidden`, {
+      action: {
+        label: t`Undo`,
+        onClick: () => unignoreSeries(recurrenceSeriesId),
+      },
+    });
+  }, [recurrenceSeriesId, ignoreSeries, unignoreSeries]);
 
   const contextMenu = useMemo<MenuItemDef[]>(() => {
     const menu: MenuItemDef[] = [
       {
         id: "ignore",
-        text: recurrenceSeriesId ? "Delete This Event" : "Delete Event",
+        text: recurrenceSeriesId ? t`Hide this event` : t`Hide event`,
         action: handleIgnore,
       },
     ];
@@ -73,7 +86,7 @@ export function EventChip({
     if (recurrenceSeriesId) {
       menu.push({
         id: "ignore-series",
-        text: "Delete All Recurring Events",
+        text: t`Hide all events in this series`,
         action: handleIgnoreSeries,
       });
     }

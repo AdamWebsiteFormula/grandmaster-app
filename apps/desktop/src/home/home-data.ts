@@ -313,14 +313,37 @@ export function groupRecentNotes(
   return { groups, hasMore: all.length > limit };
 }
 
-export function useRecentNotes(limit = RECENT_PAGE_SIZE) {
+// Fork: a folder page lists its notes like Home does (Granola folders,
+// docs.granola.ai/help-center/sharing/folders/spaces-and-folders). Includes
+// nested folders, matching the sidebar folder filter. Params: folder path,
+// folder path + "/", folder path + "/", limit.
+export const FOLDER_SESSIONS_SQL = `
+  SELECT
+    session.id,
+    session.title,
+    session.created_at,
+    session.event_json,
+    session.locked,
+    (
+      SELECT COUNT(*) FROM session_participants AS participant
+      WHERE participant.session_id = session.id
+        AND participant.deleted_at IS NULL
+    ) AS attendees
+  FROM sessions AS session
+  WHERE session.deleted_at IS NULL
+    AND (
+      session.folder_path = ?
+      OR substr(session.folder_path, 1, length(?)) = ?
+    )
+  ORDER BY session.created_at DESC, session.id
+  LIMIT ?
+`;
+
+function useGroupedNotes(sql: string, params: unknown[], limit: number) {
   const { data, isLoading } = useLiveQuery<
     RecentSessionRow,
     RecentSessionRow[]
-  >({
-    sql: RECENT_SESSIONS_SQL,
-    params: [limit + RECENT_FETCH_MARGIN],
-  });
+  >({ sql, params });
   const pendingDeletions = useUndoDelete((state) => state.pendingDeletions);
   const rows = useMemo(
     () => (data ?? []).filter((row) => !(row.id in pendingDeletions)),
@@ -331,4 +354,21 @@ export function useRecentNotes(limit = RECENT_PAGE_SIZE) {
     [rows, limit],
   );
   return { isLoading, hasNotes: rows.length > 0, groups, hasMore };
+}
+
+export function useRecentNotes(limit = RECENT_PAGE_SIZE) {
+  return useGroupedNotes(
+    RECENT_SESSIONS_SQL,
+    [limit + RECENT_FETCH_MARGIN],
+    limit,
+  );
+}
+
+export function useFolderNotes(folderPath: string, limit = RECENT_PAGE_SIZE) {
+  const prefix = `${folderPath}/`;
+  return useGroupedNotes(
+    FOLDER_SESSIONS_SQL,
+    [folderPath, prefix, prefix, limit + RECENT_FETCH_MARGIN],
+    limit,
+  );
 }

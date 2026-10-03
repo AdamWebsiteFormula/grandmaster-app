@@ -16,6 +16,7 @@ import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
 import type { SessionAudioRetentionEvent } from "@anlg/plugin-transcription";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 
+import { useDeleteRecordingConfirm } from "./delete-recording-confirm";
 import { configureCenteredPlayback } from "./playback";
 import { loadWaveform } from "./waveform";
 
@@ -89,6 +90,8 @@ interface AudioPlayerContextValue {
   playbackRate: number;
   setPlaybackRate: (rate: number) => void;
   deleteRecording: () => Promise<void>;
+  /** Fork: asks first, then runs deleteRecording and toasts on failure. */
+  requestDeleteRecording: () => void;
   isDeletingRecording: boolean;
 }
 
@@ -412,6 +415,13 @@ export function AudioPlayerProvider({
     onSuccess: markAudioDeleted,
   });
 
+  // Fork: Delete recording asks first and reports failures (ux-audit-oct3 C;
+  // HIG alerts, NN/g #5). The delete itself is unchanged.
+  const { requestDeleteRecording, confirmDialog } = useDeleteRecordingConfirm({
+    deleteRecording: deleteRecordingMutation.mutateAsync,
+    isPending: deleteRecordingMutation.isPending,
+  });
+
   const value = useMemo<AudioPlayerContextValue>(
     () => ({
       registerContainer,
@@ -428,6 +438,7 @@ export function AudioPlayerProvider({
       playbackRate,
       setPlaybackRate,
       deleteRecording: deleteRecordingMutation.mutateAsync,
+      requestDeleteRecording,
       isDeletingRecording: deleteRecordingMutation.isPending,
     }),
     [
@@ -443,6 +454,7 @@ export function AudioPlayerProvider({
       playbackRate,
       setPlaybackRate,
       deleteRecordingMutation.mutateAsync,
+      requestDeleteRecording,
       deleteRecordingMutation.isPending,
     ],
   );
@@ -450,6 +462,7 @@ export function AudioPlayerProvider({
   return (
     <AudioPlayerContext.Provider value={value}>
       {children}
+      {confirmDialog}
     </AudioPlayerContext.Provider>
   );
 }

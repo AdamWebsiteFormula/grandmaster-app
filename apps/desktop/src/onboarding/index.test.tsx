@@ -117,9 +117,28 @@ describe("StandaloneOnboardingScreen", () => {
   it("goes from transcription straight to the calendar, with no AI key step", () => {
     renderAtCalendar();
 
-    expect(screen.getByText("Transcription ready")).toBeTruthy();
+    expect(screen.getByText("Transcription set up")).toBeTruthy();
     expect(screen.queryByText("Set up AI summaries")).toBeNull();
     expect(screen.getByText("Connect calendar")).toBeTruthy();
+  });
+
+  it("shows the step count and Back after the first step", () => {
+    renderAtCalendar();
+
+    expect(screen.getByText("Step 3 of 5")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+    expect(screen.getByText("Step 2 of 5")).toBeTruthy();
+  });
+
+  it("names the music toggle by what it does", () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <StandaloneOnboardingScreen onFinish={vi.fn()} />
+      </QueryClientProvider>,
+    );
+
+    expect(screen.getByRole("button", { name: "Play music" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
   });
 
   it("says meeting history was skipped when the import step is skipped", () => {

@@ -76,8 +76,10 @@ function InlineCustomSidebarHeader({ children }: { children?: ReactNode }) {
         data-tauri-drag-region
         className="flex min-w-0 flex-1 items-center gap-1"
       >
+        {/* Fork: the name says what it does, it goes back (ux-audit-oct3 B,
+            WCAG 4.1.2). */}
         <CustomSidebarHeaderButton
-          label={t`Go home`}
+          label={t`Back`}
           title={t`Back`}
           onClick={handleBack}
         >

@@ -54,7 +54,7 @@ export function MessageBubble({
       className={cn([
         "select-text-deep overflow-wrap-anywhere max-w-full min-w-0 text-sm",
         variant === "user" &&
-          "w-fit rounded-2xl bg-primary/10 px-3 py-1 text-foreground [&_p]:[text-wrap:wrap]",
+          "bg-primary/10 text-foreground w-fit rounded-2xl px-3 py-1 [&_p]:[text-wrap:wrap]",
         variant === "assistant" &&
           (isDarkAppearance
             ? "bg-accent text-accent-foreground rounded-2xl px-3 py-1"
@@ -64,7 +64,7 @@ export function MessageBubble({
             ? "bg-accent text-accent-foreground w-fit rounded-2xl px-3 py-1"
             : "text-foreground"),
         variant === "error" &&
-          "rounded-2xl border border-destructive/40 bg-destructive/10 px-3 py-1 text-destructive",
+          "border-destructive/40 bg-destructive/10 text-destructive rounded-2xl border px-3 py-1",
         withActionButton && "group relative",
       ])}
     >
@@ -90,9 +90,11 @@ export function ActionButton({
       onClick={onClick}
       className={cn([
         "absolute -top-1 -right-1",
-        "opacity-0 group-hover:opacity-100",
+        // Fork: keyboard focus shows it and the target is 24px (ux-audit-oct3 D,
+        // WCAG 2.4.7, 2.5.8).
+        "opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
         "transition-opacity",
-        "rounded-full p-1",
+        "rounded-full p-1.5",
         variant === "default" && [
           "bg-accent hover:bg-accent",
           "text-muted-foreground hover:text-foreground",

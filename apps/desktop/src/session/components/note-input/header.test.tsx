@@ -148,7 +148,7 @@ vi.mock("~/audio-player", () => ({
   useAudioPlayer: () => ({
     audioExists: hoisted.audioExists,
     audioExistsResolved: hoisted.audioExistsResolved,
-    deleteRecording: hoisted.deleteRecording,
+    requestDeleteRecording: hoisted.deleteRecording,
     isDeletingRecording: hoisted.isDeletingRecording,
   }),
 }));
@@ -446,7 +446,7 @@ describe("SessionViewSwitcher", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Customer Call" }));
 
-    expect(screen.getByPlaceholderText("Search templates...")).not.toBeNull();
+    expect(screen.getByPlaceholderText("Search templates…")).not.toBeNull();
   });
 
   it("copies the summary from the visible Copy notes button", async () => {
@@ -490,9 +490,7 @@ describe("SessionViewSwitcher", () => {
   it("hides the view switcher when the memo is the only view", () => {
     renderSwitcher({ editorTabs: [{ type: "raw" }] });
 
-    expect(
-      screen.queryByRole("group", { name: "Session note views" }),
-    ).toBeNull();
+    expect(screen.queryByRole("group", { name: "Note views" })).toBeNull();
   });
 
   it.each([
@@ -548,7 +546,7 @@ describe("SessionViewSwitcher", () => {
     expect(hoisted.getSessionTranscriptRenderRequest).not.toHaveBeenCalled();
 
     transcriptMenu()
-      .find((item) => item.text === "Copy")
+      .find((item) => item.text === "Copy transcript")
       ?.action();
 
     await waitFor(() =>
@@ -568,27 +566,32 @@ describe("SessionViewSwitcher", () => {
     [
       "inactive with audio",
       { mode: "inactive", audio: true, resolved: true },
-      ["Copy", "Resume listening", "Re-transcribe", "Delete recording"],
+      [
+        "Copy transcript",
+        "Resume recording",
+        "Transcribe again",
+        "Delete recording",
+      ],
     ],
     [
       "inactive without audio",
       { mode: "inactive", audio: false, resolved: true },
-      ["Copy", "Resume listening"],
+      ["Copy transcript", "Resume recording"],
     ],
     [
       "audio lookup pending",
       { mode: "inactive", audio: true, resolved: false },
-      ["Copy", "Resume listening", "Delete recording"],
+      ["Copy transcript", "Resume recording", "Delete recording"],
     ],
     [
       "batch processing",
       { mode: "running_batch", audio: false, resolved: true },
-      ["Copy", "Resume listening"],
+      ["Copy transcript", "Resume recording"],
     ],
     [
       "finalizing",
       { mode: "finalizing", audio: false, resolved: true },
-      ["Copy"],
+      ["Copy transcript"],
     ],
   ])(
     "offers transcript menu actions when %s",
@@ -615,7 +618,8 @@ describe("SessionViewSwitcher", () => {
     renderSwitcher({ currentTab: { type: "transcript" } });
 
     expect(
-      transcriptMenu().find((item) => item.text === "Copy")?.disabled,
+      transcriptMenu().find((item) => item.text === "Copy transcript")
+        ?.disabled,
     ).toBe(true);
   });
 
@@ -632,7 +636,8 @@ describe("SessionViewSwitcher", () => {
     renderSwitcher({ currentTab: { type: "transcript" } });
 
     expect(
-      transcriptMenu().find((item) => item.text === "Copy")?.disabled,
+      transcriptMenu().find((item) => item.text === "Copy transcript")
+        ?.disabled,
     ).toBe(false);
   });
 

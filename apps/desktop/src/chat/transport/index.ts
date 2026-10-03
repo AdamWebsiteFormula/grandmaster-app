@@ -309,8 +309,11 @@ export class CustomChatTransport implements ChatTransport<AnlgUIMessage> {
         trackAnalyticsEvent("chat_response_failed", {
           failure_stage: "response_stream",
         });
+        // Fork: show the message, not "AI_APICallError: …"; the name stays in
+        // the console (ux-audit-oct3 D, NN/g #9).
         if (error instanceof Error) {
-          return `${error.name}: ${error.message}`;
+          console.error(error.name);
+          return error.message;
         }
         if (isRecord(error) && typeof error.message === "string") {
           return error.message;

@@ -70,26 +70,17 @@ describe("SettingsPrivacy", () => {
 
   afterEach(cleanup);
 
-  it("controls usage data and error reporting independently", () => {
+  it("shows no telemetry switches and says nothing is sent", () => {
     render(<SettingsPrivacy />);
 
-    const posthog = screen.getByRole("switch", {
-      name: "Share usage data",
-    });
-    const errorReporting = screen.getByRole("switch", { name: "Error" });
-
-    expect(posthog.getAttribute("data-state")).toBe("checked");
-    expect(errorReporting.getAttribute("data-state")).toBe("unchecked");
-
-    fireEvent.click(posthog);
-    fireEvent.click(errorReporting);
-
-    expect(mocks.setSettingValues).toHaveBeenNthCalledWith(1, {
-      telemetry_consent: false,
-    });
-    expect(mocks.setSettingValues).toHaveBeenNthCalledWith(2, {
-      crash_reporting_consent: true,
-    });
+    expect(screen.queryByRole("switch", { name: "Share usage data" })).toBe(
+      null,
+    );
+    expect(screen.queryByRole("switch", { name: "Error" })).toBe(null);
+    expect(screen.getAllByRole("switch")).toHaveLength(1);
+    expect(
+      screen.getByText("Upshot sends no usage data or crash reports."),
+    ).toBeTruthy();
   });
 
   it("requires device authentication before locking the app", async () => {

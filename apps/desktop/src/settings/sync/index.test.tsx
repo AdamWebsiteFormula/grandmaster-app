@@ -537,7 +537,7 @@ describe("SettingsSync", () => {
 
     renderSettings();
 
-    expect(await screen.findByText("Connecting...")).toBeTruthy();
+    expect(await screen.findByText("Connecting…")).toBeTruthy();
     expect(
       screen.getByRole("button", { name: "Sync now" }).hasAttribute("disabled"),
     ).toBe(true);

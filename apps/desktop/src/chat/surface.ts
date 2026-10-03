@@ -21,7 +21,7 @@ export function chatFloatingPanelShellClassNames(): string {
 }
 
 export function chatElevatedSurfaceClassNames(): string {
-  return "bg-card text-card-foreground border-border";
+  return "bg-card text-card-foreground border-input";
 }
 
 export function chatInputEditorClassNames(): string {

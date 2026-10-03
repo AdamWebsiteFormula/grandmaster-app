@@ -136,7 +136,7 @@ export function AutomationsNav() {
                 setSearch("");
               }
             }}
-            placeholder={t`Search automations...`}
+            placeholder={t`Search automations…`}
             className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm placeholder:text-sm focus:outline-hidden"
           />
           {search ? (
@@ -353,7 +353,7 @@ function DraftListItem({
       ])}
     >
       <span className="flex items-center gap-2">
-        <Lightning className="size-4 shrink-0 text-primary" />
+        <Lightning className="text-primary size-4 shrink-0" />
         <span className="min-w-0 flex-1">
           <span className="block truncate font-medium">{title}</span>
           <span className="text-muted-foreground mt-0.5 block truncate text-xs">
@@ -409,7 +409,7 @@ function WorkflowListItem({
       ])}
     >
       <span className="flex items-center gap-2">
-        <Lightning className="size-4 shrink-0 text-primary" />
+        <Lightning className="text-primary size-4 shrink-0" />
         <span className="min-w-0 flex-1">
           <span className="block truncate font-medium">
             {workflow.title.trim() || t`Untitled automation`}
@@ -470,7 +470,7 @@ function ChatAutomationListItem({
       ])}
     >
       <span className="flex items-center gap-2">
-        <Lightning className="size-4 shrink-0 text-primary" />
+        <Lightning className="text-primary size-4 shrink-0" />
         <span className="min-w-0 flex-1">
           <span className="block truncate font-medium">{automation.title}</span>
           {createdAt ? (

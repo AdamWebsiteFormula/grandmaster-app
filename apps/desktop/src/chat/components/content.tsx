@@ -268,7 +268,7 @@ function ChatQueue({
               type="button"
               aria-label={`Remove queued message: ${message.content}`}
               onClick={() => onRemoveMessage(message.id)}
-              className="hover:bg-accent/20 inline-flex size-6 items-center justify-center rounded-md opacity-65 transition-opacity group-hover:opacity-100"
+              className="hover:bg-accent/20 inline-flex size-6 items-center justify-center rounded-md"
             >
               <Trash className="size-3.5" />
             </button>

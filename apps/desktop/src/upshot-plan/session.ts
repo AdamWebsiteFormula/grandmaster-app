@@ -42,6 +42,8 @@ export class UpshotRequestError extends Error {
   constructor(
     message: string,
     readonly status: number,
+    /** The Worker's error code, e.g. "account_exists". */
+    readonly code?: string,
   ) {
     super(message);
   }
@@ -81,12 +83,13 @@ async function workerFetch<T>(
     );
   }
   const data = (await response.json().catch(() => null)) as
-    | (T & { error?: { message?: string } })
+    | (T & { error?: { message?: string; code?: string } })
     | null;
   if (!response.ok) {
     throw new UpshotRequestError(
       data?.error?.message ?? "Something went wrong. Try again.",
       response.status,
+      data?.error?.code,
     );
   }
   return data as T;

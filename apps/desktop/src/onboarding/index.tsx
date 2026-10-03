@@ -1,7 +1,7 @@
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { useQueryClient } from "@tanstack/react-query";
 import { platform } from "@tauri-apps/plugin-os";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { commands as sfxCommands } from "@anlg/plugin-sfx";
 import { SpeakerHigh, SpeakerX } from "@anlg/ui/components/icons";
@@ -15,7 +15,9 @@ import {
   getInitialStep,
   getNextStep,
   getPrevStep,
+  getStepProgress,
   getStepStatus,
+  type OnboardingStep,
 } from "./config";
 import { FinalDescription, FinalSection, finishOnboarding } from "./final";
 import { ImportSection } from "./imports";
@@ -84,6 +86,7 @@ function OnboardingScreenContent({
   headerClassName: string;
   headerDragRegion?: boolean;
 }) {
+  const { t } = useLingui();
   const queryClient = useQueryClient();
   const auth = useAuth();
   // Fork: start muted; the speaker button turns the music on.
@@ -92,6 +95,8 @@ function OnboardingScreenContent({
   const [didSkipLogin, setDidSkipLogin] = useState(false);
   const [didSkipImports, setDidSkipImports] = useState(false);
   const [didSkipCalendar, setDidSkipCalendar] = useState(false);
+  const [didTranscriptionFail, setDidTranscriptionFail] = useState(false);
+  const permissionsContinuedRef = useRef(false);
   const currentPlatform = platform();
 
   const goNext = useCallback(() => {
@@ -126,6 +131,20 @@ function OnboardingScreenContent({
     const prev = getPrevStep(currentStep);
     if (prev) setCurrentStep(prev);
   }, [currentStep]);
+
+  // Fork: say "skipped" when the engine failed to set up, not "ready"
+  // (UX audit Oct 3, A: NN/g #1).
+  const continueTranscription = useCallback(
+    (failed?: boolean) => {
+      setDidTranscriptionFail(failed === true);
+      goNext();
+    },
+    [goNext],
+  );
+
+  // Back is shown on every step but the first.
+  const backFor = (step: OnboardingStep) =>
+    getPrevStep(step) ? goBack : undefined;
 
   const continueCalendar = useCallback(() => {
     setDidSkipCalendar(false);
@@ -198,7 +217,9 @@ function OnboardingScreenContent({
           onClick={() => setIsMuted((prev) => !prev)}
           data-tauri-drag-region="false"
           className="hover:bg-accent rounded-full p-1.5 transition-colors"
-          aria-label={isMuted ? "Unmute" : "Mute"}
+          // Fork: name what the button does (UX audit Oct 3, A: WCAG 4.1.2).
+          aria-label={isMuted ? t`Play music` : t`Mute music`}
+          title={isMuted ? t`Play music` : t`Mute music`}
         >
           {isMuted ? (
             <SpeakerX size={16} className="text-muted-foreground" />
@@ -236,8 +257,8 @@ function OnboardingScreenContent({
               currentPlatform === "macos" ? (
                 <Trans>
                   Upshot needs your microphone and your Mac's sound to
-                  transcribe meetings, and Accessibility to see which meeting
-                  app you're in and when the call ends.
+                  transcribe meetings. Accessibility is optional: it lets Upshot
+                  see which meeting app you're in and when the call ends.
                 </Trans>
               ) : (
                 <Trans>
@@ -247,11 +268,15 @@ function OnboardingScreenContent({
               )
             }
             status={getStepStatus("permissions", currentStep)}
+            progress={getStepProgress("permissions")}
             skippable={false}
-            onBack={goBack}
+            onBack={backFor("permissions")}
             onNext={goNext}
           >
-            <PermissionsSection onContinue={goNext} />
+            <PermissionsSection
+              onContinue={goNext}
+              continuedRef={permissionsContinuedRef}
+            />
           </OnboardingSection>
 
           <OnboardingSection
@@ -261,13 +286,20 @@ function OnboardingScreenContent({
                 Upshot transcribes on your Mac. No account and no API key.
               </Trans>
             }
-            completedTitle={<Trans>Transcription ready</Trans>}
+            completedTitle={
+              didTranscriptionFail ? (
+                <Trans>Transcription skipped</Trans>
+              ) : (
+                <Trans>Transcription set up</Trans>
+              )
+            }
             status={getStepStatus("transcription", currentStep)}
+            progress={getStepProgress("transcription")}
             skippable={false}
-            onBack={goBack}
+            onBack={backFor("transcription")}
             onNext={goNext}
           >
-            <TranscriptionSetupSection onContinue={goNext} />
+            <TranscriptionSetupSection onContinue={continueTranscription} />
           </OnboardingSection>
 
           <OnboardingSection
@@ -288,7 +320,8 @@ function OnboardingScreenContent({
               )
             }
             status={getStepStatus("login", currentStep)}
-            onBack={goBack}
+            progress={getStepProgress("login")}
+            onBack={backFor("login")}
             onNext={goNext}
             onSkip={() => {
               setDidSkipLogin(true);
@@ -320,7 +353,8 @@ function OnboardingScreenContent({
               )
             }
             status={getStepStatus("calendar", currentStep)}
-            onBack={goBack}
+            progress={getStepProgress("calendar")}
+            onBack={backFor("calendar")}
             onNext={continueCalendar}
             onSkip={skipCalendar}
           >
@@ -343,7 +377,8 @@ function OnboardingScreenContent({
               )
             }
             status={getStepStatus("imports", currentStep)}
-            onBack={goBack}
+            progress={getStepProgress("imports")}
+            onBack={backFor("imports")}
             onNext={continueImports}
             onSkip={skipImports}
           >
@@ -354,8 +389,9 @@ function OnboardingScreenContent({
             title={<Trans>Ready to go</Trans>}
             description={<FinalDescription />}
             status={getStepStatus("final", currentStep)}
+            progress={getStepProgress("final")}
             skippable={false}
-            onBack={goBack}
+            onBack={backFor("final")}
             onNext={() => void finishOnboarding(handleFinish)}
           >
             <FinalSection onContinue={handleFinish} />

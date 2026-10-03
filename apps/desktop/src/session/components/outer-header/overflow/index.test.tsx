@@ -19,7 +19,13 @@ const {
   useConfigValueMock,
   platformMock,
   windowShowMock,
+  copyTranscriptMock,
+  requestDeleteRecordingMock,
+  canCopyTranscript,
 } = vi.hoisted(() => ({
+  copyTranscriptMock: vi.fn(),
+  requestDeleteRecordingMock: vi.fn(),
+  canCopyTranscript: { value: false },
   uploadAudioMock: vi.fn(),
   uploadTranscriptMock: vi.fn(),
   regenerateTranscriptMock: vi.fn(),
@@ -130,6 +136,14 @@ vi.mock("~/audio-player", () => ({
   useAudioPlayer: () => ({
     audioExists: audioExists.value,
     audioExistsResolved: audioExistsResolved.value,
+    requestDeleteRecording: requestDeleteRecordingMock,
+  }),
+}));
+
+vi.mock("~/session/components/note-input/header-transcript", () => ({
+  useCopyTranscript: () => ({
+    canCopyTranscript: canCopyTranscript.value,
+    copyTranscript: copyTranscriptMock,
   }),
 }));
 
@@ -178,9 +192,10 @@ const ACTIONS = [
   "Upload transcript",
   "Start listening",
   "Resume listening",
-  "Re-transcribe",
+  "Transcribe again",
   "Open floating panel",
-  "Open in New Window",
+  "Copy transcript",
+  "Open in new window",
   "Delete recording",
   "Delete note",
 ] as const;
@@ -247,7 +262,7 @@ describe("OverflowButton", () => {
         "Upload audio",
         "Upload transcript",
         "Start listening",
-        "Open in New Window",
+        "Open in new window",
         "Delete note",
       ],
     ],
@@ -255,19 +270,19 @@ describe("OverflowButton", () => {
       "note with content",
       { transcript: false, content: "Existing content" },
       {},
-      ["Start listening", "Open in New Window", "Delete note"],
+      ["Start listening", "Open in new window", "Delete note"],
     ],
     [
       "pending audio lookup",
       { transcript: false, audio: true, audioResolved: false },
       {},
-      ["Resume listening", "Open in New Window", "Delete note"],
+      ["Resume listening", "Open in new window", "Delete note"],
     ],
     [
       "transcript without a recording",
       {},
       {},
-      ["Resume listening", "Open in New Window", "Delete note"],
+      ["Resume listening", "Open in new window", "Delete note"],
     ],
     [
       "recorded audio",
@@ -275,8 +290,9 @@ describe("OverflowButton", () => {
       {},
       [
         "Resume listening",
-        "Re-transcribe",
-        "Open in New Window",
+        "Transcribe again",
+        "Open in new window",
+        "Delete recording",
         "Delete note",
       ],
     ],
@@ -287,7 +303,7 @@ describe("OverflowButton", () => {
       [
         "Start listening",
         "Open floating panel",
-        "Open in New Window",
+        "Open in new window",
         "Delete note",
       ],
     ],
@@ -295,19 +311,19 @@ describe("OverflowButton", () => {
       "finalizing",
       { audio: true, mode: "finalizing", floatingPanel: true },
       {},
-      ["Resume listening", "Open in New Window", "Delete note"],
+      ["Resume listening", "Open in new window", "Delete note"],
     ],
     [
       "batch transcription",
       { audio: true, mode: "running_batch" },
       {},
-      ["Resume listening", "Open in New Window", "Delete note"],
+      ["Resume listening", "Open in new window", "Delete note"],
     ],
     [
       "listening disabled",
       { mode: "active", floatingPanel: true },
       { allowListening: false },
-      ["Open in New Window", "Delete note"],
+      ["Open in new window", "Delete note"],
     ],
     [
       "standalone window",
@@ -333,11 +349,24 @@ describe("OverflowButton", () => {
     expect(uploadTranscriptMock).toHaveBeenCalledTimes(1);
   });
 
+  it("copies the transcript and asks before deleting the recording from the menu", () => {
+    arrange({ transcript: true, audio: true });
+    canCopyTranscript.value = true;
+    renderOverflow();
+
+    fireEvent.click(screen.getByRole("button", { name: "Copy transcript" }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete recording" }));
+
+    expect(copyTranscriptMock).toHaveBeenCalledTimes(1);
+    expect(requestDeleteRecordingMock).toHaveBeenCalledTimes(1);
+    canCopyTranscript.value = false;
+  });
+
   it("re-transcribes recorded audio", () => {
     arrange({ transcript: false, audio: true });
     renderOverflow();
 
-    fireEvent.click(screen.getByRole("button", { name: "Re-transcribe" }));
+    fireEvent.click(screen.getByRole("button", { name: "Transcribe again" }));
 
     expect(regenerateTranscriptMock).toHaveBeenCalledTimes(1);
   });
@@ -361,7 +390,7 @@ describe("OverflowButton", () => {
   it("opens the current note in a standalone window", () => {
     renderOverflow();
 
-    fireEvent.click(screen.getByRole("button", { name: "Open in New Window" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open in new window" }));
 
     expect(windowShowMock).toHaveBeenCalledWith({
       type: "note",
@@ -378,7 +407,7 @@ describe("OverflowButton", () => {
 
     expect(exportModalMock).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole("button", { name: "Export" }));
+    fireEvent.click(screen.getByRole("button", { name: "Export…" }));
 
     expect(exportModalMock).toHaveBeenLastCalledWith(
       expect.objectContaining({ open: true }),

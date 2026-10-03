@@ -24,7 +24,7 @@ import { cn } from "@anlg/utils";
 import { useAuth } from "~/auth";
 import { useBillingAccess } from "~/auth/billing-context";
 import { requestSyncDevices } from "~/auth/sync-devices";
-import { SettingsPageTitle } from "~/settings/page-title";
+import { SettingsPageTitle, SettingsSectionTitle } from "~/settings/page-title";
 import { getWorkspaceAccess, requireTeamContext } from "~/settings/team/client";
 import { useMyWorkspacesWithMirror } from "~/settings/team/mirror";
 import { buildWebAppUrl } from "~/shared/utils";
@@ -397,9 +397,9 @@ function PlanBillingSection({
   return (
     <section>
       <div className="mb-2 flex flex-col gap-1">
-        <h2 className="font-sans text-lg font-semibold">
+        <SettingsSectionTitle>
           <Trans>Your plan</Trans>
-        </h2>
+        </SettingsSectionTitle>
         <p className="text-muted-foreground text-sm">
           <Trans>
             Manage or cancel your subscription in the billing portal.
@@ -582,9 +582,9 @@ function PlanLimitsSection({
   return (
     <section>
       <div className="mb-2 flex flex-col gap-1">
-        <h2 className="font-sans text-lg font-semibold">
+        <SettingsSectionTitle>
           <Trans>Plan limits</Trans>
-        </h2>
+        </SettingsSectionTitle>
         <p className="text-muted-foreground text-sm">
           <Trans>Shared across cloud sync and your workspaces.</Trans>
         </p>
@@ -706,9 +706,9 @@ function PlansSection({
   return (
     <section>
       <div className="mb-2 flex min-w-0 items-center justify-between gap-3">
-        <h2 className="font-sans text-lg font-semibold">
+        <SettingsSectionTitle>
           <Trans>Compare plans</Trans>
-        </h2>
+        </SettingsSectionTitle>
       </div>
 
       {canChooseBillingPeriod && proPrice?.yearly != null && (
@@ -788,9 +788,9 @@ function GuestPlanSection() {
   return (
     <section>
       <div className="mb-4 flex flex-col gap-1">
-        <h2 className="font-sans text-lg font-semibold">
+        <SettingsSectionTitle>
           <Trans>Plans</Trans>
-        </h2>
+        </SettingsSectionTitle>
         <p className="text-muted-foreground text-sm">
           <Trans>Compare Free, Pro, Team, and Enterprise.</Trans>
         </p>

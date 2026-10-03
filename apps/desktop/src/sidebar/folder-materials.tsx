@@ -111,7 +111,7 @@ export function FolderMaterialsPanel({ folderPath }: { folderPath: string }) {
           />
         </div>
         {materials.length === 0 ? (
-          <p className="text-muted-foreground/80 pt-1 text-xs leading-4">
+          <p className="text-muted-foreground pt-1 text-xs leading-4">
             <Trans>Add a syllabus or PDF for this folder</Trans>
           </p>
         ) : (

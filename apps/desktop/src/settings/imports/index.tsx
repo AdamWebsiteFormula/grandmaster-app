@@ -23,7 +23,7 @@ export function SettingsImports() {
             void openerCommands.openUrl(IMPORTS_DOCUMENTATION_URL, null)
           }
         >
-          <Trans>Documentation</Trans>
+          <Trans>Help</Trans>
           <ArrowSquareOut className="size-3.5" />
         </Button>
       </div>

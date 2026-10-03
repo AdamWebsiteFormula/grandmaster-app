@@ -1,5 +1,4 @@
 import { useCallback } from "react";
-import { useHotkeys } from "react-hotkeys-hook";
 
 import { useTabs } from "~/store/zustand/tabs";
 
@@ -10,17 +9,8 @@ export function useSettings() {
     openNew({ type: "settings" });
   }, [openNew]);
 
-  useHotkeys(
-    "mod+,",
-    openSettings,
-    {
-      preventDefault: true,
-      splitKey: "|",
-      enableOnFormTags: true,
-      enableOnContentEditable: true,
-    },
-    [openSettings],
-  );
+  // Fork: ⌘, is the native "Settings…" menu item's accelerator now; a web
+  // hotkey too would open Settings twice (UX audit Oct 3, A: HIG menu bar).
 
   return { openSettings };
 }

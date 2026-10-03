@@ -1,4 +1,5 @@
-import type { ComponentProps, ComponentType } from "react";
+import { Trans } from "@lingui/react/macro";
+import type { ComponentProps, ComponentType, ReactNode } from "react";
 
 import { Folder, Pencil, Swap } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
@@ -26,7 +27,15 @@ function parseApprovalToolOutput(output: unknown): ApprovalToolOutput | null {
 
 // Same layout as EditActions in edit-summary.tsx. Nothing changes until the
 // user presses Apply; the tool call waits on this choice.
-function ApprovalActions({ toolCallId }: { toolCallId: string }) {
+// Fork: "Discard" plus a specific verb on every approval card
+// (ux-audit-oct3 D, NN/g #4, HIG alerts).
+function ApprovalActions({
+  toolCallId,
+  applyLabel,
+}: {
+  toolCallId: string;
+  applyLabel: ReactNode;
+}) {
   const approval = usePendingApprovalStore((state) =>
     state.approvals.get(toolCallId),
   );
@@ -52,10 +61,10 @@ function ApprovalActions({ toolCallId }: { toolCallId: string }) {
           variant="outline"
           onClick={() => resolve(false)}
         >
-          Dismiss
+          <Trans>Discard</Trans>
         </Button>
         <Button type="button" size="sm" onClick={() => resolve(true)}>
-          Apply
+          {applyLabel}
         </Button>
       </div>
     </>
@@ -67,11 +76,13 @@ function ApprovalFooter({
   errorText,
   parsed,
   toolCallId,
+  applyLabel,
 }: {
   failed: boolean;
   errorText: unknown;
   parsed: ApprovalToolOutput | null;
   toolCallId: string;
+  applyLabel: ReactNode;
 }) {
   const showMessage =
     parsed?.status === "error" || parsed?.status === "not_found";
@@ -89,7 +100,7 @@ function ApprovalFooter({
           />
         ) : null}
       </ToolCardFooters>
-      <ApprovalActions toolCallId={toolCallId} />
+      <ApprovalActions toolCallId={toolCallId} applyLabel={applyLabel} />
     </>
   );
 }
@@ -116,7 +127,9 @@ const SessionCorrectionCard = defineTool({
         </p>
       </ToolCardBody>
     ) : null,
-  renderFooter: (ctx) => <ApprovalFooter {...ctx} />,
+  renderFooter: (ctx) => (
+    <ApprovalFooter {...ctx} applyLabel=<Trans>Apply correction</Trans> />
+  ),
 });
 
 const MoveMeetingContentsCard = defineTool({
@@ -139,7 +152,9 @@ const MoveMeetingContentsCard = defineTool({
         </p>
       </ToolCardBody>
     ) : null,
-  renderFooter: (ctx) => <ApprovalFooter {...ctx} />,
+  renderFooter: (ctx) => (
+    <ApprovalFooter {...ctx} applyLabel=<Trans>Move contents</Trans> />
+  ),
 });
 
 function folderMoveCounts(parsed: ApprovalToolOutput): string {
@@ -172,7 +187,9 @@ const MoveMeetingsToFolderCard = defineTool({
         </p>
       </ToolCardBody>
     ) : null,
-  renderFooter: (ctx) => <ApprovalFooter {...ctx} />,
+  renderFooter: (ctx) => (
+    <ApprovalFooter {...ctx} applyLabel=<Trans>Move meetings</Trans> />
+  ),
 });
 
 type ApprovalCardPart = ComponentProps<typeof SessionCorrectionCard>["part"];

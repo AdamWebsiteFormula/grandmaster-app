@@ -70,7 +70,8 @@ function HeaderViewRawButton({
   return (
     <IconHeaderView
       isActive={isActive}
-      label={label || t`Memos`}
+      // Fork: "Memos" was the upstream word; Granola calls this tab My notes (ux-audit-oct3 C).
+      label={label || t`My notes`}
       icon={<TextAlignLeft className="size-3.5" />}
       onClick={onClick}
       onContextMenu={onContextMenu}
@@ -96,6 +97,7 @@ function HeaderViewRawActive({
   sessionId: string;
   standalone: boolean;
 }) {
+  const { t } = useLingui();
   const memoMarkdown = useMemo(() => getStoredNoteMarkdown(rawMd), [rawMd]);
   const contextMenu = useMemo<MenuItemDef[]>(
     () => [
@@ -103,15 +105,19 @@ function HeaderViewRawActive({
         id: `copy-memo-${sessionId}`,
         text: "Copy",
         action: () => {
-          void copyTextToClipboard(memoMarkdown, {
-            success: "Memo copied to clipboard",
-            error: "Failed to copy memo",
-          });
+          void copyTextToClipboard(
+            memoMarkdown,
+            {
+              success: t`Notes copied to clipboard`,
+              error: t`Couldn't copy your notes. Try again.`,
+            },
+            { html: true },
+          );
         },
         disabled: memoMarkdown.length === 0,
       },
     ],
-    [memoMarkdown, sessionId],
+    [memoMarkdown, sessionId, t],
   );
   const showContextMenu = useNativeContextMenu(contextMenu);
 

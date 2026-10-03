@@ -51,6 +51,7 @@ import {
 import { useConfigValue, useConfigValues } from "~/shared/config";
 import { useLatestRef } from "~/shared/hooks/useLatestRef";
 import { listenerStore } from "~/store/zustand/listener/instance";
+import { useTabs } from "~/store/zustand/tabs";
 import type { RenderLabelContext } from "~/stt/live-segment";
 
 export {
@@ -279,6 +280,11 @@ function FloatingMeetingWindowSync({
     windowsEvents.floatingBarOpenMain
       .listen(async () => {
         await windowsCommands.windowShow({ type: "main" });
+        // Fork: open the note being recorded, not just the window (ux-audit-oct3 C, NN/g #3).
+        const sessionId = listenerStore.getState().live.sessionId;
+        if (sessionId) {
+          useTabs.getState().openNew({ type: "sessions", id: sessionId });
+        }
       })
       .then((unlisten) => {
         if (cancelled) {

@@ -9,6 +9,8 @@ import {
 import { Button } from "@anlg/ui/components/ui/button";
 import { Spinner } from "@anlg/ui/components/ui/spinner";
 
+import { useTabs } from "~/store/zustand/tabs";
+
 export function TranscriptEmptyState({
   isBatching,
   hasAudio,
@@ -30,6 +32,8 @@ export function TranscriptEmptyState({
   onUploadTranscript?: () => void;
   onStopTranscription?: () => void;
 }) {
+  const openNew = useTabs((state) => state.openNew);
+
   if (error) {
     return (
       <div
@@ -46,12 +50,24 @@ export function TranscriptEmptyState({
             {error}
           </p>
         </div>
-        {onRetranscribe && (
-          <Button size="sm" className="gap-2" onClick={onRetranscribe}>
-            <ArrowsClockwise className="size-4" />
-            {t`Re-transcribe`}
+        {/* Fork: a way to fix the cause, not only retry (ux-audit-oct3 C, NN/g #9). */}
+        <div className="flex items-center gap-2">
+          {onRetranscribe && (
+            <Button size="sm" className="gap-2" onClick={onRetranscribe}>
+              <ArrowsClockwise className="size-4" />
+              {t`Transcribe again`}
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              openNew({ type: "settings", state: { tab: "transcription" } })
+            }
+          >
+            {t`Transcription settings`}
           </Button>
-        )}
+        </div>
       </div>
     );
   }
@@ -70,8 +86,8 @@ export function TranscriptEmptyState({
         <div className={onStopTranscription ? "mb-6" : undefined}>
           <p className="text-base font-medium">
             {phase === "importing"
-              ? t`Importing audio...`
-              : t`Generating transcript...`}
+              ? t`Importing audio…`
+              : t`Generating transcript…`}
           </p>
           {hasProgress && (
             <p className="text-muted-foreground mt-2 text-sm leading-relaxed tabular-nums">
@@ -106,7 +122,7 @@ export function TranscriptEmptyState({
         </p>
         <p className="text-muted-foreground text-sm leading-relaxed">
           {hasAudio
-            ? t`Re-transcribe this audio, or upload a transcript file.`
+            ? t`Transcribe this audio again, or upload a transcript file.`
             : t`Upload audio or a transcript file to populate this note.`}
         </p>
       </div>
@@ -115,7 +131,7 @@ export function TranscriptEmptyState({
           {hasAudio && onRetranscribe && (
             <Button size="sm" className="gap-2" onClick={onRetranscribe}>
               <ArrowsClockwise className="size-4" />
-              {t`Re-transcribe`}
+              {t`Transcribe again`}
             </Button>
           )}
           {!hasAudio && onUploadAudio && (

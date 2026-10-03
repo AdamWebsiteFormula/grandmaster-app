@@ -369,7 +369,8 @@
 }
 
 .note-typography a {
-  color: var(--color-primary, #ff6a1f);
+  /* Text shade of the accent: 4.5:1 in both themes (WCAG 2.2 SC 1.4.3). */
+  color: hsl(var(--primary-text, 20 100% 35%));
   text-decoration-line: underline;
   text-underline-offset: 2px;
   cursor: text;
@@ -451,7 +452,6 @@
 .note-typography.prosemirror-editor .is-editor-empty:first-child::before,
 .note-typography.prosemirror-editor .is-empty::before,
 .note-typography.prosemirror-editor .react-placeholder-widget {
-  opacity: 0.6;
   color: var(--color-muted-foreground, #9ca3af);
 }
 

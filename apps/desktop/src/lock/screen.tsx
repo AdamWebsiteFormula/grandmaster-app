@@ -81,7 +81,7 @@ export function NoteLockScreen({
   const hint = useDeviceAuthHint();
   return (
     <LockScreen
-      title={sessionTitle || t`Note is Locked`}
+      title={sessionTitle || t`Note is locked`}
       description={hint}
       action={t`View note`}
       authenticating={authenticating}

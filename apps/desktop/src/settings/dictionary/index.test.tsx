@@ -65,24 +65,20 @@ describe("DictionarySettings", () => {
 
   afterEach(cleanup);
 
-  it("shows the dictionary editor and toasts on the free plan", () => {
+  it("is fully usable on the free plan, with a labeled input", () => {
     mocks.billing.isPro = false;
 
     render(<SettingsDictionary />);
 
-    expect(screen.getByRole("textbox")).toBeTruthy();
-    fireEvent.click(screen.getByRole("textbox"));
+    const input = screen.getByRole("textbox", { name: "Add a term" });
+    fireEvent.click(input);
 
-    expect(mocks.toastWarning).toHaveBeenCalledWith(
-      "This requires Upshot Pro",
-      {
-        action: {
-          label: "Upgrade",
-          onClick: expect.any(Function),
-        },
-      },
-    );
-    expect(mocks.billing.upgradeToPro).not.toHaveBeenCalled();
+    expect(mocks.toastWarning).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(
+        "Names, jargon, and product terms Upshot should spell your way.",
+      ),
+    ).toBeTruthy();
   });
 
   it("adds entered terms and keeps them normalized", async () => {

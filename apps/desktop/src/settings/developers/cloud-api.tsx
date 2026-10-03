@@ -24,6 +24,7 @@ import {
   type CloudApiKey,
 } from "~/cloud-api/client";
 import { env } from "~/env";
+import { SettingsSectionTitle } from "~/settings/page-title";
 import { PlanGate } from "~/settings/plan-gate";
 
 const CLOUD_API_BASE_URL = new URL("/v1", env.VITE_API_URL).toString();
@@ -147,9 +148,9 @@ export function CloudApiSection() {
 function CloudApiHeading({ error }: { error?: string }) {
   return (
     <div className="min-w-0">
-      <h2 className="font-sans text-lg font-semibold">
+      <SettingsSectionTitle>
         <Trans>Cloud API & Connectors</Trans>
-      </h2>
+      </SettingsSectionTitle>
       <p className="text-muted-foreground mt-1 text-xs">
         <Trans>
           Uploads meeting content for remote access while Upshot is closed.

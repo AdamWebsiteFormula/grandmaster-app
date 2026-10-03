@@ -59,7 +59,7 @@ export function MainLanguageView({
           onChange={onChange}
           options={options}
           placeholder={t`Select language`}
-          searchPlaceholder={t`Search language...`}
+          searchPlaceholder={t`Search language…`}
           emptyMessage={t`No matching languages found`}
           className="w-full"
         />

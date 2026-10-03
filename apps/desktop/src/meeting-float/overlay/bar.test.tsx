@@ -48,7 +48,7 @@ describe("FloatingBarOverlay", () => {
   });
 
   it.each(["recording", "reconnecting", "error"] as const)(
-    "stops listening while %s",
+    "stops recording while %s",
     (status) => {
       const onStop = vi.fn();
 
@@ -60,7 +60,7 @@ describe("FloatingBarOverlay", () => {
         />,
       );
 
-      fireEvent.click(screen.getByRole("button", { name: /stop listening/i }));
+      fireEvent.click(screen.getByRole("button", { name: /stop recording/i }));
 
       expect(onStop).toHaveBeenCalledOnce();
     },
@@ -98,5 +98,43 @@ describe("FloatingBarOverlay", () => {
       screen.getByRole("button", { name: "Collapse live transcript" }),
     );
     expect(onToggleExpanded).toHaveBeenCalledWith(false);
+  });
+
+  it("names Stop before hover", () => {
+    render(
+      <FloatingBarOverlay
+        state={state()}
+        onStop={vi.fn()}
+        onToggleExpanded={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen
+        .getByRole("button", { name: "Stop recording" })
+        .getAttribute("title"),
+    ).toBe("Stop recording");
+  });
+
+  it("opens the note from the bar body but not from its buttons", () => {
+    const onOpenMain = vi.fn();
+    const onStop = vi.fn();
+    render(
+      <FloatingBarOverlay
+        state={state()}
+        onStop={onStop}
+        onToggleExpanded={vi.fn()}
+        onOpenMain={onOpenMain}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Stop recording" }));
+    expect(onOpenMain).not.toHaveBeenCalled();
+
+    const body = screen
+      .getByRole("button", { name: "Stop recording" })
+      .closest(".overflow-hidden") as HTMLElement;
+    fireEvent.click(body);
+    expect(onOpenMain).toHaveBeenCalledOnce();
   });
 });

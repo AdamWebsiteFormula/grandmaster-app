@@ -4,7 +4,7 @@ pub struct DockNewNote;
 
 impl DockMenuItem for DockNewNote {
     fn title(_app: &tauri::AppHandle<tauri::Wry>) -> String {
-        "New Note".to_string()
+        "New note".to_string()
     }
 
     fn handle(app: &tauri::AppHandle<tauri::Wry>) {

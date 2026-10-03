@@ -98,7 +98,7 @@ import {
   listScheduledCaptures,
 } from "~/enterprise-capture/client";
 import { env } from "~/env";
-import { SettingsPageTitle } from "~/settings/page-title";
+import { SettingsPageTitle, SettingsSectionTitle } from "~/settings/page-title";
 import { PlanGate } from "~/settings/plan-gate";
 import { SettingSwitchRow } from "~/settings/setting-row";
 import { DestructiveConfirmationDialog } from "~/shared/ui/destructive-confirmation-dialog";
@@ -275,9 +275,9 @@ function PendingInvitations({
 
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="font-sans text-lg font-semibold">
+      <SettingsSectionTitle>
         <Trans>Invitations</Trans>
-      </h2>
+      </SettingsSectionTitle>
       {invitations.map((invitation) => {
         const accepting =
           accept.isPending &&
@@ -421,9 +421,9 @@ function CreateWorkspaceForm({
 
   return (
     <section className="flex max-w-xl flex-col gap-4">
-      <h2 className="font-sans text-lg font-semibold">
+      <SettingsSectionTitle>
         <Trans>Create a shared workspace</Trans>
-      </h2>
+      </SettingsSectionTitle>
       <p className="text-muted-foreground text-xs leading-5">
         <Trans>
           Invite teammates, share notes across the workspace, and manage who has
@@ -821,9 +821,9 @@ function WorkspacePanel({
 
       <section className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-sans text-lg font-semibold">
+          <SettingsSectionTitle>
             <Trans>Members</Trans>
-          </h2>
+          </SettingsSectionTitle>
           {canManageMembers ? (
             <Button
               type="button"
@@ -1037,9 +1037,9 @@ function WorkspacePanel({
 
       {hasAdminControls ? (
         <section className="flex flex-col gap-8">
-          <h2 className="font-sans text-lg font-semibold">
+          <SettingsSectionTitle>
             <Trans>Admin</Trans>
-          </h2>
+          </SettingsSectionTitle>
           {policy.data ? (
             <WorkspacePolicyForm
               workspaceId={workspaceId}

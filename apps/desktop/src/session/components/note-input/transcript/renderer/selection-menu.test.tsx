@@ -26,6 +26,13 @@ function render(ui: ReactNode) {
   );
 }
 
+const toastMocks = vi.hoisted(() => {
+  const toast = Object.assign(vi.fn(), { error: vi.fn() });
+  return { toast };
+});
+
+vi.mock("@anlg/ui/components/ui/toast", () => ({ toast: toastMocks.toast }));
+
 vi.mock("@floating-ui/react", () => ({
   autoUpdate: vi.fn(),
   flip: vi.fn(),
@@ -277,6 +284,34 @@ describe("MultiSelectionBar", () => {
     );
     finish();
     await waitFor(() => expect(onClear).toHaveBeenCalledTimes(1));
+  });
+
+  it("offers Undo after deleting lines", async () => {
+    const undo = vi.fn().mockResolvedValue(undefined);
+    const onDelete = vi.fn().mockResolvedValue(undo);
+    render(
+      <MultiSelectionBar
+        selection={selection}
+        entryCount={2}
+        onClear={vi.fn()}
+        onAssignSpeaker={vi.fn()}
+        onDelete={onDelete}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+    await waitFor(() =>
+      expect(toastMocks.toast).toHaveBeenCalledWith(
+        "Lines deleted",
+        expect.objectContaining({
+          action: expect.objectContaining({ label: "Undo" }),
+        }),
+      ),
+    );
+    const options = toastMocks.toast.mock.calls[0][1] as {
+      action: { onClick: () => void };
+    };
+    options.action.onClick();
+    expect(undo).toHaveBeenCalledTimes(1);
   });
 
   it("keeps the selection available for retry if deleting fails", async () => {

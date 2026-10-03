@@ -13,13 +13,7 @@ export function BrandLoadingView({ detail }: { detail?: string }) {
       ])}
     >
       <div className="flex flex-col items-center">
-        <div
-          className={cn([
-            "relative w-[4.5rem]",
-            "drop-shadow-[0_10px_24px_rgba(0,0,0,0.10)]",
-            "dark:drop-shadow-[0_12px_28px_rgba(0,0,0,0.45)]",
-          ])}
-        >
+        <div className="relative w-[4.5rem]">
           <AnarlogMark className="text-foreground/20 w-full" />
           <div
             aria-hidden="true"

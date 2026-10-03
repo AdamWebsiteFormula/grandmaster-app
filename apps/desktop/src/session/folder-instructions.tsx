@@ -31,7 +31,7 @@ export function FolderInstructionsField({
       placeholder={t`Add context for this folder`}
       rows={rows}
       className={cn([
-        "border-border/60 placeholder:text-muted-foreground w-full resize-none rounded-md border bg-transparent",
+        "border-input placeholder:text-muted-foreground w-full resize-none rounded-md border bg-transparent",
         "focus-visible:ring-ring focus-visible:ring-1 focus-visible:outline-hidden",
         rows > 2
           ? "px-3 py-2.5 text-sm leading-5"

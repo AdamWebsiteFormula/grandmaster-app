@@ -132,13 +132,13 @@ function StartupErrorView({ error }: { error: Error }) {
         </h1>
         <p className="text-muted-foreground text-sm leading-relaxed">
           {needsUpdate
-            ? "Your data was updated by a newer version of Upshot, such as Upshot Nightly, and this version cannot open it yet. Your existing data was left unchanged. Install the latest version of Upshot, or keep using the newer app until this version catches up."
-            : "Your existing data was left unchanged. Please restart the app. If the problem continues, contact support."}
+            ? "Your data was updated by a newer version of Upshot, and this version cannot open it yet. Your existing data was left unchanged. Install the latest version of Upshot, or keep using the newer app until this version catches up."
+            : "Your existing data was left unchanged. Restart Upshot. If the problem continues, use Help › Report a bug."}
         </p>
         {needsUpdate ? null : (
           <Button size="sm" onClick={() => void handleRestart()}>
             <ArrowClockwise className="mr-1.5 h-3.5 w-3.5" />
-            Restart App
+            Restart Upshot
           </Button>
         )}
       </div>

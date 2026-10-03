@@ -8,6 +8,10 @@ import {
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 
 import {
+  KeyboardShortcutsDialog,
+  openKeyboardShortcuts,
+} from "./keyboard-shortcuts-dialog";
+import {
   openNewNoteAndListen,
   openSessionAndListen,
   useNewNote,
@@ -48,6 +52,7 @@ function MainAppContent() {
       {isMainWindow ? <EnterpriseCaptureSync /> : null}
       {isMainWindow ? <WorkspaceInvitationToasts /> : null}
       <UndoDeleteToast />
+      <KeyboardShortcutsDialog />
     </>
   );
 }
@@ -83,6 +88,7 @@ const useNavigationEvents = () => {
     let cancelled = false;
 
     const webview = getCurrentWebviewWindow();
+    const stopTrackingKeys = trackHandledShortcuts();
 
     void windowsEvents
       .navigate(webview)
@@ -115,11 +121,11 @@ const useNavigationEvents = () => {
                   error,
                 );
               });
-          } else if (shouldRecord) {
-            openNewNoteAndListen({ behavior: "new" });
           } else {
-            openNewNote();
+            routeNewNote(payload.search ?? null, { openNewNote });
           }
+        } else if (payload.path === "/app/menu") {
+          runMenuAction(payload.search?.action);
         } else if (payload.path === "/app/settings") {
           const tab = (payload.search?.tab as string) ?? "app";
           openNew({ type: "settings", state: { tab } });
@@ -142,7 +148,7 @@ const useNavigationEvents = () => {
       .openTab(webview)
       .listen(({ payload }) => {
         if (payload.tab.type === "sessions" && payload.tab.id === "new") {
-          openNewNote();
+          routeNewSessionTab(payload.tab.state?.autoStart, { openNewNote });
         } else if (!isTabInputSupported(payload.tab)) {
           return;
         } else {
@@ -164,9 +170,105 @@ const useNavigationEvents = () => {
       }
       unlistenNavigate?.();
       unlistenOpenTab?.();
+      stopTrackingKeys();
     };
   });
 };
+
+// Fork: native menu accelerators (File › New note ⌘N, Blank note ⇧⌘N, Edit ›
+// Find ⌘F, View › Show sidebar ⌘\) share keys with the web hotkeys. When a web
+// hotkey already took the key press (it calls preventDefault), the menu event
+// that may follow is dropped, so one press never acts twice.
+const HANDLED_WINDOW_MS = 500;
+let lastHandledShortcut: { combo: string; at: number } | null = null;
+
+function shortcutCombo(event: {
+  metaKey?: boolean;
+  ctrlKey?: boolean;
+  shiftKey?: boolean;
+  altKey?: boolean;
+  code?: string;
+}) {
+  return [
+    event.metaKey || event.ctrlKey ? "mod" : "",
+    event.shiftKey ? "shift" : "",
+    event.altKey ? "alt" : "",
+    event.code ?? "",
+  ]
+    .filter(Boolean)
+    .join("+");
+}
+
+export function trackHandledShortcuts() {
+  // Bubble phase on window: runs after react-hotkeys-hook's document listener.
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (event.defaultPrevented) {
+      lastHandledShortcut = { combo: shortcutCombo(event), at: Date.now() };
+    }
+  };
+  window.addEventListener("keydown", onKeyDown);
+  return () => window.removeEventListener("keydown", onKeyDown);
+}
+
+function webJustHandled(combo: string) {
+  return (
+    lastHandledShortcut !== null &&
+    lastHandledShortcut.combo === combo &&
+    Date.now() - lastHandledShortcut.at < HANDLED_WINDOW_MS
+  );
+}
+
+// Fork: /app/new with no search is File › New note (⌘N) and the Dock's New
+// note: create a note and start recording, as Granola does. record=false is
+// Blank note (UX audit Oct 3, A: NN/g #4).
+export function routeNewNote(
+  search: Record<string, unknown> | null,
+  { openNewNote }: { openNewNote: () => void },
+) {
+  if (search?.record === "false") {
+    if (webJustHandled("mod+shift+KeyN")) return;
+    openNewNote();
+    return;
+  }
+  if (webJustHandled("mod+KeyN")) return;
+  openNewNoteAndListen({ behavior: "new" });
+}
+
+// Fork: the tray's New note asks for autoStart; honor it so it records
+// (UX audit Oct 3, A P1: NN/g #1, #4).
+export function routeNewSessionTab(
+  autoStart: boolean | null | undefined,
+  { openNewNote }: { openNewNote: () => void },
+) {
+  if (autoStart) {
+    openNewNoteAndListen({ behavior: "new" });
+  } else {
+    openNewNote();
+  }
+}
+
+const MENU_SHORTCUTS: Record<string, KeyboardEventInit> = {
+  find: { key: "f", code: "KeyF", metaKey: true },
+  "toggle-sidebar": { key: "\\", code: "Backslash", metaKey: true },
+};
+
+// Menu items whose work lives in web hotkeys replay that hotkey, so the menu
+// and the keyboard always do the same thing.
+export function runMenuAction(action: unknown) {
+  if (action === "shortcuts") {
+    openKeyboardShortcuts();
+    return;
+  }
+  if (typeof action !== "string") return;
+  const init = MENU_SHORTCUTS[action];
+  if (!init || webJustHandled(shortcutCombo(init))) return;
+  const target = document.activeElement ?? document.body;
+  for (const type of ["keydown", "keyup"] as const) {
+    target.dispatchEvent(
+      new KeyboardEvent(type, { bubbles: true, cancelable: true, ...init }),
+    );
+  }
+}
 
 // Renders nothing; keeps the local workspace mirror fresh so sharing scopes are
 // available without visiting Team settings.

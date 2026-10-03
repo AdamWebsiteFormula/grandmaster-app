@@ -17,6 +17,7 @@ import { Input } from "@anlg/ui/components/ui/input";
 import { Textarea } from "@anlg/ui/components/ui/textarea";
 import { cn } from "@anlg/utils";
 
+import { DeleteTemplateDialog } from "./delete-template-dialog";
 import {
   type UserTemplate,
   useSaveTemplate,
@@ -43,6 +44,7 @@ function TemplateTargetsInput({
   value: string[];
   onChange: (value: string[]) => void;
 }) {
+  const { t } = useLingui();
   const [inputValue, setInputValue] = useState("");
   const [isAddingTag, setIsAddingTag] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -79,11 +81,14 @@ function TemplateTargetsInput({
           className="bg-muted flex h-6 items-center gap-1 rounded-md px-2 py-0.5 text-xs font-normal"
         >
           {target}
+          {/* Fork: named, 24 px target (ux-audit-oct3 B; WCAG 4.1.2, 2.5.8). */}
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            className="ml-0.5 h-3 w-3 p-0 hover:bg-transparent"
+            aria-label={t`Remove ${target}`}
+            title={t`Remove ${target}`}
+            className="-my-1 -mr-1.5 ml-0 size-6 p-0 hover:bg-transparent"
             onClick={(e) => {
               e.stopPropagation();
               onChange(
@@ -157,6 +162,7 @@ export function TemplateForm({
   const saveTemplate = useSaveTemplate();
   const toggleTemplateFavorite = useToggleTemplateFavorite();
   const [actionsOpen, setActionsOpen] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const selectedTemplateId = useConfigValue("selected_template_id");
   const isDefault = selectedTemplateId === id;
@@ -219,6 +225,8 @@ export function TemplateForm({
                 <Input
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
+                  // Fork: labeled field (ux-audit-oct3 B, WCAG 4.1.2).
+                  aria-label={t`Template name`}
                   placeholder={t`Enter template title`}
                   className="absolute inset-0 h-auto w-full max-w-full min-w-0 border-0 px-0 py-0 text-sm font-semibold shadow-none focus-visible:ring-0 md:text-sm"
                 />
@@ -243,9 +251,9 @@ export function TemplateForm({
             aria-pressed={isDefault}
             title={isDefault ? "Remove as default" : "Set as default"}
             className={cn([
-              "text-muted-foreground shrink-0 hover:text-black",
+              "text-muted-foreground hover:text-foreground shrink-0",
               isDefault
-                ? "text-primary hover:bg-transparent hover:text-primary"
+                ? "text-primary hover:text-primary hover:bg-transparent"
                 : null,
             ])}
           >
@@ -303,8 +311,8 @@ export function TemplateForm({
                   <Trans>Duplicate</Trans>
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => handleDeleteTemplate(id)}
-                  className="cursor-pointer text-destructive focus:text-destructive"
+                  onClick={() => setConfirmingDelete(true)}
+                  className="text-destructive focus:text-destructive cursor-pointer"
                 >
                   <Trans>Delete</Trans>
                 </DropdownMenuItem>
@@ -322,7 +330,7 @@ export function TemplateForm({
                 <Textarea
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder={t`Describe the template purpose...`}
+                  placeholder={t`Describe the template purpose…`}
                   className="text-muted-foreground min-h-[24px] resize-none border-0 px-0 py-0 text-sm shadow-none focus-visible:ring-0"
                   rows={1}
                 />
@@ -351,6 +359,15 @@ export function TemplateForm({
           </form.Field>
         </div>
       </div>
+      <DeleteTemplateDialog
+        template={
+          confirmingDelete
+            ? { id, title: form.state.values.title || template.title }
+            : null
+        }
+        onOpenChange={setConfirmingDelete}
+        onConfirm={handleDeleteTemplate}
+      />
     </div>
   );
 }

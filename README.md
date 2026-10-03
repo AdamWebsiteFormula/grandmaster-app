@@ -68,6 +68,12 @@ Everything stays on your Mac until you press Enhance or use chat.
 
 **Delete your data:** delete a note in the app, or quit the app and delete the folder above.
 
+## Support
+
+- **Report a bug or suggest a feature:** [open an issue](https://github.com/AdamWebsiteFormula/grandmaster-app/issues/new). Say what you did, what you expected and what happened, and add your macOS version and the Upshot version (Upshot › About Upshot).
+- **Keyboard shortcuts:** Help › Keyboard shortcuts, or press ⌘/.
+- **Security problems:** follow [SECURITY.md](SECURITY.md); don't post them in an issue.
+
 ## Credits and licenses
 
 Upshot is a fork of [Anarlog](https://github.com/fastrepl/anarlog) (desktop v1.4.28), by Fastrepl, Inc. Anarlog is MIT licensed. See [LICENSE](LICENSE).

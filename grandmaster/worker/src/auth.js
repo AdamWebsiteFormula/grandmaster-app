@@ -32,6 +32,46 @@ function authErrorMessage(body, fallback) {
   return typeof text === "string" && text.length < 300 ? text : fallback;
 }
 
+// Fork: plain messages instead of raw Supabase errors (ux-audit-oct3 D,
+// NN/g #9). The code lets the app switch its dialog to sign-in.
+export const ACCOUNT_EXISTS =
+  "An account with this email already exists. Sign in instead.";
+export const WRONG_LOGIN = "Wrong email or password.";
+const TOO_MANY = "Too many tries. Wait a minute, then try again.";
+const CONFIRM_EMAIL = "Check your email to confirm your account, then sign in.";
+
+function accountExists() {
+  return new Response(
+    JSON.stringify({
+      error: { message: ACCOUNT_EXISTS, code: "account_exists" },
+    }),
+    {
+      status: 409,
+      headers: {
+        "content-type": "application/json",
+        "cache-control": "no-store",
+      },
+    },
+  );
+}
+
+/** Supabase says "User already registered" (error_code user_already_exists). */
+function isAlreadyRegistered(body) {
+  if (body?.error_code === "user_already_exists") return true;
+  const text = authErrorMessage(body, "");
+  return /already (been )?(registered|exists)/i.test(text);
+}
+
+/**
+ * With email confirmation on, Supabase answers a signup for an existing
+ * email with a user that has no identities instead of an error
+ * (supabase.com/docs/reference/javascript/auth-signup).
+ */
+function isObfuscatedExistingUser(body) {
+  const identities = body?.identities ?? body?.user?.identities;
+  return Array.isArray(identities) && identities.length === 0;
+}
+
 export function sessionPayload(body) {
   const expiresAt =
     Number(body.expires_at) ||
@@ -72,7 +112,7 @@ async function gotrue(env, path, payload) {
 export async function handleAuth(request, env, pathname) {
   if (!configured(env)) return json(503, "Accounts are not available yet.");
   if (await rateLimited(request, env, "auth")) {
-    return json(429, "Too many tries. Wait a minute, then try again.");
+    return json(429, TOO_MANY);
   }
   const input = await readSmallJson(request);
   if (!input) return json(400, "Invalid request");
@@ -99,17 +139,19 @@ export async function handleAuth(request, env, pathname) {
   if (pathname === "/auth/signup") {
     const { response, body } = await gotrue(env, "signup", parsed);
     if (!response.ok) {
+      if (response.status === 429) return json(429, TOO_MANY);
+      if (isAlreadyRegistered(body)) return accountExists();
       return json(
-        response.status === 429 ? 429 : 400,
+        400,
         authErrorMessage(body, "Could not create your account."),
       );
     }
+    if (!body.access_token && isObfuscatedExistingUser(body)) {
+      return accountExists();
+    }
     // With email confirmation on, Supabase returns the user but no session.
     if (!body.access_token) {
-      return json(
-        409,
-        "Check your email to confirm your account, then sign in.",
-      );
+      return json(409, CONFIRM_EMAIL);
     }
     return ok(sessionPayload(body));
   }
@@ -121,10 +163,15 @@ export async function handleAuth(request, env, pathname) {
     parsed,
   );
   if (!response.ok || !body.access_token) {
-    return json(
-      response.status === 429 ? 429 : 400,
-      authErrorMessage(body, "Wrong email or password."),
-    );
+    if (response.status === 429) return json(429, TOO_MANY);
+    if (response.status >= 500) {
+      return json(502, "Could not sign in. Try again in a minute.");
+    }
+    if (body?.error_code === "email_not_confirmed") {
+      return json(400, CONFIRM_EMAIL);
+    }
+    // Supabase answers 400 "Invalid login credentials".
+    return json(400, WRONG_LOGIN);
   }
   return ok(sessionPayload(body));
 }

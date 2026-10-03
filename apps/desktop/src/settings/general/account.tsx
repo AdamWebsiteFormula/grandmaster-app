@@ -156,7 +156,7 @@ export function SettingsAccount() {
             onClick={() => setIsSignOutDialogOpen(true)}
             disabled={signOutMutation.isPending}
           >
-            {signOutMutation.isPending ? t`Signing out...` : t`Sign out`}
+            {signOutMutation.isPending ? t`Signing out…` : t`Sign out`}
           </Button>
         }
       />
@@ -185,7 +185,7 @@ export function SettingsAccount() {
         title={t`Sign out of Upshot?`}
         description={t`You'll need to sign in again to use cloud sync and account features.`}
         confirmLabel={t`Sign out`}
-        pendingLabel={t`Signing out...`}
+        pendingLabel={t`Signing out…`}
         isPending={signOutMutation.isPending}
         onConfirm={() => signOutMutation.mutate()}
       />
