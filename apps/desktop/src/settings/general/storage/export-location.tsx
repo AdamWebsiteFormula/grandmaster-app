@@ -64,7 +64,7 @@ export function ExportLocationRow() {
           </h3>
           <p className="text-muted-foreground mt-0.5 text-xs">
             <Trans>
-              Save PDF, text, Markdown, and Org exports to this folder.
+              Save PDF, text and Markdown exports to this folder.
             </Trans>
           </p>
           {directory && (

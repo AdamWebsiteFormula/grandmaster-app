@@ -72,7 +72,7 @@ export function SettingsConnectors() {
         <SettingLinkRow
           icon={FolderSimple}
           title={<Trans>Export folder</Trans>}
-          description={<Trans>Save PDF, text, Markdown and Org exports.</Trans>}
+          description={<Trans>Save PDF, text and Markdown exports.</Trans>}
           onClick={() => open("app")}
         />
         <SettingLinkRow

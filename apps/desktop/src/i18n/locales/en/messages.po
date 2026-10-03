@@ -6051,13 +6051,13 @@ msgstr "Save meeting summaries and transcripts to a Google Drive folder."
 msgid "Save meetings to Google Drive"
 msgstr "Save meetings to Google Drive"
 
-#: src/settings/connectors/index.tsx
-msgid "Save PDF, text, Markdown and Org exports."
-msgstr "Save PDF, text, Markdown and Org exports."
-
 #: src/settings/general/storage/export-location.tsx
-msgid "Save PDF, text, Markdown, and Org exports to this folder."
-msgstr "Save PDF, text, Markdown, and Org exports to this folder."
+msgid "Save PDF, text and Markdown exports to this folder."
+msgstr "Save PDF, text and Markdown exports to this folder."
+
+#: src/settings/connectors/index.tsx
+msgid "Save PDF, text and Markdown exports."
+msgstr "Save PDF, text and Markdown exports."
 
 #: src/settings/team/index.tsx
 msgid "Save policies"
