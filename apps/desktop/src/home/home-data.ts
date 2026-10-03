@@ -1,10 +1,8 @@
-// Fork: data for the home screen (The upshot, Coming up, Follow-ups,
-// Recent notes).
+// Fork: data for the home screen (Coming up, Follow-ups, Recent notes).
 // Pure helpers are exported for tests; the hooks wrap them in live queries.
 
 import { useEffect, useMemo, useState } from "react";
 
-import { json2md } from "@anlg/editor/markdown";
 import { safeParseDate } from "@anlg/utils";
 
 import { useIgnoredEvents } from "~/calendar/ignored-events";
@@ -545,89 +543,4 @@ export function useFolderNotes(folderPath: string, limit = RECENT_PAGE_SIZE) {
     [folderPath, prefix, prefix, limit + RECENT_FETCH_MARGIN],
     limit,
   );
-}
-
-// ------------------------------------------------------------- The upshot
-
-export type UpshotRow = {
-  id: string;
-  title: string | null;
-  created_at: string;
-  event_json: string | null;
-  body: string | null;
-  body_format: string | null;
-};
-
-export type UpshotSource = {
-  sessionId: string;
-  title: string;
-  timeMs: number;
-  /** The AI summary as markdown. */
-  markdown: string;
-};
-
-const UPSHOT_CANDIDATES = 5;
-
-// Fork: the newest notes with an AI summary (session_documents of kind
-// 'summary' or 'template_output', first by sort_order, as the share payload
-// and chat context read them). Locked notes are left out. Params: limit.
-export const UPSHOT_SQL = `
-  SELECT
-    session.id,
-    session.title,
-    session.created_at,
-    session.event_json,
-    summary.body,
-    summary.body_format
-  FROM sessions AS session
-  JOIN session_documents AS summary
-    ON summary.id = (
-      SELECT candidate.id
-      FROM session_documents AS candidate
-      WHERE candidate.session_id = session.id
-        AND candidate.kind IN ('summary', 'template_output')
-        AND candidate.deleted_at IS NULL
-        AND TRIM(COALESCE(candidate.body, '')) <> ''
-      ORDER BY candidate.sort_order, candidate.id
-      LIMIT 1
-    )
-  WHERE session.deleted_at IS NULL
-    AND COALESCE(session.locked, 0) = 0
-  ORDER BY session.created_at DESC, session.id
-  LIMIT ?
-`;
-
-/** Stored summary body to markdown (ProseMirror JSON or markdown). */
-export function summaryMarkdown(
-  body: string | null,
-  bodyFormat: string | null,
-): string {
-  if (!body) return "";
-  if (bodyFormat === "markdown") return body;
-  try {
-    return json2md(JSON.parse(body));
-  } catch {
-    return "";
-  }
-}
-
-export function useUpshot(): { isLoading: boolean; sources: UpshotSource[] } {
-  const { data, isLoading } = useLiveQuery<UpshotRow, UpshotRow[]>({
-    sql: UPSHOT_SQL,
-    params: [UPSHOT_CANDIDATES],
-  });
-  const pendingDeletions = useUndoDelete((state) => state.pendingDeletions);
-  const sources = useMemo(
-    () =>
-      (data ?? [])
-        .filter((row) => !(row.id in pendingDeletions))
-        .map((row) => ({
-          sessionId: row.id,
-          title: row.title?.trim() || "",
-          timeMs: sessionSearchTimestamp(row.event_json, row.created_at),
-          markdown: summaryMarkdown(row.body, row.body_format),
-        })),
-    [data, pendingDeletions],
-  );
-  return { isLoading, sources };
 }

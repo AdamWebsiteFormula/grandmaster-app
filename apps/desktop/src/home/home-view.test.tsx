@@ -25,7 +25,6 @@ vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => "macos" }));
 
 vi.mock("./home-data", () => ({
   useComingUp: () => mocks.comingUp,
-  useUpshot: () => ({ isLoading: false, sources: [] }),
   useFollowUps: () => ({ isLoading: false, items: mocks.followUps }),
   useRecentNotes: (limit: number) => {
     mocks.recentLimits.push(limit);

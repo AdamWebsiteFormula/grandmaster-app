@@ -1,7 +1,6 @@
-// Fork: home screen, top to bottom: The upshot (upshot-card.tsx), Coming
-// up, Follow-ups, notes by day, with the Ask anything composer pinned below
-// (home-composer.tsx, added by main/empty.tsx). Layout and density follow
-// Granola's Home (Granola 101,
+// Fork: home screen, top to bottom: Coming up, Follow-ups, notes by day,
+// with the Ask anything composer pinned below (home-composer.tsx, added by
+// main/empty.tsx). Layout and density follow Granola's Home (Granola 101,
 // docs.granola.ai/help-center/getting-started/granola-101, and Adam's
 // Granola screenshots, Oct 3) in Upshot's black, orange and Geist.
 // Sources:
@@ -46,7 +45,6 @@ import {
   useFollowUps,
   useRecentNotes,
 } from "./home-data";
-import { UpshotCard } from "./upshot-card";
 
 import { revealLockedNote } from "~/lock/notes";
 import { getOrCreateSessionForEventId } from "~/session/queries";
@@ -94,7 +92,6 @@ export function HomeView() {
           "[&>section[aria-labelledby=home-recent]]:mt-14",
         ])}
       >
-        <UpshotCard />
         <ComingUp days={comingUp.days} />
         <FollowUps />
         {recent.hasNotes ? (
