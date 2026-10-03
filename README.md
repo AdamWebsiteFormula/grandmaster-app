@@ -89,7 +89,7 @@ Other apps: Plaud imports through its CLI, and most other notetakers through the
 
 ## Support
 
-- **Report a bug or suggest a feature:** [open an issue](https://github.com/AdamWebsiteFormula/grandmaster-app/issues/new). Say what you did, what you expected and what happened, and add your macOS version and the Upshot version (Upshot › About Upshot).
+- **Report a bug or suggest a feature:** email [adam@websiteformula.co](mailto:adam@websiteformula.co). Say what you did, what you expected and what happened, and add your macOS version and the Upshot version (Upshot › About Upshot).
 - **Keyboard shortcuts:** Help › Keyboard shortcuts, or press ⌘/.
 - **Security problems:** follow [SECURITY.md](SECURITY.md); don't post them in an issue.
 

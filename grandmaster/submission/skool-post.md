@@ -13,7 +13,6 @@ Post in the category Jack names for submissions (check the pinned post first). A
 - [ ] Pro: sign up with a new email, Upgrade to Pro, card 4242 4242 4242 4242, then Auto ⌄ in the chat box lets you pick a model.
 - [ ] Stripe Dashboard: the sandbox customer portal cancels "at end of billing period", and the restricted key has Customers write (needed by Delete account).
 - [ ] Settings › Profile › Delete account… works on that throwaway account (this also confirms the Worker is deployed with the latest code).
-- [ ] GitHub Issues are on for the repo, so Help › Report a bug doesn't hit a dead end.
 
 ---
 

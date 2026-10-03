@@ -8,7 +8,7 @@ Upshot ships fixes forward. Only the latest release gets security fixes.
 
 Please do not open a public issue for a security problem.
 
-Report it privately on GitHub: [report a vulnerability](https://github.com/AdamWebsiteFormula/grandmaster-app/security/advisories/new).
+Report it privately by email to [adam@websiteformula.co](mailto:adam@websiteformula.co).
 
 Please include:
 
