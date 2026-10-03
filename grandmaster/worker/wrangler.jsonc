@@ -16,5 +16,11 @@
       "simple": { "limit": 30, "period": 60 }
     }
   ],
+  // Brand images for Stripe Checkout and the billing pages, served at
+  // /brand/*. developers.cloudflare.com/workers/static-assets/routing/worker-script/:
+  // "If an appropriate static asset is not found, Cloudflare will invoke your
+  // Worker script", so /llm, /auth and /billing still reach src/index.js
+  // (public/ holds only brand/).
+  "assets": { "directory": "./public", "binding": "ASSETS" },
   "observability": { "enabled": false }
 }

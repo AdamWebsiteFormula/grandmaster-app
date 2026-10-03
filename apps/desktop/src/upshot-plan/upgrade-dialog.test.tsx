@@ -108,4 +108,23 @@ describe("UpshotUpgradeDialog", () => {
     );
     expect(mocks.openUrl).not.toHaveBeenCalled();
   });
+
+  it("labels the fields, shows the password rule, can show the password and cancel", async () => {
+    render(<UpshotUpgradeDialog />);
+    await act(() => openUpgrade("year"));
+
+    const password = screen.getByLabelText("Password") as HTMLInputElement;
+    expect(screen.getByText("Email").tagName).toBe("LABEL");
+    expect(password.placeholder).toBe("");
+    expect(password.type).toBe("password");
+    const hint = screen.getByText("8 or more characters");
+    expect(password.getAttribute("aria-describedby")).toBe(hint.id);
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "Show password" }));
+    expect(password.type).toBe("text");
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(useUpgradeDialog.getState().open).toBe(false);
+    expect(mocks.fetch).not.toHaveBeenCalled();
+  });
 });

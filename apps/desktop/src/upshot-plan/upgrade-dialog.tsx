@@ -3,10 +3,17 @@
 // Granola ("Complete checkout in the Stripe tab that opens":
 // docs.granola.ai/help-center/managing-your-account/subscriptions-and-billing).
 // Free features never ask for an account.
-import { Trans, useLingui } from "@lingui/react/macro";
-import { useState } from "react";
+//
+// Form: visible labels, not placeholders (NN/g, "Placeholders in form
+// fields are harmful"), the password rule shown up front (NN/g, password
+// creation), a Show password option (NN/g, "Stop password masking"), and a
+// visible Cancel, as HIG sheets have a dismiss button
+// (developer.apple.com/design/human-interface-guidelines/sheets).
+import { Trans } from "@lingui/react/macro";
+import { useId, useState } from "react";
 
 import { Button } from "@anlg/ui/components/ui/button";
+import { Checkbox } from "@anlg/ui/components/ui/checkbox";
 import {
   Dialog,
   DialogDescription,
@@ -142,21 +149,29 @@ export function UpshotUpgradeDialog() {
             ) : null}
 
             <DialogFooter className="flex flex-col gap-2 sm:flex-col sm:justify-normal sm:space-x-0">
-              <Button type="submit" className="h-8 w-full" disabled={busy}>
-                {signedIn ? (
-                  <Trans>Continue to checkout</Trans>
-                ) : mode === "signup" ? (
-                  checkout ? (
-                    <Trans>Create account and continue</Trans>
+              <div className="flex gap-2">
+                <GlassDialogCancelButton
+                  disabled={busy}
+                  onClick={() => closeUpgradeDialog()}
+                >
+                  <Trans>Cancel</Trans>
+                </GlassDialogCancelButton>
+                <Button type="submit" className="h-8 flex-1" disabled={busy}>
+                  {signedIn ? (
+                    <Trans>Continue to checkout</Trans>
+                  ) : mode === "signup" ? (
+                    checkout ? (
+                      <Trans>Create account and continue</Trans>
+                    ) : (
+                      <Trans>Create account</Trans>
+                    )
+                  ) : checkout ? (
+                    <Trans>Sign in and continue</Trans>
                   ) : (
-                    <Trans>Create account</Trans>
-                  )
-                ) : checkout ? (
-                  <Trans>Sign in and continue</Trans>
-                ) : (
-                  <Trans>Sign in</Trans>
-                )}
-              </Button>
+                    <Trans>Sign in</Trans>
+                  )}
+                </Button>
+              </div>
               {!signedIn ? (
                 <button
                   type="button"
@@ -197,35 +212,62 @@ function AccountFields({
   onEmail: (value: string) => void;
   onPassword: (value: string) => void;
 }) {
-  const { t } = useLingui();
+  const id = useId();
+  const [showPassword, setShowPassword] = useState(false);
+  const label = "text-foreground text-sm font-medium";
   return (
-    <div className="flex flex-col gap-2">
-      <Input
-        autoFocus
-        type="email"
-        required
-        maxLength={254}
-        autoComplete="email"
-        aria-label={t`Email`}
-        placeholder={t`Email`}
-        value={email}
-        disabled={busy}
-        onChange={(event) => onEmail(event.target.value)}
-      />
-      <Input
-        type="password"
-        required
-        minLength={8}
-        maxLength={72}
-        autoComplete={mode === "signup" ? "new-password" : "current-password"}
-        aria-label={t`Password`}
-        placeholder={
-          mode === "signup" ? t`Password (8 or more characters)` : t`Password`
-        }
-        value={password}
-        disabled={busy}
-        onChange={(event) => onPassword(event.target.value)}
-      />
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor={`${id}-email`} className={label}>
+          <Trans>Email</Trans>
+        </label>
+        <Input
+          id={`${id}-email`}
+          autoFocus
+          type="email"
+          required
+          maxLength={254}
+          autoComplete="email"
+          value={email}
+          disabled={busy}
+          onChange={(event) => onEmail(event.target.value)}
+        />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor={`${id}-password`} className={label}>
+          <Trans>Password</Trans>
+        </label>
+        <Input
+          id={`${id}-password`}
+          type={showPassword ? "text" : "password"}
+          required
+          minLength={8}
+          maxLength={72}
+          autoComplete={mode === "signup" ? "new-password" : "current-password"}
+          aria-describedby={mode === "signup" ? `${id}-hint` : undefined}
+          value={password}
+          disabled={busy}
+          onChange={(event) => onPassword(event.target.value)}
+        />
+        {mode === "signup" ? (
+          <p id={`${id}-hint`} className="text-muted-foreground text-xs">
+            <Trans>8 or more characters</Trans>
+          </p>
+        ) : null}
+      </div>
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id={`${id}-show`}
+          checked={showPassword}
+          disabled={busy}
+          onCheckedChange={(value) => setShowPassword(value === true)}
+          // Neutral, never the accent (design-system.md).
+          className="border-muted-foreground data-[state=checked]:border-foreground data-[state=checked]:bg-foreground data-[state=checked]:text-background size-4 cursor-pointer rounded shadow-none [&_svg]:size-3"
+        />
+        <label htmlFor={`${id}-show`} className="text-sm">
+          <Trans>Show password</Trans>
+        </label>
+      </div>
     </div>
   );
 }

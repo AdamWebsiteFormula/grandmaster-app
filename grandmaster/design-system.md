@@ -33,7 +33,7 @@ Bare HSL triples in `packages/design-system/src/tokens.css`, read as `hsl(var(--
 | `--background` | `0 0% 0%` | Window, sidebar, note body |
 | `--foreground` | `0 0% 96%` | Body text |
 | `--card` | `0 0% 6%` | Raised panels, cards |
-| `--popover` | `0 0% 8%` | Menus, popovers, dialogs |
+| `--popover` | `0 0% 8%` | Menus and popovers (dialogs: see Dialogs below) |
 | `--secondary`, `--muted` | `0 0% 10%` | Quiet fills, chips, inputs |
 | `--muted-foreground` | `0 0% 60%` | Metadata, hints |
 | `--accent` | `0 0% 13%` | Hover and selected row fill (shadcn name, not the brand accent) |
@@ -86,6 +86,17 @@ Adam picked orange on Oct 2 (the blueprint offered mint or violet). It matches t
 - Flat: no drop shadows on black. Separate layers with a 1 px `--border` and one surface step.
 - Nothing touches the window edges. Every panel has inner padding. The 40 px chrome row and the traffic-light inset stay as they are.
 - The sidebar sits 12 px from the window edge. With the sidebar collapsed, the main panel keeps a 6 px black frame on the sides and bottom.
+
+## Dialogs
+
+`GlassDialogContent` (`apps/desktop/src/shared/ui/glass-dialog.tsx`) is the one dialog surface. Changed Oct 3.
+
+- Opaque, never translucent. Dark: `hsl(0 0% 16%)`, lighter than the black window, because raised surfaces get lighter in dark mode (Apple HIG, Dark Mode: developer.apple.com/design/human-interface-guidelines/dark-mode; Material dark theme gives a 24 dp dialog a 16% white overlay: m2.material.io/design/color/dark-theme.html). Light: `--popover` (white).
+- Hairlines inside a dark dialog are white at 15% (`--color-border` is overridden there). No shadow in dark; a soft shadow in light.
+- The overlay is `bg-black/60`: a sheet dims the window behind it (HIG, Sheets).
+- Field borders inside a dialog are `hsl(0 0% 46%)` (`--color-input` override): 3.2:1 on the dark surface, 4.6:1 on white, above the 3:1 of WCAG 2.2 SC 1.4.11 Non-text Contrast.
+- Every dialog has a visible dismiss button (Cancel or Done), as HIG sheets do.
+- Forms: a visible label above each field, never a placeholder in its place (NN/g, "Placeholders in form fields are harmful"); password rules shown under the field before typing (NN/g, password creation); a "Show password" checkbox (NN/g, "Stop password masking").
 
 ## Words
 

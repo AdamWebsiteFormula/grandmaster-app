@@ -3,6 +3,12 @@
 // (docs.granola.ai/help-center/managing-your-account/subscriptions-and-billing).
 // Upshot has two plans: Free (everything, no account) and Pro (pick the
 // chat model). Payments run in the Stripe sandbox for the contest.
+//
+// Price: a big number over a small line (linear.app/pricing,
+// raycast.com/pricing), the discount on the Yearly toggle (Raycast), and the
+// yearly total in plain words before checkout (FTC "Bringing Dark Patterns
+// to Light", Sept 2022). Buttons h-9 with text-sm, near the macOS 13 pt
+// default (developer.apple.com/design/human-interface-guidelines/typography).
 import { Trans, useLingui } from "@lingui/react/macro";
 import { type ReactNode, useState } from "react";
 
@@ -29,6 +35,13 @@ const YEARLY_PRICE = 132;
 const YEARLY_SAVING = Math.round(
   (1 - YEARLY_PRICE / (MONTHLY_PRICE * 12)) * 100,
 );
+const YEARLY_PER_MONTH = YEARLY_PRICE / 12;
+
+// Annual is selected first: 88% of Forbes Cloud 100 pricing pages default to
+// it (growthunhinged.com/p/how-to-sell-annual-plans), and defaults stick
+// (Jachimowicz et al. 2019, default-effect meta-analysis). Checkout sends
+// whatever the toggle shows.
+export const DEFAULT_BILLING_INTERVAL: PlanInterval = "year";
 
 export function SettingsPlan() {
   const { plan, email, isSignedIn, isLoading, checkoutPending, error } =
@@ -118,7 +131,7 @@ function PlanCard({
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
           <h3 className="text-lg font-semibold">{title}</h3>
-          <p className="text-muted-foreground text-sm">{price}</p>
+          {price}
         </div>
         {current ? (
           <span className="border-border text-muted-foreground rounded-full border px-2 text-xs leading-5">
@@ -128,6 +141,24 @@ function PlanCard({
       </div>
       {children}
     </section>
+  );
+}
+
+function Price({
+  amount,
+  line,
+  extra,
+}: {
+  amount: string;
+  line: string;
+  extra?: string;
+}) {
+  return (
+    <div className="flex flex-col">
+      <p className="text-xl font-semibold tabular-nums">{amount}</p>
+      <p className="text-muted-foreground text-sm">{line}</p>
+      {extra ? <p className="text-muted-foreground text-xs">{extra}</p> : null}
+    </div>
   );
 }
 
@@ -144,7 +175,11 @@ function Features({ items }: { items: string[] }) {
 function FreeCard({ current }: { current: boolean }) {
   const { t } = useLingui();
   return (
-    <PlanCard title={t`Free`} price={t`$0, no account`} current={current}>
+    <PlanCard
+      title={t`Free`}
+      price={<Price amount={t`$0`} line={t`No account needed`} />}
+      current={current}
+    >
       <Features
         items={[
           t`Record and transcribe on your Mac`,
@@ -168,7 +203,9 @@ function ProCard({
   checkoutPending: boolean;
 }) {
   const { t } = useLingui();
-  const [interval, setBillingInterval] = useState<PlanInterval>("month");
+  const [interval, setBillingInterval] = useState<PlanInterval>(
+    DEFAULT_BILLING_INTERVAL,
+  );
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const shownInterval = isPro ? (plan?.interval ?? interval) : interval;
@@ -189,9 +226,15 @@ function ProCard({
     <PlanCard
       title={t`Pro`}
       price={
-        shownInterval === "year"
-          ? t`$${YEARLY_PRICE} a year (save ${YEARLY_SAVING}%)`
-          : t`$${MONTHLY_PRICE} a month`
+        shownInterval === "year" ? (
+          <Price
+            amount={t`$${YEARLY_PER_MONTH}`}
+            line={t`a month, billed $${YEARLY_PRICE} yearly`}
+            extra={isPro ? undefined : t`or $${MONTHLY_PRICE} billed monthly`}
+          />
+        ) : (
+          <Price amount={t`$${MONTHLY_PRICE}`} line={t`a month`} />
+        )
       }
       current={isPro}
     >
@@ -208,7 +251,7 @@ function ProCard({
           </p>
           <Button
             variant="outline"
-            className="h-8 w-full text-xs"
+            className="h-9 w-full text-sm"
             disabled={busy}
             onClick={() => void run(openManageSubscription)}
           >
@@ -219,7 +262,7 @@ function ProCard({
         <div className="flex flex-col gap-3">
           <IntervalToggle value={interval} onChange={setBillingInterval} />
           <Button
-            className="h-8 w-full text-xs"
+            className="h-9 w-full text-sm"
             disabled={busy || isLoading}
             onClick={() => void run(() => openUpgrade(interval))}
           >
@@ -245,8 +288,7 @@ function ProCard({
           {plan?.status ? (
             <Button
               variant="ghost"
-              size="sm"
-              className="text-xs"
+              className="h-9 text-sm"
               disabled={busy}
               onClick={() => void run(openManageSubscription)}
             >
@@ -293,8 +335,8 @@ function IntervalToggle({
   const { t } = useLingui();
   const ref = useSquircleRef<HTMLDivElement>();
   const options = [
-    { id: "month", label: t`Monthly` },
-    { id: "year", label: t`Yearly` },
+    { id: "month", label: t`Monthly`, note: null },
+    { id: "year", label: t`Yearly`, note: t`save ${YEARLY_SAVING}%` },
   ] as const;
   return (
     <div
@@ -312,13 +354,19 @@ function IntervalToggle({
           aria-pressed={value === option.id}
           onClick={() => onChange(option.id)}
           className={cn([
-            "flex-1 px-3 py-1.5 text-xs",
+            "flex-1 gap-1.5 px-3 py-1.5 text-sm",
             value === option.id
               ? "bg-background text-foreground shadow-xs"
               : "text-muted-foreground hover:text-foreground",
           ])}
         >
           {option.label}
+          {option.note ? (
+            <>
+              {" "}
+              <span className="text-muted-foreground">{option.note}</span>
+            </>
+          ) : null}
         </Button>
       ))}
     </div>

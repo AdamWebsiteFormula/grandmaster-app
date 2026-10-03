@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  CHECKOUT_API_VERSION,
   checkoutParams,
   handleEvent,
   invoiceSubscriptionId,
@@ -421,6 +422,62 @@ test("checkout form encoding", () => {
   assert.equal(again.get("line_items[0][price]"), "price_month");
 });
 
+test("checkout branding, Link hidden, and the renewal terms", () => {
+  const user = { id: "user-1", email: "judge@example.com" };
+  const year = checkoutParams(baseEnv, "https://w.dev", user, null, "year");
+  assert.equal(year.get("branding_settings[display_name]"), "Upshot");
+  assert.equal(year.get("branding_settings[background_color]"), "#FFFFFF");
+  assert.equal(year.get("branding_settings[button_color]"), "#FF6A1F");
+  assert.equal(year.get("branding_settings[font_family]"), "inter");
+  assert.equal(year.get("branding_settings[border_style]"), "rounded");
+  assert.equal(year.get("branding_settings[logo][type]"), "url");
+  assert.equal(
+    year.get("branding_settings[logo][url]"),
+    "https://w.dev/brand/upshot-logo-on-light.png",
+  );
+  // Stripe rejects a session with both a logo and an icon.
+  assert.equal(year.get("branding_settings[icon][type]"), null);
+  assert.equal(year.get("wallet_options[link][display]"), "never");
+  assert.equal(year.get("payment_method_types[0]"), null);
+  assert.match(
+    year.get("custom_text[submit][message]"),
+    /^\$132 today, then every year/,
+  );
+  const month = checkoutParams(baseEnv, "https://w.dev", user, null, "month");
+  assert.match(
+    month.get("custom_text[submit][message]"),
+    /^\$14 today, then every month/,
+  );
+  assert.ok(month.get("custom_text[submit][message]").length <= 1200);
+});
+
+test("billing pages: white, logo, checkmark on success, a way back", async () => {
+  const get = (path) => worker.fetch(new Request(`https://w${path}`), baseEnv);
+  const done = await get("/billing/done?session_id=cs_test");
+  const html = await done.text();
+  assert.match(html, /background:#fff/);
+  assert.match(
+    html,
+    /<img class="logo" src="\/brand\/upshot-logo-on-light.png" alt="Upshot">/,
+  );
+  assert.match(html, /class="check"/);
+  assert.match(html, /You're on Upshot Pro/);
+  assert.match(html, /Pro is ready in Upshot. You can close this tab./);
+  assert.match(html, /href="upshot:\/\/">Open Upshot</);
+  assert.match(html, /class="note">Test mode/);
+  assert.match(done.headers.get("content-security-policy"), /img-src 'self'/);
+
+  const cancel = await (await get("/billing/cancel")).text();
+  assert.match(cancel, /Checkout canceled/);
+  assert.match(cancel, /Nothing was charged./);
+  assert.doesNotMatch(cancel, /class="check"/);
+  assert.match(cancel, /upshot-logo-on-light.png/);
+
+  const portal = await (await get("/billing/done-portal")).text();
+  assert.match(portal, /Your plan is up to date/);
+  assert.doesNotMatch(portal, /orange|class="dot"/);
+});
+
 test("status mapping", () => {
   assert.deepEqual(statusPayload(null), {
     pro: false,
@@ -563,6 +620,7 @@ test("checkout route posts form data to Stripe and returns the url", async () =>
       (_url, init) => {
         form = new URLSearchParams(init.body);
         assert.equal(init.headers.authorization, "Bearer rk_test_x");
+        assert.equal(init.headers["stripe-version"], CHECKOUT_API_VERSION);
         return Response.json({
           url: "https://checkout.stripe.com/c/pay/cs_test",
         });

@@ -35,7 +35,7 @@ vi.mock("~/upshot-plan/upgrade-dialog", () => ({
   ),
 }));
 
-import { SettingsPlan } from "./plan";
+import { DEFAULT_BILLING_INTERVAL, SettingsPlan } from "./plan";
 
 describe("Settings › Plan", () => {
   afterEach(() => {
@@ -51,24 +51,43 @@ describe("Settings › Plan", () => {
     };
   });
 
-  it("free: shows both plans, prices, the test card and Upgrade", () => {
+  it("free: yearly first, big price over the total, test card, Upgrade", () => {
     render(<SettingsPlan />);
 
     expect(screen.getByRole("heading", { name: "Plan" })).not.toBeNull();
-    expect(screen.getByText("$14 a month")).not.toBeNull();
+    expect(
+      screen
+        .getByRole("button", { name: "Yearly save 21%" })
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
+    expect(screen.getByText("$11")).not.toBeNull();
+    expect(screen.getByText("a month, billed $132 yearly")).not.toBeNull();
+    expect(screen.getByText("or $14 billed monthly")).not.toBeNull();
     expect(screen.getByText(/4242 4242 4242 4242/)).not.toBeNull();
     expect(
       screen.getByText("You're on Free. No account needed."),
     ).not.toBeNull();
 
-    fireEvent.click(screen.getByRole("button", { name: "Yearly" }));
-    expect(screen.getByText("$132 a year (save 21%)")).not.toBeNull();
-
     fireEvent.click(screen.getByRole("button", { name: "Upgrade to Pro" }));
-    expect(mocks.openUpgrade).toHaveBeenCalledWith("year");
+    expect(mocks.openUpgrade).toHaveBeenLastCalledWith("year");
     expect(screen.queryByRole("button", { name: "Manage subscription" })).toBe(
       null,
     );
+  });
+
+  it("checkout follows the toggle: Monthly sends month", () => {
+    render(<SettingsPlan />);
+    fireEvent.click(screen.getByRole("button", { name: "Monthly" }));
+    expect(screen.getByText("$14")).not.toBeNull();
+    expect(screen.getByText("a month")).not.toBeNull();
+    expect(screen.queryByText("or $14 billed monthly")).toBe(null);
+
+    fireEvent.click(screen.getByRole("button", { name: "Upgrade to Pro" }));
+    expect(mocks.openUpgrade).toHaveBeenLastCalledWith("month");
+  });
+
+  it("DEFAULT_BILLING_INTERVAL is the toggle's first value", () => {
+    expect(DEFAULT_BILLING_INTERVAL).toBe("year");
   });
 
   it("pro: shows the status, renewal date, manage and sign out", () => {
@@ -87,7 +106,8 @@ describe("Settings › Plan", () => {
 
     expect(screen.getByText("Signed in as judge@example.com")).not.toBeNull();
     expect(screen.getByText(/Active, renews Nov 3, 2026/)).not.toBeNull();
-    expect(screen.getByText("$132 a year (save 21%)")).not.toBeNull();
+    expect(screen.getByText("a month, billed $132 yearly")).not.toBeNull();
+    expect(screen.queryByText("or $14 billed monthly")).toBe(null);
     expect(screen.queryByRole("button", { name: "Upgrade to Pro" })).toBe(null);
 
     fireEvent.click(

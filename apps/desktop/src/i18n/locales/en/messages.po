@@ -183,16 +183,16 @@ msgid "${0} /month after trial"
 msgstr "${0} /month after trial"
 
 #: src/settings/plan.tsx
-msgid "${MONTHLY_PRICE} a month"
-msgstr "${MONTHLY_PRICE} a month"
+msgid "${MONTHLY_PRICE}"
+msgstr "${MONTHLY_PRICE}"
 
 #: src/settings/plan.tsx
-msgid "${YEARLY_PRICE} a year (save {YEARLY_SAVING}%)"
-msgstr "${YEARLY_PRICE} a year (save {YEARLY_SAVING}%)"
+msgid "${YEARLY_PER_MONTH}"
+msgstr "${YEARLY_PER_MONTH}"
 
 #: src/settings/plan.tsx
-msgid "$0, no account"
-msgstr "$0, no account"
+msgid "$0"
+msgstr "$0"
 
 #: src/settings/general/audio-settings.tsx
 msgid "1 day"
@@ -238,6 +238,10 @@ msgstr "30 days"
 msgid "7 days"
 msgstr "7 days"
 
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "8 or more characters"
+msgstr "8 or more characters"
+
 #: src/automations/starters.tsx
 msgid "A dated Notion update with the meeting summary."
 msgstr "A dated Notion update with the meeting summary."
@@ -262,9 +266,17 @@ msgstr "A Markdown file or Google document with the meeting summary and transcri
 msgid "A Markdown file with the note, summary, and transcript."
 msgstr "A Markdown file with the note, summary, and transcript."
 
+#: src/settings/plan.tsx
+msgid "a month"
+msgstr "a month"
+
 #: src/sidebar/timeline/utils/index.ts
 msgid "a month ago"
 msgstr "a month ago"
+
+#: src/settings/plan.tsx
+msgid "a month, billed ${YEARLY_PRICE} yearly"
+msgstr "a month, billed ${YEARLY_PRICE} yearly"
 
 #: src/automations/starters.tsx
 msgid "A Slack message with the meeting title and recap."
@@ -905,6 +917,7 @@ msgstr "Can't hear the other side. Check the system audio permission."
 #: src/shared/ui/destructive-confirmation-dialog.tsx
 #: src/sidebar/folder-name-dialog.tsx
 #: src/templates/auto-format-examples-dialog.tsx
+#: src/upshot-plan/upgrade-dialog.tsx
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -3747,6 +3760,10 @@ msgstr "next month"
 msgid "next week"
 msgstr "next week"
 
+#: src/settings/plan.tsx
+msgid "No account needed"
+msgstr "No account needed"
+
 #: src/imports/screen.tsx
 #: src/settings/general/notification.tsx
 msgid "No apps found."
@@ -4209,6 +4226,10 @@ msgstr "Opens System Settings and guides you to add Upshot to the {0} list."
 msgid "or"
 msgstr "or"
 
+#: src/settings/plan.tsx
+msgid "or ${MONTHLY_PRICE} billed monthly"
+msgstr "or ${MONTHLY_PRICE} billed monthly"
+
 #: src/sidebar/note-filter-menu.tsx
 msgid "Ordering"
 msgstr "Ordering"
@@ -4257,10 +4278,6 @@ msgstr "Participants"
 #: src/upshot-plan/upgrade-dialog.tsx
 msgid "Password"
 msgstr "Password"
-
-#: src/upshot-plan/upgrade-dialog.tsx
-msgid "Password (8 or more characters)"
-msgstr "Password (8 or more characters)"
 
 #: src/main/windows-title-bar.tsx
 msgid "Paste"
@@ -4943,6 +4960,10 @@ msgstr "Runs once the AI summary for the meeting is ready."
 msgid "Save"
 msgstr "Save"
 
+#: src/settings/plan.tsx
+msgid "save {YEARLY_SAVING}%"
+msgstr "save {YEARLY_SAVING}%"
+
 #: src/settings/automations/index.tsx
 msgid "Save & enable"
 msgstr "Save & enable"
@@ -5404,6 +5425,10 @@ msgstr "Show meeting times as 14:00 instead of 2:00 PM."
 #: src/home/home-view.tsx
 msgid "Show more"
 msgstr "Show more"
+
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "Show password"
+msgstr "Show password"
 
 #: src/settings/ai/shared/model-combobox.tsx
 msgid "Show previews"

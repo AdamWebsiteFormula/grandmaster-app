@@ -26,6 +26,10 @@ import { json, ok, rateLimited, readSmallJson } from "./http.js";
 const STRIPE = "https://api.stripe.com/v1";
 const SIGNATURE_TOLERANCE_SECONDS = 300;
 const PRO_STATUSES = new Set(["active", "trialing"]);
+// Orange accent, hsl(20 100% 56%), sampled from the app icon (design-system.md).
+const ACCENT = "#FF6A1F";
+// Served from ./public by Workers static assets (wrangler.jsonc).
+const BRAND_LOGO = "/brand/upshot-logo-on-light.png";
 
 export function isProStatus(status) {
   return PRO_STATUSES.has(status);
@@ -90,7 +94,7 @@ async function upsertRow(env, row) {
 
 // ---------- Stripe ----------
 
-async function stripe(env, method, path, params) {
+async function stripe(env, method, path, params, extraHeaders = {}) {
   const response = await fetch(`${STRIPE}${path}`, {
     method,
     headers: {
@@ -98,6 +102,7 @@ async function stripe(env, method, path, params) {
       ...(params
         ? { "content-type": "application/x-www-form-urlencoded" }
         : {}),
+      ...extraHeaders,
     },
     body: params ? params.toString() : undefined,
   });
@@ -171,8 +176,43 @@ export function checkoutParams(env, origin, user, row, interval) {
   );
   params.set("cancel_url", `${origin}/billing/cancel`);
   params.set("allow_promotion_codes", "false");
+
+  // Per-session branding, so Checkout looks like Upshot whatever the
+  // Dashboard says (docs.stripe.com/api/checkout/sessions/create, param
+  // branding_settings, API 2025-09-30.clover). White page, the app's one
+  // accent (#FF6A1F, design-system.md) on the button. Stripe offers no Geist;
+  // Inter is the closest neo-grotesque on its font list. The API allows a
+  // logo or an icon, never both ("You cannot set both `logo` and `icon`"),
+  // so the lockup goes in as the logo; /brand/upshot-icon.png is the swap.
+  params.set("branding_settings[display_name]", "Upshot");
+  params.set("branding_settings[background_color]", "#FFFFFF");
+  params.set("branding_settings[button_color]", ACCENT);
+  params.set("branding_settings[font_family]", "inter");
+  params.set("branding_settings[border_style]", "rounded");
+  params.set("branding_settings[logo][type]", "url");
+  params.set("branding_settings[logo][url]", `${origin}${BRAND_LOGO}`);
+
+  // Sandbox contest build: hide Link. Stripe: "Don't store real user data in
+  // sandbox Link accounts" (docs.stripe.com/payments/link/checkout-link).
+  // Cards and Apple Pay stay. For the live launch, remove this line (Stripe
+  // reports +14% conversion for returning Link users).
+  params.set("wallet_options[link][display]", "never");
+
+  // State the total and the renewal next to the Pay button before anyone
+  // pays: FTC "Bringing Dark Patterns to Light" (ftc.gov, Sept 2022) and
+  // ROSCA ask for clear terms before billing details are taken.
+  params.set(
+    "custom_text[submit][message]",
+    interval === "year"
+      ? "$132 today, then every year until you cancel. Cancel anytime in Upshot › Settings › Plan."
+      : "$14 today, then every month until you cancel. Cancel anytime in Upshot › Settings › Plan.",
+  );
   return params;
 }
+
+// branding_settings arrived in this API version; pin it on the Checkout call
+// only, whatever the account default is. The call reads nothing but `url`.
+export const CHECKOUT_API_VERSION = "2025-09-30.clover";
 
 // ---------- Webhook signature ----------
 
@@ -327,19 +367,37 @@ async function handleWebhook(request, env) {
 
 // ---------- Pages ----------
 
-function page(title, line) {
-  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>
-:root{color-scheme:dark}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#000;color:#f5f5f5;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
-main{max-width:420px;margin:24px;padding:32px;border:1px solid #262626;border-radius:16px;background:#0d0d0d;text-align:center}
-.dot{width:12px;height:12px;border-radius:50%;background:#ff6a1f;margin:0 auto 20px}
-h1{font-size:23px;line-height:1.3;margin:0 0 8px;text-wrap:balance}p{margin:0;color:#a3a3a3;font-size:13.3px}
-</style></head><body><main><div class="dot"></div><h1>${line}</h1><p>Test mode: no real money was charged.</p></main></body></html>`;
-  return new Response(html, {
+// Where the browser lands after Checkout or the portal. White with the
+// light lockup, to match the Checkout page just left (Stripe, "Payment
+// successful pages": stripe.com/resources/more/payment-successful-pages,
+// a clear message, a visual cue such as a checkmark, consistent branding).
+// Not a dead end: say what happens next and offer the way back (Baymard:
+// baymard.com/research-articles/post-checkout-ux-best-practices). The button
+// uses the app's deep-link scheme, "upshot" in src-tauri/tauri.conf.json;
+// the app refetches the plan when its window regains focus.
+const CHECK_SVG =
+  '<svg class="check" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#e7f6ec"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#15803d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+export function pageHtml({ title, heading, line, check }) {
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>
+:root{color-scheme:light}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#fff;color:#171717;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+main{max-width:400px;margin:24px;padding:32px;text-align:center}
+.logo{display:block;height:32px;width:auto;margin:0 auto 32px}
+.check{display:block;width:40px;height:40px;margin:0 auto 16px}
+h1{font-size:23px;line-height:1.3;margin:0 0 8px;text-wrap:balance}p{margin:0;color:#525252;font-size:16px}
+.open{display:inline-block;margin-top:24px;padding:10px 20px;border-radius:8px;background:${ACCENT};color:#000;font-weight:600;font-size:16px;text-decoration:none}
+.open:focus-visible{outline:2px solid #171717;outline-offset:2px}
+.note{margin-top:24px;color:#737373;font-size:12px}
+</style></head><body><main><img class="logo" src="${BRAND_LOGO}" alt="Upshot">${check ? CHECK_SVG : ""}<h1>${heading}</h1><p>${line}</p><a class="open" href="upshot://">Open Upshot</a><p class="note">Test mode: no real money was charged.</p></main></body></html>`;
+}
+
+function page(options) {
+  return new Response(pageHtml(options), {
     headers: {
       "content-type": "text/html; charset=utf-8",
       "cache-control": "no-store",
       "content-security-policy":
-        "default-src 'none'; style-src 'unsafe-inline'",
+        "default-src 'none'; style-src 'unsafe-inline'; img-src 'self'",
     },
   });
 }
@@ -352,13 +410,28 @@ export async function handleBilling(request, env, pathname) {
   const origin = new URL(request.url).origin;
 
   if (method === "GET" && pathname === "/billing/done") {
-    return page("Upshot Pro", "You're on Upshot Pro. Go back to Upshot.");
+    return page({
+      title: "Upshot Pro",
+      heading: "You're on Upshot Pro",
+      line: "Pro is ready in Upshot. You can close this tab.",
+      check: true,
+    });
   }
   if (method === "GET" && pathname === "/billing/cancel") {
-    return page("Checkout canceled", "Checkout canceled. Go back to Upshot.");
+    return page({
+      title: "Checkout canceled",
+      heading: "Checkout canceled",
+      line: "Nothing was charged. You can close this tab.",
+      check: false,
+    });
   }
   if (method === "GET" && pathname === "/billing/done-portal") {
-    return page("Upshot Pro", "Your plan is up to date. Go back to Upshot.");
+    return page({
+      title: "Upshot Pro",
+      heading: "Your plan is up to date",
+      line: "Changes show in Upshot. You can close this tab.",
+      check: true,
+    });
   }
   if (method === "POST" && pathname === "/billing/webhook") {
     return handleWebhook(request, env);
@@ -411,6 +484,7 @@ export async function handleBilling(request, env, pathname) {
         "POST",
         "/checkout/sessions",
         checkoutParams(env, origin, user, row, interval),
+        { "stripe-version": CHECKOUT_API_VERSION },
       );
       return ok({ url: session.url });
     } catch {

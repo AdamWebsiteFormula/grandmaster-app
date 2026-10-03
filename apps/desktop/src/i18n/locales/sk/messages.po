@@ -183,15 +183,15 @@ msgid "${0} /month after trial"
 msgstr ""
 
 #: src/settings/plan.tsx
-msgid "${MONTHLY_PRICE} a month"
+msgid "${MONTHLY_PRICE}"
 msgstr ""
 
 #: src/settings/plan.tsx
-msgid "${YEARLY_PRICE} a year (save {YEARLY_SAVING}%)"
+msgid "${YEARLY_PER_MONTH}"
 msgstr ""
 
 #: src/settings/plan.tsx
-msgid "$0, no account"
+msgid "$0"
 msgstr ""
 
 #: src/settings/general/audio-settings.tsx
@@ -238,6 +238,10 @@ msgstr ""
 msgid "7 days"
 msgstr ""
 
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "8 or more characters"
+msgstr ""
+
 #: src/automations/starters.tsx
 msgid "A dated Notion update with the meeting summary."
 msgstr ""
@@ -262,8 +266,16 @@ msgstr ""
 msgid "A Markdown file with the note, summary, and transcript."
 msgstr ""
 
+#: src/settings/plan.tsx
+msgid "a month"
+msgstr ""
+
 #: src/sidebar/timeline/utils/index.ts
 msgid "a month ago"
+msgstr ""
+
+#: src/settings/plan.tsx
+msgid "a month, billed ${YEARLY_PRICE} yearly"
 msgstr ""
 
 #: src/automations/starters.tsx
@@ -905,6 +917,7 @@ msgstr ""
 #: src/shared/ui/destructive-confirmation-dialog.tsx
 #: src/sidebar/folder-name-dialog.tsx
 #: src/templates/auto-format-examples-dialog.tsx
+#: src/upshot-plan/upgrade-dialog.tsx
 msgid "Cancel"
 msgstr ""
 
@@ -3747,6 +3760,10 @@ msgstr ""
 msgid "next week"
 msgstr ""
 
+#: src/settings/plan.tsx
+msgid "No account needed"
+msgstr ""
+
 #: src/imports/screen.tsx
 #: src/settings/general/notification.tsx
 msgid "No apps found."
@@ -4209,6 +4226,10 @@ msgstr ""
 msgid "or"
 msgstr ""
 
+#: src/settings/plan.tsx
+msgid "or ${MONTHLY_PRICE} billed monthly"
+msgstr ""
+
 #: src/sidebar/note-filter-menu.tsx
 msgid "Ordering"
 msgstr ""
@@ -4256,10 +4277,6 @@ msgstr ""
 
 #: src/upshot-plan/upgrade-dialog.tsx
 msgid "Password"
-msgstr ""
-
-#: src/upshot-plan/upgrade-dialog.tsx
-msgid "Password (8 or more characters)"
 msgstr ""
 
 #: src/main/windows-title-bar.tsx
@@ -4943,6 +4960,10 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
+#: src/settings/plan.tsx
+msgid "save {YEARLY_SAVING}%"
+msgstr ""
+
 #: src/settings/automations/index.tsx
 msgid "Save & enable"
 msgstr ""
@@ -5403,6 +5424,10 @@ msgstr "Zobrazovať časy stretnutí ako 14:00 namiesto 2:00 PM."
 
 #: src/home/home-view.tsx
 msgid "Show more"
+msgstr ""
+
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "Show password"
 msgstr ""
 
 #: src/settings/ai/shared/model-combobox.tsx
