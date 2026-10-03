@@ -17,12 +17,15 @@ export const SETTING_CONTROL_CLASS = "bg-card h-9 w-full shadow-none";
 // the selection never shifts the text.
 export const SEGMENT_TRACK_CLASS = "bg-accent flex gap-1 rounded-lg p-1";
 export const SEGMENT_BASE_CLASS = "border border-transparent";
+// Fork: `!` on the dark colors: @anlg/ui's stylesheet loads later and
+// also defines .text-foreground, which otherwise wins and draws white text on
+// the white selected segment in dark mode (round 5 dark check).
 export const SEGMENT_SELECTED_CLASS =
-  "bg-card text-foreground border-input hover:bg-card hover:text-foreground dark:bg-foreground dark:text-background dark:border-transparent dark:hover:bg-foreground dark:hover:text-background";
+  "bg-card text-foreground border-input hover:bg-card hover:text-foreground dark:bg-foreground dark:text-background! dark:border-transparent! dark:hover:bg-foreground dark:hover:text-background!";
 export const SEGMENT_IDLE_CLASS = "text-muted-foreground hover:text-foreground";
 /** A note inside the selected segment, for example "save 21%". */
 export const SEGMENT_SELECTED_NOTE_CLASS =
-  "text-muted-foreground dark:text-background/70";
+  "text-muted-foreground dark:text-background/70!";
 
 // Fork: Settings rows sit in rounded cards with hairlines between them, as
 // macOS System Settings and Granola's Settings do (Apple HIG, "Settings";

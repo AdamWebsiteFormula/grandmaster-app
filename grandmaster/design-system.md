@@ -127,6 +127,7 @@ Adam picked orange on Oct 2 (the blueprint offered mint or violet). It matches t
 
 - Classes in `packages/ui` components only reach the app after `pnpm -F ui build` (it writes `packages/ui/dist/globals.css`). The release script runs it.
 - Colors the app uses in `apps/desktop/src` (`destructive`, `alert`, `primary` and the others) must be in the `--color-*` list in the `@theme` block of `apps/desktop/src/styles/globals.css`. If one is missing, opacity variants like `bg-destructive/10` render as nothing.
+- `packages/ui/dist/globals.css` loads after the app's CSS and repeats some utilities (for example `.text-foreground`). A `dark:` class adds no specificity, so it loses to those. When an app element sets a base color that the ui CSS also defines, mark its `dark:` color with `!` (for example `dark:text-background!`).
 
 ## Spacing rhythm
 
