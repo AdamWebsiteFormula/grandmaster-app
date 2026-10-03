@@ -245,7 +245,7 @@ describe("FloatingActionButton (note bar)", () => {
     const stack = document.querySelector("[data-note-bar-stack]")!;
     // Was a 150 px slot around a 196 px pill ("Ask anythi…").
     expect(stack.className).not.toContain("w-[150px]");
-    expect(stack.className).toContain("w-[min(480px,calc(100%-2rem))]");
+    expect(stack.className).toContain("w-[min(680px,calc(100%-4rem))]");
     const input = screen.getByRole("textbox", { name: "Ask anything" });
     expect(input.getAttribute("placeholder")).toBe("Ask anything");
     expect(input.className).toContain("flex-1");
@@ -468,7 +468,7 @@ describe("FloatingActionButton (note bar)", () => {
     const stack = slot?.parentElement;
 
     expect(stack?.className).toContain("flex-col-reverse");
-    expect(stack?.className).toContain("bottom-3");
+    expect(stack?.className).toContain("bottom-4");
     expect(slot?.className).toContain("mb-2");
     expect(slot?.className).toContain("peer-hover/session-fab:translate-y-0");
     expect(slot?.className).toContain(

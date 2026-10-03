@@ -1,5 +1,5 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { useCallback, useState } from "react";
+import { type MouseEvent, useCallback, useState } from "react";
 
 import {
   ArrowUpRight,
@@ -240,6 +240,18 @@ export function SettingsNav() {
 // the email in small muted text on line 2 (redline2-oct3 Settings). Without a
 // saved name, line 1 is the email's local part. A small neutral badge names
 // the plan, as Notion and Slack put the plan next to the workspace name.
+// Fork: a help tag only when the text is cut off, so the full name or email
+// never covers the search field below it (Apple HIG "Offering help":
+// expansion tooltips show truncated text; redline round 4).
+function titleWhenTruncated(event: MouseEvent<HTMLElement>) {
+  const el = event.currentTarget;
+  if (el.scrollWidth > el.clientWidth) {
+    el.title = el.textContent ?? "";
+  } else {
+    el.removeAttribute("title");
+  }
+}
+
 export function SettingsAccountHeader() {
   const { t } = useLingui();
   const { email, isSignedIn, isLoading, plan } = useUpshotPlan();
@@ -272,18 +284,21 @@ export function SettingsAccountHeader() {
           alt=""
           aria-hidden
           data-testid="settings-account-avatar"
-          className="mb-1 size-10 rounded-full object-cover"
+          className="rounded-pill mb-1 size-10 object-cover"
         />
       ) : (
         <span
           aria-hidden
-          className="bg-sidebar-accent text-foreground mb-1 flex size-10 items-center justify-center rounded-full text-base font-medium"
+          className="bg-sidebar-accent text-foreground rounded-pill mb-1 flex size-10 items-center justify-center text-base font-medium"
         >
           {initial}
         </span>
       )}
       <div className="flex w-full min-w-0 items-center justify-center gap-1.5">
-        <p className="min-w-0 truncate text-sm font-medium" title={title}>
+        <p
+          className="min-w-0 truncate text-sm font-medium"
+          onMouseEnter={titleWhenTruncated}
+        >
           {title}
         </p>
         {planKnown ? (
@@ -299,7 +314,7 @@ export function SettingsAccountHeader() {
       {signedInEmail ? (
         <p
           className="text-muted-foreground w-full truncate text-xs"
-          title={signedInEmail}
+          onMouseEnter={titleWhenTruncated}
         >
           {signedInEmail}
         </p>

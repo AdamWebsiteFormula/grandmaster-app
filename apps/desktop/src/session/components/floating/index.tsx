@@ -84,7 +84,11 @@ export function FloatingActionButton(props: {
       <div
         data-note-bar-stack
         className={cn([
-          "pointer-events-none absolute bottom-3 left-1/2 z-30 flex w-[min(480px,calc(100%-2rem))] -translate-x-1/2 flex-col-reverse items-center",
+          // Fork: as wide as the note text column (680 px, 32 px gutters;
+          // note-input px-8), so the Ask field takes the leftover width, as
+          // in Granola's bar; 16 px above the panel bottom (redline4-oct3;
+          // Apple HIG Layout margins).
+          "pointer-events-none absolute bottom-4 left-1/2 z-30 flex w-[min(680px,calc(100%-4rem))] -translate-x-1/2 flex-col-reverse items-center",
           !showAsk && "w-auto",
           // The recording bar sits bottom left, so while it shows the note
           // bar moves to the bottom right and narrows beside it, leaving

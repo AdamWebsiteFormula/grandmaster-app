@@ -459,6 +459,8 @@ describe("NoteInput tab selection", () => {
     expect(column.className).toContain("note-meta-chips-host");
     expect(column.contains(screen.getByTestId("meta-chips"))).toBe(true);
     expect(column.contains(screen.getByTestId("raw-editor"))).toBe(true);
+    // redline4-oct3: the same 32 px gutter as Home's column.
+    expect(column.parentElement!.className).toContain("px-8");
   });
 
   // Fork tests: installed-build review Oct 3 (P1: an empty note had no

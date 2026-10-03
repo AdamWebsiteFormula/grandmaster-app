@@ -495,6 +495,12 @@ describe("SettingsNav", () => {
       const email = screen.getByText("ada@example.com");
       expect(email.className).toContain("text-xs");
       expect(email.className).toContain("text-muted-foreground");
+      // Fork: the help tag shows only when the email is cut off (round 4).
+      fireEvent.mouseEnter(email);
+      expect(email.getAttribute("title")).toBeNull();
+      Object.defineProperty(email, "scrollWidth", { value: 300 });
+      Object.defineProperty(email, "clientWidth", { value: 120 });
+      fireEvent.mouseEnter(email);
       expect(email.getAttribute("title")).toBe("ada@example.com");
       expect(screen.getByText("Ada Lovelace")).not.toBe(email);
     });

@@ -85,7 +85,10 @@ function ResumeButtonView({
       className="text-foreground hover:bg-accent focus-visible:ring-ring inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:outline-none"
     >
       <Microphone aria-hidden className="size-4" />
-      <span>{t`Resume`}</span>
+      {/* Fork: in a narrow panel the label drops to the icon, after ⌘ J and
+          the follow-up chip's label, so the Ask field keeps its width; the
+          title stays as the help tag (redline4-oct3; Apple HIG Toolbars). */}
+      <span className="@max-[480px]:sr-only">{t`Resume`}</span>
     </button>
   );
 }

@@ -27,8 +27,11 @@ import {
   useUpshotAccount,
 } from "~/upshot-plan/session";
 
-/** Recents shown before "See all" (Granola shows a handful). */
-export const CHAT_RECENTS_LIMIT = 5;
+/** Recents shown before "See all" (Granola shows a handful). Fork: 3, the
+ * same rule as the recipe row below, so "See all" shows from the fourth chat
+ * (redline4-oct3; it opens the full history inline, as there is no separate
+ * chats page). */
+export const CHAT_RECENTS_LIMIT = 3;
 
 /** Recipe chips shown before the "See all" chip (redline-oct3). */
 export const CHAT_RECIPES_LIMIT = 3;
@@ -190,6 +193,8 @@ export function ChatPage() {
               {groups.length > CHAT_RECENTS_LIMIT ? (
                 <button
                   type="button"
+                  aria-expanded={showAll}
+                  aria-controls="chat-recents-list"
                   onClick={() => setShowAll((current) => !current)}
                   className="text-muted-foreground hover:text-foreground focus-visible:ring-ring cursor-pointer rounded-md px-1 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-hidden"
                 >
@@ -197,7 +202,7 @@ export function ChatPage() {
                 </button>
               ) : null}
             </div>
-            <ul className="flex flex-col">
+            <ul id="chat-recents-list" className="flex flex-col">
               {recents.map((group) => (
                 <RecentChatRow key={group.id} group={group} onOpen={openChat} />
               ))}

@@ -131,19 +131,25 @@ describe("ChatPage", () => {
     });
   });
 
-  it("shows five recents, then all after See all", () => {
+  it("shows three recents, then all after See all", () => {
     mocks.groups = Array.from({ length: 7 }, (_, index) => group(index, index));
     render(<ChatPage />);
 
-    expect(screen.getAllByRole("button", { name: /^Chat \d/ })).toHaveLength(5);
+    expect(screen.getAllByRole("button", { name: /^Chat \d/ })).toHaveLength(3);
     const recents = screen
       .getByRole("heading", { name: "Recents" })
       .closest("section")!;
-    fireEvent.click(within(recents).getByRole("button", { name: "See all" }));
+    const seeAll = within(recents).getByRole("button", { name: "See all" });
+    // Right-aligned on the heading row, as Granola's Chat page Recents.
+    expect(seeAll.parentElement?.className).toContain("justify-between");
+    expect(seeAll.getAttribute("aria-expanded")).toBe("false");
+    fireEvent.click(seeAll);
     expect(screen.getAllByRole("button", { name: /^Chat \d/ })).toHaveLength(7);
     expect(
-      within(recents).getByRole("button", { name: "Show less" }),
-    ).toBeTruthy();
+      within(recents)
+        .getByRole("button", { name: "Show less" })
+        .getAttribute("aria-expanded"),
+    ).toBe("true");
   });
 
   it("shows three recipes and See all, which expands the rest", () => {

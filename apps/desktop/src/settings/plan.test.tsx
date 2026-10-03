@@ -210,6 +210,30 @@ describe("Settings › Plan", () => {
     ).not.toBeNull();
   });
 
+  it("rounds a recording under 30 seconds up to 1 min, as Home rows do", () => {
+    mocks.activity = [
+      {
+        session_id: "a",
+        started_at_ms: Date.parse("2026-10-01T15:00:00Z"),
+        created_at: "2026-10-01T15:00:00Z",
+        duration_ms: 20_000,
+      },
+    ];
+    render(<SettingsPlan />);
+    const usage = screen.getByTestId("plan-usage");
+    expect(within(usage).getByText("1 min")).not.toBeNull();
+    expect(within(usage).queryByText("<1 min")).toBeNull();
+  });
+
+  it("ends the current column tint inside the card padding", () => {
+    render(<SettingsPlan />);
+    const card = screen
+      .getByTestId("plan-comparison")
+      .closest("[data-settings-card]")!;
+    expect(card.className).toContain("py-3");
+    expect(card.className).not.toContain("pb-1");
+  });
+
   it("puts the compare table in a card and the plan names on one baseline", () => {
     render(<SettingsPlan />);
     const table = screen.getByTestId("plan-comparison");
@@ -242,7 +266,7 @@ describe("Settings › Plan", () => {
     ).not.toBeNull();
 
     const autoRow = within(table).getByRole("row", {
-      name: /AI notes and chat with Auto/,
+      name: /AI notes and chat \(best model picked for you\)/,
     });
     expect(
       within(autoRow).getAllByRole("img", { name: "Included" }),

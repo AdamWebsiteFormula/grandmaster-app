@@ -231,10 +231,6 @@ msgstr ""
 msgid "{weeks} weeks ago"
 msgstr ""
 
-#: src/settings/plan.tsx
-msgid "<1 min"
-msgstr ""
-
 #. placeholder {0}: proPrice.monthly
 #: src/settings/general/billing.tsx
 msgid "${0} /month after trial"
@@ -646,7 +642,7 @@ msgid "Agent skills"
 msgstr ""
 
 #: src/settings/plan.tsx
-msgid "AI notes and chat with Auto"
+msgid "AI notes and chat (best model picked for you)"
 msgstr ""
 
 #: src/settings/automations/index.tsx

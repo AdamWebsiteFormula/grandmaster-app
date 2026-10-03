@@ -19,6 +19,8 @@ import {
 } from "~/stt/window-control";
 
 // Fork: Granola-style recording state at the bottom of the note: moving bars and a clear stop button.
+// Fork: 16 px above the panel bottom, level with the note bar (redline4-oct3;
+// Apple HIG Layout: keep content inside the layout margins).
 // Fork: the pill gets a soft shadow in light, none on black, so it separates
 // from the note text under it (journey-meeting P3; design-system.md Dialogs;
 // Apple HIG Dark Mode).
@@ -58,7 +60,7 @@ export function RecordingBar({ sessionId }: { sessionId: string }) {
     return (
       <div
         role="status"
-        className={`${pillSurfaceClassName} pointer-events-auto absolute bottom-3 left-4 z-20 flex h-10 items-center gap-2 rounded-full border px-4`}
+        className={`${pillSurfaceClassName} pointer-events-auto absolute bottom-4 left-4 z-20 flex h-10 items-center gap-2 rounded-full border px-4`}
       >
         <Spinner size={14} />
         <span className="text-sm font-medium">
@@ -82,7 +84,7 @@ export function RecordingBar({ sessionId }: { sessionId: string }) {
           (journey-meeting P2; WCAG 2.2 SC 4.1.3, SC 2.2.2). */}
       <div
         data-recording-bar
-        className={`${pillSurfaceClassName} pointer-events-auto absolute bottom-3 left-4 z-20 flex h-10 items-center gap-3 rounded-full border pr-1 pl-4`}
+        className={`${pillSurfaceClassName} pointer-events-auto absolute bottom-4 left-4 z-20 flex h-10 items-center gap-3 rounded-full border pr-1 pl-4`}
       >
         <DancingSticks
           // A floor keeps the bars moving in silence, so recording always reads as live.

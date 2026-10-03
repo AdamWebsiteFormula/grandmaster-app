@@ -301,7 +301,10 @@ function PlanUsage() {
   });
   // Fork: time recorded reads "4 min" under an hour and "1.5 hr" above it,
   // never "0.1" (redline3-oct3 S1). Units come from Intl (CLDR short units),
-  // as the platform formats durations.
+  // as the platform formats durations. Minutes follow Home's row rule
+  // (home/home-view.tsx useFormatDuration): nearest minute, never under
+  // 1 min once anything was recorded, so a 20 s note reads "1 min" in both
+  // places (redline4-oct3; Medium's "1 min read" floor).
   const minutes = new Intl.NumberFormat(i18n.locale, {
     style: "unit",
     unit: "minute",
@@ -316,8 +319,8 @@ function PlanUsage() {
   });
   const formatDuration = (value: number) => {
     if (value >= 1) return hours.format(value);
-    const rounded = Math.round(value * 60);
-    return value > 0 && rounded < 1 ? t`<1 min` : minutes.format(rounded);
+    if (!(value > 0)) return minutes.format(0);
+    return minutes.format(Math.max(1, Math.round(value * 60)));
   };
   const metrics = [
     {
@@ -403,7 +406,12 @@ function PlanComparison({
   const freeCurrent = !isPro && planKnown;
   const rows: ComparisonRow[] = [
     { label: t`Record and transcribe on your Mac`, free: true, pro: true },
-    { label: t`AI notes and chat with Auto`, free: true, pro: true },
+    // Fork: plain words, not the "Auto" model name (redline4-oct3).
+    {
+      label: t`AI notes and chat (best model picked for you)`,
+      free: true,
+      pro: true,
+    },
     { label: t`Folders, templates and search`, free: true, pro: true },
     {
       label: t`Pick this week's models`,
@@ -450,7 +458,9 @@ function PlanComparison({
       </div>
       <div
         data-settings-card
-        className="border-border bg-card dark:bg-muted @container min-w-0 rounded-xl border px-4 pt-3 pb-1"
+        // Fork: equal top and bottom padding, so the current column's tint ends inside
+        // the card's padding, not at its bottom edge (redline4-oct3).
+        className="border-border bg-card dark:bg-muted @container min-w-0 rounded-xl border px-4 py-3"
       >
         <div className="overflow-x-auto">
           <table

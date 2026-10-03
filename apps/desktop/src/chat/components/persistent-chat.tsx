@@ -170,7 +170,11 @@ export function PersistentChatPanel({
             className={cn([
               "pointer-events-auto relative flex h-full min-h-0",
               "items-end justify-center px-3",
-              isRecording ? "pb-16" : "pb-2",
+              // Fork: 16 px off the panel bottom, level with the Home and note
+              // composers it opens from; while recording it clears the
+              // recording bar (bottom-4 + h-10) with 8 px to spare
+              // (redline4-oct3; Apple HIG Layout margins).
+              isRecording ? "pb-16" : "pb-4",
             ])}
             style={{
               paddingTop: FLOATING_PANEL_TOP_CLEARANCE,

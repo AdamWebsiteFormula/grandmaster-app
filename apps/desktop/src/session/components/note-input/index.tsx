@@ -397,11 +397,17 @@ const NoteInputContent = forwardRef<
             onMouseDown={handleContainerMouseDown}
             onScroll={onScroll}
             className={cn([
-              "h-full px-3",
+              "h-full",
               "pt-2",
+              // Fork: the note column sits 32 px inside the panel, the same
+              // gutter as Home's column (HOME_COLUMN_CLASS px-8; the -mx-2
+              // above cancels the surface's px-2), then centers at 680 px
+              // (redline4-oct3; design-system.md "nothing touches edges").
+              // The gutter is here, not on the column, so the absolute chip
+              // row (inset-x-0) still lines up with the title.
               renderedCurrentTab.type === "transcript"
-                ? "overflow-hidden pb-0"
-                : "overflow-x-hidden overflow-y-auto pb-16",
+                ? "overflow-hidden px-3 pb-0"
+                : "overflow-x-hidden overflow-y-auto px-8 pb-16",
             ])}
           >
             {isEditableTab && (

@@ -51,10 +51,11 @@ export function HomeComposer() {
 
   return (
     // Fade the list out under the composer instead of a shadow (flat look,
-    // design-system.md Shape and space).
+    // design-system.md Shape and space). Fork: pb-4 keeps the box 16 px off
+    // the panel bottom (redline4-oct3; Apple HIG Layout margins).
     <div
       data-home-composer
-      className="from-panel via-panel pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t via-70% to-transparent pt-10 pb-3"
+      className="from-panel via-panel pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t via-70% to-transparent pt-10 pb-4"
     >
       <div className={HOME_COLUMN_CLASS}>
         {/* Fork: one border around chips and field (redline-oct3, Granola's
