@@ -59,6 +59,10 @@ const HIDDEN_SETTINGS = new Set<string>([
   "automations",
   "crm",
   "contacts",
+  // Fork: Granola has no AI settings page and no bring-your-own-key; the
+  // model is "Auto", and Pro picks one in the chat composer
+  // (docs.granola.ai/help-center/getting-more-from-your-notes/understanding-model-selection-in-granola-chat).
+  "intelligence",
 ]);
 
 export function useSettingsNavGroups(): SettingsNavGroup[] {

@@ -2,6 +2,7 @@ import { Trans } from "@lingui/react/macro";
 import { type ReactNode } from "react";
 
 import { Gear } from "@anlg/ui/components/icons";
+import { Kbd } from "@anlg/ui/components/ui/kbd";
 import { cn } from "@anlg/utils";
 
 import { AutomationsNav } from "./automations";
@@ -9,6 +10,7 @@ import { CalendarNav } from "./calendar";
 import { ContactsNav } from "./contacts";
 import { FolderMaterialsPanel } from "./folder-materials";
 import { FoldersNav } from "./folders";
+import { SidebarHomeNav } from "./home-nav";
 import type { SidebarNoteFilter } from "./note-filter";
 import { SettingsNav } from "./settings";
 import { SharedNotesNav } from "./shared-notes";
@@ -18,6 +20,11 @@ import { hasOwnSidebarHeaderTab } from "./use-custom-sidebar";
 
 import { usesTitleBarSidebarActions } from "~/shared/hooks/useWindowControlsGutter";
 import { useTabs } from "~/store/zustand/tabs";
+
+// Fork (Granola 101, docs.granola.ai/help-center/getting-started/granola-101):
+// the sidebar is navigation; notes are listed on Home, grouped by day. The
+// date-grouped timeline is kept behind this switch, not deleted.
+const SHOW_SIDEBAR_TIMELINE = false;
 
 export function LeftSidebar({
   folderFilter = null,
@@ -77,6 +84,8 @@ export function LeftSidebar({
             <AutomationsNav />
           ) : isFoldersMode ? (
             <FoldersNav />
+          ) : !SHOW_SIDEBAR_TIMELINE ? (
+            <SidebarHomeNav />
           ) : (
             <div className="flex h-full min-h-0 flex-col">
               {noteFilter === "mine" ? (
@@ -112,7 +121,8 @@ export function LeftSidebar({
       {isTimelineSidebarLayout ? (
         // Fork (Glaido and Granola pattern): a visible Settings entry at the
         // bottom of the sidebar, so nobody has to know the shortcut.
-        <div className="shrink-0 px-2 pb-2">
+        // Fork: same 12 px left inset as the note list; Kbd chip like home.
+        <div className="shrink-0 pb-2">
           <button
             type="button"
             onClick={() => openNew({ type: "settings", state: { tab: "app" } })}
@@ -122,7 +132,7 @@ export function LeftSidebar({
             <span className="flex-1 text-left">
               <Trans>Settings</Trans>
             </span>
-            <kbd className="text-muted-foreground/70 font-mono text-xs">⌘,</kbd>
+            <Kbd>⌘ ,</Kbd>
           </button>
         </div>
       ) : null}

@@ -886,7 +886,7 @@ function PlanTierList({
             highlightPro && tier.id === "free" ? (
               <p className="text-muted-foreground text-xs">
                 <Trans>
-                  On-device transcription, recordings, and your own keys.
+                  On-device transcription, recordings, and Upshot AI on Auto.
                 </Trans>
               </p>
             ) : (

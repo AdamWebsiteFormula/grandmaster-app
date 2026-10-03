@@ -306,12 +306,41 @@ describe("SQLite settings", () => {
 
     mocks.executeTransaction.mockClear();
     mocks.execute.mockResolvedValue([
-      { id: "current_llm_provider", value_json: JSON.stringify("openai") },
-      { id: "current_llm_model", value_json: JSON.stringify("gpt-6") },
+      { id: "current_llm_provider", value_json: JSON.stringify("anarlog") },
+      {
+        id: "current_llm_model",
+        value_json: JSON.stringify("openai/gpt-6.1-sol"),
+      },
     ]);
     await initializeDefaultLlmSelection();
     expect(mocks.executeTransaction).not.toHaveBeenCalled();
   });
+
+  // Fork: Granola has no AI settings or own keys, so older saved providers
+  // move to Upshot AI Auto.
+  it.each([
+    ["apple_foundation", "apple-foundation"],
+    ["anthropic", "claude-sonnet-5-5"],
+    ["anarlog", "meta/llama-5"],
+  ])(
+    "moves a saved %s selection to Upshot AI Auto",
+    async (provider, model) => {
+      mocks.execute.mockResolvedValue([
+        { id: "current_llm_provider", value_json: JSON.stringify(provider) },
+        { id: "current_llm_model", value_json: JSON.stringify(model) },
+      ]);
+      await initializeDefaultLlmSelection();
+      const statements = mocks.executeTransaction.mock.calls[0][0];
+      expect(
+        statements.map((statement) => statement.params.slice(0, 2)),
+      ).toEqual(
+        expect.arrayContaining([
+          ["current_llm_provider", JSON.stringify("anarlog")],
+          ["current_llm_model", JSON.stringify("Auto")],
+        ]),
+      );
+    },
+  );
 
   it("initializes languages from OS preferences", async () => {
     let rows: Array<{ id: string; value_json: string }> = [];

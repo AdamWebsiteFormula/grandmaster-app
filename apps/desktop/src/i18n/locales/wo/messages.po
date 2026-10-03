@@ -35,11 +35,6 @@ msgstr ""
 msgid "{0} could not be installed"
 msgstr ""
 
-#. placeholder {0}: streak.days
-#: src/home/stat-cards.tsx
-msgid "{0} days"
-msgstr ""
-
 #. placeholder {0}: access.usedSeats
 #: src/settings/general/billing.tsx
 msgid "{0} in use"
@@ -106,6 +101,10 @@ msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
 msgid "{count} of {total} collected"
+msgstr ""
+
+#: src/home/home-view.tsx
+msgid "{count} people"
 msgstr ""
 
 #: src/settings/stats/index.tsx
@@ -183,7 +182,6 @@ msgstr ""
 msgid "${0} /month after trial"
 msgstr ""
 
-#: src/home/stat-cards.tsx
 #: src/settings/general/audio-settings.tsx
 msgid "1 day"
 msgstr ""
@@ -511,22 +509,6 @@ msgstr ""
 msgid "Agent skills"
 msgstr ""
 
-#: src/home/stat-cards.tsx
-msgid "AI cost this month ≈ {cost}"
-msgstr ""
-
-#: src/home/stat-cards.tsx
-msgid "AI cost this month ≈ $0 extra, it uses your plan"
-msgstr ""
-
-#: src/home/stat-cards.tsx
-msgid "AI cost this month $0, it runs on this Mac"
-msgstr ""
-
-#: src/home/stat-cards.tsx
-msgid "AI cost this month $0, Upshot AI is included"
-msgstr ""
-
 #: src/settings/automations/index.tsx
 msgid "AI step"
 msgstr ""
@@ -713,6 +695,10 @@ msgstr ""
 
 #: src/instruction/index.tsx
 msgid "Authorize access in your browser, then return to Upshot."
+msgstr ""
+
+#: src/chat/components/input/model-menu.tsx
+msgid "Auto"
 msgstr ""
 
 #: src/templates/auto-form.tsx
@@ -1059,10 +1045,6 @@ msgstr ""
 msgid "Choose a Linear team first."
 msgstr ""
 
-#: src/session/components/note-input/enhanced/config-error.tsx
-msgid "Choose a model"
-msgstr ""
-
 #: src/settings/automations/index.tsx
 msgid "Choose a Notion page first."
 msgstr ""
@@ -1085,10 +1067,6 @@ msgstr ""
 
 #: src/settings/ai/stt/select.tsx
 msgid "Choose a transcription model to start listening."
-msgstr ""
-
-#: src/session/components/note-input/enhanced/config-error.tsx
-msgid "Choose an AI model"
 msgstr ""
 
 #: src/templates/auto-format-examples-dialog.tsx
@@ -1396,14 +1374,6 @@ msgstr ""
 msgid "Composer"
 msgstr ""
 
-#: src/composer/index.tsx
-msgid "Configure a chat model in Settings"
-msgstr ""
-
-#: src/composer/index.tsx
-msgid "Configure a chat model to use the quick composer."
-msgstr ""
-
 #: src/settings/ai/llm/configure.tsx
 #: src/settings/ai/stt/configure.tsx
 msgid "Configure Providers"
@@ -1489,6 +1459,10 @@ msgstr ""
 
 #: src/settings/developers/glaido.tsx
 msgid "Connect to Glaido"
+msgstr ""
+
+#: src/home/home-view.tsx
+msgid "Connect your calendar"
 msgstr ""
 
 #: src/instruction/index.tsx
@@ -2320,10 +2294,6 @@ msgstr ""
 msgid "ends {formattedTrialEnd}"
 msgstr ""
 
-#: src/home/stat-cards.tsx
-msgid "Enhance a meeting to start saving time"
-msgstr ""
-
 #: src/session/components/outer-header/metadata/participants/chip.tsx
 msgid "Enhance contact"
 msgstr ""
@@ -2383,15 +2353,6 @@ msgstr ""
 
 #: src/settings/stats/index.tsx
 msgid "Every conversation adds to your story."
-msgstr ""
-
-#. placeholder {0}: streak.days
-#: src/home/stat-cards.tsx
-msgid "Every meeting wrapped up, {0} workdays running"
-msgstr ""
-
-#: src/home/stat-cards.tsx
-msgid "Every meeting wrapped up, 1 workday running"
 msgstr ""
 
 #: src/settings/automations/google-drive-config.tsx
@@ -2578,8 +2539,13 @@ msgstr ""
 msgid "Folder: {currentPath}"
 msgstr ""
 
+#: src/sidebar/home-nav.tsx
 #: src/sidebar/settings-nav-groups.ts
 msgid "Folders"
+msgstr ""
+
+#: src/home/home-view.tsx
+msgid "Follow-ups"
 msgstr ""
 
 #: src/templates/template-icon-picker.tsx
@@ -2797,10 +2763,6 @@ msgstr ""
 msgid "Help Upshot read meeting activity"
 msgstr ""
 
-#: src/chat/components/body/empty.tsx
-msgid "Hi, I'm Upshot AI. Set up a language model and I'll be ready to help."
-msgstr ""
-
 #: src/settings/general/notification.tsx
 msgid "Hide all notification panels, Dock alerts, and completion sounds."
 msgstr ""
@@ -2845,6 +2807,10 @@ msgstr ""
 
 #: src/settings/dictation.tsx
 msgid "Hold your shortcut while speaking, then release it to finish."
+msgstr ""
+
+#: src/sidebar/home-nav.tsx
+msgid "Home"
 msgstr ""
 
 #: src/settings/stats/index.tsx
@@ -3343,6 +3309,10 @@ msgstr ""
 msgid "macOS could not access your recovery key. Repair Keychain access, then resume sync."
 msgstr ""
 
+#: src/sidebar/home-nav.tsx
+msgid "Main"
+msgstr ""
+
 #: src/settings/general/main-language.tsx
 msgid "Main language"
 msgstr "Làkk wi gëna am solo"
@@ -3365,6 +3335,14 @@ msgstr ""
 
 #: src/settings/general/account.tsx
 msgid "Manage your sign-in methods on the Upshot website."
+msgstr ""
+
+#: src/home/home-view.tsx
+msgid "Mark as done"
+msgstr ""
+
+#: src/home/home-view.tsx
+msgid "Mark as not done"
 msgstr ""
 
 #: src/settings/automations/google-drive-config.tsx
@@ -3569,6 +3547,10 @@ msgstr ""
 msgid "Model is thinking..."
 msgstr ""
 
+#: src/chat/components/input/model-menu.tsx
+msgid "Model, {label}"
+msgstr ""
+
 #: src/settings/general/week-start.tsx
 msgid "Monday"
 msgstr ""
@@ -3647,7 +3629,7 @@ msgstr ""
 msgid "New meetings are imported automatically while Upshot is running."
 msgstr ""
 
-#: src/main/empty.tsx
+#: src/home/home-view.tsx
 #: src/shared/new-note-button.tsx
 msgid "New note"
 msgstr ""
@@ -3784,10 +3766,6 @@ msgstr ""
 msgid "No items today"
 msgstr ""
 
-#: src/session/components/note-input/enhanced/config-error.tsx
-msgid "No key? Get a free one from Google AI Studio"
-msgstr ""
-
 #: src/settings/dictionary/index.tsx
 msgid "No match"
 msgstr ""
@@ -3803,6 +3781,10 @@ msgstr "Gisu ñu làkk wu méngoo"
 
 #: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
 msgid "No matching people"
+msgstr ""
+
+#: src/home/home-view.tsx
+msgid "No meetings coming up"
 msgstr ""
 
 #: src/settings/ai/shared/model-combobox.tsx
@@ -3938,6 +3920,7 @@ msgid "notes"
 msgstr ""
 
 #: src/contacts/details.tsx
+#: src/home/home-view.tsx
 #: src/settings/general/account-profile.tsx
 msgid "Notes"
 msgstr ""
@@ -3965,9 +3948,15 @@ msgstr ""
 msgid "Notion update"
 msgstr ""
 
+#: src/home/home-view.tsx
 #: src/sidebar/timeline/index.tsx
 #: src/sidebar/timeline/upcoming-meeting.ts
 msgid "Now"
+msgstr ""
+
+#. placeholder {0}: formatTime(event.endMs)
+#: src/home/home-view.tsx
+msgid "Now, until {0}"
 msgstr ""
 
 #: src/templates/template-icon-picker.tsx
@@ -3997,7 +3986,7 @@ msgid "On-device models can take a few minutes to warm up before text appears."
 msgstr ""
 
 #: src/settings/general/billing.tsx
-msgid "On-device transcription, recordings, and your own keys."
+msgid "On-device transcription, recordings, and Upshot AI on Auto."
 msgstr ""
 
 #: src/folders/folder-editor.tsx
@@ -4031,8 +4020,8 @@ msgstr ""
 msgid "Open {0} settings"
 msgstr ""
 
-#: src/chat/components/body/empty.tsx
-msgid "Open AI settings"
+#: src/home/home-view.tsx
+msgid "Open {noteTitle}"
 msgstr ""
 
 #: src/sidebar/timeline/index.tsx
@@ -4278,10 +4267,6 @@ msgstr ""
 msgid "Phone"
 msgstr ""
 
-#: src/session/components/note-input/enhanced/config-error.tsx
-msgid "Pick a model in Settings to turn this transcript into a summary."
-msgstr ""
-
 #: src/contacts/contact-page-header.tsx
 msgid "Pin"
 msgstr ""
@@ -4376,6 +4361,7 @@ msgstr ""
 msgid "Privacy"
 msgstr ""
 
+#: src/chat/components/input/model-menu.tsx
 #: src/settings/ai/stt/select.tsx
 msgid "Pro"
 msgstr ""
@@ -4491,16 +4477,17 @@ msgstr ""
 msgid "Reconnect Slack"
 msgstr ""
 
+#: src/home/home-view.tsx
 #: src/session/components/outer-header/index.tsx
 msgid "Record"
 msgstr ""
 
-#: src/home/stat-cards.tsx
-msgid "Record a meeting to see how much you talk"
-msgstr ""
-
 #: src/onboarding/index.tsx
 msgid "Record any call without a bot, and get clear notes from the newest AI models."
+msgstr ""
+
+#: src/home/home-view.tsx
+msgid "Record now"
 msgstr ""
 
 #: src/settings/general/permissions.tsx
@@ -4927,6 +4914,7 @@ msgid "Scroll to top"
 msgstr ""
 
 #: src/settings/automations/starter-config.tsx
+#: src/sidebar/home-nav.tsx
 msgid "Search"
 msgstr ""
 
@@ -5157,7 +5145,7 @@ msgstr ""
 msgid "Setting up encrypted cloud sync."
 msgstr ""
 
-#: src/main/empty.tsx
+#: src/home/home-view.tsx
 #: src/main/windows-title-bar.tsx
 #: src/shared/open-note-dialog.tsx
 #: src/sidebar/index.tsx
@@ -5299,6 +5287,10 @@ msgstr ""
 
 #: src/settings/appearance/time-format.tsx
 msgid "Show meeting times as 14:00 instead of 2:00 PM."
+msgstr ""
+
+#: src/home/home-view.tsx
+msgid "Show more"
 msgstr ""
 
 #: src/settings/ai/shared/model-combobox.tsx
@@ -5577,7 +5569,7 @@ msgstr ""
 msgid "Start listening when a scheduled meeting begins."
 msgstr ""
 
-#: src/main/empty.tsx
+#: src/home/home-view.tsx
 msgid "Start recording"
 msgstr ""
 
@@ -5845,10 +5837,6 @@ msgstr ""
 msgid "Take the enhanced note with decisions and follow-ups."
 msgstr ""
 
-#: src/home/stat-cards.tsx
-msgid "Talk share"
-msgstr ""
-
 #: src/settings/general/billing.tsx
 msgid "Talk to sales"
 msgstr ""
@@ -5930,22 +5918,6 @@ msgstr ""
 
 #: src/settings/automations/index.tsx
 msgid "Test runs are not available yet."
-msgstr ""
-
-#: src/home/stat-cards.tsx
-msgid "That's a coffee break"
-msgstr ""
-
-#: src/home/stat-cards.tsx
-msgid "That's a full week"
-msgstr ""
-
-#: src/home/stat-cards.tsx
-msgid "That's a lunch break"
-msgstr ""
-
-#: src/home/stat-cards.tsx
-msgid "That's a workday"
 msgstr ""
 
 #: src/shared-notes/index.tsx
@@ -6051,10 +6023,6 @@ msgstr ""
 msgid "Ticket"
 msgstr ""
 
-#: src/home/stat-cards.tsx
-msgid "Time saved"
-msgstr ""
-
 #: src/settings/general/timezone.tsx
 msgid "Timezone"
 msgstr ""
@@ -6067,12 +6035,23 @@ msgstr ""
 msgid "Tip: The Upshot team loves our users!"
 msgstr ""
 
+#: src/home/home-view.tsx
 #: src/sidebar/timeline/utils/index.ts
 msgid "Today"
 msgstr ""
 
+#. placeholder {0}: formatTime(event.startMs)
+#: src/home/home-view.tsx
+msgid "Today, {0}"
+msgstr ""
+
 #: src/sidebar/timeline/utils/index.ts
 msgid "Tomorrow"
+msgstr ""
+
+#. placeholder {0}: formatTime(event.startMs)
+#: src/home/home-view.tsx
+msgid "Tomorrow, {0}"
 msgstr ""
 
 #: src/settings/general/spoken-languages.tsx
@@ -6154,6 +6133,10 @@ msgstr ""
 #: src/settings/stats/badge-collection.tsx
 #: src/settings/team/index.tsx
 msgid "Try again"
+msgstr ""
+
+#: src/session/components/note-input/enhanced/config-error.tsx
+msgid "Try again in a minute to turn this transcript into a summary."
 msgstr ""
 
 #: src/settings/dictation.tsx
@@ -6248,6 +6231,7 @@ msgstr ""
 msgid "until transcribed"
 msgstr ""
 
+#: src/home/home-view.tsx
 #: src/session/components/note-input/raw.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
 #: src/session/components/title-input.tsx
@@ -6277,6 +6261,10 @@ msgstr ""
 
 #: src/templates/template-form.tsx
 msgid "Untitled template"
+msgstr ""
+
+#: src/home/home-view.tsx
+msgid "Up next"
 msgstr ""
 
 #: src/settings/team/index.tsx
@@ -6326,6 +6314,10 @@ msgstr ""
 
 #: src/resource-sharing/share-dialog.tsx
 msgid "Upgrade this workspace to share folders, templates, and automations with everyone on the Team."
+msgstr ""
+
+#: src/chat/components/input/model-menu.tsx
+msgid "Upgrade to pick a model"
 msgstr ""
 
 #: src/billing/trial-ended-dialog.tsx
@@ -6378,6 +6370,15 @@ msgstr ""
 #. placeholder {0}: update.version
 #: src/sidebar/toast/registry.tsx
 msgid "Upshot {0} is ready to install"
+msgstr ""
+
+#: src/session/components/note-input/enhanced/config-error.tsx
+msgid "Upshot AI is getting ready"
+msgstr ""
+
+#: src/chat/components/body/empty.tsx
+#: src/composer/index.tsx
+msgid "Upshot AI is getting ready. Try again in a minute."
 msgstr ""
 
 #: src/onboarding/permissions.tsx
@@ -6645,16 +6646,8 @@ msgstr ""
 msgid "whisper.cpp models"
 msgstr ""
 
-#: src/home/stat-cards.tsx
-msgid "Words in your AI notes, at {TYPING_WPM} words a minute of typing"
-msgstr ""
-
 #: src/task/tab-content.tsx
 msgid "Work on this task"
-msgstr ""
-
-#: src/home/stat-cards.tsx
-msgid "Workdays where every meeting got an enhanced note. Weekends and days without meetings never break it."
 msgstr ""
 
 #: src/settings/automations/workflow-builder.tsx
@@ -6677,18 +6670,6 @@ msgstr ""
 msgid "Workspace subdomain"
 msgstr ""
 
-#: src/home/stat-cards.tsx
-msgid "Wrap up today's meeting to keep it going"
-msgstr ""
-
-#: src/home/stat-cards.tsx
-msgid "Wrap up today's meeting to start a streak"
-msgstr ""
-
-#: src/home/stat-cards.tsx
-msgid "Wrap-up streak"
-msgstr ""
-
 #: src/automations/starters.tsx
 msgid "Write to a folder"
 msgstr ""
@@ -6701,6 +6682,7 @@ msgstr ""
 msgid "Yearly · ${yearlyPrice}/yr (save ${yearlySavings})"
 msgstr ""
 
+#: src/home/home-view.tsx
 #: src/sidebar/timeline/utils/index.ts
 msgid "Yesterday"
 msgstr ""
@@ -6721,17 +6703,6 @@ msgstr ""
 
 #: src/templates/auto-format-examples-dialog.tsx
 msgid "You can use up to three example summaries."
-msgstr ""
-
-#. placeholder {0}: share.percent
-#: src/home/stat-cards.tsx
-msgid "You did {0}% of the talking this week"
-msgstr ""
-
-#. placeholder {0}: share.percent
-#. placeholder {1}: share.wpm
-#: src/home/stat-cards.tsx
-msgid "You did {0}% of the talking this week, at {1} words a minute"
 msgstr ""
 
 #: src/onboarding/account/after-login.tsx
@@ -6811,10 +6782,6 @@ msgstr ""
 msgid "Your local notes are available. Connect this library to sync with your current account."
 msgstr ""
 
-#: src/home/stat-cards.tsx
-msgid "Your mic against everyone else, last 7 days"
-msgstr ""
-
 #: src/billing/trial-ended-dialog.tsx
 msgid "Your notes and recordings are safe. Free local transcription still works. Upgrade anytime to keep Pro features."
 msgstr ""
@@ -6833,6 +6800,10 @@ msgstr ""
 
 #: src/settings/sync/index.tsx
 msgid "Your notes remain available locally. Upshot will keep retrying."
+msgstr ""
+
+#: src/home/home-view.tsx
+msgid "Your notes show up here"
 msgstr ""
 
 #: src/auth/connect-local-library-dialog.tsx
@@ -6870,10 +6841,6 @@ msgstr ""
 
 #: src/settings/general/e2ee-setup.tsx
 msgid "Your recovery key encrypts synced notes before they leave this device. Upshot cannot read or recover it."
-msgstr ""
-
-#: src/home/stat-cards.tsx
-msgid "Your stats"
 msgstr ""
 
 #: src/services/enhancer/summary-notification.ts

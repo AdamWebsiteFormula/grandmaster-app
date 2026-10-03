@@ -24,7 +24,7 @@ Upshot takes notes for your meetings. No bot joins your call.
 **Take notes:** jot a few words while you talk, or nothing at all.
 
 
-**Finish:** click **Stop** at the bottom. Upshot turns your notes and the transcript into a clear summary with the AI model you picked in **Settings → Intelligence**.
+**Finish:** click **Stop** at the bottom. Upshot turns your notes and the transcript into a clear summary with Upshot AI.
 
 
 **See an example:** open **Example: Product sync** in the sidebar for a finished summary and transcript.

@@ -5,7 +5,7 @@
 <p>
   <b>The bot-free AI meeting notepad for Apple Silicon Macs.</b>
   <br />
-  Record, transcribe, and turn your meeting into clear notes. Pick any current AI model.
+  Record, transcribe, and turn your meeting into clear notes with Upshot AI, out of the box.
 </p>
 
 </div>
@@ -14,8 +14,8 @@
 
 - Records your mic and your call audio. No bot joins your meeting.
 - Transcribes on your Mac with Apple Speech or Parakeet. No key, no account.
-- Enhances your notes and answers chat with Upshot AI right after install: no key, no account. Upshot AI runs Claude Sonnet 5.5. To use your own provider instead, add its key in Settings › Intelligence (a free Gemini key from Google AI Studio works).
-- Shows this week's models in the model picker. A bundled list is the fallback.
+- Enhances your notes and answers chat with Upshot AI right after install: no key, no account. Upshot AI runs on Auto, the current Claude model (Claude Sonnet 5.5 today).
+- Pro picks this week's models from Anthropic, OpenAI and Google in the chat box ("Auto ⌄"), the way Granola does. The list is rebuilt from OpenRouter's catalog at launch, with a bundled fallback.
 - Warns you live when it can't hear the other side, with You and Them sound meters.
 - Keeps your audio on your Mac. Click any word in the transcript to hear it.
 - Imports your Granola meetings without an account.
@@ -49,12 +49,12 @@ Everything stays on your Mac until you press Enhance or use chat.
 |---|---|
 | Notes, transcripts, summaries, settings | Local SQLite database in `~/Library/Application Support/anarlog/` (the folder keeps the upstream name on purpose; do not rename it) |
 | Meeting audio | The same folder, one `audio.mp3` per meeting. Kept until you change the retention setting (Settings › Meetings) |
-| AI provider keys | The macOS Keychain, if you add your own. Never in the repo, the build or the app bundle |
+| AI keys | None on your Mac. The Upshot AI key lives only on the Cloudflare Worker. Never in the repo, the build or the app bundle |
 | Transcription | On your Mac: Apple Speech (macOS 26+) or Parakeet. Apple Speech language files come from Apple |
 | Model list | Public catalogs (models.dev, OpenRouter), cached locally. No user data is sent |
 | Glaido connection (optional) | `~/Library/Application Support/Upshot/glaido/mcp.json`, pointing at the CLI inside the app |
 
-**What leaves your Mac:** only when you press Enhance or use chat. By default, the note and transcript go through the Upshot AI proxy (a Cloudflare Worker that stores and logs nothing) to OpenRouter, which runs Claude Sonnet 5.5. With your own key, they go straight to your provider. No account, no telemetry, no cloud sync, no auto-updater.
+**What leaves your Mac:** only when you press Enhance or use chat. By default, the note and transcript go through the Upshot AI proxy (a Cloudflare Worker that stores and logs nothing) to OpenRouter, which runs Claude Sonnet 5.5 on Auto (or the model a Pro user picked). No account, no telemetry, no cloud sync, no auto-updater.
 
 **Delete your data:** delete a note in the app, or quit the app and delete the folder above.
 

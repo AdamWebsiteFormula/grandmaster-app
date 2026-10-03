@@ -39,9 +39,7 @@ export function useEnhancedNoteActions({
       }
 
       if (!model) {
-        toast.error(
-          "Set up Intelligence in Settings before regenerating this summary.",
-        );
+        toast.error("Upshot AI is busy. Try again in a minute.");
         return;
       }
 

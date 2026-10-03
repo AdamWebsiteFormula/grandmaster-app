@@ -9,6 +9,7 @@ import { commands as trayCommands } from "@anlg/plugin-tray";
 import { commands as updaterCommands } from "@anlg/plugin-updater2";
 import { commands as windowsCommands } from "@anlg/plugin-windows";
 
+import { normalizeUpshotModel, UPSHOT_AUTO_MODEL } from "~/ai/upshot-models";
 import { executeTransaction, liveQueryClient, useLiveQuery } from "~/db";
 import { enqueueDatabaseWrite } from "~/db/write-queue";
 import {
@@ -164,15 +165,26 @@ export async function initializeApplicationSettings(): Promise<void> {
   applySettingSideEffects(current.values);
 }
 
-// Fork: nothing chosen means Upshot AI "Auto", so Enhance and chat work
-// right after install with no key, as in Granola
+// Fork: Upshot AI is always the model, as in Granola, which has no AI
+// settings page or own keys
 // (docs.granola.ai/help-center/getting-more-from-your-notes/understanding-model-selection-in-granola-chat).
+// Any other saved provider (an older build's Apple Intelligence or own key)
+// moves to Upshot AI "Auto"; a model a Pro user picked in chat is kept.
 export async function initializeDefaultLlmSelection(): Promise<void> {
   const { values } = await getStoredSettingValues();
-  if (values.current_llm_provider) return;
+  const model =
+    values.current_llm_provider === "anarlog"
+      ? normalizeUpshotModel(values.current_llm_model)
+      : UPSHOT_AUTO_MODEL;
+  if (
+    values.current_llm_provider === "anarlog" &&
+    values.current_llm_model === model
+  ) {
+    return;
+  }
   await setSettingValues({
     current_llm_provider: "anarlog",
-    current_llm_model: "Auto",
+    current_llm_model: model,
   });
 }
 

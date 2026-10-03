@@ -156,24 +156,24 @@ describe("ClassicMainBody", () => {
   it("renders sidebar timeline chrome and current tab content", () => {
     render(<ClassicMainBody />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Search" }));
-    // Sidebar icon plus the labeled top-right button.
+    // Fork (Granola 101): Search lives in the sidebar nav and "New note" is
+    // the labeled top-right button, so the chrome row keeps only the toggle.
+    expect(screen.queryByRole("button", { name: "Search" })).toBeNull();
     const newNoteButtons = screen.getAllByRole("button", { name: "New note" });
-    expect(newNoteButtons).toHaveLength(2);
+    expect(newNoteButtons).toHaveLength(1);
     fireEvent.click(newNoteButtons[0]);
 
+    expect(screen.getByRole("button", { name: "Hide sidebar" })).toBeTruthy();
     expect(screen.getByTestId("main-sidebar")).toBeTruthy();
     expect(screen.getByTestId("main-tab-content").textContent).toContain(
       "empty",
     );
-    expect(mocks.openSearch).toHaveBeenCalledTimes(1);
-    expect(mocks.createNewNote).toHaveBeenCalledTimes(1);
   });
 
-  it("shows the note filter while the sidebar is expanded", () => {
+  it("drops the note filter with the sidebar timeline", () => {
     render(<ClassicMainBody />);
 
-    expect(screen.getByRole("button", { name: "Sort notes" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Sort notes" })).toBeNull();
   });
 
   it("toggles the collapsed sidebar and hides the note filter", () => {

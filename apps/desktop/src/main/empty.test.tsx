@@ -2,14 +2,6 @@ import { cleanup, render, screen } from "@testing-library/react";
 import type React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({
-  platform: vi.fn(() => "macos"),
-}));
-
-vi.mock("@tauri-apps/plugin-os", () => ({
-  platform: mocks.platform,
-}));
-
 vi.mock("~/shared/main", () => ({
   StandardContentWrapper: ({
     children,
@@ -25,13 +17,8 @@ vi.mock("~/shared/main", () => ({
   ),
 }));
 
-vi.mock("~/home/stat-cards", () => ({
-  HomeStatCards: () => null,
-}));
-
-vi.mock("~/shared/useNewNote", () => ({
-  useNewNote: () => vi.fn(),
-  useNewNoteAndListen: () => vi.fn(),
+vi.mock("~/home/home-view", () => ({
+  HomeView: () => <div>Home view</div>,
 }));
 
 vi.mock("~/contexts/shell", () => ({
@@ -43,22 +30,14 @@ vi.mock("~/contexts/shell", () => ({
   }),
 }));
 
-vi.mock("~/store/zustand/tabs", () => ({
-  useTabs: (selector: (state: { openCurrent: () => void }) => unknown) =>
-    selector({
-      openCurrent: vi.fn(),
-    }),
-}));
-
 import { TabContentEmpty } from "./empty";
 
 describe("TabContentEmpty", () => {
   afterEach(() => {
     cleanup();
-    mocks.platform.mockReturnValue("macos");
   });
 
-  it("shows the home actions and global chat FAB", () => {
+  it("shows the home view and the global chat bar", () => {
     render(
       <TabContentEmpty
         tab={{
@@ -70,7 +49,7 @@ describe("TabContentEmpty", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: /New note/i })).toBeTruthy();
+    expect(screen.getByText("Home view")).toBeTruthy();
     expect(
       screen.getByRole("button", { name: "Ask Upshot anything" }),
     ).toBeTruthy();

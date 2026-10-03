@@ -160,6 +160,16 @@ export async function fetchRegistry(
       CATALOG_PROVIDER_IDS,
     );
     if (Object.keys(providers).length > 0) {
+      // Fork: the Upshot AI chat menu lists OpenRouter slugs, so take them
+      // from OpenRouter itself when it answers (ai/upshot-models.ts).
+      try {
+        const openrouter = normalizeOpenRouter(
+          await fetchCatalogJson(OPENROUTER_MODELS_URL, fetchImpl),
+        );
+        if (openrouter.length > 0) providers.openrouter = openrouter;
+      } catch {
+        // Keep the models.dev copy of the OpenRouter list.
+      }
       return {
         fetchedAt,
         catalogSource: "models.dev",

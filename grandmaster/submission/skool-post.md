@@ -5,7 +5,7 @@ Post in the category Jack names for submissions (check the pinned post first). A
 **Check before you post (delete a line from the post if its check fails):**
 - [ ] Granola import: Settings › Imports › Granola › Connect, and your meetings appear.
 - [ ] Glaido: import the folder from Settings › Developers, ask one question, and get an answer.
-- [ ] The model picker shows a "New" badge.
+- [ ] The chat box shows **Auto ⌄** with this week's models listed under Pro.
 - [ ] Clicking a transcript word plays the audio.
 
 ---
@@ -26,12 +26,12 @@ Upshot records any call without a bot and turns it into clear notes with the new
 1. Open the attached DMG and drag Upshot to Applications.
 2. Open Upshot. macOS blocks it the first time because it isn't notarized yet: go to System Settings › Privacy & Security, scroll down, click **Open Anyway**.
 3. Allow the microphone, system audio and Accessibility. Transcription sets itself up.
-4. Click **New note** to record, then **Enhance**. No key needed. Your own AI key is optional, in Settings › Intelligence.
+4. Click **New note** to record, then **Enhance**. No key needed: Upshot AI works out of the box.
 
 Needs a Mac with Apple Silicon and macOS 15 or later (macOS 26 for Apple Speech).
 
 **Tech stack, in plain words**
-Tauri 2 (a small Rust app shell with a web interface), React and Tailwind, a local SQLite database, on-device transcription (Apple Speech or Parakeet), Upshot AI by default (a Cloudflare Worker in front of OpenRouter), or bring your own AI key. A built-in MCP server lets AI tools like Glaido read your meetings.
+Tauri 2 (a small Rust app shell with a web interface), React and Tailwind, a local SQLite database, on-device transcription (Apple Speech or Parakeet), Upshot AI (a Cloudflare Worker in front of OpenRouter): Auto runs the current Claude model, and Pro picks this week's models from Anthropic, OpenAI and Google. A built-in MCP server lets AI tools like Glaido read your meetings.
 
 **Where your data lives**
 On your Mac, in `~/Library/Application Support/anarlog/`. Keys you add are in the macOS Keychain. Only when you press Enhance or use chat do your notes leave: through the Upshot AI proxy (nothing stored or logged) to OpenRouter, or straight to your own provider if you add a key. Full table in the README.

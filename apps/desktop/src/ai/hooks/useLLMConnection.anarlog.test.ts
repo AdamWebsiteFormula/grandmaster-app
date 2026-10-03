@@ -5,6 +5,11 @@ import { expect, it, vi } from "vitest";
 
 import { useLanguageModel, useLLMConnectionStatus } from "./useLLMConnection";
 
+const plan = vi.hoisted(() => ({
+  isPro: false,
+  model: "Auto",
+}));
+
 vi.mock("@tauri-apps/plugin-http", () => ({ fetch: vi.fn() }));
 vi.mock("~/env", () => ({
   env: {
@@ -17,10 +22,11 @@ vi.mock("~/auth/billing-context", () => ({
   useBillingAccess: () => ({ isPaid: false }),
 }));
 vi.mock("~/settings/providers", () => ({ useAiProvider: () => undefined }));
+vi.mock("~/upshot-plan", () => ({ useUpshotPro: () => plan.isPro }));
 vi.mock("~/shared/config", () => ({
   useConfigValues: () => ({
     current_llm_provider: "anarlog",
-    current_llm_model: "Auto",
+    current_llm_model: plan.model,
     current_llm_reasoning_effort: "default",
   }),
 }));
@@ -69,8 +75,7 @@ it("shows the Worker's out-of-credit message", async () => {
     Response.json(
       {
         error: {
-          message:
-            "Upshot AI is out of credit for now. Add your own key in Settings › Intelligence.",
+          message: "Upshot AI is out of credit for now. Try again later.",
         },
       },
       { status: 402 },
@@ -81,4 +86,37 @@ it("shows the Worker's out-of-credit message", async () => {
   await expect(
     generateText({ model: result.current!, prompt: "Hi", maxRetries: 0 }),
   ).rejects.toThrow("Upshot AI is out of credit for now.");
+});
+
+// Fork: free is Auto only; Pro sends the model picked in the chat composer
+// (docs.granola.ai/help-center/getting-more-from-your-notes/understanding-model-selection-in-granola-chat).
+it.each([
+  [false, "openai/gpt-6.1-sol", "Auto"],
+  [true, "openai/gpt-6.1-sol", "openai/gpt-6.1-sol"],
+  [true, "not a model", "Auto"],
+])("Pro %s with %s sends model %s", async (isPro, model, expected) => {
+  plan.isPro = isPro;
+  plan.model = model;
+  let sent: unknown;
+  vi.mocked(tauriFetch).mockImplementation(async (_input, init) => {
+    sent = JSON.parse(String(init?.body)).model;
+    return Response.json({
+      id: "hosted",
+      model: "auto",
+      created: 0,
+      choices: [
+        {
+          index: 0,
+          message: { role: "assistant", content: "ok" },
+          finish_reason: "stop",
+        },
+      ],
+    });
+  });
+
+  const { result } = renderHook(() => useLanguageModel("chat"));
+  await generateText({ model: result.current!, prompt: "Hi", maxRetries: 0 });
+  expect(sent).toBe(expected);
+  plan.isPro = false;
+  plan.model = "Auto";
 });

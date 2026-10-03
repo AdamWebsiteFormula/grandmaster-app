@@ -8,14 +8,11 @@ import {
 } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
-import { SidebarNoteFilterMenu } from "~/sidebar/note-filter-menu";
 import { useSidebarUpcomingMeetingStatus } from "~/sidebar/timeline/upcoming-meeting";
 
 export const SidebarTimelineChromeWithUpcomingMeeting = memo(
   function SidebarTimelineChromeWithUpcomingMeeting({
     currentSessionId,
-    onNewNote,
-    onSearch,
     onToggleSidebar,
     sidebarExpanded,
     showSidebarToggle = true,
@@ -40,8 +37,6 @@ export const SidebarTimelineChromeWithUpcomingMeeting = memo(
     return (
       <SidebarTimelineChrome
         hasUpcomingMeeting={hasUpcomingMeeting}
-        onNewNote={onNewNote}
-        onSearch={onSearch}
         onToggleSidebar={onToggleSidebar}
         sidebarExpanded={sidebarExpanded}
         showSidebarToggle={showSidebarToggle}
@@ -52,15 +47,11 @@ export const SidebarTimelineChromeWithUpcomingMeeting = memo(
 
 function SidebarTimelineChrome({
   hasUpcomingMeeting,
-  onNewNote,
-  onSearch,
   onToggleSidebar,
   sidebarExpanded,
   showSidebarToggle,
 }: {
   hasUpcomingMeeting: boolean;
-  onNewNote: () => void;
-  onSearch: () => void;
   onToggleSidebar: () => void;
   sidebarExpanded: boolean;
   showSidebarToggle: boolean;
@@ -87,9 +78,9 @@ function SidebarTimelineChrome({
             )}
           </LeftSurfaceChromeButton>
         )}
-        {sidebarExpanded ? (
-          <SidebarNoteActions onNewNote={onNewNote} onSearch={onSearch} />
-        ) : null}
+        {/* Fork: Search moved into the sidebar nav and "New note" is the
+            orange button top right (Granola 101: the sidebar top holds only
+            the toggle), so the chrome row keeps just the sidebar toggle. */}
       </div>
     </div>
   );
@@ -110,7 +101,8 @@ export function SidebarNoteActions({
       <LeftSurfaceChromeButton ariaLabel="New note" onClick={onNewNote}>
         <NotePencil size={15} />
       </LeftSurfaceChromeButton>
-      <SidebarNoteFilterMenu />
+      {/* Fork: the sort/group filter only applied to the sidebar timeline,
+          which is hidden (sidebar/index.tsx). */}
     </>
   );
 }

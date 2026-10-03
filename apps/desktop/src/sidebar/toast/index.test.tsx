@@ -115,7 +115,7 @@ vi.mock("~/store/zustand/tabs", () => ({
 }));
 
 vi.mock("~/stt/capabilities", () => ({
-  isConfiguredSttModel: () => true,
+  isConfiguredSttModel: (provider: string | null) => provider !== null,
   isAnarlogCloudSttModel: () => false,
 }));
 
@@ -327,8 +327,9 @@ describe("ToastNotifications", () => {
 
   it("uses the latest registry action while a toast remains visible", () => {
     mocks.dismissedToastIds.add("auth-promotion");
-    mocks.config.current_llm_provider = null;
-    mocks.config.current_llm_model = null;
+    // Fork: the language-model toast is off, so use the transcription one.
+    mocks.config.current_stt_provider = null;
+    mocks.config.current_stt_model = null;
 
     const view = render(<ToastNotifications />);
 
@@ -343,7 +344,7 @@ describe("ToastNotifications", () => {
 
     expect(mocks.updateSettingsTabState).toHaveBeenCalledWith(
       mocks.currentTab,
-      { tab: "intelligence" },
+      { tab: "transcription" },
     );
     expect(mocks.openNew).not.toHaveBeenCalled();
   });

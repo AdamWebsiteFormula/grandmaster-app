@@ -5,13 +5,11 @@ import {
   Envelope,
   ListChecks,
   MagnifyingGlass,
-  Sparkle,
 } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
 import type { ContextRef } from "~/chat/context/entities";
 import { useChatAppearance } from "~/chat/hooks/use-chat-appearance";
-import { useTabs } from "~/store/zustand/tabs";
 
 export function ChatBodyEmpty({
   isModelConfigured = true,
@@ -27,7 +25,6 @@ export function ChatBodyEmpty({
   ) => void;
 }) {
   const { isDarkAppearance } = useChatAppearance();
-  const openNew = useTabs((state) => state.openNew);
   const suggestions = [
     {
       label: t`List action items.`,
@@ -45,10 +42,6 @@ export function ChatBodyEmpty({
       prompt: t`What were the key decisions that have been made?`,
     },
   ];
-
-  const handleGoToSettings = useCallback(() => {
-    openNew({ type: "settings", state: { tab: "intelligence" } });
-  }, [openNew]);
 
   const handleSuggestionClick = useCallback(
     (prompt: string) => {
@@ -82,18 +75,10 @@ export function ChatBodyEmpty({
                 : "text-muted-foreground",
             ])}
           >
-            {t`Hi, I'm Upshot AI. Set up a language model and I'll be ready to help.`}
+            {/* Fork: no AI settings to send people to, as in Granola
+                (docs.granola.ai/help-center/getting-more-from-your-notes/understanding-model-selection-in-granola-chat). */}
+            {t`Upshot AI is getting ready. Try again in a minute.`}
           </p>
-          <button
-            onClick={handleGoToSettings}
-            className={cn([
-              "border-primary bg-primary text-primary-foreground inline-flex w-fit items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium",
-              "hover:bg-primary/90 shadow-none transition-colors",
-            ])}
-          >
-            <Sparkle size={12} />
-            {t`Open AI settings`}
-          </button>
         </div>
       </div>
     );

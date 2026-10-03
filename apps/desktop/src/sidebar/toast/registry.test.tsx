@@ -52,10 +52,12 @@ function withUpdate(update: Partial<RegistryParams["update"]>) {
 }
 
 describe("sidebar toast registry", () => {
-  it.each([
-    ["missing-llm", { hasLLMConfigured: false }],
-    ["missing-stt", { hasSttConfigured: false }],
-  ] as const)(
+  // Fork: no "Language model needed" toast; Upshot AI is always set.
+  it("never asks for a language model", () => {
+    expect(showToast({ hasLLMConfigured: false })).toBeNull();
+  });
+
+  it.each([["missing-stt", { hasSttConfigured: false }]] as const)(
     "requires %s setup even if it was dismissed previously",
     (id, overrides) => {
       const toast = showToast(overrides, (toast) => toast.id === id);

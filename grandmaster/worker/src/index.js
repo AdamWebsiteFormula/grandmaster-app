@@ -11,15 +11,10 @@
 //   OPENROUTER_API_KEY
 // Nothing in a request or response is logged.
 
+import { resolveModel, verifyPro } from "./model.js";
+
 const UPSTREAM = "https://openrouter.ai/api/v1/chat/completions";
-// The one model "Auto" uses. Change here; the app never chooses it.
-// Sonnet 5.5 at medium effort: same Artificial Analysis index as Gemini 3.8
-// Flash (41) with a 1.2 s first token instead of 19 s, and the fewest wrong
-// answers of its peers on AA-Omniscience (artificialanalysis.ai, Oct 3, 2026).
-// Anthropic: "For chat and other latency-sensitive work, start with medium or
-// low" (platform.claude.com/docs/en/build-with-claude/effort).
-const AUTO_MODEL = "anthropic/claude-sonnet-5.5";
-const AUTO_REASONING = { effort: "medium" };
+// Models: see model.js.
 const MAX_BODY_BYTES = 1_000_000;
 const MAX_OUTPUT_TOKENS = 8_000;
 
@@ -56,7 +51,10 @@ export default {
     if (request.method === "GET" && url.pathname.endsWith("/models")) {
       return Response.json({ data: [{ id: "auto", name: "Auto" }] });
     }
-    if (request.method !== "POST" || !url.pathname.endsWith("/chat/completions")) {
+    if (
+      request.method !== "POST" ||
+      !url.pathname.endsWith("/chat/completions")
+    ) {
       return json(404, "Not found");
     }
 
@@ -68,11 +66,11 @@ export default {
 
     const length = Number(request.headers.get("content-length") ?? 0);
     if (length > MAX_BODY_BYTES) {
-      return json(413, "This meeting is too long for Upshot AI. Add your own key in Settings › Intelligence.");
+      return json(413, "This meeting is too long for Upshot AI.");
     }
     const raw = await request.text();
     if (raw.length > MAX_BODY_BYTES) {
-      return json(413, "This meeting is too long for Upshot AI. Add your own key in Settings › Intelligence.");
+      return json(413, "This meeting is too long for Upshot AI.");
     }
 
     let body;
@@ -85,18 +83,24 @@ export default {
       return json(400, "Invalid request");
     }
 
-    const forwarded = { model: AUTO_MODEL, reasoning: AUTO_REASONING };
+    const forwarded = resolveModel(body.model, verifyPro(request, env));
     for (const field of ALLOWED_FIELDS) {
       if (body[field] !== undefined) forwarded[field] = body[field];
     }
     for (const field of ["max_tokens", "max_completion_tokens"]) {
       const value = Number(forwarded[field]);
-      forwarded[field] = Number.isFinite(value) && value > 0
-        ? Math.min(value, MAX_OUTPUT_TOKENS)
-        : undefined;
+      forwarded[field] =
+        Number.isFinite(value) && value > 0
+          ? Math.min(value, MAX_OUTPUT_TOKENS)
+          : undefined;
     }
-    // Sonnet 5.5 rejects forced tool use; keep only "auto" and "none".
-    if (forwarded.tool_choice !== undefined && forwarded.tool_choice !== "auto" && forwarded.tool_choice !== "none") {
+    // Sonnet 5.5 rejects forced tool use; keep only "auto" and "none"
+    // (also the safe choice for every picked model).
+    if (
+      forwarded.tool_choice !== undefined &&
+      forwarded.tool_choice !== "auto" &&
+      forwarded.tool_choice !== "none"
+    ) {
       delete forwarded.tool_choice;
     }
     if (!forwarded.max_tokens && !forwarded.max_completion_tokens) {
@@ -114,13 +118,14 @@ export default {
     });
 
     if (upstream.status === 402) {
-      return json(402, "Upshot AI is out of credit for now. Add your own key in Settings › Intelligence.");
+      return json(402, "Upshot AI is out of credit for now. Try again later.");
     }
 
     return new Response(upstream.body, {
       status: upstream.status,
       headers: {
-        "content-type": upstream.headers.get("content-type") ?? "application/json",
+        "content-type":
+          upstream.headers.get("content-type") ?? "application/json",
         "cache-control": "no-store",
       },
     });

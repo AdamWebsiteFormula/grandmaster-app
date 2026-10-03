@@ -439,6 +439,21 @@ describe("refreshRegistry", () => {
     ).toBe("models.dev");
   });
 
+  // Fork: the Upshot AI chat menu reads the list from OpenRouter itself.
+  test("takes the OpenRouter list from OpenRouter when models.dev works", async () => {
+    setRegistryForTesting(stale);
+    const fetchImpl = vi.fn(async (url: string) =>
+      url.includes("models.dev")
+        ? json(modelsDev)
+        : json({ data: [{ id: "openai/gpt-6.1-sol", created: 1790683200 }] }),
+    ) as unknown as typeof fetch;
+    await expect(refreshRegistry({ fetchImpl })).resolves.toBe(true);
+    expect(getRegistry().catalogSource).toBe("models.dev");
+    expect(getRegistry().providers.openrouter?.map((m) => m.id)).toEqual([
+      "openai/gpt-6.1-sol",
+    ]);
+  });
+
   test("uses OpenRouter when models.dev fails, keeping other providers", async () => {
     setRegistryForTesting(stale);
     const fetchImpl = vi.fn(async (url: string) =>

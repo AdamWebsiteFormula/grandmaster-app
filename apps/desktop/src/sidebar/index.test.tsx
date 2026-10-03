@@ -56,6 +56,10 @@ vi.mock("~/sidebar/folders", () => ({
   FoldersNav: () => <div data-testid="folders-nav" />,
 }));
 
+vi.mock("~/sidebar/home-nav", () => ({
+  SidebarHomeNav: () => <nav data-testid="home-nav" />,
+}));
+
 vi.mock("~/sidebar/shared-notes", () => ({
   SharedNotesNav: () => <div data-testid="shared-notes-nav" />,
 }));
@@ -83,29 +87,17 @@ describe("LeftSidebar", () => {
     });
   });
 
-  it("shows received notes without the personal timeline", () => {
-    render(<LeftSidebar noteFilter="shared" />);
+  // Fork (Granola 101): the sidebar is navigation; notes live on Home.
+  it.each([
+    ["all notes", {}],
+    ["received notes", { noteFilter: "shared" as const }],
+    ["a folder filter", { folderFilter: "CS 101" }],
+  ])("shows the nav instead of the timeline for %s", (_name, props) => {
+    render(<LeftSidebar {...props} />);
 
+    expect(screen.getByTestId("home-nav")).toBeTruthy();
     expect(screen.queryByTestId("timeline-view")).toBeNull();
-    expect(screen.getByTestId("shared-notes-nav")).toBeTruthy();
-  });
-
-  it("keeps the personal timeline when filtering to a folder", () => {
-    render(<LeftSidebar folderFilter="CS 101" />);
-
-    expect(screen.getByTestId("timeline-view")).toBeTruthy();
-    expect(
-      screen.getByTestId("timeline-view").getAttribute("data-folder-filter"),
-    ).toBe("CS 101");
-    expect(
-      screen.getByTestId("folder-materials").getAttribute("data-folder-path"),
-    ).toBe("CS 101");
     expect(screen.queryByTestId("shared-notes-nav")).toBeNull();
-  });
-
-  it("hides folder materials when viewing all notes", () => {
-    render(<LeftSidebar />);
-
     expect(screen.queryByTestId("folder-materials")).toBeNull();
   });
 
@@ -123,5 +115,6 @@ describe("LeftSidebar", () => {
 
     expect(screen.getByTestId(testId)).toBeTruthy();
     expect(screen.queryByTestId("timeline-view")).toBeNull();
+    expect(screen.queryByTestId("home-nav")).toBeNull();
   });
 });

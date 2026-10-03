@@ -66,13 +66,13 @@ describe("useEnhancedNoteActions", () => {
     mocks.requestMainEnhance.mockReset();
   });
 
-  it("shows a toast without entering an error state when Intelligence is not configured", async () => {
+  it("shows a toast without entering an error state when Upshot AI is not ready", async () => {
     const { result } = renderActions();
 
     await act(() => result.current.onRegenerate(null));
 
     expect(mocks.toastError).toHaveBeenCalledWith(
-      "Set up Intelligence in Settings before regenerating this summary.",
+      "Upshot AI is busy. Try again in a minute.",
     );
     expect(mocks.start).not.toHaveBeenCalled();
     expect(result.current.isError).toBe(false);

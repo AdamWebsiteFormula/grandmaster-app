@@ -9,7 +9,6 @@ import {
 } from "./general";
 import { SettingsTodo } from "./todo";
 
-import { LLM } from "~/settings/ai/llm";
 import { STT } from "~/settings/ai/stt";
 import { SettingsAppearance } from "~/settings/appearance";
 import { SettingsCrm } from "~/settings/crm";
@@ -88,8 +87,9 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
         return <SettingsDictation />;
       case "transcription":
         return <STT />;
-      case "intelligence":
-        return <LLM />;
+      // Fork: the Intelligence page is hidden (Granola has none:
+      // docs.granola.ai/help-center/getting-more-from-your-notes/understanding-model-selection-in-granola-chat);
+      // a restored "intelligence" tab shows General.
       case "todo":
         return <SettingsTodo />;
       default:

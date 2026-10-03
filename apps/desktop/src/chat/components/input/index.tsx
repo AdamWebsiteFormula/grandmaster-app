@@ -21,6 +21,7 @@ import {
   useMessageHistory,
   useSubmit,
 } from "./hooks";
+import { ChatModelMenu } from "./model-menu";
 import { useDictation } from "./use-dictation";
 
 import type { ContextRef } from "~/chat/context/entities";
@@ -172,6 +173,12 @@ export function ChatMessageInput({
               isFloating ? "absolute right-0 bottom-0.5" : "justify-end",
             ])}
           >
+            {!isStreaming && (
+              <ChatModelMenu
+                disabled={Boolean(disabled)}
+                compact={isFloating}
+              />
+            )}
             {!isStreaming && (
               <button
                 type="button"

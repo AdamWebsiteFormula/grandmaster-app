@@ -591,11 +591,14 @@ export function ClassicMainBody() {
                 tab={currentTab as Tab}
               />
             ) : null}
-            {/* Fork: note tabs show this button in their own header. */}
+            {/* Fork: note tabs show this button in their own header.
+                16 px inside the panel's top and right edges (the panel's
+                1 px border sits 6 px in from this container), so nothing
+                touches an edge (design-system.md). */}
             {!isOnboarding &&
             currentTab &&
             FLOATING_NEW_NOTE_TAB_TYPES.has(currentTab.type) ? (
-              <NewNoteButton className="absolute top-[15px] right-[11px] z-30" />
+              <NewNoteButton className="absolute top-[23px] right-[23px] z-30 h-8 px-3.5" />
             ) : null}
           </div>
         </ResizablePanel>

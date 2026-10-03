@@ -173,7 +173,11 @@ export function createToastRegistry({
         },
         lifecycle: { type: "condition-bound" },
       },
+      // Fork: Upshot AI is always the model (forced at launch), and there is
+      // no AI settings page to send people to, as in Granola
+      // (docs.granola.ai/help-center/getting-more-from-your-notes/understanding-model-selection-in-granola-chat).
       condition: () =>
+        false &&
         hasUsableSttConfigured &&
         !hasUsableLlmConfigured &&
         !isAiIntelligenceTabActive,

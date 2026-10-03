@@ -10,7 +10,7 @@ Upshot is a bot-free AI meeting notepad for Apple Silicon Macs. I built it in 3 
 | Interface | React 19, Tailwind 4, Geist font | Fast to restyle; one design system |
 | Data | Local SQLite on your Mac | No server to run, nothing to leak |
 | Transcription | Apple Speech (macOS 26+) or Parakeet, on device | Private, free, no key |
-| Summaries | Your own AI key: Anthropic, OpenAI, Gemini, OpenRouter, local models and more | You pick the model; the picker shows this week's models |
+| Summaries and chat | Upshot AI: a Cloudflare Worker in front of OpenRouter | Works out of the box on Auto (the current Claude model); Pro picks this week's models from Anthropic, OpenAI and Google, like Granola |
 | AI tools access | Built-in MCP server (the bundled CLI) | Lets Glaido and other AI tools read your meetings |
 | Distribution | Ad-hoc signed DMG (not notarized), built by `grandmaster/scripts/release.sh` | One file to install |
 
@@ -37,14 +37,14 @@ Upshot is a bot-free AI meeting notepad for Apple Silicon Macs. I built it in 3 
 
 | Feature | What it does |
 |---|---|
-| F1 Model picker | Newest models first, "New" badges, refresh at launch, works offline |
+| F1 Model menu | "Auto ⌄" in the chat box, like Granola; Pro picks this week's models, rebuilt from OpenRouter at launch, works offline |
 | F2 Capture health | You and Them sound meters and a warning when the other side is silent |
 | F4 Glaido bridge | One click connects Glaido to your meetings |
 | F5 Home cards | Time saved, talk share, wrap-up streak, AI cost |
 | F6 Audio is safe | Shows where the audio is kept; click any word to hear it |
 | Onboarding | No account; transcription sets itself up; Accessibility re-check with a restart button |
 | Granola import | Bring your Granola meetings over without an account |
-| Free to try | A free Gemini key from Google AI Studio (link built in) |
+| Free to try | Upshot AI works with no key and no account |
 | Safety | Chat changes wait for your Apply; AI output can't load remote images |
 
 ## Credits

@@ -156,13 +156,14 @@ describe("WindowsTitleBar", () => {
   it("shows note actions beside the sidebar toggle only while expanded", () => {
     const { rerender } = render(<WindowsTitleBar showSidebarTimelineChrome />);
 
-    for (const name of ["Search", "New note", "Sort notes"]) {
+    for (const name of ["Search", "New note"]) {
       expect(screen.getByRole("button", { name })).toBeTruthy();
     }
+    // Fork: the sort/group filter left with the sidebar timeline.
+    expect(screen.queryByRole("button", { name: "Sort notes" })).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "Search" }));
     fireEvent.click(screen.getByRole("button", { name: "New note" }));
-    fireEvent.click(screen.getByRole("button", { name: "Sort notes" }));
     expect(mocks.openNoteDialog).toHaveBeenCalledOnce();
     expect(mocks.createNewNote).toHaveBeenCalledOnce();
 

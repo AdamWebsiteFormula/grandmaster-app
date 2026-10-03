@@ -284,7 +284,8 @@ const ItemBase = memo(function ItemBase({
             {displayTime && (
               <div
                 className={cn([
-                  "font-mono text-xs",
+                  // Fork: sans with tabular numbers (design-system.md).
+                  "text-xs tabular-nums",
                   isLive
                     ? "text-destructive-foreground/65"
                     : "text-muted-foreground",
@@ -618,7 +619,6 @@ const SessionItem = memo(
   }) => {
     const { t } = useLingui();
     const openCurrent = useTabs((state) => state.openCurrent);
-    const deleteSession = useDeleteSession();
     const managedSharedSessionIds = useContext(ManagedSharedSessionIdsContext);
 
     const sessionId = item.id;
@@ -637,7 +637,6 @@ const SessionItem = memo(
     const noteRevealed = useAppLock((state) =>
       Boolean(state.revealedNoteIds[sessionId]),
     );
-    const authAvailable = useAppLock((state) => state.available) === true;
 
     const { sessionMode, stop, amplitude } = useListener((state) => {
       const sessionMode = state.getSessionMode(sessionId);
@@ -730,68 +729,12 @@ const SessionItem = memo(
       [sessionId, title, t],
     );
 
-    const handleDelete = useCallback(() => {
-      deleteSession(sessionId, {
-        trackingId: sessionEvent?.tracking_id,
-        title,
-      });
-    }, [deleteSession, sessionId, sessionEvent?.tracking_id, title]);
-
-    const handleToggleLock = useCallback(() => {
-      void setSessionLocked(sessionId, !noteLocked);
-    }, [noteLocked, sessionId]);
-
-    const handleShowInFolder = useCallback(async () => {
-      if (noteLocked) {
-        const ok = await useAppLock
-          .getState()
-          .authenticate(DEVICE_AUTH_REASON.openApp);
-        if (!ok) return;
-      }
-      const result = await fsSyncCommands.sessionDir(sessionId);
-      if (result.status === "ok") {
-        await openerCommands.openPath(result.data, null);
-      }
-    }, [noteLocked, sessionId]);
-
-    const contextMenu = useMemo(() => {
-      const menu: MenuItemDef[] = [
-        {
-          id: "open-new-window",
-          text: t`Open in New Window`,
-          action: handleOpenStandaloneWindow,
-        },
-        {
-          id: "show",
-          text: platform() === "macos" ? t`Show in Finder` : t`Show in folder`,
-          action: handleShowInFolder,
-        },
-      ];
-      if (authAvailable) {
-        menu.push({
-          id: noteLocked ? "unlock" : "lock",
-          text: noteLocked ? t`Unlock note` : t`Lock note`,
-          action: handleToggleLock,
-        });
-      }
-      menu.push(
-        { separator: true as const },
-        {
-          id: "delete",
-          text: t`Delete note`,
-          action: handleDelete,
-        },
-      );
-      return menu;
-    }, [
-      authAvailable,
-      handleDelete,
-      handleOpenStandaloneWindow,
-      handleShowInFolder,
-      handleToggleLock,
-      noteLocked,
-      t,
-    ]);
+    const contextMenu = useSessionContextMenu({
+      sessionId,
+      title,
+      trackingId: sessionEvent?.tracking_id,
+      locked: noteLocked,
+    });
 
     return (
       <ItemBase
@@ -855,4 +798,91 @@ function formatDisplayTime(
     : format(date, "MMM d, yyyy");
 
   return `${dateStr}, ${time}`;
+}
+
+// Fork: shared with the home notes list (home/home-view.tsx), so a note's
+// right-click menu is the same wherever it is listed.
+export function useSessionContextMenu({
+  sessionId,
+  title,
+  trackingId,
+  locked: noteLocked,
+}: {
+  sessionId: string;
+  title: string;
+  trackingId?: string | null;
+  locked: boolean;
+}): MenuItemDef[] {
+  const { t } = useLingui();
+  const deleteSession = useDeleteSession();
+  const authAvailable = useAppLock((state) => state.available) === true;
+
+  const handleOpenStandaloneWindow = useCallback(() => {
+    void openStandaloneNoteWindow(sessionId);
+  }, [sessionId]);
+
+  const handleDelete = useCallback(() => {
+    deleteSession(sessionId, {
+      trackingId: trackingId,
+      title,
+    });
+  }, [deleteSession, sessionId, trackingId, title]);
+
+  const handleToggleLock = useCallback(() => {
+    void setSessionLocked(sessionId, !noteLocked);
+  }, [noteLocked, sessionId]);
+
+  const handleShowInFolder = useCallback(async () => {
+    if (noteLocked) {
+      const ok = await useAppLock
+        .getState()
+        .authenticate(DEVICE_AUTH_REASON.openApp);
+      if (!ok) return;
+    }
+    const result = await fsSyncCommands.sessionDir(sessionId);
+    if (result.status === "ok") {
+      await openerCommands.openPath(result.data, null);
+    }
+  }, [noteLocked, sessionId]);
+
+  const contextMenu = useMemo(() => {
+    const menu: MenuItemDef[] = [
+      {
+        id: "open-new-window",
+        text: t`Open in New Window`,
+        action: handleOpenStandaloneWindow,
+      },
+      {
+        id: "show",
+        text: platform() === "macos" ? t`Show in Finder` : t`Show in folder`,
+        action: handleShowInFolder,
+      },
+    ];
+    if (authAvailable) {
+      menu.push({
+        id: noteLocked ? "unlock" : "lock",
+        text: noteLocked ? t`Unlock note` : t`Lock note`,
+        action: handleToggleLock,
+      });
+    }
+    menu.push(
+      { separator: true as const },
+      {
+        id: "delete",
+        text: t`Delete note`,
+        action: handleDelete,
+      },
+    );
+    return menu;
+  }, [
+    authAvailable,
+    handleDelete,
+    handleOpenStandaloneWindow,
+    handleShowInFolder,
+    handleToggleLock,
+    noteLocked,
+    t,
+  ]);
+
+  return contextMenu;
 }

@@ -22,6 +22,7 @@ import {
   reasoningProviderOptions,
 } from "../reasoning-effort";
 import { streamOnlyGenerationMiddleware } from "../stream-only-generation";
+import { normalizeUpshotModel, UPSHOT_AUTO_MODEL } from "../upshot-models";
 
 import { useAuth } from "~/auth";
 import { useBillingAccess } from "~/auth/billing-context";
@@ -38,6 +39,7 @@ import {
 } from "~/settings/ai/shared/eligibility";
 import { useAiProvider } from "~/settings/providers";
 import { useConfigValues } from "~/shared/config";
+import { useUpshotPro } from "~/upshot-plan";
 
 type LanguageModelV3 = Parameters<typeof wrapLanguageModel>[0]["model"];
 
@@ -84,6 +86,7 @@ export const useLLMConnection = (): LLMConnectionResult => {
   // identity on refresh-mutation state and would churn the model chain.
   const session = auth?.session;
   const billing = useBillingAccess();
+  const isUpshotPro = useUpshotPro();
 
   const {
     current_llm_provider,
@@ -102,7 +105,15 @@ export const useLLMConnection = (): LLMConnectionResult => {
     () =>
       resolveLLMConnection({
         providerId: current_llm_provider,
-        modelId: current_llm_model,
+        // Fork: Upshot AI sends "Auto" unless a Pro user picked a model in
+        // the chat composer, as in Granola
+        // (docs.granola.ai/help-center/getting-more-from-your-notes/understanding-model-selection-in-granola-chat).
+        modelId:
+          normalizeLLMProviderId(current_llm_provider ?? "") === "anarlog"
+            ? isUpshotPro
+              ? normalizeUpshotModel(current_llm_model)
+              : UPSHOT_AUTO_MODEL
+            : current_llm_model,
         reasoningEffort: normalizeReasoningEffort(current_llm_reasoning_effort),
         providerConfig,
         session,
@@ -111,6 +122,7 @@ export const useLLMConnection = (): LLMConnectionResult => {
     [
       session,
       billing.isPaid,
+      isUpshotPro,
       current_llm_model,
       current_llm_provider,
       current_llm_reasoning_effort,

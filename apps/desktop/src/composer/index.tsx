@@ -6,13 +6,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { ChatEditor, type ChatEditorHandle } from "@anlg/editor/chat";
 import type { PlaceholderFunction } from "@anlg/editor/plugins";
 import { commands as windowsCommands } from "@anlg/plugin-windows";
-import {
-  ArrowUp,
-  ArrowUpRight,
-  GearSix,
-  Sparkle,
-  X,
-} from "@anlg/ui/components/icons";
+import { ArrowUp, ArrowUpRight, Sparkle, X } from "@anlg/ui/components/icons";
 import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
@@ -116,16 +110,18 @@ function ComposerSettingsCard() {
     <div
       className={cn([
         "h-full w-full rounded-[28px] px-5 py-4",
-        "bg-popover border border-border text-popover-foreground",
+        "bg-popover border-border text-popover-foreground border",
       ])}
     >
-      <div className="mb-3 flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3">
         <div data-tauri-drag-region className="min-w-0 flex-1 pr-4">
           <p className="text-popover-foreground/38 text-xs font-semibold">
             {t`Composer`}
           </p>
           <p className="text-popover-foreground/72 truncate pt-1 text-sm">
-            {t`Configure a chat model to use the quick composer.`}
+            {/* Fork: no AI settings page, as in Granola
+                (docs.granola.ai/help-center/getting-more-from-your-notes/understanding-model-selection-in-granola-chat). */}
+            {t`Upshot AI is getting ready. Try again in a minute.`}
           </p>
         </div>
 
@@ -142,19 +138,6 @@ function ComposerSettingsCard() {
           <X className="size-4" />
         </button>
       </div>
-
-      <button
-        type="button"
-        onClick={() => void openSettingsInMainWindow()}
-        className={cn([
-          "inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-medium",
-          "bg-popover-foreground/7 text-popover-foreground/85 transition-colors",
-          "hover:bg-popover-foreground/10 hover:text-popover-foreground",
-        ])}
-      >
-        <GearSix className="size-4" />
-        {t`Configure a chat model in Settings`}
-      </button>
     </div>
   );
 }
@@ -201,7 +184,7 @@ function ComposerInput({
     <div
       className={cn([
         "h-full w-full rounded-[28px] px-5 py-4",
-        "bg-popover border border-border text-popover-foreground",
+        "bg-popover border-border text-popover-foreground border",
       ])}
     >
       <div className="mb-3 flex items-start justify-between gap-4">
@@ -315,15 +298,6 @@ const composerPlaceholder: PlaceholderFunction = ({ node, pos }) => {
 
 async function openMainWindow() {
   await windowsCommands.windowShow({ type: "main" });
-  await dismissComposer();
-}
-
-async function openSettingsInMainWindow() {
-  await windowsCommands.windowShow({ type: "main" });
-  await windowsCommands.windowEmitNavigate(
-    { type: "main" },
-    { path: "/app/settings", search: { tab: "intelligence" } },
-  );
   await dismissComposer();
 }
 

@@ -106,4 +106,4 @@ Adam picked orange on Oct 2 (the blueprint offered mint or violet). It matches t
 
 Each screen must answer "what is this and what do I do" in 3 seconds. One accent element per screen at most.
 
-Words: empty states should stay near 10 words above the fold (Jack). Home is the exception on purpose: the stat cards (feature F5) and the shortcut list stay, because they are how a first-time user finds Settings and recording.
+Words: empty states should stay near 10 words above the fold (Jack). Home (Oct 3): Up next, Follow-ups and Recent notes in one left-aligned column; the stat cards moved out (Settings > Insights keeps stats), and the shortcut list shows only when there are no notes yet.

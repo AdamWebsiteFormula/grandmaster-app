@@ -14,13 +14,14 @@
 }
 
 [data-chat-input-surface="floating"] .chat-input-editor.prosemirror-editor {
-  padding-right: 42px !important;
+  /* Fork: + 76px for the model menu (model-menu.tsx). */
+  padding-right: 118px !important;
   scrollbar-color: hsl(var(--muted-foreground) / 0.22) transparent;
 }
 
 [data-chat-input-surface="floating"]
   .chat-input-editor.chat-input-editor-two-actions.prosemirror-editor {
-  padding-right: 74px !important;
+  padding-right: 150px !important;
 }
 
 [data-chat-input-surface="floating"]
