@@ -772,7 +772,7 @@ function BillingPeriodToggle({
             className={cn([
               "rounded-pill px-2.5 py-1 text-xs font-medium transition-colors [corner-shape:round]",
               selected
-                ? "bg-background text-foreground shadow-sm"
+                ? "bg-foreground text-background"
                 : "text-muted-foreground hover:text-foreground",
             ])}
           >

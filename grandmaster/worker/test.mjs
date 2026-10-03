@@ -433,7 +433,7 @@ test("checkout branding, Link hidden, and the renewal terms", () => {
   assert.equal(year.get("branding_settings[logo][type]"), "url");
   assert.equal(
     year.get("branding_settings[logo][url]"),
-    "https://w.dev/brand/upshot-logo-on-light.png",
+    "https://w.dev/brand/upshot-logo-orange-on-light.png",
   );
   // Stripe rejects a session with both a logo and an icon.
   assert.equal(year.get("branding_settings[icon][type]"), null);
@@ -458,7 +458,7 @@ test("billing pages: white, logo, checkmark on success, a way back", async () =>
   assert.match(html, /background:#fff/);
   assert.match(
     html,
-    /<img class="logo" src="\/brand\/upshot-logo-on-light.png" alt="Upshot">/,
+    /<img class="logo" src="\/brand\/upshot-logo-orange-on-light.png" alt="Upshot">/,
   );
   assert.match(html, /class="check"/);
   assert.match(html, /You're on Upshot Pro/);
@@ -471,11 +471,11 @@ test("billing pages: white, logo, checkmark on success, a way back", async () =>
   assert.match(cancel, /Checkout canceled/);
   assert.match(cancel, /Nothing was charged./);
   assert.doesNotMatch(cancel, /class="check"/);
-  assert.match(cancel, /upshot-logo-on-light.png/);
+  assert.match(cancel, /upshot-logo-orange-on-light.png/);
 
   const portal = await (await get("/billing/done-portal")).text();
   assert.match(portal, /Your plan is up to date/);
-  assert.doesNotMatch(portal, /orange|class="dot"/);
+  assert.doesNotMatch(portal, /class="dot"/);
 });
 
 test("status mapping", () => {

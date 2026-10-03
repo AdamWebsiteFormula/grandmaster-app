@@ -29,7 +29,7 @@ const PRO_STATUSES = new Set(["active", "trialing"]);
 // Orange accent, hsl(20 100% 56%), sampled from the app icon (design-system.md).
 const ACCENT = "#FF6A1F";
 // Served from ./public by Workers static assets (wrangler.jsonc).
-const BRAND_LOGO = "/brand/upshot-logo-on-light.png";
+const BRAND_LOGO = "/brand/upshot-logo-orange-on-light.png";
 
 export function isProStatus(status) {
   return PRO_STATUSES.has(status);

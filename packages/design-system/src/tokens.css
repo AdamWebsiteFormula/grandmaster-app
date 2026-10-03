@@ -57,8 +57,8 @@
     --alert: 0 50% 10%;
     --alert-foreground: 0 86% 72%;
     --alert-border: 0 45% 22%;
-    --border: 0 0% 16%;
-    --input: 0 0% 18%;
+    --border: 0 0% 24%;
+    --input: 0 0% 42%;
     --ring: 20 100% 56%;
     --app-floating-chrome: 0 0% 10%;
     --app-floating-panel: 0 0% 5%;
@@ -68,7 +68,7 @@
     --chart-3: 0 0% 60%;
     --chart-4: 0 0% 40%;
     --chart-5: 0 0% 25%;
-    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent: 0 0% 19%;
     --kbd-shadow-outer: rgba(0, 0, 0, 0.6);
     --kbd-shadow-inset: rgba(255, 255, 255, 0.06);
     --kbd-shadow-outer-hover: rgba(0, 0, 0, 0.8);

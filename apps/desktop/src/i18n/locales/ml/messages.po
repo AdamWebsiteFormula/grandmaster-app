@@ -4374,6 +4374,10 @@ msgstr ""
 msgid "Phone"
 msgstr ""
 
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "Pick a model from the Auto menu in the Ask box."
+msgstr ""
+
 #: src/settings/plan.tsx
 msgid "Pick the chat model: the newest from OpenAI, Anthropic and Google"
 msgstr ""
@@ -6895,6 +6899,10 @@ msgstr ""
 
 #: src/settings/general/billing.tsx
 msgid "You're on the <0>{planLabel}</0> plan"
+msgstr ""
+
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "You're on Upshot Pro"
 msgstr ""
 
 #. placeholder {0}: invitation.workspaceName

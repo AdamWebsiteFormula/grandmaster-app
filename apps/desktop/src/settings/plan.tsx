@@ -126,7 +126,7 @@ function PlanCard({
   return (
     <section
       aria-label={typeof title === "string" ? title : undefined}
-      className="border-border flex min-w-0 flex-col gap-4 rounded-[20px] border p-5"
+      className="border-border bg-muted flex min-w-0 flex-col gap-4 rounded-[20px] border p-5"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
@@ -341,7 +341,7 @@ function IntervalToggle({
   return (
     <div
       ref={ref}
-      className="bg-muted flex gap-1 rounded-lg p-1"
+      className="bg-accent flex gap-1 rounded-lg p-1"
       role="group"
       aria-label={t`Billing period`}
     >
@@ -356,7 +356,7 @@ function IntervalToggle({
           className={cn([
             "flex-1 gap-1.5 px-3 py-1.5 text-sm",
             value === option.id
-              ? "bg-background text-foreground shadow-xs"
+              ? "bg-foreground text-background hover:bg-foreground hover:text-background"
               : "text-muted-foreground hover:text-foreground",
           ])}
         >
@@ -364,7 +364,15 @@ function IntervalToggle({
           {option.note ? (
             <>
               {" "}
-              <span className="text-muted-foreground">{option.note}</span>
+              <span
+                className={
+                  value === option.id
+                    ? "text-background/70"
+                    : "text-muted-foreground"
+                }
+              >
+                {option.note}
+              </span>
             </>
           ) : null}
         </Button>

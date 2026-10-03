@@ -29,6 +29,7 @@ import {
   startCheckout,
   useUpgradeDialog,
   useUpshotAccount,
+  useUpshotPro,
 } from "./index";
 
 import {
@@ -272,18 +273,29 @@ function AccountFields({
   );
 }
 
+// Fork: once the webhook lands, this step says so (NN/g heuristic 1,
+// visibility of system status: nngroup.com/articles/ten-usability-heuristics).
 function BrowserStep() {
+  const pro = useUpshotPro();
   return (
     <div className="flex flex-col gap-4">
       <DialogHeader className="gap-1 text-left">
         <DialogTitle className="text-foreground text-base font-semibold">
-          <Trans>Finish checkout in your browser</Trans>
+          {pro ? (
+            <Trans>You're on Upshot Pro</Trans>
+          ) : (
+            <Trans>Finish checkout in your browser</Trans>
+          )}
         </DialogTitle>
         <DialogDescription className="text-muted-foreground text-sm">
-          <Trans>Pro turns on here as soon as payment goes through.</Trans>
+          {pro ? (
+            <Trans>Pick a model from the Auto menu in the Ask box.</Trans>
+          ) : (
+            <Trans>Pro turns on here as soon as payment goes through.</Trans>
+          )}
         </DialogDescription>
       </DialogHeader>
-      <TestCardNote />
+      {pro ? null : <TestCardNote />}
       <DialogFooter className="sm:justify-end">
         <GlassDialogCancelButton onClick={() => closeUpgradeDialog()}>
           <Trans>Done</Trans>

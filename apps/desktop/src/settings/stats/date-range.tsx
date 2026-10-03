@@ -37,7 +37,7 @@ export function DateRangeFilter({
           className={cn([
             "px-3 py-1.5 text-xs",
             value === option.id
-              ? "bg-background text-foreground shadow-xs"
+              ? "bg-foreground text-background hover:bg-foreground hover:text-background"
               : "text-muted-foreground hover:text-foreground",
           ])}
         >

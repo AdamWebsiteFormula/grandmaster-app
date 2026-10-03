@@ -16,7 +16,7 @@ Dark-first. True black base. One accent. Written Oct 2, 2026. The SOP that appli
 | Background | `#0D0D0D` | `0 0% 0%` true black (Adam's call), panels `0 0% 6%` |
 | Text | `#FFFFFF`, secondary `#B6B6B6` | `0 0% 96%`, muted `0 0% 60%` |
 | Accent | one, lime `#BFF549`, black text on it | one, orange `#FF6A1F` (app icon), black text on it |
-| Borders | `#252525` | `0 0% 16%` (`#292929`) |
+| Borders | `#252525` | `0 0% 24%` (`#3D3D3D`), raised Oct 3 (see Contrast below) |
 | Shadows | none | none on black; 1 px borders instead |
 | Corners | 2 px, near square | 0.5rem squircle (kept: macOS controls) |
 | Font | Aspekta (sans), 13 px body | Geist (OFL), 13.3 px `text-sm` body |
@@ -36,15 +36,25 @@ Bare HSL triples in `packages/design-system/src/tokens.css`, read as `hsl(var(--
 | `--popover` | `0 0% 8%` | Menus and popovers (dialogs: see Dialogs below) |
 | `--secondary`, `--muted` | `0 0% 10%` | Quiet fills, chips, inputs |
 | `--muted-foreground` | `0 0% 60%` | Metadata, hints |
-| `--accent` | `0 0% 13%` | Hover and selected row fill (shadcn name, not the brand accent) |
-| `--sidebar-accent` | `0 0% 12%` | Active sidebar row |
-| `--border` | `0 0% 16%` | Hairlines |
-| `--input` | `0 0% 18%` | Field borders |
+| `--accent` | `0 0% 13%` | Hover fill; track of a segmented control on a `bg-muted` card (shadcn name, not the brand accent) |
+| `--sidebar-accent` | `0 0% 19%` | Active sidebar row (Home nav and Settings nav), above the 13% hover |
+| `--border` | `0 0% 24%` | Hairlines |
+| `--input` | `0 0% 42%` | Field borders (3.9:1 on black, 3.3:1 on `--muted`) |
 | `--primary` | `20 100% 56%` | The brand accent: primary buttons, links |
 | `--primary-foreground` | `0 0% 0%` | Text on the accent |
 | `--ring` | `20 100% 56%` | Focus ring |
 | `--destructive` | `0 72% 51%` | Delete, errors |
 | `--app-floating-panel` | `0 0% 5%` | Floating bar body, opaque |
+
+### Contrast (Oct 3)
+
+Light tokens are unchanged. Dark keeps the pure-black base; only the steps above it moved.
+
+- State indicators need 3:1 against what is next to them (WCAG 2.2 SC 1.4.11 Non-text Contrast, w3.org/WAI/WCAG22/Understanding/non-text-contrast.html). Field borders (`--input`, 42%) meet it. Hairlines (`--border`, 24%) are decoration, not state, so they only need to be seen: 1.8:1 on the 6% panel, up from 1.4:1 at 16%.
+- Steps follow the Radix scale roles (radix-ui.com/colors/docs/palette-composition/understanding-the-scale): app background, then component fills (muted 10%, accent 13%, selected 19%), then borders (24%, field borders 42%).
+- Raised is lighter (Apple HIG, Dark Mode, developer.apple.com/design/human-interface-guidelines/dark-mode). Settings › Plan cards are `bg-muted` (10%) on the 6% panel, and a toggle track inside a card moves up one step to `bg-accent` (13%).
+- Segmented controls: the selected segment is `bg-foreground text-background` (a solid pill, 14.8:1 on its track in dark, 15.4:1 in light), never `bg-background` on `bg-muted`, which is black on near-black. A note inside the selected pill (for example "save 21%") is `text-background/70`. Used in Settings › Plan, Insights date range and Billing period.
+- The selected sidebar row has two cues: the `--sidebar-accent` fill and `font-medium text-foreground` (other rows are `text-muted-foreground`).
 
 ### The one accent
 

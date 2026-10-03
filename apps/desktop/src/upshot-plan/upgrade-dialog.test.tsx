@@ -11,6 +11,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   fetch: vi.fn(),
   openUrl: vi.fn(async () => ({ status: "ok", data: null })),
+  pro: false,
+}));
+
+vi.mock("./index", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./index")>()),
+  useUpshotPro: () => mocks.pro,
 }));
 
 vi.mock("~/env", () => ({
@@ -39,6 +45,7 @@ describe("UpshotUpgradeDialog", () => {
     mocks.openUrl.mockClear();
     resetUpshotAccountForTests();
     useUpgradeDialog.setState({ open: false, error: null });
+    mocks.pro = false;
   });
 
   it("signs up, then opens checkout in the browser", async () => {
@@ -126,5 +133,39 @@ describe("UpshotUpgradeDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(useUpgradeDialog.getState().open).toBe(false);
     expect(mocks.fetch).not.toHaveBeenCalled();
+  });
+
+  it("says Pro is on once payment goes through", async () => {
+    mocks.fetch.mockImplementation(async (url: string) =>
+      new URL(url).pathname === "/auth/signup"
+        ? Response.json({
+            access_token: "a",
+            refresh_token: "r",
+            expires_at: Date.now() / 1000 + 3600,
+            user: { id: "u", email: "judge@example.com" },
+          })
+        : Response.json({ url: "https://checkout.stripe.com/c/pay/cs_test" }),
+    );
+    const { rerender } = render(<UpshotUpgradeDialog />);
+    await act(() => openUpgrade("year"));
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "judge@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "password123" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Create account and continue" }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByText("Finish checkout in your browser"),
+      ).not.toBeNull(),
+    );
+
+    mocks.pro = true;
+    rerender(<UpshotUpgradeDialog />);
+    expect(screen.getByText("You're on Upshot Pro")).not.toBeNull();
+    expect(screen.queryByText(/4242 4242 4242 4242/)).toBeNull();
   });
 });

@@ -123,7 +123,7 @@ function NavItem({
       className={cn([
         NAV_ITEM_CLASS,
         active
-          ? "bg-accent text-foreground font-medium"
+          ? "bg-sidebar-accent text-foreground font-medium"
           : "text-muted-foreground hover:bg-accent hover:text-foreground",
       ])}
     >
