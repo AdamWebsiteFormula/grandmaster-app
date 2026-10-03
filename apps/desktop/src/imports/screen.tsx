@@ -67,6 +67,17 @@ import { useAuth } from "~/auth";
 import { useConnections } from "~/auth/useConnections";
 import { ConnectButtonGroup } from "~/shared/connect-button-group";
 
+// Fork: Granola leads the list; its import is the strongest local demo.
+function compareProviders(
+  left: DetectedMeetingImportProvider,
+  right: DetectedMeetingImportProvider,
+) {
+  return (
+    Number(right.id === "granola") - Number(left.id === "granola") ||
+    left.name.localeCompare(right.name)
+  );
+}
+
 const IMPORT_EXTENSIONS = [
   "csv",
   "json",
@@ -134,7 +145,7 @@ export function MeetingImportScreen({
   const detectedProviders = detectionQuery.data ?? [];
   const connectedProviders = detectedProviders
     .filter((provider) => isDirectMeetingImport(provider))
-    .sort((left, right) => left.name.localeCompare(right.name));
+    .sort(compareProviders);
   const mcpProviders = connectedProviders.filter(isLocalConnectedImport);
   const nangoProviders = connectedProviders.filter(isNangoMeetingImport);
   const fileProviders = detectedProviders
@@ -168,9 +179,11 @@ export function MeetingImportScreen({
   });
   const syncQueries = useQueries({
     queries: connectedProvidersForQueries.map((provider, index) =>
+      // Fork: MCP and CLI imports talk to the vendor directly, so they need
+      // no Upshot account.
       connectedImportSyncQueryOptions(
         provider,
-        signedIn && Boolean(credentialQueries[index]?.data),
+        Boolean(credentialQueries[index]?.data),
       ),
     ),
   });
@@ -384,7 +397,9 @@ export function MeetingImportScreen({
                     : syncQueries[connectedIndex];
                 const connected = nangoProvider
                   ? signedIn && nangoConnectionIsReady(nangoConnection)
-                  : signedIn && Boolean(credentialsQuery?.data);
+                  : Boolean(credentialsQuery?.data);
+                // Fork: only Nango imports need the upstream sign-in.
+                const canConnect = signedIn || !nangoProvider;
                 const checkingConnection = nangoProvider
                   ? signedIn && connectionsQuery.isPending
                   : Boolean(credentialsQuery?.isPending);
@@ -543,17 +558,17 @@ export function MeetingImportScreen({
                               </DropdownMenu>
                             </ConnectButtonGroup>
                           ) : (
-                            <ConnectButtonGroup primary={signedIn}>
+                            <ConnectButtonGroup primary={canConnect}>
                               <Button
                                 type="button"
                                 size="sm"
-                                variant={signedIn ? "default" : "outline"}
+                                variant={canConnect ? "default" : "outline"}
                                 smoothCorners={false}
                                 aria-label={
-                                  signedIn ? undefined : t`Sign in to connect`
+                                  canConnect ? undefined : t`Sign in to connect`
                                 }
                                 disabled={
-                                  signedIn
+                                  canConnect
                                     ? checkingConnection ||
                                       cancelConnectMutation.isPending ||
                                       connectionCancellationRequested ||
@@ -562,13 +577,13 @@ export function MeetingImportScreen({
                                 }
                                 className={cn([
                                   "rounded-none border-0 shadow-none",
-                                  signedIn &&
+                                  canConnect &&
                                     "hover:bg-primary-foreground/10 bg-transparent",
-                                  !signedIn &&
+                                  !canConnect &&
                                     "group/sign-in bg-muted hover:bg-primary hover:text-primary-foreground focus-visible:bg-primary focus-visible:text-primary-foreground",
                                 ])}
                                 onClick={() => {
-                                  if (!signedIn) {
+                                  if (!canConnect) {
                                     signInMutation.mutate();
                                     return;
                                   }
@@ -582,7 +597,7 @@ export function MeetingImportScreen({
                                   connectMutation.mutate(provider);
                                 }}
                               >
-                                {!signedIn ? (
+                                {!canConnect ? (
                                   signInMutation.isPending ? (
                                     <>
                                       <CircleNotch className="size-3.5 animate-spin" />
@@ -609,7 +624,7 @@ export function MeetingImportScreen({
                                 ) : (
                                   <PlugsConnected className="size-3.5" />
                                 )}
-                                {!signedIn ? null : connecting ||
+                                {!canConnect ? null : connecting ||
                                   cancellingConnection ? (
                                   <Trans>Cancel</Trans>
                                 ) : checkingConnection ? (
@@ -623,14 +638,14 @@ export function MeetingImportScreen({
                                   <Button
                                     type="button"
                                     size="sm"
-                                    variant={signedIn ? "default" : "outline"}
+                                    variant={canConnect ? "default" : "outline"}
                                     smoothCorners={false}
                                     aria-label={t`Use files`}
                                     disabled={fileImportMutation.isPending}
                                     className={cn([
                                       "relative w-6 rounded-none border-0 px-0 shadow-none",
                                       "before:absolute before:inset-y-1.5 before:left-0 before:w-px",
-                                      signedIn
+                                      canConnect
                                         ? "hover:bg-primary-foreground/10 before:bg-primary-foreground/20 bg-transparent"
                                         : "bg-muted before:bg-border",
                                     ])}
@@ -682,8 +697,8 @@ export function MeetingImportScreen({
                       {connected ? (
                         <p className="text-muted-foreground text-xs">
                           <Trans>
-                            New meetings are imported automatically while
-                            Upshot is running.
+                            New meetings are imported automatically while Upshot
+                            is running.
                           </Trans>
                         </p>
                       ) : null}

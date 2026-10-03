@@ -128,5 +128,7 @@ export function usePermission(type: Permission) {
     open,
     request,
     reset,
+    // Probe again now, e.g. when the window regains focus after System Settings.
+    recheck: () => void statusQuery.refetch(),
   };
 }

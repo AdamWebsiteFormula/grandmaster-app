@@ -5,12 +5,7 @@ import { useRef, useState } from "react";
 import { commands as analyticsCommands } from "@anlg/plugin-analytics";
 import { commands as openerCommands } from "@anlg/plugin-opener2";
 import { commands as sfxCommands } from "@anlg/plugin-sfx";
-import {
-  CircleNotch,
-  DiscordLogo,
-  GithubLogo,
-  XLogo,
-} from "@anlg/ui/components/icons";
+import { CircleNotch, GithubLogo } from "@anlg/ui/components/icons";
 
 import { OnboardingButton } from "./shared";
 import {
@@ -22,22 +17,12 @@ import { createSession } from "~/session/queries";
 import { flushAutomaticRelaunch } from "~/shared/relaunch";
 import { commands } from "~/types/tauri.gen";
 
+// Fork: upstream's Discord and X channels are not ours; only the repo stays.
 const SOCIALS = [
-  {
-    label: "Discord",
-    icon: DiscordLogo,
-    url: "https://github.com/AdamWebsiteFormula/grandmaster-app",
-  },
   {
     label: "GitHub",
     icon: GithubLogo,
     url: "https://github.com/AdamWebsiteFormula/grandmaster-app",
-  },
-  {
-    label: "X",
-    icon: XLogo,
-    size: 14,
-    url: "https://x.com/anarlogapp",
   },
 ] as const;
 
@@ -51,7 +36,6 @@ export function FinalDescription() {
       </span>
       <div className="flex items-center gap-2">
         {SOCIALS.map((social) => {
-          const iconSize = "size" in social ? social.size : SOCIAL_ICON_SIZE;
           const SocialIcon = social.icon;
 
           return (
@@ -61,7 +45,7 @@ export function FinalDescription() {
               className="text-muted-foreground hover:text-muted-foreground inline-flex size-5 items-center justify-center rounded-md transition-colors duration-150"
               aria-label={social.label}
             >
-              <SocialIcon size={iconSize} />
+              <SocialIcon size={SOCIAL_ICON_SIZE} />
             </button>
           );
         })}

@@ -226,25 +226,39 @@ describe("MeetingImportScreen", () => {
     ).toBeTruthy();
   });
 
-  it("prompts signed-out users to sign in before connecting", async () => {
-    mocks.signedIn = false;
-    mockDetected(["granola"]);
+  it("lists Granola first", async () => {
+    mockDetected(["chatgpt-record", "circleback", "fireflies", "granola"]);
 
     renderImports();
 
-    const signInButton = await screen.findByRole("button", {
-      name: "Sign in to connect",
-    });
-    expect(screen.getByText("Connect")).toBeTruthy();
-    expect(screen.getAllByText("Sign in to connect")).toHaveLength(2);
-    expect(screen.getByRole("button", { name: "Use files" })).toBeTruthy();
+    await screen.findByText("Granola");
+    expect(
+      screen
+        .getAllByRole("group")
+        .map((group) => group.getAttribute("aria-label"))
+        .filter(Boolean),
+    ).toEqual(["Granola", "Circleback", "Fireflies.ai", "ChatGPT Record"]);
+  });
 
-    fireEvent.click(signInButton);
+  it("connects local imports without an Upshot account", async () => {
+    mocks.signedIn = false;
+    mockDetected(["granola"]);
+    mocks.connectConnectedImport.mockResolvedValue({
+      providerId: "granola",
+      clientId: "granola-client",
+      tokenJson: "{}",
+    });
+
+    renderImports();
+
+    fireEvent.click(await screen.findByRole("button", { name: "Connect" }));
 
     await waitFor(() => {
-      expect(mocks.signIn).toHaveBeenCalledOnce();
+      expect(mocks.connectConnectedImport).toHaveBeenCalledOnce();
     });
-    expect(mocks.connectConnectedImport).not.toHaveBeenCalled();
+    expect(mocks.signIn).not.toHaveBeenCalled();
+    expect(screen.queryByText("Sign in to connect")).toBeNull();
+    expect(await screen.findByText("Connected")).toBeTruthy();
   });
 
   it("lets the user cancel an abandoned browser connection and retry", async () => {

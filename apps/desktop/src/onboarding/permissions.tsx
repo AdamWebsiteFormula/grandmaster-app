@@ -1,9 +1,11 @@
 import { useLingui } from "@lingui/react/macro";
 import { platform } from "@tauri-apps/plugin-os";
-import { useRef } from "react";
+import { relaunch } from "@tauri-apps/plugin-process";
+import { useEffect, useRef, useState } from "react";
 
 import { type PermissionStatus } from "@anlg/plugin-permissions";
 import {
+  ArrowClockwise,
   ArrowRight,
   Check,
   Cursor,
@@ -14,6 +16,7 @@ import {
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 import { cn } from "@anlg/utils";
 
+import { useLatestRef } from "~/shared/hooks/useLatestRef";
 import {
   trackPermissionRequested,
   usePermissionAnalytics,
@@ -135,6 +138,48 @@ function ContinueWhenComplete({
   return null;
 }
 
+// macOS can keep reporting an Accessibility grant made in System Settings as
+// missing until the app restarts, so offer a restart once the user is back.
+const RESTART_HINT_DELAY_MS = 10_000;
+
+function useAccessibilityReturnCheck(
+  accessibility: ReturnType<typeof usePermission> | undefined,
+) {
+  const [opened, setOpened] = useState(false);
+  const [showRestart, setShowRestart] = useState(false);
+  const granted =
+    !accessibility || accessibility.confirmedStatus === "authorized";
+  const recheckRef = useLatestRef(accessibility?.recheck);
+
+  useEffect(() => {
+    if (granted) return;
+    let leftWindow = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onBlur = () => {
+      leftWindow = true;
+      clearTimeout(timer);
+    };
+    const onFocus = () => {
+      recheckRef.current?.();
+      if (!opened || !leftWindow) return;
+      clearTimeout(timer);
+      timer = setTimeout(() => setShowRestart(true), RESTART_HINT_DELAY_MS);
+    };
+    window.addEventListener("blur", onBlur);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.removeEventListener("blur", onBlur);
+      window.removeEventListener("focus", onFocus);
+      clearTimeout(timer);
+    };
+  }, [granted, opened, recheckRef]);
+
+  return {
+    markOpened: () => setOpened(true),
+    showRestart: showRestart && !granted,
+  };
+}
+
 function PermissionsSectionContent({
   onContinue,
   accessibility,
@@ -150,6 +195,7 @@ function PermissionsSectionContent({
   const mic = usePermission("microphone");
   const systemAudio = usePermission("systemAudio");
   const hasContinuedRef = useRef(false);
+  const accessibilityReturn = useAccessibilityReturnCheck(accessibility);
   usePermissionAnalytics("microphone", mic.confirmedStatus, "onboarding");
   usePermissionAnalytics(
     "system_audio",
@@ -269,18 +315,30 @@ function PermissionsSectionContent({
             permissionName={t`Accessibility`}
             status={accessibility.status}
             isPending={accessibility.isPending}
-            onAction={() =>
+            onAction={() => {
+              accessibilityReturn.markOpened();
               handleAction(
                 "accessibility",
                 accessibility,
                 false,
                 Boolean(accessibilityGuidance),
-              )
-            }
+              );
+            }}
             assisted={Boolean(accessibilityGuidance)}
             opensSettingsWhenDenied={false}
             isNext={nextPending === "accessibility"}
           />
+        )}
+
+        {accessibilityReturn.showRestart && (
+          <button
+            type="button"
+            onClick={() => void relaunch()}
+            className="border-border bg-card hover:bg-accent text-foreground flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition-all active:scale-[0.98]"
+          >
+            <ArrowClockwise className="size-3.5" />
+            {t`Turned it on? Restart Upshot`}
+          </button>
         )}
       </div>
     </div>

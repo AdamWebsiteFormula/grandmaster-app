@@ -109,4 +109,21 @@ describe("usePermission", () => {
     });
     expect(result.current.error).toBeNull();
   });
+
+  it("probes again on recheck", async () => {
+    const { result } = renderHook(() => usePermission("accessibility"), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.status).toBe("denied"));
+
+    mocks.checkPermission.mockResolvedValue({
+      status: "ok",
+      data: "authorized",
+    });
+    act(() => result.current.recheck());
+
+    await waitFor(() =>
+      expect(result.current.confirmedStatus).toBe("authorized"),
+    );
+  });
 });

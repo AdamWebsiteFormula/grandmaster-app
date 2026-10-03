@@ -1,9 +1,10 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 import {
   getDefaultLlmSelection,
   getPreferredProviderModel,
   isSameModelSelection,
+  ProviderStateSettlingError,
   shouldShowMissingModelWarning,
 } from "./selection";
 
@@ -89,6 +90,41 @@ describe("getDefaultLlmSelection", () => {
     expect(selection).toEqual({
       provider: "anthropic",
       model: "claude-sonnet-4-5",
+    });
+  });
+
+  // Live test, Oct 2: a first Anthropic key switched the provider, then the
+  // provider state caught up a moment later. In between, Anthropic looked
+  // unconfigured, so this fell through to Apple Intelligence and saved it.
+  test("waits instead of replacing a chosen provider the UI has not caught up with", async () => {
+    const loadModels = vi.fn(async () => ["System Language Model"]);
+
+    await expect(
+      getDefaultLlmSelection(
+        ["apple_foundation"],
+        "anthropic",
+        "",
+        loadModels,
+        {
+          hasSavedConfig: async (provider) => provider === "anthropic",
+        },
+      ),
+    ).rejects.toBeInstanceOf(ProviderStateSettlingError);
+    expect(loadModels).not.toHaveBeenCalled();
+  });
+
+  test("still falls back when the chosen provider has no saved config", async () => {
+    const selection = await getDefaultLlmSelection(
+      ["apple_foundation"],
+      "anthropic",
+      "",
+      async () => ["System Language Model"],
+      { hasSavedConfig: async () => false },
+    );
+
+    expect(selection).toEqual({
+      provider: "apple_foundation",
+      model: "System Language Model",
     });
   });
 

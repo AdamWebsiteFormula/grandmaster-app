@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => {
@@ -9,6 +15,7 @@ const mocks = vi.hoisted(() => {
     open: vi.fn(),
     request: vi.fn(),
     reset: vi.fn(),
+    recheck: vi.fn(),
     error: null as string | null,
   });
   const permissions = {
@@ -23,6 +30,7 @@ const mocks = vi.hoisted(() => {
     guidance: null as { assisted: boolean; paneTitle: string | null } | null,
     usePermission: vi.fn((type: keyof typeof permissions) => permissions[type]),
     closePermissionAssistant: vi.fn(),
+    relaunch: vi.fn(),
   };
 });
 
@@ -43,6 +51,10 @@ vi.mock("@tauri-apps/plugin-os", () => ({
   platform: () => mocks.currentPlatform,
 }));
 
+vi.mock("@tauri-apps/plugin-process", () => ({
+  relaunch: mocks.relaunch,
+}));
+
 vi.mock("~/shared/hooks/usePermissions", () => ({
   usePermission: mocks.usePermission,
   usePermissionGuidance: () => mocks.guidance,
@@ -51,7 +63,10 @@ vi.mock("~/shared/hooks/usePermissions", () => ({
 
 import { PermissionsSection } from "./permissions";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 
 describe("PermissionsSection", () => {
   beforeEach(() => {
@@ -170,5 +185,60 @@ describe("PermissionsSection", () => {
     view.unmount();
 
     expect(mocks.closePermissionAssistant).toHaveBeenCalledTimes(1);
+  });
+
+  it("re-checks Accessibility when the window regains focus", () => {
+    render(<PermissionsSection />);
+
+    act(() => {
+      window.dispatchEvent(new Event("focus"));
+    });
+
+    expect(mocks.permissions.accessibility.recheck).toHaveBeenCalledTimes(1);
+  });
+
+  it("offers a restart when Accessibility is still off 10 s after returning", () => {
+    vi.useFakeTimers();
+    mocks.guidance = { assisted: true, paneTitle: "Accessibility" };
+    const view = render(<PermissionsSection />);
+    const restartName = "Turned it on? Restart Upshot";
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open accessibility settings" }),
+    );
+    act(() => {
+      window.dispatchEvent(new Event("blur"));
+      window.dispatchEvent(new Event("focus"));
+    });
+    act(() => {
+      vi.advanceTimersByTime(9_000);
+    });
+    expect(screen.queryByRole("button", { name: restartName })).toBeNull();
+
+    act(() => {
+      vi.advanceTimersByTime(1_000);
+    });
+    fireEvent.click(screen.getByRole("button", { name: restartName }));
+    expect(mocks.relaunch).toHaveBeenCalledTimes(1);
+
+    mocks.permissions.accessibility.status = "authorized";
+    mocks.permissions.accessibility.confirmedStatus = "authorized";
+    view.rerender(<PermissionsSection />);
+    expect(screen.queryByRole("button", { name: restartName })).toBeNull();
+  });
+
+  it("does not offer a restart before the user has opened Settings", () => {
+    vi.useFakeTimers();
+    render(<PermissionsSection />);
+
+    act(() => {
+      window.dispatchEvent(new Event("blur"));
+      window.dispatchEvent(new Event("focus"));
+      vi.advanceTimersByTime(20_000);
+    });
+
+    expect(
+      screen.queryByRole("button", { name: "Turned it on? Restart Upshot" }),
+    ).toBeNull();
   });
 });

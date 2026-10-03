@@ -5,13 +5,13 @@ import { type ReactNode } from "react";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 
 import { createI18n } from "./catalogs";
-import { resolveDisplayLocale } from "./locales";
-
-import { useConfigValue } from "~/shared/config";
+import { SOURCE_LOCALE } from "./locales";
 
 export function AppI18nProvider({ children }: { children: ReactNode }) {
-  const mainLanguage = useConfigValue("ai_language");
-  const locale = resolveDisplayLocale(mainLanguage);
+  // Fork (blueprint: English only): the interface is always English. The
+  // "Main language" setting still sets the language of AI summaries, but it
+  // no longer switches the UI to a partly translated catalog.
+  const locale = SOURCE_LOCALE;
   const { data: i18n } = useQuery({
     queryKey: ["i18n-catalog", locale],
     queryFn: () => createI18n(locale),

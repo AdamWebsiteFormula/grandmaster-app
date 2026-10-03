@@ -290,6 +290,15 @@ const normalize = (value: string) =>
     .replace(/[^a-z0-9]+/gu, " ")
     .trim();
 
+// Fork: Nango OAuth imports (Google Meet, Notion, Zoom, Teams, Webex, Fathom)
+// run through the upstream API server and its sign-in, which Upshot does not
+// have. MCP, CLI and file imports talk to the vendor or the disk directly.
+export function isCloudOnlyMeetingImport(
+  provider: Pick<MeetingImportProvider, "directImport">,
+) {
+  return provider.directImport === "nango-oauth";
+}
+
 export function detectMeetingImportProviders(
   installedApps: InstalledApp[],
 ): DetectedMeetingImportProvider[] {
@@ -300,6 +309,8 @@ export function detectMeetingImportProviders(
   }));
 
   return MEETING_IMPORT_PROVIDERS.flatMap((provider) => {
+    if (isCloudOnlyMeetingImport(provider)) return [];
+
     const installedApp = installed.find(
       (app) =>
         provider.nativeNames?.some((name) => app.name === normalize(name)) ||

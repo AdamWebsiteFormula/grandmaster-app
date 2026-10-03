@@ -17,6 +17,7 @@ import {
   getDefaultLlmSelection,
   getPreferredProviderModel,
   isSameModelSelection,
+  ProviderStateSettlingError,
   shouldShowMissingModelWarning,
 } from "./selection";
 import { type Provider, PROVIDERS } from "./shared";
@@ -72,7 +73,7 @@ import {
   getConfiguredProviders,
   getVisibleModelSelection,
 } from "~/settings/ai/shared/selection";
-import { useAiProvidersState } from "~/settings/providers";
+import { getStoredAiProvider, useAiProvidersState } from "~/settings/providers";
 import {
   setSettingValues,
   useSetSettingValue,
@@ -87,6 +88,7 @@ export function SelectProviderAndModel() {
   const { providers: configuredProviders, isReady: providerSettingsReady } =
     useConfiguredMapping();
   const settingsReady = useSettingsReady();
+  const auth = useAuth();
   const billing = useBillingAccess();
   const queryClient = useQueryClient();
   const { setAccordionValue } = useLlmSettings();
@@ -232,13 +234,24 @@ export function SelectProviderAndModel() {
         current_llm_provider,
         current_llm_model,
         fetchModels,
+        {
+          hasSavedConfig: async (provider) =>
+            configuredProviders[provider]?.missingConfig === true &&
+            (await hasSavedLlmConfig(provider, {
+              isAuthenticated: !!auth?.session,
+              isPaid: billing.isPaid,
+            })),
+        },
       ),
     enabled:
       !activePendingSelection &&
       providerSettingsReady &&
       needsDefaultSelection &&
       configuredProviderIds.length > 0,
-    retry: false,
+    // Provider state catches up within moments; a new state is a new key.
+    retry: (failureCount, error) =>
+      error instanceof ProviderStateSettlingError && failureCount < 10,
+    retryDelay: 200,
     staleTime: Infinity,
   });
   const defaultSelection = needsDefaultSelection
@@ -518,6 +531,8 @@ export function SelectProviderAndModel() {
 
 type ProviderStatus = {
   configured: boolean;
+  /** Required config (such as the API key) is missing from provider state. */
+  missingConfig?: boolean;
   availabilityPending?: boolean;
   listModels?: () => Promise<ListModelsResult>;
 };
@@ -561,7 +576,7 @@ export function getLlmProviderStatus({
     }).length === 0;
 
   if (!eligible) {
-    return { configured: false };
+    return { configured: false, missingConfig: true };
   }
 
   if (provider.checkAvailability || requiresKeyVerification(provider)) {
@@ -667,6 +682,32 @@ export function getLlmProviderStatus({
         removeNonStreamingModels(await listModelsFunc()),
       ),
   };
+}
+
+/** Read the saved provider config fresh, ahead of the provider state. */
+async function hasSavedLlmConfig(
+  providerId: string,
+  access: { isAuthenticated: boolean; isPaid: boolean },
+): Promise<boolean> {
+  const provider = PROVIDERS.find((candidate) => candidate.id === providerId);
+  if (!provider) {
+    return false;
+  }
+
+  try {
+    const saved = await getStoredAiProvider("llm", providerId);
+    return (
+      getProviderSelectionBlockers(provider.requirements, {
+        ...access,
+        config: {
+          base_url: String(saved?.base_url || provider.baseUrl || "").trim(),
+          api_key: String(saved?.api_key || "").trim(),
+        },
+      }).length === 0
+    );
+  } catch {
+    return false;
+  }
 }
 
 function useConfiguredMapping(): {

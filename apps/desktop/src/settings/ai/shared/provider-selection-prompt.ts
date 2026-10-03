@@ -3,6 +3,7 @@ import { useRef } from "react";
 
 import { toast } from "@anlg/ui/components/ui/toast";
 
+import { getRecommendedModel } from "~/settings/ai/shared/model-list-enrich";
 import { setSettingValues } from "~/settings/queries";
 
 export function useProviderSelectionPrompt({
@@ -39,11 +40,6 @@ export function useProviderSelectionPrompt({
       return;
     }
 
-    const selectValues =
-      providerType === "llm"
-        ? { current_llm_provider: providerId, current_llm_model: "" }
-        : { current_stt_provider: providerId, current_stt_model: "" };
-
     // Fork: a first key replaces "nothing chosen" or the on-device fallback
     // right away, with Undo (NN/g: prefer undo over confirmation for
     // reversible actions). A provider the user chose still gets the prompt.
@@ -51,6 +47,15 @@ export function useProviderSelectionPrompt({
       !currentProvider ||
       (providerType === "llm" && currentProvider === "apple_foundation")
     ) {
+      // Pick the catalog's recommended model now, so the picker never sits
+      // on an empty model that auto-resolution has to fill.
+      const selectValues =
+        providerType === "llm"
+          ? {
+              current_llm_provider: providerId,
+              current_llm_model: getRecommendedModel(providerId) ?? "",
+            }
+          : { current_stt_provider: providerId, current_stt_model: "" };
       void setSettingValues(selectValues).catch((error) => {
         console.error(
           `[settings] failed to select ${providerType} provider`,

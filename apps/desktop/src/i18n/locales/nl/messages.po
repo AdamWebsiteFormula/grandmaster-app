@@ -3445,6 +3445,10 @@ msgstr ""
 msgid "Meeting history imported"
 msgstr ""
 
+#: src/onboarding/index.tsx
+msgid "Meeting history skipped"
+msgstr ""
+
 #: src/session/components/outer-header/overflow/index.tsx
 msgid "Meeting info"
 msgstr ""
@@ -6166,6 +6170,10 @@ msgstr ""
 
 #: src/calendar/components/apple/permission.tsx
 msgid "Turn on Upshot in System Settings → Privacy & Security → Calendars, then return here."
+msgstr ""
+
+#: src/onboarding/permissions.tsx
+msgid "Turned it on? Restart Upshot"
 msgstr ""
 
 #: src/settings/appearance/app-icon.tsx

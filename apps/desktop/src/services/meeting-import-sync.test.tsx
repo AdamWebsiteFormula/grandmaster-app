@@ -85,13 +85,15 @@ describe("MeetingImportSync", () => {
 
   afterEach(cleanup);
 
-  it("pauses connected imports while signed out", () => {
+  // Fork: Upshot has no account. Direct imports (e.g. Granola) sync with their
+  // own stored credentials while signed out; only cloud (Nango) imports pause.
+  it("keeps direct imports syncing while signed out and pauses cloud ones", () => {
     render(<MeetingImportSync />);
 
     expect(mocks.connectedImportSyncQueryOptions).toHaveBeenCalled();
     expect(
       mocks.connectedImportSyncQueryOptions.mock.calls.every(
-        ([, enabled]) => enabled === false,
+        ([, enabled]) => enabled === true,
       ),
     ).toBe(true);
     expect(

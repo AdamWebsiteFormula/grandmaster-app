@@ -25,12 +25,35 @@ vi.mock("~/settings/queries", () => ({
   setSettingValues: mocks.setSettingValues,
 }));
 
+import { setRegistryForTesting } from "./model-registry";
 import { useProviderSelectionPrompt } from "./provider-selection-prompt";
+
+const entry = (id: string, name: string, releasedAt: string) => ({
+  id,
+  name,
+  releasedAt,
+  priceIn: 2,
+  thinking: true,
+});
+const today = new Date().toISOString().slice(0, 10);
 
 describe("useProviderSelectionPrompt", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.setSettingValues.mockResolvedValue(undefined);
+    // A newer Opus than Sonnet: the everyday Sonnet should still win.
+    setRegistryForTesting({
+      fetchedAt: new Date().toISOString(),
+      catalogSource: "models.dev",
+      fallbackVersion: today,
+      providers: {
+        anthropic: [
+          entry("claude-opus-5-6", "Claude Opus 5.6", today),
+          entry("claude-sonnet-5-5", "Claude Sonnet 5.5", today),
+          entry("claude-sonnet-5", "Claude Sonnet 5", today),
+        ],
+      },
+    });
   });
 
   it("offers to switch to a provider after its first API key is saved", () => {
@@ -82,9 +105,10 @@ describe("useProviderSelectionPrompt", () => {
 
       act(() => result.current("sk-ant-new"));
 
+      // A model right away, so nothing has to auto-resolve one.
       expect(mocks.setSettingValues).toHaveBeenCalledWith({
         current_llm_provider: "anthropic",
-        current_llm_model: "",
+        current_llm_model: "claude-sonnet-5-5",
       });
       const [title, options] = mocks.toastSuccess.mock.calls[0];
       expect(title).toBe("Using Anthropic");
@@ -97,6 +121,26 @@ describe("useProviderSelectionPrompt", () => {
       });
     },
   );
+
+  it("leaves the model to auto-resolution for a provider without its own catalog", () => {
+    const { result } = renderHook(() =>
+      useProviderSelectionPrompt({
+        providerType: "llm",
+        providerId: "lmstudio",
+        providerName: "LM Studio",
+        currentProvider: "apple_foundation",
+        providerStateReady: true,
+        storedApiKey: "",
+      }),
+    );
+
+    act(() => result.current("lm-key"));
+
+    expect(mocks.setSettingValues).toHaveBeenCalledWith({
+      current_llm_provider: "lmstudio",
+      current_llm_model: "",
+    });
+  });
 
   it("sets a transcription provider and lets model resolution choose its model", () => {
     const { result } = renderHook(() =>

@@ -31,7 +31,9 @@ export function MeetingImportSync() {
     queries: LOCAL_CONNECTED_PROVIDERS.map((provider, index) =>
       connectedImportSyncQueryOptions(
         provider,
-        signedIn && Boolean(credentialQueries[index]?.data),
+        // Fork: direct (local-credential) imports such as Granola need no
+        // Upshot account; only the hidden cloud (Nango) sources do.
+        Boolean(credentialQueries[index]?.data),
       ),
     ),
   });

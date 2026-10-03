@@ -196,6 +196,46 @@ export function enrichResult(
   return applyCatalog(catalogProvider, base, registry, now);
 }
 
+// The everyday tier per catalog: a newer flagship should not replace it as
+// the first pick (Opus costs more and is slower for meeting summaries).
+const PREFERRED_FAMILY: Record<string, string> = {
+  anthropic: "claude-sonnet",
+};
+
+/**
+ * The catalog's newest stable model for a provider, preferring its everyday
+ * family. Only for providers whose own API uses the catalog's model IDs:
+ * Azure deployments, hosts and subscriptions return null, so the live list
+ * decides instead.
+ */
+export function getRecommendedModel(
+  providerId: string,
+  options: EnrichOptions = {},
+): string | null {
+  const catalogProvider = catalogProviderFor(providerId);
+  if (
+    !catalogProvider ||
+    (catalogProvider !== providerId && providerId !== "google_generative_ai")
+  ) {
+    return null;
+  }
+
+  const { models, metadata } = enrichResult(
+    providerId,
+    { models: [], ignored: [], metadata: {} },
+    options,
+  );
+  const stable = models.filter(
+    (id) => !metadata[id]?.preview && !metadata[id]?.deprecated,
+  );
+  const family = PREFERRED_FAMILY[catalogProvider];
+  return (
+    stable.find((id) => family && metadata[id]?.family === family) ??
+    stable[0] ??
+    null
+  );
+}
+
 export type ModelOptionGroups = {
   primary: string[]; // newest model of each family
   more: string[]; // older versions, under "More models"

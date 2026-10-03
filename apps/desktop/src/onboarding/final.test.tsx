@@ -9,6 +9,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   analyticsEvent: vi.fn(),
+  openUrl: vi.fn(),
   createSession: vi.fn(),
   flushAutomaticRelaunch: vi.fn(),
   getOrCreateWelcomeSession: vi.fn(),
@@ -22,7 +23,7 @@ vi.mock("@anlg/plugin-analytics", () => ({
 }));
 
 vi.mock("@anlg/plugin-opener2", () => ({
-  commands: { openUrl: vi.fn() },
+  commands: { openUrl: mocks.openUrl },
 }));
 
 vi.mock("@anlg/plugin-sfx", () => ({
@@ -46,7 +47,7 @@ vi.mock("~/types/tauri.gen", () => ({
   commands: { setOnboardingNeeded: mocks.setOnboardingNeeded },
 }));
 
-import { FinalSection, finishOnboarding } from "./final";
+import { FinalDescription, FinalSection, finishOnboarding } from "./final";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -147,4 +148,16 @@ it("ignores concurrent finish attempts", async () => {
   });
   expect(mocks.getOrCreateWelcomeSession).toHaveBeenCalledTimes(1);
   expect(onContinue).toHaveBeenCalledTimes(1);
+});
+
+it("links only to the Upshot repository, not upstream channels", () => {
+  render(<FinalDescription />);
+
+  expect(screen.queryByRole("button", { name: "Discord" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "X" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "GitHub" }));
+  expect(mocks.openUrl).toHaveBeenCalledWith(
+    "https://github.com/AdamWebsiteFormula/grandmaster-app",
+    null,
+  );
 });

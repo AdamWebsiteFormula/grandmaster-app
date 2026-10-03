@@ -1,11 +1,11 @@
 import { Trans } from "@lingui/react/macro";
 import { useQueryClient } from "@tanstack/react-query";
 import { platform } from "@tauri-apps/plugin-os";
-import { motion } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { commands as sfxCommands } from "@anlg/plugin-sfx";
 import { SpeakerHigh, SpeakerX } from "@anlg/ui/components/icons";
+import { DancingSticks } from "@anlg/ui/components/ui/dancing-sticks";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 import { cn } from "@anlg/utils";
 
@@ -90,7 +90,7 @@ function OnboardingScreenContent({
   const [isMuted, setIsMuted] = useState(true);
   const [currentStep, setCurrentStep] = useState(getInitialStep);
   const [didSkipLogin, setDidSkipLogin] = useState(false);
-  const onboardingVideoRef = useRef<HTMLVideoElement>(null);
+  const [didSkipImports, setDidSkipImports] = useState(false);
   const currentPlatform = platform();
 
   const goNext = useCallback(() => {
@@ -110,6 +110,16 @@ function OnboardingScreenContent({
     const next = getNextStep(currentStep);
     if (next) setCurrentStep(next);
   }, [currentPlatform, currentStep]);
+
+  const continueImports = useCallback(() => {
+    setDidSkipImports(false);
+    goNext();
+  }, [goNext]);
+
+  const skipImports = useCallback(() => {
+    setDidSkipImports(true);
+    skipCurrentStep();
+  }, [skipCurrentStep]);
 
   const goBack = useCallback(() => {
     const prev = getPrevStep(currentStep);
@@ -145,12 +155,6 @@ function OnboardingScreenContent({
       .catch(console.error);
   }, [isMuted]);
 
-  useMountEffect(() => {
-    if (onboardingVideoRef.current) {
-      onboardingVideoRef.current.playbackRate = 0.65;
-    }
-  });
-
   const handleFinish = useCallback(
     (sessionId: string) => {
       trackAnalyticsEvent("onboarding_step_completed", {
@@ -164,39 +168,22 @@ function OnboardingScreenContent({
   );
 
   return (
-    <div className="bg-card relative flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <motion.div
-          className="absolute inset-0"
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 2, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
-        >
-          <video
-            ref={onboardingVideoRef}
-            className="absolute inset-0 h-full w-full object-cover object-bottom opacity-28"
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
-            aria-hidden="true"
-          >
-            <source src="/assets/onboarding-video.mp4" type="video/mp4" />
-          </video>
-          <div className="from-background/8 via-background/18 absolute inset-0 bg-linear-to-t to-transparent" />
-        </motion.div>
-        <div className="absolute inset-x-0 top-0 h-[80%] [mask-image:linear-gradient(to_bottom,black,black_18%,rgba(0,0,0,0.9)_36%,rgba(0,0,0,0.6)_58%,transparent)] backdrop-blur-[32px]" />
-        <div className="absolute inset-x-0 top-0 h-[92%] [mask-image:linear-gradient(to_bottom,black,rgba(0,0,0,0.8)_34%,rgba(0,0,0,0.35)_62%,transparent)] backdrop-blur-[12px]" />
-        <div className="from-background via-background/82 via-background/97 to-background/0 absolute inset-x-0 top-0 h-[84%] bg-linear-to-b via-18% via-42%" />
-        <motion.div
-          className="bg-background absolute inset-0"
-          initial={{ opacity: 1 }}
-          animate={{ opacity: 0 }}
-          transition={{ duration: 1.0, ease: "easeOut", delay: 0.1 }}
+    // Fork: plain true-black background; the upstream landscape video is not shown.
+    <div className="bg-background relative flex h-full min-h-0 flex-col overflow-hidden">
+      {/* Fork: a quiet sign of life, soft recording bars, very dim, bottom right. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute right-12 bottom-12 opacity-20 motion-reduce:hidden"
+      >
+        <DancingSticks
+          amplitude={0.6}
+          color="hsl(var(--primary))"
+          height={72}
+          width={128}
+          stickWidth={8}
+          gap={6}
         />
       </div>
-
       <div
         data-tauri-drag-region={headerDragRegion || undefined}
         className="relative z-30 flex h-12 shrink-0 items-center justify-end pr-3 pl-12"
@@ -338,13 +325,19 @@ function OnboardingScreenContent({
                 use.
               </Trans>
             }
-            completedTitle={<Trans>Meeting history imported</Trans>}
+            completedTitle={
+              didSkipImports ? (
+                <Trans>Meeting history skipped</Trans>
+              ) : (
+                <Trans>Meeting history imported</Trans>
+              )
+            }
             status={getStepStatus("imports", currentStep)}
             onBack={goBack}
-            onNext={goNext}
-            onSkip={skipCurrentStep}
+            onNext={continueImports}
+            onSkip={skipImports}
           >
-            <ImportSection onContinue={goNext} onSkip={skipCurrentStep} />
+            <ImportSection onContinue={continueImports} onSkip={skipImports} />
           </OnboardingSection>
 
           <OnboardingSection
