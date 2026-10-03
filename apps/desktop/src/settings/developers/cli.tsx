@@ -10,6 +10,7 @@ import { cn } from "@anlg/utils";
 import { SkillsRow } from "./skills";
 
 import { SettingsSectionTitle } from "~/settings/page-title";
+import { SETTINGS_ANCHORS } from "~/settings/sections";
 import { SettingsCard } from "~/settings/setting-row";
 import { commands, type EmbeddedCliStatus } from "~/types/tauri.gen";
 
@@ -127,7 +128,10 @@ function CliSection({
   const isInstalled = status?.state === "installed";
 
   return (
-    <section className="flex flex-col gap-2">
+    <section
+      id={SETTINGS_ANCHORS.cli}
+      className="flex scroll-mt-6 flex-col gap-2"
+    >
       <div className="px-1">
         <SettingsSectionTitle>{t`CLI & MCP`}</SettingsSectionTitle>
       </div>
@@ -152,8 +156,16 @@ function CliSection({
               disabled={!canInstall || isInstalling}
               onClick={onInstall}
             >
+              {/* Fork: text with the spinner, so the button keeps an
+                  accessible name while busy (WCAG 4.1.2). */}
               {isInstalling ? (
-                <CircleNotch className="size-3.5 animate-spin" />
+                <>
+                  <CircleNotch
+                    aria-hidden="true"
+                    className="size-3.5 animate-spin"
+                  />
+                  {t`Installing…`}
+                </>
               ) : isInstalled ? (
                 t`Reinstall`
               ) : (

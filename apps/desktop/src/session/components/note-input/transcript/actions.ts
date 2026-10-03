@@ -41,9 +41,12 @@ export function useRegenerateTranscript(sessionId: string) {
       }
       const msg = error instanceof Error ? error.message : String(error);
       handleBatchFailed(sessionId, msg);
-      toast.error(t`Re-transcription failed`, {
+      // Fork: plain words and a next step, not the raw error, which stays in
+      // the console (NN/g #9).
+      console.error("[transcript] transcribe again failed", error);
+      toast.error(t`Couldn't transcribe this recording again`, {
         id: `transcript-regenerate-failed-${sessionId}`,
-        description: msg,
+        description: t`Try again, or pick another engine in Settings › Transcription.`,
       });
     }
   }, [handleBatchFailed, runBatch, sessionId]);

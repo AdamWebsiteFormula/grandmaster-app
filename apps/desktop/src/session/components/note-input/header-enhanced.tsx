@@ -1,4 +1,5 @@
-import { useCallback, useMemo } from "react";
+import { useLingui } from "@lingui/react/macro";
+import { useCallback, useMemo, useState } from "react";
 
 import { CaretDown, Copy, Sparkle } from "@anlg/ui/components/icons";
 import { Spinner } from "@anlg/ui/components/ui/spinner";
@@ -31,6 +32,7 @@ import {
   type MenuItemDef,
   useNativeContextMenu,
 } from "~/shared/hooks/useNativeContextMenu";
+import { DestructiveConfirmationDialog } from "~/shared/ui/destructive-confirmation-dialog";
 import { createTaskId } from "~/store/zustand/ai-task/task-configs";
 import { useUserTemplate } from "~/templates";
 
@@ -169,6 +171,10 @@ function HeaderViewEnhancedActive({
   onSelectNote?: (enhancedNoteId: string) => void;
   variant?: "tray" | "chip";
 }) {
+  const { t } = useLingui();
+  // Fork: Remove deleted the summary at once. Ask first (Apple HIG Alerts;
+  // NN/g #5).
+  const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
   const { isGenerating, isError, onRegenerate } = useEnhanceLogic(
     sessionId,
     enhancedNoteId,
@@ -234,7 +240,7 @@ function HeaderViewEnhancedActive({
     const items: MenuItemDef[] = [
       {
         id: `copy-enhanced-${enhancedNoteId}`,
-        text: "Copy",
+        text: t`Copy summary`,
         action: () => {
           void handleCopy();
         },
@@ -242,7 +248,7 @@ function HeaderViewEnhancedActive({
       },
       {
         id: `regenerate-enhanced-${enhancedNoteId}`,
-        text: "Regenerate",
+        text: t`Regenerate summary`,
         action: handleRegenerate,
         disabled: isGenerating,
       },
@@ -252,9 +258,9 @@ function HeaderViewEnhancedActive({
       items.push({ separator: true });
       items.push({
         id: `remove-enhanced-${enhancedNoteId}`,
-        text: "Remove",
+        text: t`Remove summary`,
         action: () => {
-          onRemove?.();
+          setConfirmRemoveOpen(true);
         },
         disabled: isGenerating || !onRemove,
       });
@@ -269,6 +275,7 @@ function HeaderViewEnhancedActive({
     isGenerating,
     noteMarkdown.length,
     onRemove,
+    t,
   ]);
   const showContextMenu = useNativeContextMenu(contextMenu);
   const templateMenuTrigger =
@@ -340,16 +347,33 @@ function HeaderViewEnhancedActive({
       </button>
     );
 
+  const removeConfirmDialog = canRemove ? (
+    <DestructiveConfirmationDialog
+      open={confirmRemoveOpen}
+      onOpenChange={setConfirmRemoveOpen}
+      title={t`Remove this summary?`}
+      description={t`You can't undo this.`}
+      confirmLabel={t`Remove`}
+      onConfirm={() => {
+        setConfirmRemoveOpen(false);
+        onRemove?.();
+      }}
+    />
+  ) : null;
+
   if (variant === "chip") {
     // Copy notes lives in the ⋯ and Share menus on the note page.
     return (
-      <TemplatePickerPopover
-        onSelectTemplate={handleSelectTemplate}
-        usedTemplateId={usedTemplateId}
-        onRegenerateUsed={handleRegenerate}
-        isRegenerating={isGenerating}
-        trigger={templateMenuTrigger}
-      />
+      <>
+        <TemplatePickerPopover
+          onSelectTemplate={handleSelectTemplate}
+          usedTemplateId={usedTemplateId}
+          onRegenerateUsed={handleRegenerate}
+          isRegenerating={isGenerating}
+          trigger={templateMenuTrigger}
+        />
+        {removeConfirmDialog}
+      </>
     );
   }
 
@@ -368,6 +392,7 @@ function HeaderViewEnhancedActive({
           void handleCopy();
         }}
       />
+      {removeConfirmDialog}
     </>
   );
 }

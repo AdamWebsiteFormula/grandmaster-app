@@ -222,7 +222,8 @@ export function SettingLinkRow({
       onClick={onClick}
       className={cn([
         "flex w-full min-w-0 items-center gap-3 text-left transition-colors",
-        "hover:bg-accent focus-visible:bg-accent focus-visible:outline-hidden",
+        // Fork: a visible focus ring, not just a fill (WCAG 2.2 SC 2.4.7).
+        "hover:bg-accent focus-visible:bg-accent focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset",
         "first:rounded-t-xl last:rounded-b-xl",
       ])}
     >

@@ -41,6 +41,7 @@ export function OnboardingSection({
 }) {
   const { t } = useLingui();
   const sectionRef = useRef<HTMLElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
 
   const isActive = status === "active";
   const isCompleted = status === "completed";
@@ -48,6 +49,10 @@ export function OnboardingSection({
   useEffect(() => {
     if (!isActive) return;
     const timeout = setTimeout(() => {
+      // Fork: move focus to the new step's heading so keyboard and
+      // VoiceOver users aren't left on a control that went away
+      // (WCAG 2.2 SC 2.4.3 Focus Order). The scroll below handles position.
+      headingRef.current?.focus({ preventScroll: true });
       sectionRef.current?.scrollIntoView({
         behavior: "smooth",
         block: "start",
@@ -72,8 +77,10 @@ export function OnboardingSection({
         <div className="flex min-w-0 flex-col gap-3">
           <div className="flex items-center gap-2">
             <h2
+              ref={headingRef}
+              tabIndex={isActive ? -1 : undefined}
               className={cn([
-                "transition-all duration-300",
+                "transition-all duration-300 outline-none",
                 isCompleted
                   ? "text-muted-foreground text-xs font-normal"
                   : "text-foreground font-sans text-xl font-semibold",

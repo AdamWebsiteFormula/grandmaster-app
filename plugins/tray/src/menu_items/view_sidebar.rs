@@ -5,14 +5,21 @@ use tauri::{
 
 use super::MenuItemHandler;
 
-// Fork: View › Show sidebar runs the app's own ⌘\ toggle (UX audit Oct 3, A: HIG menu bar).
+// Fork: View › Show or hide sidebar runs the app's own ⌘\ toggle (UX audit Oct 3, A: HIG menu bar).
 pub struct ViewSidebar;
 
 impl MenuItemHandler for ViewSidebar {
     const ID: &'static str = "anlg_view_sidebar";
 
     fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
-        let item = MenuItem::with_id(app, Self::ID, "Show sidebar", true, Some("CmdOrCtrl+\\"))?;
+        // Fork: ⌘\ toggles, so the label says both, as the shortcuts dialog does.
+        let item = MenuItem::with_id(
+            app,
+            Self::ID,
+            "Show or hide sidebar",
+            true,
+            Some("CmdOrCtrl+\\"),
+        )?;
         Ok(MenuItemKind::MenuItem(item))
     }
 

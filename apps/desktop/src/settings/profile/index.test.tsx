@@ -47,6 +47,14 @@ describe("Settings › Profile account", () => {
     expect(mocks.signOutUpshot).toHaveBeenCalledOnce();
   });
 
+  // Fork: Import notes is on Connectors only, so its "‹ Connectors" back
+  // button matches where it opened from.
+  it("has Insights but no Import notes row", () => {
+    render(<SettingsProfile />);
+    expect(screen.getByRole("button", { name: /Insights/ })).not.toBeNull();
+    expect(screen.queryByRole("button", { name: /Import notes/ })).toBeNull();
+  });
+
   it("signed out: offers Sign in", () => {
     render(<SettingsProfile />);
     expect(

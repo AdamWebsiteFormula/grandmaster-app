@@ -25,7 +25,7 @@
 | Privacy | General › Privacy section | Granola: "Data & sharing" is a section of Preferences |
 | Permissions | General › Permissions section | Mac-wide status, rarely changed (HIG Settings) |
 | Dictionary | Transcription › Dictionary section | Same object: words that help speech-to-text (NN/g: specific, non-overlapping categories) |
-| Imports | Sub-page of Connectors (row "Import notes"; also linked from Profile) | Granola Connectors is a list of rows, each opening a detail |
+| Imports | Sub-page of Connectors (row "Import notes") | Granola Connectors is a list of rows, each opening a detail |
 | Developers | Sub-page of Connectors (rows Glaido, MCP and CLI, Webhooks) | Same |
 | Insights | Sub-page of Profile (row "Insights") | Stats are not settings (HIG: settings are options people adjust). Granola's Settings has no stats page |
 

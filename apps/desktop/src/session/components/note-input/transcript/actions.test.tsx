@@ -48,6 +48,9 @@ describe("useRegenerateTranscript", () => {
   });
 
   it("shows batch transcription failures even when an old transcript exists", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
     mocks.runBatch.mockRejectedValue(new Error("Authentication failed"));
     const { result } = renderHook(() => useRegenerateTranscript("session-1"));
 
@@ -62,10 +65,20 @@ describe("useRegenerateTranscript", () => {
       "session-1",
       "Authentication failed",
     );
-    expect(mocks.toastError).toHaveBeenCalledWith("Re-transcription failed", {
-      id: "transcript-regenerate-failed-session-1",
-      description: "Authentication failed",
-    });
+    // Plain words and a next step; the raw error goes to the console only.
+    expect(mocks.toastError).toHaveBeenCalledWith(
+      "Couldn't transcribe this recording again",
+      {
+        id: "transcript-regenerate-failed-session-1",
+        description:
+          "Try again, or pick another engine in Settings › Transcription.",
+      },
+    );
+    expect(consoleError).toHaveBeenCalledWith(
+      "[transcript] transcribe again failed",
+      expect.objectContaining({ message: "Authentication failed" }),
+    );
+    consoleError.mockRestore();
   });
 
   it("keeps CloudSync deferred until summary scheduling settles", async () => {

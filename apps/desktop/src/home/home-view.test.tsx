@@ -171,6 +171,22 @@ describe("HomeView", () => {
     );
   });
 
+  // Fork: WCAG 2.2 SC 2.4.7, the row shows a ring for keyboard focus.
+  it("shows a focus ring on a coming-up row", () => {
+    mocks.comingUp.days = [
+      {
+        dayMs: day(4),
+        isToday: false,
+        events: [meeting("event-1", "Design review", 4, 10)],
+      },
+    ];
+    render(<HomeView />);
+
+    const row = screen.getByText("Design review").closest("li");
+    expect(row?.className).toContain("has-[>button:focus-visible]:ring-2");
+    expect(row?.className).toContain("has-[>button:focus-visible]:ring-ring");
+  });
+
   it("pages coming-up days four at a time", () => {
     mocks.comingUp.days = [
       today(),

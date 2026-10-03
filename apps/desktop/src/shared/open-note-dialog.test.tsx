@@ -26,6 +26,7 @@ const mocks = vi.hoisted(() => ({
   }>,
   emptyIds: new Set<string>(),
   newNote: vi.fn(),
+  newNoteAndListen: vi.fn(),
   select: vi.fn(),
   tabs: [] as Array<{ type: string }>,
 }));
@@ -36,6 +37,7 @@ vi.mock("~/shared/empty-note-ids", () => ({
 
 vi.mock("~/shared/useNewNote", () => ({
   useNewNote: () => mocks.newNote,
+  useNewNoteAndListen: () => mocks.newNoteAndListen,
 }));
 
 vi.mock("~/auth", () => ({
@@ -204,9 +206,26 @@ describe("OpenNoteDialog", () => {
     fireEvent.click(screen.getByRole("option", { name: "Chat" }));
     expect(mocks.openCurrent).toHaveBeenCalledWith({ type: "chat" });
 
+    // Fork: NN/g #4, the rows do what their ⌘N and ⇧⌘N hints do.
     fireEvent.click(screen.getByRole("option", { name: /New note/ }));
+    expect(mocks.newNoteAndListen).toHaveBeenCalledOnce();
+    expect(mocks.newNote).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("option", { name: /Blank note/ }));
+    expect(
+      screen.getByRole("option", { name: /Blank note/ }).textContent,
+    ).toContain("⇧⌘N");
     expect(mocks.newNote).toHaveBeenCalledOnce();
     expect(mocks.openNew).not.toHaveBeenCalled();
+  });
+
+  // Fork: WCAG 2.2 SC 2.4.7, the selected row is easy to see.
+  it("marks the selected row with the accent fill and foreground text", () => {
+    render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
+    const row = screen.getByRole("option", { name: "Home" });
+    expect(row.className).toContain("data-[selected=true]:bg-accent ");
+    expect(row.className).toContain("data-[selected=true]:text-foreground");
+    expect(row.className).not.toContain("bg-accent/60");
   });
 
   // Fork: journey-after P3 "⌘K search": flat surface, 24 px close.

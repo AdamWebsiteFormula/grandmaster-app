@@ -6,13 +6,14 @@ import {
   useLegacyMigrationCleanup,
 } from "./legacy-cleanup";
 
+import { SETTINGS_ANCHORS } from "~/settings/sections";
 import { SettingsGroup } from "~/settings/setting-row";
 
 export function StorageSettingsView() {
   const { visible } = useLegacyMigrationCleanup();
 
   return (
-    <SettingsGroup title={<Trans>Storage</Trans>}>
+    <SettingsGroup id={SETTINGS_ANCHORS.storage} title={<Trans>Storage</Trans>}>
       <ExportLocationRow />
       {visible && (
         <div>

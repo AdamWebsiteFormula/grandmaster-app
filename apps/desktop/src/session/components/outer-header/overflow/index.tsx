@@ -48,7 +48,7 @@ import {
   useGenerateSummaryOffer,
 } from "~/session/components/note-input/generate-summary-offer";
 import { useCopyTranscript } from "~/session/components/note-input/header-transcript";
-import { useRegenerateTranscript } from "~/session/components/note-input/transcript/actions";
+import { useRegenerateTranscriptConfirm } from "~/session/components/note-input/transcript/regenerate-confirm";
 import {
   useCurrentNoteHasContent,
   useHasTranscript,
@@ -85,7 +85,10 @@ export function OverflowButton({
     useAudioPlayer();
   const { canCopyTranscript, copyTranscript } = useCopyTranscript(sessionId);
   const { uploadAudio, uploadTranscript } = useUploadFile(sessionId);
-  const regenerateTranscript = useRegenerateTranscript(sessionId);
+  const {
+    requestRegenerateTranscript,
+    confirmDialog: regenerateConfirmDialog,
+  } = useRegenerateTranscriptConfirm(sessionId);
   // Fork: Generate summary also lives in ⋯, so a note with no summary always
   // has a way to make one (Granola 101: enhance after the meeting; NN/g #3).
   const summaryOffer = useGenerateSummaryOffer(sessionId);
@@ -130,7 +133,7 @@ export function OverflowButton({
   };
   const handleRetranscribe = () => {
     setOpen(false);
-    void regenerateTranscript();
+    requestRegenerateTranscript();
   };
   const handleOpenFloatingPanel = () => {
     setOpen(false);
@@ -335,6 +338,7 @@ export function OverflowButton({
           onOpenChange={setIsVersionHistoryOpen}
         />
       )}
+      {regenerateConfirmDialog}
     </>
   );
 }

@@ -100,6 +100,10 @@ function OnboardingScreenContent({
   const [didSkipImports, setDidSkipImports] = useState(false);
   const [didSkipCalendar, setDidSkipCalendar] = useState(false);
   const [didTranscriptionFail, setDidTranscriptionFail] = useState(false);
+  const [isTranscriptionDownloading, setIsTranscriptionDownloading] =
+    useState(false);
+  const [didSetUpPermissionsLater, setDidSetUpPermissionsLater] =
+    useState(false);
   const permissionsContinuedRef = useRef(false);
   const currentPlatform = platform();
   // Fork: detect meeting apps up front so the step count is right from the
@@ -148,8 +152,9 @@ function OnboardingScreenContent({
   // Fork: say "skipped" when the engine failed to set up, not "ready"
   // (UX audit Oct 3, A: NN/g #1).
   const continueTranscription = useCallback(
-    (failed?: boolean) => {
+    (failed?: boolean, downloading?: boolean) => {
       setDidTranscriptionFail(failed === true);
+      setIsTranscriptionDownloading(downloading === true);
       goNext();
     },
     [goNext],
@@ -159,10 +164,23 @@ function OnboardingScreenContent({
   const backFor = (step: OnboardingStep) =>
     getPrevStep(step, stepOptions) ? goBack : undefined;
 
-  const continueCalendar = useCallback(() => {
-    setDidSkipCalendar(false);
-    goNext();
-  }, [goNext]);
+  // Fork: honest step titles. Continuing with no calendar on is a skip,
+  // and Set up later is not "granted" (NN/g #1).
+  const continueCalendar = useCallback(
+    (connected?: boolean) => {
+      setDidSkipCalendar(connected === false);
+      goNext();
+    },
+    [goNext],
+  );
+
+  const continuePermissions = useCallback(
+    (setUpLater?: boolean) => {
+      setDidSetUpPermissionsLater(setUpLater === true);
+      goNext();
+    },
+    [goNext],
+  );
 
   const skipCalendar = useCallback(() => {
     setDidSkipCalendar(true);
@@ -266,7 +284,13 @@ function OnboardingScreenContent({
         <div className="flex flex-col gap-4 px-12 pb-16">
           <OnboardingSection
             title={<Trans>Start with permissions</Trans>}
-            completedTitle={<Trans>Permissions granted</Trans>}
+            completedTitle={
+              didSetUpPermissionsLater ? (
+                <Trans>Permissions: set up later</Trans>
+              ) : (
+                <Trans>Permissions granted</Trans>
+              )
+            }
             description={
               currentPlatform === "macos" ? (
                 <Trans>
@@ -288,7 +312,7 @@ function OnboardingScreenContent({
             onNext={goNext}
           >
             <PermissionsSection
-              onContinue={goNext}
+              onContinue={continuePermissions}
               continuedRef={permissionsContinuedRef}
             />
           </OnboardingSection>
@@ -303,6 +327,8 @@ function OnboardingScreenContent({
             completedTitle={
               didTranscriptionFail ? (
                 <Trans>Transcription skipped</Trans>
+              ) : isTranscriptionDownloading ? (
+                <Trans>Transcription downloading</Trans>
               ) : (
                 <Trans>Transcription set up</Trans>
               )

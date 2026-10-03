@@ -998,6 +998,29 @@ describe("useStartListening", () => {
     });
   });
 
+  test.each(["not_downloaded", "loading"])(
+    "says transcription is getting ready while the local model is %s",
+    async (status) => {
+      useSTTConnectionMock.mockReturnValue({
+        conn: null,
+        local: { data: { status, connection: null } },
+      });
+      const { result } = renderHook(() => useStartListening("session-1"));
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(toastWarningMock).toHaveBeenCalledWith(
+        "Transcription is still getting ready",
+        {
+          id: "recording-without-transcription",
+          description: "Your audio is saved and will be transcribed.",
+        },
+      );
+    },
+  );
+
   test("does not replace a capture marker while recovery blocks starting", async () => {
     canStartLiveSessionMock.mockReturnValue(false);
     const { result } = renderHook(() => useStartListening("session-1"));

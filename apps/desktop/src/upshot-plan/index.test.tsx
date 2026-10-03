@@ -331,6 +331,25 @@ describe("openUpgrade", () => {
     expect(useUpgradeDialog.getState().open).toBe(false);
   });
 
+  // Fork: an ended session has an account behind it, so Sign in, not sign up.
+  it("an ended session opens the dialog on Sign in", async () => {
+    mocks.saved = JSON.stringify({
+      access_token: "token-1",
+      refresh_token: "refresh-1",
+      expires_at: Date.now() / 1000 - 60,
+      email: "judge@example.com",
+    });
+    mocks.fetch.mockResolvedValue(
+      Response.json({ error: { message: "ended" } }, { status: 401 }),
+    );
+    await openUpgrade("year");
+    expect(useUpgradeDialog.getState()).toMatchObject({
+      open: true,
+      mode: "signin",
+      error: "Your session ended. Sign in again.",
+    });
+  });
+
   it("shows a checkout error in the dialog", async () => {
     signedIn();
     mocks.fetch.mockResolvedValue(

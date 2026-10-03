@@ -52,7 +52,8 @@ export function KeyboardShortcutsDialog() {
         [t`Find`, "⌘ F"],
         [t`Find and replace`, "⌥ ⌘ F"],
         [t`Previous or next view`, "⌥ ⌘ ← →"],
-        [t`Play or pause the recording`, "Space"],
+        // Fork: Space plays the recording only on the Transcript tab.
+        [t`Play or pause (Transcript tab)`, "Space"],
       ],
     },
     {

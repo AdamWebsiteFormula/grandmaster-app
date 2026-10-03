@@ -11,6 +11,7 @@ import { toast } from "@anlg/ui/components/ui/toast";
 import { copyText } from "./clipboard";
 
 import { SettingsSectionTitle } from "~/settings/page-title";
+import { SETTINGS_ANCHORS } from "~/settings/sections";
 import { SettingsCard } from "~/settings/setting-row";
 import { commands, type McpServerPaths } from "~/types/tauri.gen";
 
@@ -117,7 +118,10 @@ export function GlaidoSection() {
   };
 
   return (
-    <section className="flex flex-col gap-2">
+    <section
+      id={SETTINGS_ANCHORS.glaido}
+      className="flex scroll-mt-6 flex-col gap-2"
+    >
       <div className="px-1">
         <SettingsSectionTitle>{t`Glaido`}</SettingsSectionTitle>
       </div>

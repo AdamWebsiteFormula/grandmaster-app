@@ -4,7 +4,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
 
-import { ChartLineUp, DownloadSimple } from "@anlg/ui/components/icons";
+import { ChartLineUp } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 
 import { AccountProfile } from "~/settings/general/account-profile";
@@ -35,21 +35,11 @@ export function SettingsProfile() {
       />
       <AccountProfile />
       <SettingsGroup title={<Trans>Your notes</Trans>}>
-        <SettingLinkRow
-          icon={DownloadSimple}
-          title={<Trans>Import notes</Trans>}
-          description={
-            <Trans>Bring in notes from Granola or transcript files.</Trans>
-          }
-          onClick={() => {
-            if (currentTab?.type === "settings") {
-              updateSettingsTabState(currentTab, { tab: "imports" });
-            }
-          }}
-        />
         {/* Fork: Insights left the sidebar (stats are not settings; Granola's
             Settings has no stats page) and opens from here
-            (grandmaster/sops/settings-ia-oct3.md Q3). */}
+            (grandmaster/sops/settings-ia-oct3.md Q3). Import notes lives
+            only on Connectors, whose sub-page it is, so its back button
+            matches where it opened from (NN/g heuristic #4). */}
         <SettingLinkRow
           icon={ChartLineUp}
           title={<Trans>Insights</Trans>}

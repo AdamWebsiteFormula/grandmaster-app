@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { OverflowButton } from "./index";
@@ -391,13 +397,41 @@ describe("OverflowButton", () => {
     canCopyTranscript.value = false;
   });
 
-  it("re-transcribes recorded audio", () => {
+  it("asks before re-transcribing recorded audio", () => {
     arrange({ transcript: false, audio: true });
     renderOverflow();
 
     fireEvent.click(screen.getByRole("button", { name: "Transcribe again" }));
 
+    expect(regenerateTranscriptMock).not.toHaveBeenCalled();
+    const dialog = screen.getByRole("dialog");
+    expect(
+      within(dialog).getByText("Transcribe this recording again?"),
+    ).toBeTruthy();
+    expect(
+      within(dialog).getByText(
+        "This replaces the current transcript, including your edits and speaker names.",
+      ),
+    ).toBeTruthy();
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Transcribe again" }),
+    );
+
     expect(regenerateTranscriptMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the transcript when Transcribe again is canceled", () => {
+    arrange({ transcript: false, audio: true });
+    renderOverflow();
+
+    fireEvent.click(screen.getByRole("button", { name: "Transcribe again" }));
+    fireEvent.click(
+      within(screen.getByRole("dialog")).getByRole("button", {
+        name: "Cancel",
+      }),
+    );
+
+    expect(regenerateTranscriptMock).not.toHaveBeenCalled();
   });
 
   it.each(["macos", "linux"])(

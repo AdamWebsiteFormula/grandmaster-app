@@ -540,11 +540,12 @@ export function ExportModal({
           </fieldset>
         </div>
 
+        {/* Fork: the save panel picks the folder, so the fix names that step
+            (NN/g heuristic #9, help users recover from errors). */}
         {error && (
           <p role="alert" className="text-destructive text-xs">
             <Trans>
-              Could not export. Check the export location in Settings and try
-              again.
+              Couldn't export this note. Pick another folder and try again.
             </Trans>
           </p>
         )}

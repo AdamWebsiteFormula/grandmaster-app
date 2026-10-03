@@ -180,7 +180,13 @@ export function useNoteShareActions(
       toast.success(t`Full notes copied to clipboard`);
     }
     try {
-      await openerCommands.openUrl(url, null);
+      // Fork: the binding returns {status: "error"} instead of throwing, so
+      // check it and show the same error (NN/g heuristic #9, help users
+      // recognize errors).
+      const result = await openerCommands.openUrl(url, null);
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
     } catch (error) {
       console.error("[share] failed to open mail", error);
       toast.error(t`Couldn't open your mail app. Try again.`);

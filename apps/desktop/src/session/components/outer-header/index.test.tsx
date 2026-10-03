@@ -411,6 +411,14 @@ describe("OuterHeader", () => {
     expect(screen.queryByText("Try the demo") !== null).toBe(prompted);
   });
 
+  it("does not prompt to try the welcome demo when it has no link to join", () => {
+    arrange({ event: { ...DEMO_EVENT, meeting_link: "" } });
+    renderHeader();
+
+    expect(screen.queryByText("Try the demo")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Join & record" })).toBeNull();
+  });
+
   it("shows the meeting countdown before start and hides it while listening", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-05T09:55:30.000Z"));

@@ -10,9 +10,13 @@ import {
 } from "./share-actions";
 
 const mocks = vi.hoisted(() => ({
-  openUrl: vi.fn(() => Promise.resolve({ status: "ok", data: null })),
+  openUrl: vi.fn(
+    (): Promise<{ status: string; data?: null; error?: string }> =>
+      Promise.resolve({ status: "ok", data: null }),
+  ),
   copyTextToClipboard: vi.fn(() => Promise.resolve(true)),
   toastSuccess: vi.fn(),
+  toastError: vi.fn(),
   rawMd: "",
   enhancedContent: "",
   participants: [] as { email: string; human_id: string }[],
@@ -23,7 +27,7 @@ vi.mock("@anlg/plugin-opener2", () => ({
 }));
 
 vi.mock("@anlg/ui/components/ui/toast", () => ({
-  toast: { success: mocks.toastSuccess, error: vi.fn() },
+  toast: { success: mocks.toastSuccess, error: mocks.toastError },
 }));
 
 vi.mock("~/session/components/note-input/header-shared", () => ({
@@ -173,6 +177,21 @@ describe("useNoteShareActions", () => {
       null,
     );
     expect(mocks.copyTextToClipboard).not.toHaveBeenCalled();
+  });
+
+  // Fork: the opener returns {status: "error"} rather than throwing.
+  it("shows an error when the mail app can't open", async () => {
+    mocks.openUrl.mockResolvedValueOnce({ status: "error", error: "denied" });
+    vi.spyOn(console, "error").mockImplementationOnce(() => {});
+    const { result } = renderHook(() =>
+      useNoteShareActions("session-1", { type: "enhanced", id: "summary-1" }),
+    );
+
+    await act(() => result.current.sendNotesViaEmail());
+
+    expect(mocks.toastError).toHaveBeenCalledWith(
+      "Couldn't open your mail app. Try again.",
+    );
   });
 
   it("copies the notes the user is looking at", async () => {

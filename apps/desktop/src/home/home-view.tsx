@@ -339,8 +339,10 @@ function ComingUpEventRow({
       });
   };
 
+  // Fork: the title button keeps no outline of its own, so the row shows a
+  // focus ring when it has keyboard focus (WCAG 2.2 SC 2.4.7 Focus Visible).
   return (
-    <li className="group hover:bg-accent focus-within:bg-accent flex items-center gap-3 rounded-lg px-2 py-0.5 transition-colors">
+    <li className="group hover:bg-accent focus-within:bg-accent has-[>button:focus-visible]:ring-ring flex items-center gap-3 rounded-lg px-2 py-0.5 transition-colors has-[>button:focus-visible]:ring-2">
       <span
         aria-hidden="true"
         className={cn([

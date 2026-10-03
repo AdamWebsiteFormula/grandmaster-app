@@ -118,10 +118,11 @@ export function DictionarySettings({
     >
       {/* Fork: the field sits in a card like every other page, and Add uses
           tokens, not hard-coded black and white (journey-account-settings
-          P3; design-system tokens; NN/g #4). */}
+          P3; design-system tokens; NN/g #4). The InputGroup focus ring
+          stays, so keyboard focus shows (WCAG 2.2 SC 2.4.7). */}
       <SettingsGroup>
         <div className="flex flex-col gap-2">
-          <InputGroup className="border-input bg-card has-[[data-slot=input-group-control]:focus-visible]:border-input shadow-none has-[[data-slot=input-group-control]:focus-visible]:ring-0">
+          <InputGroup className="border-input bg-card has-[[data-slot=input-group-control]:focus-visible]:border-input shadow-none">
             <form.Field name="term">
               {(field) => (
                 <InputGroupInput

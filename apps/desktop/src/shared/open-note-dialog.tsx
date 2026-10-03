@@ -39,7 +39,7 @@ import { useSessionSummaries } from "~/session/queries";
 import { useDurableSharedNotes } from "~/shared-notes/cache";
 import { useEmptyNoteIds } from "~/shared/empty-note-ids";
 import { useMainContentCenterOffset } from "~/shared/main/content-offset";
-import { useNewNote } from "~/shared/useNewNote";
+import { useNewNote, useNewNoteAndListen } from "~/shared/useNewNote";
 import { useSettingsNavGroups } from "~/sidebar/settings-nav-groups";
 import { type TabInput, useTabs } from "~/store/zustand/tabs";
 
@@ -160,6 +160,7 @@ export function OpenNoteDialog({
   const settingsNavGroups = useSettingsNavGroups();
 
   const newNote = useNewNote({ behavior: "current" });
+  const newNoteAndListen = useNewNoteAndListen();
   const allSessions = useSessionSummaries();
   const emptyNoteIds = useEmptyNoteIds(open);
   const sessions = useMemo(
@@ -199,12 +200,25 @@ export function OpenNoteDialog({
         destination: { type: "chat" },
         run: () => selectOrOpen("chat"),
       },
+      // Fork: the row does what its ⌘N hint does (record a new note), and
+      // ⇧⌘N gets its own row, so the menu and the shortcut agree
+      // (NN/g heuristic #4, consistency and standards).
       {
         id: "new-note",
         label: t`New note`,
         hint: "⌘N",
         groupLabel: t`Go to`,
         icon: NotePencil,
+        requiresPro: false,
+        destination: { type: "empty" },
+        run: newNoteAndListen,
+      },
+      {
+        id: "blank-note",
+        label: t`Blank note`,
+        hint: "⇧⌘N",
+        groupLabel: t`Go to`,
+        icon: FileText,
         requiresPro: false,
         destination: { type: "empty" },
         run: newNote,
@@ -236,13 +250,14 @@ export function OpenNoteDialog({
         destination: { type: "settings", state: { tab: "app" } },
       },
     ],
-    [newNote, settingsNavGroups, t],
+    [newNote, newNoteAndListen, settingsNavGroups, t],
   );
 
   const topLevelPageIds = new Set([
     "home",
     "chat",
     "new-note",
+    "blank-note",
     "settings",
     ...settingsNavGroups.flatMap((group) =>
       group.items.flatMap((item) => ("destination" in item ? [item.id] : [])),
@@ -516,7 +531,10 @@ export function OpenNoteDialog({
           className={cn([
             "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5",
             "text-muted-foreground text-sm",
-            "data-[selected=true]:bg-accent/60",
+            // Fork: the selected row gets the full accent fill and foreground
+            // text (14.7:1 dark, 15.4:1 light) so the keyboard position is
+            // easy to see (WCAG 2.2 SC 2.4.7, 1.4.11). Same on all four lists.
+            "data-[selected=true]:bg-accent data-[selected=true]:text-foreground",
             "transition-colors",
           ])}
         >
@@ -653,7 +671,7 @@ export function OpenNoteDialog({
                           className={cn([
                             "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5",
                             "text-muted-foreground text-sm",
-                            "data-[selected=true]:bg-accent/60",
+                            "data-[selected=true]:bg-accent data-[selected=true]:text-foreground",
                             "transition-colors",
                           ])}
                         >
@@ -688,7 +706,7 @@ export function OpenNoteDialog({
                           className={cn([
                             "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5",
                             "text-muted-foreground text-sm",
-                            "data-[selected=true]:bg-accent/60",
+                            "data-[selected=true]:bg-accent data-[selected=true]:text-foreground",
                             "transition-colors",
                           ])}
                         >
@@ -729,7 +747,7 @@ export function OpenNoteDialog({
                           className={cn([
                             "flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2.5",
                             "text-muted-foreground text-sm",
-                            "data-[selected=true]:bg-accent/60",
+                            "data-[selected=true]:bg-accent data-[selected=true]:text-foreground",
                             "transition-colors",
                           ])}
                         >

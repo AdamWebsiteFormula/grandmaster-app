@@ -22,6 +22,7 @@ const mocks = vi.hoisted(() => ({
   setCloudApiEnabled: vi.fn(),
   backfillCloudApiSnapshots: vi.fn(),
   createCloudApiKey: vi.fn(),
+  createWebhook: vi.fn(),
   billing: {
     isPro: true,
     isReady: true,
@@ -75,6 +76,7 @@ vi.mock("@anlg/plugin-opener2", () => ({
 vi.mock("@anlg/plugin-local-api", () => ({
   commands: {
     listWebhooks: vi.fn().mockResolvedValue({ status: "ok", data: [] }),
+    createWebhook: mocks.createWebhook,
   },
 }));
 
@@ -227,6 +229,71 @@ describe("SettingsDevelopers", () => {
         },
       },
     });
+  });
+
+  // Fork: the busy button keeps a name (WCAG 4.1.2).
+  it("says Installing… while the CLI installs", async () => {
+    mocks.checkEmbeddedCli.mockResolvedValue({
+      status: "ok",
+      data: {
+        supported: true,
+        commandName: "anarlog",
+        installPath: "/Users/test/.local/bin/anarlog",
+        state: "installed",
+        details: "Installed.",
+      },
+    });
+    mocks.installEmbeddedCli.mockReturnValue(new Promise(() => {}));
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <SettingsDevelopers />
+      </QueryClientProvider>,
+    );
+    fireEvent.click(await screen.findByRole("button", { name: "Reinstall" }));
+    expect(
+      await screen.findByRole("button", { name: "Installing…" }),
+    ).toBeTruthy();
+  });
+
+  // Fork: a failed save keeps the URL so it can be fixed (NN/g #9).
+  it("clears the webhook URL only after it saves", async () => {
+    mocks.checkEmbeddedCli.mockResolvedValue({
+      status: "ok",
+      data: {
+        supported: false,
+        commandName: "anarlog",
+        installPath: "/Users/test/.local/bin/anarlog",
+        state: "unsupported",
+        details: "Unavailable.",
+      },
+    });
+    mocks.createWebhook.mockResolvedValueOnce({
+      status: "error",
+      error: "Bad URL",
+    });
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <SettingsDevelopers />
+      </QueryClientProvider>,
+    );
+    const input = screen.getByLabelText("Webhook URL") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "https://example.com/a" } });
+    fireEvent.click(screen.getByRole("button", { name: "Add webhook" }));
+    await waitFor(() => expect(mocks.toastError).toHaveBeenCalled());
+    expect(input.value).toBe("https://example.com/a");
+
+    mocks.createWebhook.mockResolvedValueOnce({
+      status: "ok",
+      data: { id: "w1", url: "https://example.com/a", secret: "s" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Add webhook" }));
+    await waitFor(() => expect(input.value).toBe(""));
   });
 
   it("does not expose a nonexistent MCP path when the CLI is unsupported", async () => {

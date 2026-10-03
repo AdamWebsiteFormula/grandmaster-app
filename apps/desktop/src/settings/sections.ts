@@ -49,13 +49,29 @@ export function settingsSectionId(tab: SectionTab): string {
  * load settings first render a spinner, so this retries for about a second.
  */
 export function scrollToSettingsSection(tab: string): () => void {
-  if (!isSettingsSection(tab) || typeof document === "undefined") {
-    return () => {};
-  }
+  if (!isSettingsSection(tab)) return () => {};
+  return scrollToSettingsElement(settingsSectionId(tab));
+}
+
+/**
+ * Fork: anchors for rows that open one section of another page, so the click
+ * lands on that section, not the top of the page (NN/g heuristic #4,
+ * consistency: a link goes where its label says).
+ */
+export const SETTINGS_ANCHORS = {
+  glaido: "settings-anchor-glaido",
+  cli: "settings-anchor-cli",
+  webhooks: "settings-anchor-webhooks",
+  storage: "settings-anchor-storage",
+} as const;
+
+/** Scrolls the element with this id into view, retrying for about a second. */
+export function scrollToSettingsElement(id: string): () => void {
+  if (typeof document === "undefined") return () => {};
   let tries = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
   const attempt = () => {
-    const element = document.getElementById(settingsSectionId(tab));
+    const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView?.({ block: "start", behavior: "smooth" });
       return;

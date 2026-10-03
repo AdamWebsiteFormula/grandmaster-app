@@ -1,10 +1,12 @@
 import {
+  act,
   cleanup,
   fireEvent,
   render,
   renderHook,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -119,6 +121,7 @@ vi.mock("@lingui/react/macro", () => ({
 }));
 
 vi.mock("@lingui/react", () => ({
+  Trans: ({ message, id }: { message?: string; id: string }) => message ?? id,
   useLingui: () => ({
     _: lingui.t,
     t: lingui.t,
@@ -662,6 +665,68 @@ describe("SessionViewSwitcher", () => {
       );
       expect(hoisted.startListening).not.toHaveBeenCalled();
     }
+  });
+
+  it("asks before Transcribe again replaces the transcript", () => {
+    renderSwitcher({ currentTab: { type: "transcript" } });
+
+    act(() => {
+      transcriptMenu()
+        .find((item) => item.id === "regenerate-transcript-session-1")
+        ?.action();
+    });
+
+    expect(hoisted.regenerateTranscript).not.toHaveBeenCalled();
+    const dialog = screen.getByRole("dialog");
+    expect(
+      within(dialog).getByText("Transcribe this recording again?"),
+    ).toBeTruthy();
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Transcribe again" }),
+    );
+
+    expect(hoisted.regenerateTranscript).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks before removing an extra summary, with labeled menu items", async () => {
+    const { deleteEnhancedNote } = await import("~/session/queries");
+    vi.mocked(deleteEnhancedNote).mockClear();
+    renderSwitcher({
+      editorTabs: [
+        { type: "enhanced", id: "note-1" },
+        { type: "enhanced", id: "note-2" },
+        { type: "raw" },
+      ],
+      currentTab: { type: "enhanced", id: "note-2" },
+    });
+
+    const summaryMenu = [...hoisted.nativeContextMenus]
+      .reverse()
+      .find((items) =>
+        items.some(
+          (item) => "id" in item && item.id === "remove-enhanced-note-2",
+        ),
+      );
+    const labeled = (summaryMenu ?? []).filter(
+      (item): item is Extract<CapturedMenuItem, { id: string }> => "id" in item,
+    );
+    expect(labeled.map((item) => item.text)).toEqual([
+      "Copy summary",
+      "Regenerate summary",
+      "Remove summary",
+    ]);
+
+    act(() => {
+      labeled.find((item) => item.id === "remove-enhanced-note-2")?.action();
+    });
+    expect(deleteEnhancedNote).not.toHaveBeenCalled();
+
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText("Remove this summary?")).toBeTruthy();
+    expect(within(dialog).getByText("You can't undo this.")).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Remove" }));
+
+    expect(deleteEnhancedNote).toHaveBeenCalledWith("note-2");
   });
 
   it("toggles transcript editing from the selected transcript tab", () => {

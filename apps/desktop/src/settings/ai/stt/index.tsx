@@ -1,6 +1,5 @@
 import { Trans } from "@lingui/react/macro";
 
-import { ConfigureProviders } from "./configure";
 import { SttSettingsProvider } from "./context";
 import { SelectProviderAndModel } from "./select";
 
@@ -21,7 +20,10 @@ export function STT() {
           }
         />
         <SelectProviderAndModel />
-        <ConfigureProviders />
+        {/* Fork: no cloud provider cards or API key fields. Blueprint
+            section 5: "Apple Speech and Soniqo local; hide the cloud ones".
+            Granola has no bring-your-own-key either. The picker above still
+            lists the built-in local options. */}
         {/* Fork: Dictionary moved here from its own page
             (grandmaster/sops/settings-ia-oct3.md Q3). */}
         <DictionarySection />

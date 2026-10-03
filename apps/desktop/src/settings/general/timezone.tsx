@@ -136,9 +136,8 @@ export function TimezoneSelector() {
     <SettingRow
       icon={Clock}
       title={<Trans>Time zone</Trans>}
-      description={
-        <Trans>Show the timeline in your preferred time zone.</Trans>
-      }
+      // Fork: says what changes, in plain words (NN/g heuristic #2).
+      description={<Trans>Show meeting times in this time zone.</Trans>}
     >
       {(labelProps) => (
         <SearchableSelect

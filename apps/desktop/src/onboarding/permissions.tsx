@@ -197,7 +197,7 @@ function PermissionsSectionContent({
   accessibilityGuidance,
   runtimeCapabilities = false,
 }: {
-  onContinue?: () => void;
+  onContinue?: (setUpLater?: boolean) => void;
   continuedRef?: { current: boolean };
   accessibility?: ReturnType<typeof usePermission>;
   accessibilityGuidance?: ReturnType<typeof usePermissionGuidance>;
@@ -231,8 +231,12 @@ function PermissionsSectionContent({
     systemAudio.confirmedStatus === "authorized";
   const hasMeetingDetails =
     !accessibility || accessibility.confirmedStatus === "authorized";
+  // Fork: a failed request also offers Set up later, so an error can't
+  // dead-end the step in release builds (NN/g #3, #9).
   const hasDeniedRecordingPermission =
-    mic.status === "denied" || systemAudio.status === "denied";
+    mic.status === "denied" ||
+    systemAudio.status === "denied" ||
+    Boolean(mic.error || systemAudio.error);
 
   // Design: one accent per screen, so only the next pending row is orange.
   const nextPending = [
@@ -384,12 +388,12 @@ function PermissionsSectionContent({
           <OnboardingButton
             variant="ghost"
             className="px-0"
-            onClick={() => onContinue?.()}
+            onClick={() => onContinue?.(true)}
           >
             {t`Set up later`}
           </OnboardingButton>
           <p className="text-muted-foreground text-xs">
-            {t`Upshot can't record until both are on. You can turn them on later in Settings › Permissions.`}
+            {t`Upshot can't record until both are on. You can turn them on later in Settings › General.`}
           </p>
         </div>
       )}
@@ -423,7 +427,7 @@ function MacOSPermissionsSection({
   onContinue,
   continuedRef,
 }: {
-  onContinue?: () => void;
+  onContinue?: (setUpLater?: boolean) => void;
   continuedRef?: { current: boolean };
 }) {
   const accessibility = usePermission("accessibility");
@@ -447,7 +451,7 @@ export function PermissionsSection({
   onContinue,
   continuedRef,
 }: {
-  onContinue?: () => void;
+  onContinue?: (setUpLater?: boolean) => void;
   // Fork: owned by the onboarding screen, so going Back to this step shows a
   // Continue button instead of skipping forward again on its own.
   continuedRef?: { current: boolean };

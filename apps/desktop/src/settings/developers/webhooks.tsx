@@ -17,6 +17,7 @@ import { cn } from "@anlg/utils";
 import { copyText } from "./clipboard";
 
 import { SettingsSectionTitle } from "~/settings/page-title";
+import { SETTINGS_ANCHORS } from "~/settings/sections";
 import { SettingsCard } from "~/settings/setting-row";
 import { DestructiveConfirmationDialog } from "~/shared/ui/destructive-confirmation-dialog";
 
@@ -79,8 +80,11 @@ export function WebhooksSection() {
       if (!url) {
         return;
       }
-      createMutation.mutate(url);
-      form.setFieldValue("url", "");
+      // Fork: keep the URL if the save fails, so it can be fixed and tried
+      // again (NN/g heuristic #9, help users recover from errors).
+      createMutation.mutate(url, {
+        onSuccess: () => form.setFieldValue("url", ""),
+      });
     },
   });
 
@@ -92,7 +96,10 @@ export function WebhooksSection() {
   );
 
   return (
-    <section className="flex flex-col gap-2">
+    <section
+      id={SETTINGS_ANCHORS.webhooks}
+      className="flex scroll-mt-6 flex-col gap-2"
+    >
       <div className="px-1">
         <SettingsSectionTitle>{t`Webhooks`}</SettingsSectionTitle>
       </div>

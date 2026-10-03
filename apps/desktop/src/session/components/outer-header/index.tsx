@@ -312,8 +312,11 @@ function HeaderMeetingAction({
     sessionMode !== "active" &&
     sessionMode !== "running_batch" &&
     sessionMode !== "finalizing";
+  // Fork: only point at Join & record when that button is there; with no
+  // demo URL the prompt named a control that doesn't exist (NN/g #2, #3).
   const showWelcomeDemoPrompt =
     isWelcomeDemo &&
+    canJoinFromHeader &&
     sessionMode === "inactive" &&
     !hasTranscript &&
     !audioExists;

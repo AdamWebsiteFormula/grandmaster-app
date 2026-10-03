@@ -126,7 +126,7 @@ export function useConnectionHealth(): HealthStatus {
   if (!conn) {
     return {
       status: "error",
-      message: t`This provider isn’t set up. Add its API key under Configure providers.`,
+      message: t`This provider isn’t available in Upshot. Pick Soniqo or Apple Speech above.`,
     };
   }
 
@@ -137,7 +137,7 @@ export function useConnectionHealth(): HealthStatus {
     if (deepgramHealth.isError) {
       return {
         status: "error",
-        message: t`Your API key didn’t work (${deepgramHealth.error.message}). Check it under Configure providers.`,
+        message: t`This provider isn’t available in Upshot. Pick Soniqo or Apple Speech above.`,
       };
     }
     if (deepgramHealth.isSuccess) {

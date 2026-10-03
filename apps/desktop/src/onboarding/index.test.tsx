@@ -32,8 +32,15 @@ vi.mock("~/imports/detection", () => ({
   detectImportSources: detectMocks.detectImportSources,
 }));
 vi.mock("./calendar", () => ({
-  CalendarSection: ({ onContinue }: { onContinue: () => void }) => (
-    <button onClick={onContinue}>Calendar done</button>
+  CalendarSection: ({
+    onContinue,
+  }: {
+    onContinue: (connected?: boolean) => void;
+  }) => (
+    <>
+      <button onClick={() => onContinue()}>Calendar done</button>
+      <button onClick={() => onContinue(false)}>Calendar none on</button>
+    </>
   ),
 }));
 vi.mock("./imports", () => ({
@@ -51,13 +58,29 @@ vi.mock("./imports", () => ({
   ),
 }));
 vi.mock("./permissions", () => ({
-  PermissionsSection: ({ onContinue }: { onContinue: () => void }) => (
-    <button onClick={onContinue}>Permissions done</button>
+  PermissionsSection: ({
+    onContinue,
+  }: {
+    onContinue: (setUpLater?: boolean) => void;
+  }) => (
+    <>
+      <button onClick={() => onContinue()}>Permissions done</button>
+      <button onClick={() => onContinue(true)}>Permissions later</button>
+    </>
   ),
 }));
 vi.mock("./transcription", () => ({
-  TranscriptionSetupSection: ({ onContinue }: { onContinue: () => void }) => (
-    <button onClick={onContinue}>Transcription done</button>
+  TranscriptionSetupSection: ({
+    onContinue,
+  }: {
+    onContinue: (failed?: boolean, downloading?: boolean) => void;
+  }) => (
+    <>
+      <button onClick={() => onContinue()}>Transcription done</button>
+      <button onClick={() => onContinue(false, true)}>
+        Transcription still downloading
+      </button>
+    </>
   ),
 }));
 vi.mock("./final", () => ({
@@ -122,6 +145,24 @@ describe("StandaloneOnboardingScreen", () => {
 
     expect(screen.getByText("Calendar skipped")).toBeTruthy();
     expect(screen.getByText("Bring your meeting history")).toBeTruthy();
+  });
+
+  it("titles completed steps by what happened, not success", () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <StandaloneOnboardingScreen onFinish={vi.fn()} />
+      </QueryClientProvider>,
+    );
+    fireEvent.click(screen.getByText("Permissions later"));
+    fireEvent.click(screen.getByText("Transcription still downloading"));
+    fireEvent.click(screen.getByText("Calendar none on"));
+
+    expect(screen.getByText("Permissions: set up later")).toBeTruthy();
+    expect(screen.queryByText("Permissions granted")).toBeNull();
+    expect(screen.getByText("Transcription downloading")).toBeTruthy();
+    expect(screen.queryByText("Transcription set up")).toBeNull();
+    expect(screen.getByText("Calendar skipped")).toBeTruthy();
+    expect(screen.queryByText("Calendar connected")).toBeNull();
   });
 
   it("says the calendar is connected after it connects", () => {

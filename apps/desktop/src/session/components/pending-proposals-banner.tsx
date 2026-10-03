@@ -33,8 +33,10 @@ export function PendingProposalsBanner({ sessionId }: { sessionId: string }) {
               variant="outline"
               onClick={() => openProposalReview(proposal.id)}
             >
+              {/* Fork: the app calls the memo "notes" everywhere else
+                  (NN/g #4, consistency). */}
               {proposalKindLabel(proposal.kind) === "memo" ? (
-                <Trans>Review memo</Trans>
+                <Trans>Review notes</Trans>
               ) : (
                 <Trans>Review summary</Trans>
               )}

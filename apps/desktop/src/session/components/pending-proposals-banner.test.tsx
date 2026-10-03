@@ -52,4 +52,16 @@ describe("PendingProposalsBanner", () => {
     fireEvent.click(screen.getByRole("button", { name: "Review summary" }));
     expect(mocks.openProposalReview).toHaveBeenCalledWith("proposal-1");
   });
+
+  it("calls a pending memo edit notes, as the rest of the app does", () => {
+    mocks.usePendingSessionProposals.mockReturnValue([
+      { id: "proposal-2", kind: "memo_replace" },
+    ]);
+
+    render(<PendingProposalsBanner sessionId="session-1" />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Review notes" }));
+    expect(mocks.openProposalReview).toHaveBeenCalledWith("proposal-2");
+    expect(screen.queryByText("Review memo")).toBeNull();
+  });
 });

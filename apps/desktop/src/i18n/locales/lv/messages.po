@@ -690,6 +690,10 @@ msgstr ""
 msgid "Allow anyone-with-the-link sharing"
 msgstr ""
 
+#: src/settings/general/notification.tsx
+msgid "Allow notifications"
+msgstr ""
+
 #: src/settings/team/index.tsx
 msgid "Allow public indexing"
 msgstr ""
@@ -1016,6 +1020,7 @@ msgstr ""
 
 #: src/home/home-view.tsx
 #: src/shared/keyboard-shortcuts-dialog.tsx
+#: src/shared/open-note-dialog.tsx
 msgid "Blank note"
 msgstr ""
 
@@ -1033,7 +1038,6 @@ msgstr ""
 
 #: src/settings/connectors/index.tsx
 #: src/settings/imports/index.tsx
-#: src/settings/profile/index.tsx
 msgid "Bring in notes from Granola or transcript files."
 msgstr ""
 
@@ -1362,10 +1366,6 @@ msgstr ""
 
 #: src/settings/ai/stt/select.tsx
 msgid "Choose a transcription model to start recording."
-msgstr ""
-
-#: src/templates/auto-format-examples-dialog.tsx
-msgid "Choose an AI model before generating a format."
 msgstr ""
 
 #: src/settings/automations/index.tsx
@@ -1937,6 +1937,10 @@ msgstr ""
 msgid "Copy recovery key"
 msgstr ""
 
+#: src/session/components/note-input/header-enhanced.tsx
+msgid "Copy summary"
+msgstr ""
+
 #: src/settings/developers/cloud-api.tsx
 msgid "Copy this key now — it is only shown once."
 msgstr ""
@@ -2002,10 +2006,6 @@ msgstr ""
 
 #: src/session-sharing/delivery-management.ts
 msgid "Could not email the meeting notes."
-msgstr ""
-
-#: src/session/components/outer-header/overflow/export-modal.tsx
-msgid "Could not export. Check the export location in Settings and try again."
 msgstr ""
 
 #: src/session/insights/past-notes.ts
@@ -2168,6 +2168,10 @@ msgstr ""
 msgid "Couldn't delete these lines. Try again."
 msgstr ""
 
+#: src/session/components/outer-header/overflow/export-modal.tsx
+msgid "Couldn't export this note. Pick another folder and try again."
+msgstr ""
+
 #: src/settings/ai/stt/health.tsx
 msgid "Couldn’t load the on-device model. Pick another model, or delete and download this one again."
 msgstr ""
@@ -2231,6 +2235,10 @@ msgstr ""
 
 #: src/onboarding/transcription.tsx
 msgid "Couldn’t set up {name}. You can pick an engine later in Settings › Transcription."
+msgstr ""
+
+#: src/session/components/note-input/transcript/actions.ts
+msgid "Couldn't transcribe this recording again"
 msgstr ""
 
 #: src/settings/calendar/index.tsx
@@ -2607,10 +2615,6 @@ msgstr ""
 msgid "Disable"
 msgstr ""
 
-#: src/settings/general/notification.tsx
-msgid "Disable all notifications"
-msgstr ""
-
 #: src/chat/components/message/tool/approval-tools.tsx
 #: src/chat/components/message/tool/edit-summary.tsx
 msgid "Discard"
@@ -2788,6 +2792,10 @@ msgstr ""
 
 #: src/session-sharing/delivery-panel.tsx
 msgid "Email or name"
+msgstr ""
+
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "Email support"
 msgstr ""
 
 #: src/session-sharing/access-management.tsx
@@ -3184,6 +3192,10 @@ msgstr ""
 msgid "Forever"
 msgstr ""
 
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "Forgot password?"
+msgstr ""
+
 #: src/chat/components/message/tool/generic.tsx
 msgid "Found related meetings"
 msgstr ""
@@ -3397,10 +3409,6 @@ msgstr ""
 msgid "Hide all events in this series"
 msgstr ""
 
-#: src/settings/general/notification.tsx
-msgid "Hide all notification panels, Dock alerts, and completion sounds."
-msgstr ""
-
 #: src/sidebar/timeline/index.tsx
 msgid "Hide deleted events"
 msgstr ""
@@ -3493,7 +3501,6 @@ msgid "If Upshot stays closed, paste the link in the sign-in window."
 msgstr ""
 
 #: src/settings/connectors/index.tsx
-#: src/settings/profile/index.tsx
 msgid "Import notes"
 msgstr ""
 
@@ -3615,6 +3622,10 @@ msgstr ""
 
 #: src/settings/developers/cli.tsx
 msgid "Installed"
+msgstr ""
+
+#: src/settings/developers/cli.tsx
+msgid "Installing…"
 msgstr ""
 
 #: src/sidebar/settings-nav-groups.ts
@@ -5208,6 +5219,10 @@ msgstr ""
 msgid "Permissions granted"
 msgstr ""
 
+#: src/onboarding/index.tsx
+msgid "Permissions: set up later"
+msgstr ""
+
 #: src/crm/enrich-contact.tsx
 msgid "phone"
 msgstr ""
@@ -5263,7 +5278,7 @@ msgid "Play music"
 msgstr ""
 
 #: src/shared/keyboard-shortcuts-dialog.tsx
-msgid "Play or pause the recording"
+msgid "Play or pause (Transcript tab)"
 msgstr ""
 
 #: src/audio-player/timeline.tsx
@@ -5436,10 +5451,6 @@ msgstr ""
 
 #: src/calendar/components/apple/permission.tsx
 msgid "Quit and reopen Upshot, then click Refresh."
-msgstr ""
-
-#: src/session/components/note-input/transcript/actions.ts
-msgid "Re-transcription failed"
 msgstr ""
 
 #: src/chat/components/message/tool/generic.tsx
@@ -5650,6 +5661,10 @@ msgstr ""
 msgid "Regenerate message"
 msgstr ""
 
+#: src/session/components/note-input/header-enhanced.tsx
+msgid "Regenerate summary"
+msgstr ""
+
 #: src/settings/developers/cli.tsx
 msgid "Reinstall"
 msgstr ""
@@ -5676,6 +5691,7 @@ msgstr ""
 
 #: src/resource-sharing/share-dialog.tsx
 #: src/session-sharing/access-management.tsx
+#: src/session/components/note-input/header-enhanced.tsx
 #: src/sidebar/automations.tsx
 msgid "Remove"
 msgstr ""
@@ -5759,6 +5775,14 @@ msgstr ""
 
 #: src/settings/todo/github.tsx
 msgid "Remove repository"
+msgstr ""
+
+#: src/session/components/note-input/header-enhanced.tsx
+msgid "Remove summary"
+msgstr ""
+
+#: src/session/components/note-input/header-enhanced.tsx
+msgid "Remove this summary?"
 msgstr ""
 
 #: src/settings/team/index.tsx
@@ -5982,7 +6006,7 @@ msgid "Reveal in Finder"
 msgstr ""
 
 #: src/session/components/pending-proposals-banner.tsx
-msgid "Review memo"
+msgid "Review notes"
 msgstr ""
 
 #: src/session/components/pending-proposals-banner.tsx
@@ -6570,12 +6594,20 @@ msgstr ""
 msgid "Show meeting times as 14:00 instead of 2:00 PM."
 msgstr "Rādīt sapulču laikus kā 14:00, nevis 2:00 PM."
 
+#: src/settings/general/timezone.tsx
+msgid "Show meeting times in this time zone."
+msgstr ""
+
 #: src/home/home-view.tsx
 msgid "Show more"
 msgstr ""
 
 #: src/session/components/note-input/meta-chips.tsx
 msgid "Show my notes"
+msgstr ""
+
+#: src/settings/general/notification.tsx
+msgid "Show notification panels, Dock alerts, and completion sounds."
 msgstr ""
 
 #: src/shared/keyboard-shortcuts-dialog.tsx
@@ -6600,10 +6632,6 @@ msgstr ""
 
 #: src/session/components/note-input/meta-chips.tsx
 msgid "Show summary"
-msgstr ""
-
-#: src/settings/general/timezone.tsx
-msgid "Show the timeline in your preferred time zone."
 msgstr ""
 
 #: src/sidebar/timeline/item.tsx
@@ -7431,7 +7459,11 @@ msgid "This note was edited on another device at the same time. The later edit w
 msgstr ""
 
 #: src/settings/ai/stt/health.tsx
-msgid "This provider isn’t set up. Add its API key under Configure providers."
+msgid "This provider isn’t available in Upshot. Pick Soniqo or Apple Speech above."
+msgstr ""
+
+#: src/session/components/note-input/transcript/regenerate-confirm.tsx
+msgid "This replaces the current transcript, including your edits and speaker names."
 msgstr ""
 
 #: src/settings/plan-gate.tsx
@@ -7499,6 +7531,7 @@ msgid "Touch ID, lock, password, telemetry, data"
 msgstr ""
 
 #: src/session/components/note-input/header-transcript.tsx
+#: src/session/components/note-input/transcript/regenerate-confirm.tsx
 #: src/session/components/note-input/transcript/screens/empty.tsx
 #: src/session/components/outer-header/overflow/index.tsx
 msgid "Transcribe again"
@@ -7510,6 +7543,10 @@ msgstr ""
 
 #: src/session/components/note-input/transcript/screens/empty.tsx
 msgid "Transcribe this audio again, or upload a transcript file."
+msgstr ""
+
+#: src/session/components/note-input/transcript/regenerate-confirm.tsx
+msgid "Transcribe this recording again?"
 msgstr ""
 
 #: src/chat/components/input/index.tsx
@@ -7548,6 +7585,10 @@ msgstr ""
 #: src/settings/general/notification.tsx
 #: src/store/zustand/listener/general-batch.ts
 msgid "Transcription complete"
+msgstr ""
+
+#: src/onboarding/index.tsx
+msgid "Transcription downloading"
 msgstr ""
 
 #: src/session/components/note-input/transcript/screens/empty.tsx
@@ -7637,6 +7678,10 @@ msgstr ""
 msgid "Try again in a minute to turn this transcript into a summary."
 msgstr ""
 
+#: src/session/components/note-input/transcript/actions.ts
+msgid "Try again, or pick another engine in Settings › Transcription."
+msgstr ""
+
 #: src/settings/dictation.tsx
 msgid "Try dictation"
 msgstr ""
@@ -7668,6 +7713,10 @@ msgstr ""
 #. placeholder {0}: permissionName.toLowerCase()
 #: src/onboarding/permissions.tsx
 msgid "Turn on {0} in System Settings"
+msgstr ""
+
+#: src/settings/general/notification.tsx
+msgid "Turn on Allow notifications to change these."
 msgstr ""
 
 #: src/settings/general/meeting-settings.tsx
@@ -7949,6 +7998,7 @@ msgstr ""
 #: src/composer/index.tsx
 #: src/session/components/note-input/enhanced/model-not-ready.ts
 #: src/session/hooks/useAutoEnhance.ts
+#: src/templates/auto-format-examples-dialog.tsx
 msgid "Upshot AI is getting ready. Try again in a minute."
 msgstr ""
 
@@ -7973,7 +8023,7 @@ msgid "Upshot can't reach the internet. Check your connection, then click Retry.
 msgstr ""
 
 #: src/onboarding/permissions.tsx
-msgid "Upshot can't record until both are on. You can turn them on later in Settings › Permissions."
+msgid "Upshot can't record until both are on. You can turn them on later in Settings › General."
 msgstr ""
 
 #. placeholder {0}: config.displayName
@@ -8399,6 +8449,10 @@ msgstr ""
 msgid "You can use up to three example summaries."
 msgstr ""
 
+#: src/session/components/note-input/header-enhanced.tsx
+msgid "You can't undo this."
+msgstr ""
+
 #: src/onboarding/account/after-login.tsx
 msgid "You have an active plan"
 msgstr ""
@@ -8462,11 +8516,6 @@ msgstr ""
 
 #: src/settings/general/account.tsx
 msgid "Your Account"
-msgstr ""
-
-#. placeholder {0}: deepgramHealth.error.message
-#: src/settings/ai/stt/health.tsx
-msgid "Your API key didn’t work ({0}). Check it under Configure providers."
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx

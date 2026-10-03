@@ -348,9 +348,21 @@ describe("PermissionsSection", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Set up later" }));
     expect(onContinue).toHaveBeenCalledTimes(1);
+    expect(onContinue).toHaveBeenCalledWith(true);
     expect(
-      screen.getByText(/You can turn them on later in Settings › Permissions/),
+      screen.getByText(/You can turn them on later in Settings › General/),
     ).toBeTruthy();
+  });
+
+  it("offers Set up later after a permission request fails", () => {
+    Object.values(mocks.permissions).forEach((permission) => {
+      permission.status = "neverRequested";
+      permission.confirmedStatus = "neverRequested";
+    });
+    mocks.permissions.systemAudio.error = "Couldn't request system audio";
+    render(<PermissionsSection />);
+
+    expect(screen.getByRole("button", { name: "Set up later" })).toBeTruthy();
   });
 
   it("has no Set up later before anything was denied, or once both are on", () => {

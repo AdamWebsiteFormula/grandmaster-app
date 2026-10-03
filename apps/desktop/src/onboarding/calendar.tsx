@@ -135,7 +135,11 @@ function AppleCalendarProvider({
   );
 }
 
-function CalendarSectionContent({ onContinue }: { onContinue: () => void }) {
+function CalendarSectionContent({
+  onContinue,
+}: {
+  onContinue: (connected?: boolean) => void;
+}) {
   const calendar = usePermission("calendar");
   const isAuthorized = calendar.status === "authorized";
   const [showTroubleshooting, setShowTroubleshooting] = useState(false);
@@ -182,9 +186,11 @@ function CalendarSectionContent({ onContinue }: { onContinue: () => void }) {
       )}
 
       {/* Fork: Continue always shows once access is on, so the step never
-          dead-ends on a list of switches (journey-first-run P1, NN/g #3). */}
+          dead-ends on a list of switches (journey-first-run P1, NN/g #3).
+          It reports whether any calendar is on, so the step says "Calendar
+          skipped" instead of "connected" (NN/g #1). */}
       {(isAuthorized || hasConnectedCalendar) && (
-        <OnboardingButton onClick={onContinue}>
+        <OnboardingButton onClick={() => onContinue(hasConnectedCalendar)}>
           <Trans>Continue</Trans>
         </OnboardingButton>
       )}
@@ -202,7 +208,11 @@ function CalendarSectionContent({ onContinue }: { onContinue: () => void }) {
   );
 }
 
-export function CalendarSection({ onContinue }: { onContinue: () => void }) {
+export function CalendarSection({
+  onContinue,
+}: {
+  onContinue: (connected?: boolean) => void;
+}) {
   return (
     <SyncProvider>
       <CalendarSectionContent onContinue={onContinue} />

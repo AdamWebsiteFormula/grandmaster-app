@@ -47,7 +47,8 @@ export function AutoFormatExamplesDialog({
   const inferenceMutation = useMutation({
     mutationFn: async () => {
       if (!model) {
-        throw new Error(t`Choose an AI model before generating a format.`);
+        // Fork: the same words chat uses while Upshot AI loads (NN/g #4).
+        throw new Error(t`Upshot AI is getting ready. Try again in a minute.`);
       }
       if (populatedExamples.length === 0) {
         throw new Error(t`Add at least one example summary.`);

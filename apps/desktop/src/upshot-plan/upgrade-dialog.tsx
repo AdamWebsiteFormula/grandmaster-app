@@ -12,6 +12,7 @@
 import { Trans } from "@lingui/react/macro";
 import { type ReactNode, useId, useState } from "react";
 
+import { commands as openerCommands } from "@anlg/plugin-opener2";
 import { Button } from "@anlg/ui/components/ui/button";
 import { Checkbox } from "@anlg/ui/components/ui/checkbox";
 import {
@@ -52,6 +53,9 @@ export function TestCardNote() {
     </p>
   );
 }
+
+const PASSWORD_RESET_MAILTO =
+  "mailto:adam@websiteformula.co?subject=Upshot%20password%20reset";
 
 // Fork: a text link to the privacy policy, opened in the browser
 // (CalOPPA §22577(b): a text link that includes the word "privacy").
@@ -320,7 +324,23 @@ function AccountFields({
           <p id={`${id}-hint`} className="text-muted-foreground text-xs">
             <Trans>8 or more characters</Trans>
           </p>
-        ) : null}
+        ) : (
+          // Fork: a way back in under the password field, as Apple and
+          // Google sign-in forms do (NN/g heuristic #9). No reset backend
+          // yet, so it emails support.
+          <p className="text-muted-foreground text-xs">
+            <Trans>Forgot password?</Trans>{" "}
+            <button
+              type="button"
+              className="text-muted-foreground hover:text-foreground cursor-pointer underline underline-offset-2 transition-colors"
+              onClick={() =>
+                void openerCommands.openUrl(PASSWORD_RESET_MAILTO, null)
+              }
+            >
+              <Trans>Email support</Trans>
+            </button>
+          </p>
+        )}
       </div>
       <div className="flex items-center gap-2">
         <Checkbox

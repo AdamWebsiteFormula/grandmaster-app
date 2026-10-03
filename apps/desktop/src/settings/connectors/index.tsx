@@ -14,6 +14,7 @@ import {
 } from "@anlg/ui/components/icons";
 
 import { SettingsPageTitle } from "~/settings/page-title";
+import { SETTINGS_ANCHORS, scrollToSettingsElement } from "~/settings/sections";
 import { SettingLinkRow, SettingsGroup } from "~/settings/setting-row";
 import { usePermission } from "~/shared/hooks/usePermissions";
 import { type SettingsTab, useTabs } from "~/store/zustand/tabs";
@@ -25,9 +26,12 @@ export function SettingsConnectors() {
   const updateSettingsTabState = useTabs(
     (state) => state.updateSettingsTabState,
   );
-  const open = (tab: SettingsTab) => {
+  // Fork: a row for one section of a page scrolls to that section
+  // (NN/g heuristic #4; settings/sections.ts SETTINGS_ANCHORS).
+  const open = (tab: SettingsTab, anchor?: string) => {
     if (currentTab?.type === "settings") {
       updateSettingsTabState(currentTab, { tab });
+      if (anchor) scrollToSettingsElement(anchor);
     }
   };
 
@@ -51,7 +55,7 @@ export function SettingsConnectors() {
           icon={Lightning}
           title={<Trans>Glaido</Trans>}
           description={<Trans>Ask about your meetings from Glaido.</Trans>}
-          onClick={() => open("developers")}
+          onClick={() => open("developers", SETTINGS_ANCHORS.glaido)}
         />
         <SettingLinkRow
           icon={Code}
@@ -59,13 +63,13 @@ export function SettingsConnectors() {
           description={
             <Trans>Use your notes in AI tools and the terminal.</Trans>
           }
-          onClick={() => open("developers")}
+          onClick={() => open("developers", SETTINGS_ANCHORS.cli)}
         />
         <SettingLinkRow
           icon={ShareNetwork}
           title={<Trans>Webhooks</Trans>}
           description={<Trans>Send finished notes to other tools.</Trans>}
-          onClick={() => open("developers")}
+          onClick={() => open("developers", SETTINGS_ANCHORS.webhooks)}
         />
       </SettingsGroup>
       <SettingsGroup title={<Trans>Files</Trans>}>
@@ -73,7 +77,7 @@ export function SettingsConnectors() {
           icon={FolderSimple}
           title={<Trans>Export folder</Trans>}
           description={<Trans>Save PDF, text and Markdown exports.</Trans>}
-          onClick={() => open("app")}
+          onClick={() => open("app", SETTINGS_ANCHORS.storage)}
         />
         <SettingLinkRow
           icon={DownloadSimple}

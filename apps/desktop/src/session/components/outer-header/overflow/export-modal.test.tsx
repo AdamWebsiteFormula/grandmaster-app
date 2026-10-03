@@ -212,7 +212,7 @@ describe("ExportModal destination", () => {
     fireEvent.click(screen.getByRole("radio", { name: "Markdown" }));
     fireEvent.click(screen.getByRole("button", { name: "Export" }));
     expect((await screen.findByRole("alert")).textContent).toContain(
-      "Check the export location in Settings",
+      "Pick another folder and try again",
     );
     expect(mocks.onOpenChange).not.toHaveBeenCalled();
     expect(mocks.revealItemInDir).not.toHaveBeenCalled();

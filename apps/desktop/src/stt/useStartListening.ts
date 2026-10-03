@@ -23,6 +23,7 @@ import {
   showStartFailureToast,
   type StartFailureStage,
 } from "./start-failure";
+import { useSTTConnection } from "./useSTTConnection";
 
 import { trackAnalyticsEvent } from "~/analytics";
 import { useShell } from "~/contexts/shell";
@@ -86,6 +87,9 @@ export function useStartListeningState(
   const { leftsidebar } = useShell();
   const setLeftSidebarExpanded = leftsidebar.setExpanded;
   const openNew = useTabs((state) => state.openNew);
+  // Fork: read-only, for the toast below. Capture and transcription are
+  // unchanged.
+  const localModelStatus = useSTTConnection()?.local?.data?.status;
 
   const reportStartFailure = useCallback(
     async (stage: StartFailureStage, error: string | null) => {
@@ -276,6 +280,17 @@ export function useStartListeningState(
           onClick: openTranscriptionSettings,
         },
       });
+    } else if (
+      !conn &&
+      (localModelStatus === "not_downloaded" || localModelStatus === "loading")
+    ) {
+      // Fork: the on-device engine is still downloading or starting, so
+      // say so plainly instead of sending people to configure a provider
+      // they already picked (NN/g #1, #9).
+      toast.warning("Transcription is still getting ready", {
+        id: "recording-without-transcription",
+        description: "Your audio is saved and will be transcribed.",
+      });
     } else if (!conn) {
       toast.warning("Live transcription is not configured", {
         id: "recording-without-transcription",
@@ -339,6 +354,7 @@ export function useStartListeningState(
     dictionaryTerms,
     getLiveStartError,
     getSessionMode,
+    localModelStatus,
     microphoneDevice,
     reportStartFailure,
     retainAudio,

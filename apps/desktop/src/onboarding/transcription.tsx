@@ -68,7 +68,7 @@ export function TranscriptionSetupSection({
   onContinue,
 }: {
   // Fork: reports whether setup failed, so the step says "skipped".
-  onContinue: (failed?: boolean) => void;
+  onContinue: (failed?: boolean, downloading?: boolean) => void;
 }) {
   const { t } = useLingui();
   const currentProvider = useConfigValue("current_stt_provider");
@@ -240,7 +240,13 @@ export function TranscriptionSetupSection({
       )}
 
       <div className="flex flex-wrap items-center gap-3">
-        <OnboardingButton onClick={() => onContinue(phase.kind === "failed")}>
+        {/* Fork: also report a download still running, so the step title
+            doesn't claim setup is done (NN/g #1). */}
+        <OnboardingButton
+          onClick={() =>
+            onContinue(phase.kind === "failed", phase.kind === "downloading")
+          }
+        >
           <Trans>Continue</Trans>
         </OnboardingButton>
         {((stalled && phase.kind === "downloading") ||

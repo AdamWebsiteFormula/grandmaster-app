@@ -120,9 +120,20 @@ describe("NotificationSettingsView", () => {
   it("disables every notification control with the master switch", () => {
     render(<NotificationSettingsView />);
 
-    fireEvent.click(
-      screen.getByRole("switch", { name: "Disable all notifications" }),
-    );
+    // Fork: "Allow notifications" is on while the stored
+    // notification_disabled is false (macOS System Settings wording).
+    const allow = screen.getByRole("switch", { name: "Allow notifications" });
+    expect(allow.getAttribute("aria-checked")).toBe("true");
+    expect(
+      screen.queryByText("Turn on Allow notifications to change these."),
+    ).toBeNull();
+
+    fireEvent.click(allow);
+
+    expect(allow.getAttribute("aria-checked")).toBe("false");
+    expect(
+      screen.getByText("Turn on Allow notifications to change these."),
+    ).not.toBeNull();
 
     expect(
       screen

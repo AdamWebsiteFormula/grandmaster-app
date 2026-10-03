@@ -323,9 +323,14 @@ export async function openUpgrade(interval: PlanInterval = "month") {
       });
       return;
     }
+    // Fork: an ended session means this person already has an account, so
+    // the dialog opens on Sign in, not Create account (NN/g heuristic #2,
+    // match the real world).
+    const sessionEnded =
+      error instanceof UpshotRequestError && error.code === "session_ended";
     useUpgradeDialog.setState({
       open: true,
-      mode: "signup",
+      mode: sessionEnded ? "signin" : "signup",
       interval,
       checkout: true,
       error: error instanceof Error ? error.message : String(error),

@@ -12,7 +12,7 @@ import {
 import { commands as notificationCommands } from "@anlg/plugin-notification";
 import {
   AppWindow,
-  Prohibit,
+  Bell,
   CalendarDots,
   Microphone,
   Moon,
@@ -211,19 +211,26 @@ export function NotificationSettingsView() {
       <SettingsGroup>
         <form.Field name="notification_disabled">
           {(field) => (
+            // Fork: a positive "Allow notifications" switch, as macOS
+            // System Settings › Notifications (Apple HIG: on means on). Same
+            // stored key, shown inverted; no schema change.
             <SettingSwitchRow
-              icon={Prohibit}
-              title={<Trans>Disable all notifications</Trans>}
+              icon={Bell}
+              title={<Trans>Allow notifications</Trans>}
               description={
-                <Trans>
-                  Hide all notification panels, Dock alerts, and completion
-                  sounds.
-                </Trans>
+                field.state.value ? (
+                  <Trans>Turn on Allow notifications to change these.</Trans>
+                ) : (
+                  <Trans>
+                    Show notification panels, Dock alerts, and completion
+                    sounds.
+                  </Trans>
+                )
               }
-              checked={field.state.value}
-              onChange={(disabled) => {
-                field.handleChange(disabled);
-                if (disabled) {
+              checked={!field.state.value}
+              onChange={(allowed) => {
+                field.handleChange(!allowed);
+                if (!allowed) {
                   void notificationCommands.clearNotifications();
                 }
               }}

@@ -18,9 +18,12 @@ export function GlassDialogContent({
   return (
     <DialogContent
       overlayClassName="bg-black/60"
+      // Fork: the dark 16% surface is marked important, because the ui
+      // stylesheet's .bg-popover loads later and would win (design-system.md
+      // Dialogs and Build notes).
       className={cn([
         "w-[calc(100vw-48px)] max-w-[320px] gap-4 overflow-hidden rounded-[26px] p-5 sm:rounded-[26px]",
-        "bg-popover dark:bg-[hsl(0_0%_16%)] dark:[--color-border:hsl(0_0%_100%/0.15)]",
+        "bg-popover dark:bg-[hsl(0_0%_16%)]! dark:[--color-border:hsl(0_0%_100%/0.15)]",
         "border-border [--color-input:hsl(0_0%_46%)]",
         "shadow-[0_24px_70px_rgba(0,0,0,0.32)] dark:shadow-none",
         "[&>button:last-child]:hidden",

@@ -21,11 +21,11 @@ import {
 import { TranscriptAudioIcon } from "./header-transcript-icon";
 
 import * as AudioPlayer from "~/audio-player";
-import { useRegenerateTranscript } from "~/session/components/note-input/transcript/actions";
 import {
   buildTranscriptExportSegments,
   formatTranscriptExportSegments,
 } from "~/session/components/note-input/transcript/export-data";
+import { useRegenerateTranscriptConfirm } from "~/session/components/note-input/transcript/regenerate-confirm";
 import { getSessionTranscriptRenderRequest } from "~/session/components/note-input/transcript/render-request-hooks";
 import { useHasTranscript } from "~/session/components/shared";
 import {
@@ -208,7 +208,10 @@ function HeaderViewTranscriptActive({
     muted: boolean;
   };
 }) {
-  const regenerate = useRegenerateTranscript(sessionId);
+  const {
+    requestRegenerateTranscript: regenerate,
+    confirmDialog: regenerateConfirmDialog,
+  } = useRegenerateTranscriptConfirm(sessionId);
   const startListening = useStartListeningWithBatchOverride(sessionId);
   const hasTranscript = useHasTranscript(sessionId);
   const { t } = useLingui();
@@ -268,9 +271,7 @@ function HeaderViewTranscriptActive({
       items.push({
         id: `regenerate-transcript-${sessionId}`,
         text: t`Transcribe again`,
-        action: () => {
-          void regenerate();
-        },
+        action: regenerate,
       });
     }
 
@@ -333,6 +334,7 @@ function HeaderViewTranscriptActive({
           }}
         />
       ) : null}
+      {regenerateConfirmDialog}
     </>
   );
 }

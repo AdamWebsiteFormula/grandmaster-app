@@ -309,6 +309,17 @@ describe("UpshotUpgradeDialog", () => {
     );
   });
 
+  it("sign-in offers Forgot password, which emails support", async () => {
+    render(<UpshotUpgradeDialog />);
+    act(() => openUpshotSignIn());
+    expect(screen.getByText(/Forgot password\?/)).not.toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Email support" }));
+    expect(mocks.openUrl).toHaveBeenCalledWith(
+      "mailto:adam@websiteformula.co?subject=Upshot%20password%20reset",
+      null,
+    );
+  });
+
   it("sign-up links the privacy policy and opens it in the browser", async () => {
     render(<UpshotUpgradeDialog />);
     await act(() => openUpgrade("month"));
