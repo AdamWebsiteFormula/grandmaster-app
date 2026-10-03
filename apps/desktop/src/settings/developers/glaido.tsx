@@ -11,6 +11,7 @@ import { toast } from "@anlg/ui/components/ui/toast";
 import { copyText } from "./clipboard";
 
 import { SettingsSectionTitle } from "~/settings/page-title";
+import { SettingsCard } from "~/settings/setting-row";
 import { commands, type McpServerPaths } from "~/types/tauri.gen";
 
 // Glaido imports a folder whose root mcp.json names a local stdio server.
@@ -102,62 +103,67 @@ export function GlaidoSection() {
   };
 
   return (
-    <section className="flex flex-col gap-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <SettingsSectionTitle>{t`Glaido`}</SettingsSectionTitle>
-          <p className="text-muted-foreground mt-1 text-sm">
-            {t`Ask about your meetings from anywhere with your Glaido key.`}
-          </p>
-        </div>
-        <div className="flex shrink-0 gap-2">
-          {folder && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => void reveal()}
-            >
-              <FolderOpen className="size-3.5" />
-              {t`Reveal in Finder`}
-            </Button>
-          )}
-          {/* Fork: outline, so the CLI Install stays the one primary on
-              the page (ux-audit-oct3 E, design-system). */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={connect.isPending}
-            onClick={() => connect.mutate()}
-          >
-            {connect.isPending && (
-              <CircleNotch className="size-3.5 animate-spin" />
-            )}
-            {folder ? t`Update folder` : t`Create Glaido folder`}
-          </Button>
-        </div>
+    <section className="flex flex-col gap-2">
+      <div className="px-1">
+        <SettingsSectionTitle>{t`Glaido`}</SettingsSectionTitle>
       </div>
-      {folder && (
-        <ol className="text-muted-foreground flex list-decimal flex-col gap-1 pl-5 text-sm">
-          <li>{t`In Glaido, open Tools and click Import.`}</li>
-          <li>
-            {/* Apple Support, "Go to a folder by entering its pathname": Shift-Command-G. ~/Library is hidden in file pickers. */}
-            {t`In the file picker, press ⌘⇧G and paste the path, then turn Upshot on.`}
-            <span className="mt-1 block text-xs break-all">{folder}</span>
+      <SettingsCard>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h3 className="text-sm font-medium">{t`Glaido folder`}</h3>
+            <p className="text-muted-foreground mt-0.5 text-xs">
+              {t`Ask about your meetings from anywhere with your Glaido key.`}
+            </p>
+          </div>
+          <div className="flex shrink-0 gap-2">
+            {folder && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => void reveal()}
+              >
+                <FolderOpen className="size-3.5" />
+                {t`Reveal in Finder`}
+              </Button>
+            )}
+            {/* Fork: outline, so the CLI Install stays the one primary on
+              the page (ux-audit-oct3 E, design-system). */}
             <Button
               type="button"
               variant="outline"
               size="sm"
-              className="mt-2"
-              onClick={() => void copyText(folder, t`Path copied`)}
+              disabled={connect.isPending}
+              onClick={() => connect.mutate()}
             >
-              <Copy className="size-3.5" />
-              {t`Copy path`}
+              {connect.isPending && (
+                <CircleNotch className="size-3.5 animate-spin" />
+              )}
+              {folder ? t`Update folder` : t`Create Glaido folder`}
             </Button>
-          </li>
-        </ol>
-      )}
+          </div>
+        </div>
+        {folder && (
+          <ol className="text-muted-foreground flex list-decimal flex-col gap-1 pl-5 text-sm">
+            <li>{t`In Glaido, open Tools and click Import.`}</li>
+            <li>
+              {/* Apple Support, "Go to a folder by entering its pathname": Shift-Command-G. ~/Library is hidden in file pickers. */}
+              {t`In the file picker, press ⌘⇧G and paste the path, then turn Upshot on.`}
+              <span className="mt-1 block text-xs break-all">{folder}</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={() => void copyText(folder, t`Path copied`)}
+              >
+                <Copy className="size-3.5" />
+                {t`Copy path`}
+              </Button>
+            </li>
+          </ol>
+        )}
+      </SettingsCard>
     </section>
   );
 }

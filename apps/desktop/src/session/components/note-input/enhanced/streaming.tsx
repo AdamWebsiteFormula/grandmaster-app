@@ -16,15 +16,20 @@ function SummaryTitleSpace({ title }: { title: string }) {
   return (
     <div
       data-testid="summary-title-space"
-      className="pointer-events-none mb-4 flex min-h-9 items-start"
+      data-note-title-anchor
+      // Fork: same metrics as the editor title, so the meta chip row sits in
+      // the same place while the summary streams (granola-compare-oct3 §1).
+      className="pointer-events-none mb-[var(--note-meta-chips-space,1rem)] flex min-h-9 items-start"
     >
       {title ? (
         // Fork: on the type scale, not an arbitrary size (ux-audit-oct3 C, design-system).
-        <h1 className="text-foreground text-2xl font-bold">{title}</h1>
+        <h1 className="text-foreground text-2xl font-medium tracking-[-0.02em]">
+          {title}
+        </h1>
       ) : (
         <span
           aria-hidden="true"
-          className="text-muted-foreground animate-pulse text-2xl font-bold"
+          className="text-muted-foreground animate-pulse text-2xl font-medium tracking-[-0.02em]"
         >
           <Trans>Generating title…</Trans>
         </span>
@@ -124,7 +129,11 @@ export function StreamingView({
         <Streamdown
           icons={streamdownIcons}
           components={streamdownComponents}
-          className={cn(["note-typography", "flex flex-col"])}
+          className={cn([
+            "note-typography",
+            "enhanced-summary-stream",
+            "flex flex-col",
+          ])}
           caret="block"
           isAnimating={isGenerating}
         >

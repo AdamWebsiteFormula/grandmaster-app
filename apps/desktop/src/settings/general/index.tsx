@@ -22,14 +22,14 @@ import { SpokenLanguagesView } from "./spoken-languages";
 import { StorageSettingsView } from "./storage";
 import { SummaryLengthSelector } from "./summary-length";
 import { TimezoneSelector } from "./timezone";
-import { WeekStartSelector } from "./week-start";
 
-import { SettingsPageTitle, SettingsSectionTitle } from "~/settings/page-title";
+import { SettingsPageTitle } from "~/settings/page-title";
 import {
   type StoredSettingValues,
   useSetSettingValues,
   useStoredSettingValuesQuery,
 } from "~/settings/queries";
+import { SettingsGroup } from "~/settings/setting-row";
 import { isAppStoreBuild } from "~/shared/app-store";
 import { resolveConfigValue, resolveConfigValues } from "~/shared/config";
 
@@ -207,6 +207,13 @@ function SettingsSectionContent({
         title={
           section === "app" ? <Trans>General</Trans> : <Trans>Meetings</Trans>
         }
+        description={
+          section === "app" ? (
+            <Trans>Startup, language and where exports go.</Trans>
+          ) : (
+            <Trans>How Upshot records and summarizes your meetings.</Trans>
+          )
+        }
       />
 
       {section === "app" && (
@@ -238,50 +245,44 @@ function SettingsSectionContent({
             )}
           </form.Subscribe>
 
-          <div>
-            <SettingsSectionTitle className="mb-4">
-              <Trans>Language &amp; region</Trans>
-            </SettingsSectionTitle>
-            <div className="flex flex-col gap-6">
-              <form.Field name="ai_language">
-                {(field) => (
-                  <MainLanguageView
-                    value={field.state.value}
-                    onChange={(val) => {
-                      field.handleChange(val);
-                      form.setFieldValue(
-                        "spoken_languages",
-                        getAdditionalSpokenLanguages(
-                          val,
-                          form.state.values.spoken_languages,
-                        ),
-                      );
-                    }}
-                    supportedLanguages={CORE_TRANSCRIPTION_LANGUAGE_CODES}
-                  />
-                )}
-              </form.Field>
-              <TimezoneSelector />
-              <WeekStartSelector />
-              <form.Field name="spoken_languages">
-                {(field) => (
-                  <SpokenLanguagesView
-                    mainLanguage={form.state.values.ai_language}
-                    value={field.state.value}
-                    onChange={(val) =>
-                      field.handleChange(
-                        getAdditionalSpokenLanguages(
-                          form.state.values.ai_language,
-                          val,
-                        ),
-                      )
-                    }
-                    supportedLanguages={CORE_TRANSCRIPTION_LANGUAGE_CODES}
-                  />
-                )}
-              </form.Field>
-            </div>
-          </div>
+          <SettingsGroup title={<Trans>Language &amp; region</Trans>}>
+            <form.Field name="ai_language">
+              {(field) => (
+                <MainLanguageView
+                  value={field.state.value}
+                  onChange={(val) => {
+                    field.handleChange(val);
+                    form.setFieldValue(
+                      "spoken_languages",
+                      getAdditionalSpokenLanguages(
+                        val,
+                        form.state.values.spoken_languages,
+                      ),
+                    );
+                  }}
+                  supportedLanguages={CORE_TRANSCRIPTION_LANGUAGE_CODES}
+                />
+              )}
+            </form.Field>
+            <TimezoneSelector />
+            <form.Field name="spoken_languages">
+              {(field) => (
+                <SpokenLanguagesView
+                  mainLanguage={form.state.values.ai_language}
+                  value={field.state.value}
+                  onChange={(val) =>
+                    field.handleChange(
+                      getAdditionalSpokenLanguages(
+                        form.state.values.ai_language,
+                        val,
+                      ),
+                    )
+                  }
+                  supportedLanguages={CORE_TRANSCRIPTION_LANGUAGE_CODES}
+                />
+              )}
+            </form.Field>
+          </SettingsGroup>
 
           <StorageSettingsView />
         </>
@@ -326,39 +327,31 @@ function SettingsSectionContent({
             )}
           </form.Subscribe>
 
-          <div>
-            <SettingsSectionTitle className="mb-4">
-              <Trans>Summaries</Trans>
-            </SettingsSectionTitle>
+          <SettingsGroup title={<Trans>Summaries</Trans>}>
             <SummaryLengthSelector />
-          </div>
+          </SettingsGroup>
 
-          <div>
-            <SettingsSectionTitle className="mb-4">
-              <Trans>Audio</Trans>
-            </SettingsSectionTitle>
-            <AudioSettingsView
-              audioRetention={{
-                value: audioRetention,
-                onChange: (value) =>
-                  setSettingValues({
-                    audio_retention: value,
-                    save_recordings: value !== "none",
-                  }),
-              }}
-              microphoneDevice={{
-                value: microphoneDevice,
-                devices: microphoneDevicesQuery.data ?? [],
-                onChange: (value) =>
-                  setSettingValues({ microphone_device: value }),
-              }}
-              rememberSpeakers={{
-                value: rememberSpeakers,
-                onChange: (value) =>
-                  setSettingValues({ remember_speakers: value }),
-              }}
-            />
-          </div>
+          <AudioSettingsView
+            audioRetention={{
+              value: audioRetention,
+              onChange: (value) =>
+                setSettingValues({
+                  audio_retention: value,
+                  save_recordings: value !== "none",
+                }),
+            }}
+            microphoneDevice={{
+              value: microphoneDevice,
+              devices: microphoneDevicesQuery.data ?? [],
+              onChange: (value) =>
+                setSettingValues({ microphone_device: value }),
+            }}
+            rememberSpeakers={{
+              value: rememberSpeakers,
+              onChange: (value) =>
+                setSettingValues({ remember_speakers: value }),
+            }}
+          />
         </>
       )}
     </div>
@@ -368,7 +361,10 @@ function SettingsSectionContent({
 export function SettingsNotifications() {
   return (
     <div className="flex flex-col gap-6">
-      <SettingsPageTitle title={<Trans>Notifications</Trans>} />
+      <SettingsPageTitle
+        title={<Trans>Notifications</Trans>}
+        description={<Trans>Choose when Upshot alerts you.</Trans>}
+      />
       <NotificationSettingsView />
     </div>
   );
@@ -377,7 +373,10 @@ export function SettingsNotifications() {
 export function SettingsPermissions() {
   return (
     <div className="flex flex-col gap-8">
-      <SettingsPageTitle title={<Trans>Permissions</Trans>} />
+      <SettingsPageTitle
+        title={<Trans>Permissions</Trans>}
+        description={<Trans>What Upshot can use on this Mac.</Trans>}
+      />
       <Permissions />
     </div>
   );

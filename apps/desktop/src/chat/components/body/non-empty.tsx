@@ -1,9 +1,11 @@
+import { useLingui } from "@lingui/react/macro";
 import type { ChatStatus } from "ai";
 
 import { ErrorMessage } from "~/chat/components/message/error";
 import { LoadingMessage } from "~/chat/components/message/loading";
 import { NormalMessage } from "~/chat/components/message/normal";
 import { MessageTimestamp } from "~/chat/components/message/timestamp";
+import { followUpRecipes, RecipeRow } from "~/chat/components/recipes";
 import { hasRenderableContent } from "~/chat/message-content";
 import type { AnlgUIMessage } from "~/chat/types";
 
@@ -33,12 +35,18 @@ export function ChatBodyNonEmpty({
   status,
   error,
   onReload,
+  onSendMessage,
 }: {
   messages: AnlgUIMessage[];
   status: ChatStatus;
   error?: Error;
   onReload?: () => void;
+  onSendMessage?: (
+    content: string,
+    parts: Array<{ type: "text"; text: string }>,
+  ) => void;
 }) {
+  const { t } = useLingui();
   const showErrorState = status === "error" && error;
   const lastMessage = messages[messages.length - 1];
   const showLoadingState =
@@ -78,6 +86,22 @@ export function ChatBodyNonEmpty({
           }
         />
       ))}
+      {/* Fork: follow-up chips under a finished answer, as Granola's "Say
+          more" (granola-compare-oct3 section 4). */}
+      {onSendMessage &&
+      status === "ready" &&
+      lastMessage?.role === "assistant" &&
+      hasRenderableContent(lastMessage) ? (
+        <RecipeRow
+          label={t`Follow-ups`}
+          recipes={followUpRecipes()}
+          onSelect={(prompt) =>
+            onSendMessage(prompt, [{ type: "text", text: prompt }])
+          }
+          wrap
+          className="pt-1 pb-2"
+        />
+      ) : null}
       {showLoadingState && <LoadingMessage />}
       {showErrorState && <ErrorMessage error={error} onRetry={onReload} />}
     </div>

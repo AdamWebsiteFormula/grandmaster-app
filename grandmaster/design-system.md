@@ -40,9 +40,9 @@ Bare HSL triples in `packages/design-system/src/tokens.css`, read as `hsl(var(--
 | `--sidebar-accent` | `0 0% 19%` | `60 5% 90%` | Active sidebar row (Home nav and Settings nav), above the 13% hover |
 | `--border` | `0 0% 24%` | `24 6% 90%` | Hairlines |
 | `--input` | `0 0% 42%` | `24 5% 50%` | Field borders (3:1 or more on every surface a field sits on, both themes) |
-| `--primary` | `20 100% 56%` | `20 100% 46%` | The brand accent: fills (primary buttons, checks, gauges). Light is one step deeper so marks reach 3:1 |
+| `--primary` | `20 100% 56%` | `20 100% 39%` | Accent fill (primary buttons, checks, gauges). Dark: the logo orange #FF6A1F with black text (WCAG 2.2 7.3:1; Apple HIG: accents get brighter in dark mode). Light: #C74200 with white text. WCAG 2.2 4.99:1 and APCA Lc 79, which black-on-orange can't reach (Oct 3 button research; Radix orange step 9 also takes white text). The logo and icon stay #FF6A1F. Hover is `hover:brightness-90` |
 | `--primary-text` | `20 100% 56%` | `20 100% 35%` | Orange text: `text-primary`, note links, hashtags (4.5:1 or more). Read through `--text-color-primary` |
-| `--primary-foreground` | `0 0% 0%` | `0 0% 0%` | Text on the accent |
+| `--primary-foreground` | `0 0% 0%` | `0 0% 100%` | Text on the accent: black in dark mode, white in light |
 | `--ring` | `20 100% 56%` | `20 100% 46%` | Focus ring (3:1 or more, both themes) |
 | `--destructive` | `0 72% 51%` | `0 72% 45%` | Delete buttons (white text 4.6:1 dark, 5.6:1 light) |
 | `--destructive-text` | `0 86% 72%` | `0 72% 45%` | Error text: `text-destructive` (4.5:1 or more). Read through `--text-color-destructive` |
@@ -72,11 +72,13 @@ Data colors are the one exception: transcript speaker labels get distinct hues s
 
 While recording, the red Stop in the bottom recording bar is the main action. It is the only Stop on screen, and the "New note" button turns gray until recording ends.
 
-Adam picked orange on Oct 2 (the blueprint offered mint or violet). It matches the app icon. To change it later, edit `--primary`, `--primary-text` and `--ring` in both token blocks (light uses deeper shades: 46% for fills and the ring, 35% for text), `--selection-overlay` in `dark-theme.css`, and the splash in `apps/desktop/index.html`.
+Adam picked orange on Oct 2 (the blueprint offered mint or violet). It matches the app icon. To change it later, edit `--primary`, `--primary-text` and `--ring` in both token blocks (fills are 56% with black text in dark and 39% with white text in light; the light ring is 39%, the dark ring 56%; text is 35% light, 56% dark), `--selection-overlay` in `dark-theme.css`, and the splash in `apps/desktop/index.html`.
 
 ## Type
 
-- Font: Geist, with Geist Mono for numbers and times. Variable `.woff2` files and the SIL OFL license live in `apps/desktop/public/fonts/`. `--font-sans` and `--font-mono` are set in `apps/desktop/src/styles/globals.css`.
+- Font: Geist. Variable `.woff2` files and the SIL OFL license live in `apps/desktop/public/fonts/`. `--font-sans` and `--font-mono` are set in `apps/desktop/src/styles/globals.css`.
+- Times and dates (clock times, ranges, durations, ages like "23h", timers, transcript timestamps) use Geist sans with `tabular-nums`, so digits line up without a second typeface. Changed Oct 3: Granola sets every time in its sans (Home rows, Coming up, Chat page Recents "23h"/"1d", transcript; Adam's Oct 3 Granola screenshots), and the Oct 3 fresh-eyes design review flagged mono times as reading like code. AM and PM may sit in small caps (`[font-variant-caps:all-small-caps]`).
+- Geist Mono is only for key chips (`Kbd`), code, logs and technical IDs.
 - One ratio: 1.2 (minor third) from a 16 px base. Set in the desktop `@theme` as `--text-*`, so every Tailwind `text-*` class follows it.
 - Fonts and `--text-*` are also set in an unlayered `:root` block in `apps/desktop/src/styles/globals.css`. Keep it: `@anlg/ui/globals.css` loads later and would reset them to Tailwind defaults.
 - Note text never auto-hyphenates (`hyphens: manual` in `packages/editor/src/styles/prosemirror/base.css`).

@@ -1,6 +1,8 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useMemo } from "react";
 
+import { Globe } from "@anlg/ui/components/icons";
+
 import { getBaseLanguageDisplayName, parseLocale } from "./language";
 import {
   SearchableSelect,
@@ -47,6 +49,7 @@ export function MainLanguageView({
 
   return (
     <SettingRow
+      icon={Globe}
       title={<Trans>Main language</Trans>}
       description={
         <Trans>Use this language for summaries and AI responses.</Trans>

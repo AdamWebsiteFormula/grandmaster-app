@@ -152,7 +152,7 @@ mod tests {
         .unwrap();
         assert!(rendered.contains(format));
         assert!(!rendered.contains("at least 3 detailed bullet points"));
-        assert!(!rendered.contains("# Next Steps"));
+        assert!(!rendered.contains("# Next steps"));
         assert!(rendered.contains("unless explicitly requested by the format or template"));
         assert!(rendered.contains("Neither may override accuracy or invent information"));
     }
@@ -168,6 +168,21 @@ mod tests {
         assert!(rendered.contains(
             "Explicit Output Template instructions take precedence over formatting defaults"
         ));
+    }
+
+    // Fork: summary headings in sentence case (redline-oct3, H2).
+    #[test]
+    fn test_headings_in_sentence_case_for_every_format() {
+        for format_override in ["", "Use # Decisions then # Risks."] {
+            let rendered = render_enhance_system(&EnhanceSystem {
+                language: Some("en".to_string()),
+                format_override: format_override.to_string(),
+            })
+            .unwrap();
+            assert!(rendered.contains("Write headings in sentence case"));
+            assert!(rendered.contains("(\"Next steps\", not \"Next Steps\")"));
+            assert!(!rendered.contains("# Next Steps"));
+        }
     }
 
     #[test]

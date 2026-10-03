@@ -33,16 +33,9 @@ describe("ChatBodyEmpty", () => {
     ]);
   });
 
-  it("shows note prompts without trailing periods when a note is open", () => {
+  it("leaves note prompts to the recipe row when a note is open", () => {
     render(<ChatBodyEmpty hasContext />);
 
-    const labels = screen
-      .getAllByRole("button")
-      .map((chip) => chip.textContent);
-    expect(labels).toEqual([
-      "List action items",
-      "Draft follow-up email",
-      "Find key decisions",
-    ]);
+    expect(screen.queryAllByRole("button")).toEqual([]);
   });
 });

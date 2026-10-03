@@ -96,7 +96,7 @@ it("saves the contact fields and photo to the signed-in personal card", async ()
   expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe("Ada");
   for (const [label, value] of [
     ["Name", "Ada Lovelace"],
-    ["Job Title", "Engineer"],
+    ["Job title", "Engineer"],
     ["Email", "contact@example.com"],
     ["Phone", "+123"],
     ["LinkedIn", "ada"],

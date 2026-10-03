@@ -91,7 +91,7 @@ export function RecordingBar({ sessionId }: { sessionId: string }) {
         </span>
         <span
           role="timer"
-          className="text-muted-foreground font-mono text-xs tabular-nums"
+          className="text-muted-foreground text-xs tabular-nums"
           aria-label={t`Recording time`}
         >
           {formatElapsed(seconds)}

@@ -1,6 +1,8 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useMemo } from "react";
 
+import { Clock } from "@anlg/ui/components/icons";
+
 import {
   SearchableSelect,
   type SearchableSelectOption,
@@ -86,6 +88,10 @@ export function timeZoneOption(
   };
 }
 
+export function timeZoneCity(timeZone: string): string {
+  return (timeZone.split("/").pop() ?? timeZone).replace(/_/g, " ");
+}
+
 export function TimezoneSelector() {
   const { i18n, t } = useLingui();
   const value = useConfigValue("timezone");
@@ -102,7 +108,16 @@ export function TimezoneSelector() {
       {
         ...system,
         value: SYSTEM_TIMEZONE_VALUE,
-        label: t`System (${system.label})`,
+        // Fork: the city alone ("System (New York)"), so the trigger is
+        // not cut off (redline-oct3 Settings; macOS Date & Time names the
+        // closest city).
+        label: t`System (${timeZoneCity(systemTimezone)})`,
+        // The offset stays in the search keywords; the trigger keeps the
+        // same width as the Main language select above it.
+        detail: undefined,
+        keywords: [system.detail, system.keywords, system.label]
+          .filter(Boolean)
+          .join(" "),
       },
       ...listTimeZones().map((zone) => timeZoneOption(zone, now, i18n.locale)),
     ];
@@ -119,6 +134,7 @@ export function TimezoneSelector() {
 
   return (
     <SettingRow
+      icon={Clock}
       title={<Trans>Time zone</Trans>}
       description={
         <Trans>Show the timeline in your preferred time zone.</Trans>

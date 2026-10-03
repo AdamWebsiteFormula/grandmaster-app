@@ -2,11 +2,20 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { platform } from "@tauri-apps/plugin-os";
 
 import type { PermissionStatus } from "@anlg/plugin-permissions";
-import { Check, WarningCircle } from "@anlg/ui/components/icons";
+import {
+  CalendarDots,
+  Check,
+  Cursor,
+  type Icon,
+  Microphone,
+  SpeakerHigh,
+  WarningCircle,
+} from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 import { cn } from "@anlg/utils";
 
+import { SettingIconTile, SettingsCard } from "~/settings/setting-row";
 import {
   trackPermissionRequested,
   usePermissionAnalytics,
@@ -18,6 +27,7 @@ import {
 } from "~/shared/hooks/usePermissions";
 
 function PermissionRow({
+  icon,
   title,
   description,
   status,
@@ -29,6 +39,7 @@ function PermissionRow({
   assisted = false,
   runtimeCapability = false,
 }: {
+  icon: Icon;
   title: string;
   description: string;
   status: PermissionStatus | undefined;
@@ -64,10 +75,11 @@ function PermissionRow({
 
   return (
     <div className="flex items-center justify-between gap-4">
-      <div className="flex-1">
+      <SettingIconTile icon={icon} />
+      <div className="min-w-0 flex-1">
         <div
           className={cn([
-            "mb-1 flex items-center gap-2",
+            "mb-0.5 flex items-center gap-2",
             !isAuthorized && "text-destructive",
           ])}
         >
@@ -128,9 +140,9 @@ export function Permissions() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <SettingsCard>
       <AudioPermissions runtimeCapabilities />
-    </div>
+    </SettingsCard>
   );
 }
 
@@ -153,6 +165,7 @@ function AudioPermissions({
     <>
       <PermissionRow
         permission="microphone"
+        icon={Microphone}
         title={t`Microphone`}
         description={t`Record your voice in meetings and calls.`}
         status={mic.status}
@@ -164,6 +177,7 @@ function AudioPermissions({
       />
       <PermissionRow
         permission="system_audio"
+        icon={SpeakerHigh}
         title={t`System audio`}
         description={t`Record other participants in meetings.`}
         status={systemAudio.status}
@@ -196,11 +210,12 @@ function MacOSPermissions() {
   return (
     // Fork: one list, no eyebrow group labels, in the order a meeting needs
     // them (ux-audit-oct3 E, design-system).
-    <div className="flex flex-col gap-6">
+    <SettingsCard>
       <AudioPermissions />
 
       <PermissionRow
         permission="accessibility"
+        icon={Cursor}
         title={t`Accessibility`}
         description={
           accessibilityGuidance
@@ -216,6 +231,7 @@ function MacOSPermissions() {
 
       <PermissionRow
         permission="calendar"
+        icon={CalendarDots}
         title={t`Calendar`}
         description={t`Show Apple Calendar events in Upshot.`}
         status={calendar.status}
@@ -223,6 +239,6 @@ function MacOSPermissions() {
         onRequest={calendar.request}
         onOpen={calendar.open}
       />
-    </div>
+    </SettingsCard>
   );
 }

@@ -9,6 +9,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ChatContent } from "./content";
 
+import { queueChatPrompt, usePendingChatPrompt } from "~/chat/pending-prompt";
+
 vi.mock("./body", () => ({
   ChatBody: () => <div data-testid="chat-body" />,
 }));
@@ -76,6 +78,61 @@ const renderContent = (onAddContextEntity = vi.fn()) => {
 describe("ChatContent", () => {
   beforeEach(() => {
     cleanup();
+  });
+
+  it("sends a prompt picked on Home once the chat is ready", () => {
+    queueChatPrompt("Prep me for my next meeting");
+    const handleSendMessage = vi.fn();
+    const props = {
+      sessionId: "home-session",
+      messages: [],
+      sendMessage: vi.fn(),
+      regenerate: vi.fn(),
+      stop: vi.fn(),
+      status: "ready" as const,
+      model: {} as never,
+      handleSendMessage,
+      pendingRefs: [],
+    };
+    const { rerender } = render(
+      <ChatContent {...props} isSystemPromptReady={false} />,
+    );
+    expect(handleSendMessage).not.toHaveBeenCalled();
+
+    rerender(<ChatContent {...props} isSystemPromptReady />);
+    expect(handleSendMessage).toHaveBeenCalledTimes(1);
+    expect(handleSendMessage.mock.calls[0].slice(0, 2)).toEqual([
+      "Prep me for my next meeting",
+      [{ type: "text", text: "Prep me for my next meeting" }],
+    ]);
+    expect(usePendingChatPrompt.getState().prompt).toBeNull();
+  });
+
+  it("shows note recipes above the field and sends one", () => {
+    const handleSendMessage = vi.fn();
+    const props = {
+      sessionId: "note-session",
+      messages: [],
+      sendMessage: vi.fn(),
+      regenerate: vi.fn(),
+      stop: vi.fn(),
+      status: "ready" as const,
+      model: {} as never,
+      handleSendMessage,
+      pendingRefs: [],
+      isSystemPromptReady: true,
+    };
+    const { rerender } = render(<ChatContent {...props} />);
+    expect(screen.queryByRole("group", { name: "Recipes" })).toBeNull();
+
+    rerender(<ChatContent {...props} showRecipes />);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Draft follow-up email" }),
+    );
+    expect(handleSendMessage.mock.calls[0].slice(0, 2)).toEqual([
+      "Draft a follow-up email to the participants",
+      [{ type: "text", text: "Draft a follow-up email to the participants" }],
+    ]);
   });
 
   it("keeps context on new messages", () => {

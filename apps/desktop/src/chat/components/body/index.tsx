@@ -91,6 +91,7 @@ export function ChatBody({
               status={status}
               error={error}
               onReload={onReload}
+              onSendMessage={onSendMessage}
             />
           )}
         </div>

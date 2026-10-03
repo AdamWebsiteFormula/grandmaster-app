@@ -220,4 +220,19 @@ describe("ClassicMainBody", () => {
     expect(screen.queryByTestId("resize-handle")).toBeNull();
     expect(screen.getAllByTestId("panel")).toHaveLength(1);
   });
+
+  // Fork: New note shows on Home, not on note or Settings tabs (redline-oct3, H2).
+  it.each([
+    ["empty", true],
+    ["sessions", false],
+    ["settings", false],
+  ])("shows the top-right New note on a %s tab: %s", (type, visible) => {
+    mocks.currentTab = { type };
+
+    render(<ClassicMainBody />);
+
+    expect(screen.queryByRole("button", { name: "New note" }) !== null).toBe(
+      visible,
+    );
+  });
 });

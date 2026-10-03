@@ -21,13 +21,8 @@ vi.mock("~/home/home-view", () => ({
   HomeView: () => <div>Home view</div>,
 }));
 
-vi.mock("~/contexts/shell", () => ({
-  useShell: () => ({
-    chat: {
-      mode: "FloatingClosed",
-      sendEvent: vi.fn(),
-    },
-  }),
+vi.mock("~/home/home-composer", () => ({
+  HomeComposer: () => <input aria-label="Ask anything" />,
 }));
 
 import { TabContentEmpty } from "./empty";
@@ -37,7 +32,7 @@ describe("TabContentEmpty", () => {
     cleanup();
   });
 
-  it("shows the home view and the global chat bar", () => {
+  it("shows the home view and the Ask anything composer", () => {
     render(
       <TabContentEmpty
         tab={{
@@ -50,8 +45,6 @@ describe("TabContentEmpty", () => {
     );
 
     expect(screen.getByText("Home view")).toBeTruthy();
-    expect(
-      screen.getByRole("button", { name: "Ask anything" }),
-    ).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "Ask anything" })).toBeTruthy();
   });
 });

@@ -10,7 +10,12 @@ export function STT() {
   return (
     <SttSettingsProvider>
       <div className="flex flex-col gap-6">
-        <SettingsPageTitle title={<Trans>Transcription</Trans>} />
+        <SettingsPageTitle
+          title={<Trans>Transcription</Trans>}
+          description={
+            <Trans>Choose the model that turns speech into text.</Trans>
+          }
+        />
         <SelectProviderAndModel />
         <ConfigureProviders />
       </div>

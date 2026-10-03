@@ -1,0 +1,267 @@
+// Fork: the Chat page, Granola's sidebar "Chat" (granola-compare-oct3 section
+// 6; Granola 101, docs.granola.ai/help-center/getting-started/granola-101):
+// a greeting, a composer with the model menu, recent chats and recipes.
+// Sending or opening a chat shows it in the right chat panel.
+import { Trans, useLingui } from "@lingui/react/macro";
+import { differenceInMinutes, format } from "date-fns";
+import { type FormEvent, type KeyboardEvent, useEffect, useState } from "react";
+
+import { ArrowUp, CaretRight, ChatCircle } from "@anlg/ui/components/icons";
+import { cn } from "@anlg/utils";
+
+import { ChatModelMenu } from "~/chat/components/input/model-menu";
+import {
+  chatPageRecipes,
+  RECIPE_CHIP_CLASS,
+  RecipeRow,
+} from "~/chat/components/recipes";
+import { queueChatPrompt } from "~/chat/pending-prompt";
+import { type ChatGroupRecord, useChatGroups } from "~/chat/store/queries";
+import { useShell } from "~/contexts/shell";
+import { StandardContentWrapper } from "~/shared/main";
+import {
+  ensureUpshotSessionLoaded,
+  useUpshotAccount,
+} from "~/upshot-plan/session";
+
+/** Recents shown before "See all" (Granola shows a handful). */
+export const CHAT_RECENTS_LIMIT = 5;
+
+/** Recipe chips shown before the "See all" chip (redline-oct3). */
+export const CHAT_RECIPES_LIMIT = 3;
+
+export function TabContentChat() {
+  return (
+    <StandardContentWrapper>
+      <ChatPage />
+    </StandardContentWrapper>
+  );
+}
+
+/** "adam.willingham@x.com" → "Adam"; null when the local part has no name. */
+export function firstNameFromEmail(email: string | null | undefined) {
+  const local = email?.split("@")[0] ?? "";
+  const first = local.split(/[._+\-\d]+/).find(Boolean) ?? "";
+  if (first.length < 2) return null;
+  return first[0].toUpperCase() + first.slice(1).toLowerCase();
+}
+
+/** Granola's compact ages: "now", "12m", "23h", "2d", then a date. */
+export function compactAge(fromMs: number, nowMs = Date.now()) {
+  const minutes = Math.max(0, differenceInMinutes(nowMs, fromMs));
+  if (minutes < 1) return null;
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d`;
+  return format(fromMs, "MMM d");
+}
+
+export function ChatPage() {
+  const { t } = useLingui();
+  const { chat } = useShell();
+  const email = useUpshotAccount((state) => state.session?.email ?? null);
+  const firstName = firstNameFromEmail(email);
+  const groups = useChatGroups(chat.scope);
+  const [value, setValue] = useState("");
+  const [showAll, setShowAll] = useState(false);
+  const [showAllRecipes, setShowAllRecipes] = useState(false);
+
+  useEffect(() => {
+    void ensureUpshotSessionLoaded();
+  }, []);
+
+  const ask = (prompt: string) => {
+    const text = prompt.trim();
+    if (!text) return;
+    chat.startNewChat();
+    queueChatPrompt(text);
+    chat.sendEvent({ type: "OPEN_RIGHT_PANEL" });
+    setValue("");
+  };
+
+  const openChat = (groupId: string) => {
+    chat.selectChat(groupId);
+    chat.sendEvent({ type: "OPEN_RIGHT_PANEL" });
+  };
+
+  const onSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    ask(value);
+  };
+
+  // Enter sends, Shift+Enter adds a line, as in the chat panel.
+  const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (
+      event.key === "Enter" &&
+      !event.shiftKey &&
+      !event.nativeEvent.isComposing
+    ) {
+      event.preventDefault();
+      ask(value);
+    }
+    if (event.key === "Escape") event.currentTarget.blur();
+  };
+
+  const recents = showAll ? groups : groups.slice(0, CHAT_RECENTS_LIMIT);
+  const recipes = chatPageRecipes();
+
+  return (
+    <div
+      data-tauri-drag-region
+      className="scrollbar-soft h-full overflow-y-auto"
+    >
+      <div className="mx-auto flex w-full max-w-[560px] flex-col gap-8 px-8 pt-24 pb-10">
+        <h1 className="text-foreground text-center text-xl font-medium tracking-[-0.02em] text-balance">
+          {firstName ? t`Hi ${firstName}, ask anything` : t`Ask anything`}
+        </h1>
+
+        <form
+          onSubmit={onSubmit}
+          className={cn([
+            "bg-card border-input flex min-h-[88px] flex-col gap-2 rounded-2xl border p-3",
+            "focus-within:ring-ring focus-within:ring-2",
+          ])}
+        >
+          <textarea
+            value={value}
+            rows={2}
+            onChange={(event) => setValue(event.target.value)}
+            onKeyDown={onKeyDown}
+            placeholder={t`Ask about your meetings…`}
+            aria-label={t`Ask anything`}
+            className="text-foreground placeholder:text-muted-foreground min-h-10 w-full resize-none bg-transparent text-sm outline-none"
+          />
+          <div className="flex items-center justify-between gap-2">
+            <ChatModelMenu />
+            <button
+              type="submit"
+              aria-label={t`Send`}
+              disabled={!value.trim()}
+              className="bg-foreground text-background inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-opacity hover:opacity-90 disabled:cursor-default disabled:opacity-45"
+            >
+              <ArrowUp className="size-4" weight="bold" />
+            </button>
+          </div>
+        </form>
+
+        {/* Fork: Recents appears with the first chat; an empty list only
+            pushes Recipes down (redline-oct3; Granola's Chat page). */}
+        {groups.length > 0 ? (
+          <section
+            aria-labelledby="chat-recents"
+            className="flex flex-col gap-1"
+          >
+            <div className="flex items-center justify-between px-2">
+              <h2
+                id="chat-recents"
+                className="text-muted-foreground text-sm font-medium"
+              >
+                <Trans>Recents</Trans>
+              </h2>
+              {groups.length > CHAT_RECENTS_LIMIT ? (
+                <button
+                  type="button"
+                  onClick={() => setShowAll((current) => !current)}
+                  className="text-muted-foreground hover:text-foreground focus-visible:ring-ring cursor-pointer rounded-md px-1 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-hidden"
+                >
+                  {showAll ? <Trans>Show less</Trans> : <Trans>See all</Trans>}
+                </button>
+              ) : null}
+            </div>
+            <ul className="flex flex-col">
+              {recents.map((group) => (
+                <RecentChatRow key={group.id} group={group} onOpen={openChat} />
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        <section aria-labelledby="chat-recipes" className="flex flex-col gap-2">
+          <h2
+            id="chat-recipes"
+            className="text-muted-foreground px-2 text-sm font-medium"
+          >
+            <Trans>Recipes</Trans>
+          </h2>
+          {/* Fork: three chips, then "See all", as Granola's Chat page
+              ends its recipe row (granola-screens/10). */}
+          <RecipeRow
+            label={t`Recipes`}
+            recipes={
+              showAllRecipes ? recipes : recipes.slice(0, CHAT_RECIPES_LIMIT)
+            }
+            onSelect={ask}
+            wrap
+            className="px-2"
+          >
+            {recipes.length > CHAT_RECIPES_LIMIT ? (
+              <button
+                type="button"
+                aria-expanded={showAllRecipes}
+                onClick={() => setShowAllRecipes((current) => !current)}
+                className={RECIPE_CHIP_CLASS}
+              >
+                {showAllRecipes ? (
+                  <Trans>Show less</Trans>
+                ) : (
+                  <>
+                    <Trans>See all</Trans>
+                    <CaretRight size={12} className="shrink-0" aria-hidden />
+                  </>
+                )}
+              </button>
+            ) : null}
+          </RecipeRow>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function RecentChatRow({
+  group,
+  onOpen,
+}: {
+  group: ChatGroupRecord;
+  onOpen: (groupId: string) => void;
+}) {
+  const { t } = useLingui();
+  const time = group.createdAt;
+  const timeMs = time ? new Date(time).getTime() : Number.NaN;
+  const age = Number.isNaN(timeMs) ? "" : (compactAge(timeMs) ?? t`now`);
+  const title = group.title || t`Untitled chat`;
+
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={() => onOpen(group.id)}
+        className="hover:bg-accent focus-visible:ring-ring flex h-9 w-full cursor-pointer items-center gap-3 rounded-lg px-2 text-left transition-colors focus-visible:ring-2 focus-visible:outline-hidden"
+      >
+        <span
+          aria-hidden="true"
+          className="border-border text-muted-foreground flex size-6 shrink-0 items-center justify-center rounded-md border"
+        >
+          <ChatCircle className="size-3.5" />
+        </span>
+        <span
+          title={title}
+          className="text-foreground min-w-0 flex-1 truncate text-sm"
+        >
+          {title}
+        </span>
+        {age ? (
+          <time
+            dateTime={time}
+            title={Number.isNaN(timeMs) ? undefined : format(timeMs, "PPpp")}
+            className="text-muted-foreground shrink-0 text-xs tabular-nums"
+          >
+            {age}
+          </time>
+        ) : null}
+      </button>
+    </li>
+  );
+}

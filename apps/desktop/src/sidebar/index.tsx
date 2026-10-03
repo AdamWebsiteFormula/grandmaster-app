@@ -1,8 +1,7 @@
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { type ReactNode } from "react";
 
 import { Gear } from "@anlg/ui/components/icons";
-import { Kbd } from "@anlg/ui/components/ui/kbd";
 import { cn } from "@anlg/utils";
 
 import { AutomationsNav } from "./automations";
@@ -14,6 +13,7 @@ import { SidebarHomeNav } from "./home-nav";
 import type { SidebarNoteFilter } from "./note-filter";
 import { SettingsNav } from "./settings";
 import { SharedNotesNav } from "./shared-notes";
+import { ShortcutTooltip } from "./shortcut-tooltip";
 import { TemplatesNav } from "./templates";
 import { TimelineView } from "./timeline";
 import { hasOwnSidebarHeaderTab } from "./use-custom-sidebar";
@@ -39,6 +39,7 @@ export function LeftSidebar({
   showIgnoredTimelineEvents?: boolean;
   onShowIgnoredTimelineEventsChange?: (showIgnored: boolean) => void;
 } = {}) {
+  const { t } = useLingui();
   const currentTab = useTabs((state) => state.currentTab);
   const openNew = useTabs((state) => state.openNew);
 
@@ -121,19 +122,24 @@ export function LeftSidebar({
       {isTimelineSidebarLayout ? (
         // Fork (Glaido and Granola pattern): a visible Settings entry at the
         // bottom of the sidebar, so nobody has to know the shortcut.
-        // Fork: same 12 px left inset as the note list; Kbd chip like home.
+        // Fork: same 12 px left inset as the note list; the shortcut is in
+        // the tooltip, not a chip (redline-oct3).
         <div className="shrink-0 pb-2">
-          <button
-            type="button"
-            onClick={() => openNew({ type: "settings", state: { tab: "app" } })}
-            className="text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-ring flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-hidden"
-          >
-            <Gear size={16} />
-            <span className="flex-1 text-left">
-              <Trans>Settings</Trans>
-            </span>
-            <Kbd>⌘ ,</Kbd>
-          </button>
+          <ShortcutTooltip label={t`Settings`} keys="⌘ ,">
+            <button
+              type="button"
+              aria-keyshortcuts="Meta+,"
+              onClick={() =>
+                openNew({ type: "settings", state: { tab: "app" } })
+              }
+              className="text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-ring flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-hidden"
+            >
+              <Gear size={16} />
+              <span className="flex-1 text-left">
+                <Trans>Settings</Trans>
+              </span>
+            </button>
+          </ShortcutTooltip>
         </div>
       ) : null}
     </div>

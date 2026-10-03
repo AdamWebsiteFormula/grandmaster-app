@@ -20,6 +20,8 @@ import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
 import { squircleFocusVisibleClassName } from "@anlg/ui/lib/squircle";
 import { cn } from "@anlg/utils";
 
+import { noteChipClassName } from "./note-input/header-shared";
+
 import { useFolderSelection } from "~/folders/selection";
 import { createNamedFolder } from "~/session/folder-catalog";
 import { resolvedFolderIcon } from "~/session/folder-icon";
@@ -42,9 +44,12 @@ const filterFolders = (value: string, search: string) => {
 export function FolderPicker({
   sessionId,
   align = "start",
+  variant = "icon",
 }: {
   sessionId: string;
   align?: "start" | "end";
+  /** "chip": "Add to folder" in the row under the note title (Granola). */
+  variant?: "icon" | "chip";
 }) {
   const { t } = useLingui();
   const triggerRef = useSquircleRef<HTMLButtonElement>();
@@ -57,40 +62,63 @@ export function FolderPicker({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button
-          ref={triggerRef}
-          type="button"
-          data-tauri-drag-region="false"
-          role="combobox"
-          aria-expanded={open}
-          aria-label={
-            currentPath ? t`Folder: ${currentPath}` : t`Select folder`
-          }
-          title={currentPath ? currentPath : t`Select folder`}
-          className={cn([
-            "flex h-7 items-center rounded-full [&_svg]:size-4",
-            currentPath
-              ? "max-w-36 min-w-0 gap-1 px-1.5 @max-[480px]:w-7 @max-[480px]:gap-0 @max-[480px]:px-0"
-              : "w-7 justify-center",
-            "text-muted-foreground hover:bg-accent hover:text-foreground transition-colors",
-            squircleFocusVisibleClassName,
-            open && "bg-accent text-foreground",
-          ])}
-        >
-          {currentPath ? (
-            <TemplateIconGlyph
-              icon={resolvedFolderIcon(currentPath, folderIcons)}
-              className="size-4 shrink-0"
-            />
-          ) : (
-            <Folder className="size-4 shrink-0" />
-          )}
-          {currentPath ? (
-            <span className="min-w-0 truncate text-xs text-muted-foreground @max-[480px]:sr-only">
-              {currentPath}
+        {variant === "chip" ? (
+          <button
+            type="button"
+            role="combobox"
+            aria-expanded={open}
+            aria-label={currentPath ? t`Folder: ${currentPath}` : undefined}
+            title={currentPath || undefined}
+            className={noteChipClassName(open)}
+          >
+            {currentPath ? (
+              <TemplateIconGlyph
+                icon={resolvedFolderIcon(currentPath, folderIcons)}
+                className="size-3.5 shrink-0"
+              />
+            ) : (
+              <Folder aria-hidden />
+            )}
+            <span className="min-w-0 truncate">
+              {currentPath || t`Add to folder`}
             </span>
-          ) : null}
-        </button>
+          </button>
+        ) : (
+          <button
+            ref={triggerRef}
+            type="button"
+            data-tauri-drag-region="false"
+            role="combobox"
+            aria-expanded={open}
+            aria-label={
+              currentPath ? t`Folder: ${currentPath}` : t`Select folder`
+            }
+            title={currentPath ? currentPath : t`Select folder`}
+            className={cn([
+              "flex h-7 items-center rounded-full [&_svg]:size-4",
+              currentPath
+                ? "max-w-36 min-w-0 gap-1 px-1.5 @max-[480px]:w-7 @max-[480px]:gap-0 @max-[480px]:px-0"
+                : "w-7 justify-center",
+              "text-muted-foreground hover:bg-accent hover:text-foreground transition-colors",
+              squircleFocusVisibleClassName,
+              open && "bg-accent text-foreground",
+            ])}
+          >
+            {currentPath ? (
+              <TemplateIconGlyph
+                icon={resolvedFolderIcon(currentPath, folderIcons)}
+                className="size-4 shrink-0"
+              />
+            ) : (
+              <Folder className="size-4 shrink-0" />
+            )}
+            {currentPath ? (
+              <span className="text-muted-foreground min-w-0 truncate text-xs @max-[480px]:sr-only">
+                {currentPath}
+              </span>
+            ) : null}
+          </button>
+        )}
       </PopoverTrigger>
       <PopoverContent
         variant="app"

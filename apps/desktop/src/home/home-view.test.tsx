@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  upNext: { isLoading: false, event: null as unknown },
+  comingUp: { isLoading: false, days: [] as unknown[] },
   followUps: [] as unknown[],
   recent: {
     isLoading: false,
@@ -24,7 +24,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => "macos" }));
 
 vi.mock("./home-data", () => ({
-  useUpNext: () => mocks.upNext,
+  useComingUp: () => mocks.comingUp,
   useFollowUps: () => ({ isLoading: false, items: mocks.followUps }),
   useRecentNotes: (limit: number) => {
     mocks.recentLimits.push(limit);
@@ -32,6 +32,7 @@ vi.mock("./home-data", () => ({
   },
   setFollowUpDone: mocks.setFollowUpDone,
   RECENT_PAGE_SIZE: 20,
+  COMING_UP_DAYS: 7,
 }));
 
 vi.mock("~/shared/hooks/usePermissions", () => ({
@@ -87,10 +88,28 @@ import { HomeView } from "./home-view";
 
 const time = (hour: number, minute = 0) =>
   new Date(2026, 9, 3, hour, minute).getTime();
+const day = (date: number) => new Date(2026, 9, date).getTime();
+const today = () => ({ dayMs: day(3), isToday: true, events: [] as unknown[] });
+const meeting = (
+  id: string,
+  title: string,
+  date: number,
+  hour: number,
+  extra: Record<string, unknown> = {},
+) => ({
+  id,
+  title,
+  startMs: new Date(2026, 9, date, hour).getTime(),
+  endMs: new Date(2026, 9, date, hour, 5).getTime(),
+  attendees: 2,
+  color: null,
+  live: false,
+  ...extra,
+});
 
 describe("HomeView", () => {
   beforeEach(() => {
-    mocks.upNext = { isLoading: false, event: null };
+    mocks.comingUp = { isLoading: false, days: [today()] };
     mocks.followUps = [];
     mocks.recent = {
       isLoading: false,
@@ -104,21 +123,35 @@ describe("HomeView", () => {
   });
   afterEach(cleanup);
 
-  it("shows the next meeting and records it", async () => {
-    mocks.upNext.event = {
-      id: "event-1",
-      title: "Design review",
-      startMs: time(14),
-      endMs: time(15),
-      attendees: 3,
-      when: "today",
-    };
-    render(<HomeView />);
+  it("groups coming-up meetings by day and records one", async () => {
+    mocks.comingUp.days = [
+      today(),
+      {
+        dayMs: day(4),
+        isToday: false,
+        events: [meeting("event-1", "Design review", 4, 10)],
+      },
+      {
+        dayMs: day(5),
+        isToday: false,
+        events: [
+          meeting("event-2", "Hosting renewal", 5, 10, { color: "#3B82F6" }),
+          meeting("event-3", "Outreach call", 5, 12),
+        ],
+      },
+    ];
+    const { container } = render(<HomeView />);
 
-    expect(screen.getByText("Design review")).toBeTruthy();
-    expect(screen.getByText("Today, 2:00 PM · 3 people")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Coming up" })).toBeTruthy();
+    expect(container.querySelectorAll("[data-coming-up-day]")).toHaveLength(3);
+    expect(screen.getByText("No more events today")).toBeTruthy();
+    expect(screen.getByText("Sun")).toBeTruthy();
+    expect(screen.getByText("Mon")).toBeTruthy();
+    expect(screen.getAllByText("October")).toHaveLength(3);
+    expect(screen.getAllByText("10:00 – 10:05 AM")).toHaveLength(2);
+    expect(screen.getByText("12:00 – 12:05 PM")).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: "Record" }));
+    fireEvent.click(screen.getAllByRole("button", { name: "Record" })[0]);
     await vi.waitFor(() =>
       expect(mocks.openSessionAndListen).toHaveBeenCalledWith("session-1", {
         behavior: "current",
@@ -128,28 +161,64 @@ describe("HomeView", () => {
       "event-1",
       "Design review",
     );
+
+    fireEvent.click(screen.getByText("Outreach call"));
+    await vi.waitFor(() =>
+      expect(mocks.openCurrent).toHaveBeenCalledWith({
+        type: "sessions",
+        id: "session-1",
+      }),
+    );
   });
 
-  it("offers Record now when nothing is scheduled", () => {
+  it("pages coming-up days four at a time", () => {
+    mocks.comingUp.days = [
+      today(),
+      ...[4, 5, 6, 7].map((date) => ({
+        dayMs: day(date),
+        isToday: false,
+        events: [meeting(`e${date}`, `Meeting ${date}`, date, 9)],
+      })),
+    ];
     render(<HomeView />);
 
-    expect(screen.getByText("No meetings coming up")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Record now" }));
-    expect(mocks.openNewNoteAndListen).toHaveBeenCalledWith({
-      behavior: "current",
-    });
+    expect(screen.queryByText("Meeting 7")).toBeNull();
+    expect(
+      (
+        screen.getByRole("button", {
+          name: "Earlier days",
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Later days" }));
+    expect(screen.getByText("Meeting 7")).toBeTruthy();
+    expect(screen.queryByText("Meeting 4")).toBeNull();
   });
 
-  it("asks to connect the calendar when access is off", () => {
+  it("shows one quiet line when the week is empty, with no Start recording", () => {
+    render(<HomeView />);
+
+    expect(screen.getByText("No meetings in the next 7 days")).toBeTruthy();
+    expect(screen.queryByText("No more events today")).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Start recording" }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Connect calendar" }),
+    ).toBeNull();
+  });
+
+  it("offers Connect calendar on the right when access is off", () => {
     mocks.calendarStatus = "denied";
     render(<HomeView />);
 
-    expect(screen.queryByText("No meetings coming up")).toBeNull();
-    fireEvent.click(
-      screen.getByRole("button", { name: "Connect your calendar" }),
-    );
+    expect(screen.queryByText("No meetings in the next 7 days")).toBeNull();
+    expect(screen.getByText("Your next meetings show up here")).toBeTruthy();
+    expect(
+      screen.queryByRole("button", { name: "Start recording" }),
+    ).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Connect calendar" }));
     expect(mocks.openNew).toHaveBeenCalledWith({ type: "calendar" });
-    expect(screen.getByRole("button", { name: "Record now" })).toBeTruthy();
   });
 
   it("hides Follow-ups when there are none", () => {
@@ -180,17 +249,20 @@ describe("HomeView", () => {
     });
   });
 
-  it("groups notes by day and hides the shortcuts", () => {
+  it("groups notes by day in two-line rows and hides the shortcuts", () => {
     const note = (
       id: string,
       title: string,
       timeMs: number,
-      attendees = 0,
+      people: string[] = [],
+      durationMs = 0,
     ) => ({
       id,
       title,
       timeMs,
-      attendees,
+      attendees: people.length + 1,
+      people,
+      durationMs,
       locked: false,
       trackingId: null,
     });
@@ -199,22 +271,30 @@ describe("HomeView", () => {
         key: "today",
         kind: "today",
         dayMs: time(0),
-        notes: [note("a", "Standup", time(9))],
+        notes: [note("a", "Standup", time(9), [], 32 * 60_000)],
       },
       {
         key: "yesterday",
         kind: "yesterday",
         dayMs: time(0) - 864e5,
-        notes: [note("b", "", time(9) - 864e5, 2)],
+        notes: [note("b", "", time(9) - 864e5, ["Bbaird", "Jimharbaugh104"])],
       },
       {
         key: "sep30",
         kind: "day",
         dayMs: new Date(2026, 8, 30).getTime(),
-        notes: [note("c", "Kickoff", new Date(2026, 8, 30, 11).getTime())],
+        notes: [
+          note(
+            "c",
+            "Kickoff",
+            new Date(2026, 8, 30, 11).getTime(),
+            ["Ana", "Bo", "Cy", "Di"],
+            65 * 60_000,
+          ),
+        ],
       },
     ];
-    render(<HomeView />);
+    const { container } = render(<HomeView />);
 
     expect(screen.getByRole("heading", { name: "Notes" })).toBeTruthy();
     for (const name of ["Today", "Yesterday", "Wed, Sep 30"]) {
@@ -224,10 +304,18 @@ describe("HomeView", () => {
     expect(screen.getAllByText("9:00 AM")).toHaveLength(2);
     expect(screen.getByText("11:00 AM")).toBeTruthy();
     expect(screen.getByText("Untitled")).toBeTruthy();
-    expect(screen.getByText("2 people")).toBeTruthy();
-    expect(
-      screen.queryByRole("button", { name: /Start recording/ }),
-    ).toBeNull();
+    // Second line: duration · attendees, either part alone when the other
+    // is missing.
+    expect(screen.getByText("32 min")).toBeTruthy();
+    expect(screen.getByText("Bbaird & Jimharbaugh104")).toBeTruthy();
+    expect(screen.getByText("1 hr 5 min · Ana, Bo & 2 others")).toBeTruthy();
+    // Attendee initials when people were there, a document glyph otherwise.
+    expect(screen.getByText("B")).toBeTruthy();
+    expect(screen.getByText("A")).toBeTruthy();
+    expect(container.querySelectorAll("[data-note-glyph]")).toHaveLength(1);
+    expect(screen.queryByText("S")).toBeNull();
+    expect(screen.getByText("11:00 AM").className).toContain("text-sm");
+    expect(screen.queryByRole("button", { name: /Blank note/ })).toBeNull();
     expect(screen.queryByRole("button", { name: "Show more" })).toBeNull();
 
     fireEvent.click(screen.getByText("Standup"));
@@ -250,6 +338,7 @@ describe("HomeView", () => {
             title: "Standup",
             timeMs: time(9),
             attendees: 0,
+            people: [],
             locked: false,
             trackingId: null,
           },
@@ -275,6 +364,7 @@ describe("HomeView", () => {
             title: "Locked",
             timeMs: time(9),
             attendees: 0,
+            people: [],
             locked: true,
             trackingId: null,
           },
@@ -324,6 +414,7 @@ describe("HomeView", () => {
             title: "Board prep",
             timeMs: time(9),
             attendees: 0,
+            people: [],
             locked: true,
             trackingId: null,
           },

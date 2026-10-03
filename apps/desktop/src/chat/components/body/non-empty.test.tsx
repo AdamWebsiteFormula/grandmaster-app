@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("~/chat/components/message/normal", () => ({
@@ -65,5 +65,37 @@ describe("ChatBodyNonEmpty", () => {
     } else {
       expect(screen.queryByText("Thinking…")).toBeNull();
     }
+  });
+
+  it("offers Say more under a finished answer and sends it", () => {
+    const onSendMessage = vi.fn();
+    const answer = {
+      id: "assistant-1",
+      role: "assistant",
+      parts: [{ type: "text", text: "Here is the plan", state: "done" }],
+    } as AnlgUIMessage;
+    const { rerender } = render(
+      <ChatBodyNonEmpty
+        messages={[answer]}
+        status="streaming"
+        onSendMessage={onSendMessage}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: "Say more" })).toBeNull();
+
+    rerender(
+      <ChatBodyNonEmpty
+        messages={[answer]}
+        status="ready"
+        onSendMessage={onSendMessage}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Say more" }));
+    expect(onSendMessage).toHaveBeenCalledWith("Say more", [
+      { type: "text", text: "Say more" },
+    ]);
+    expect(
+      screen.getByRole("button", { name: "Make it shorter" }),
+    ).toBeTruthy();
   });
 });

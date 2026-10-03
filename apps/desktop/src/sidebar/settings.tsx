@@ -16,13 +16,25 @@ import {
   useSettingsNavGroups,
 } from "./settings-nav-groups";
 
+import { useAuth } from "~/auth";
 import { useBillingAccess } from "~/auth/billing-context";
+import { usePersonalContact } from "~/contacts/queries";
+import { useOwnerUserId } from "~/shared/owner-user";
 import { type SettingsTab, useTabs } from "~/store/zustand/tabs";
+import { useUpshotPlan } from "~/upshot-plan";
 
 export function SettingsNav() {
   const { t } = useLingui();
   const { isPro } = useBillingAccess();
-  const groups = useSettingsNavGroups();
+  // Fork: entries kept only for the ⌘K navigator stay out of the sidebar.
+  const groups = useSettingsNavGroups()
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) => !("navigatorOnly" in item && item.navigatorOnly),
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
   const [search, setSearch] = useState("");
   const searchRef = useSquircleRef<HTMLDivElement>();
   const currentTab = useTabs((state) => state.currentTab);
@@ -66,8 +78,11 @@ export function SettingsNav() {
     : groups;
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden">
+    // Fork: pb-3 keeps the last row off the window edge (redline-oct3
+    // Settings; design-system "Nothing touches the window edges").
+    <div className="flex h-full w-full flex-col overflow-hidden pb-3">
       <CustomSidebarHeader />
+      <SettingsAccountHeader />
       <div className="pb-2">
         <div
           ref={searchRef}
@@ -111,7 +126,7 @@ export function SettingsNav() {
         </div>
       </div>
       <div className="scrollbar-hide flex-1 overflow-y-auto">
-        <div className="flex flex-col gap-5 pb-6">
+        <div className="flex flex-col gap-5 pb-3">
           {visibleGroups.length === 0 ? (
             <div className="text-muted-foreground px-3 py-8 text-center">
               <MagnifyingGlass
@@ -194,6 +209,53 @@ export function SettingsNav() {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+// Fork: who is signed in, on top of the Settings sidebar, as Granola shows
+// avatar, name and email (granola-compare-oct3 section 8). Signed out, it
+// names the app and the plan.
+export function SettingsAccountHeader() {
+  const { t } = useLingui();
+  const { email, isSignedIn, plan } = useUpshotPlan();
+  const auth = useAuth();
+  const localOwnerUserId = useOwnerUserId();
+  const humanId = auth.session?.user.id ?? localOwnerUserId ?? "";
+  const profile = usePersonalContact(humanId);
+  const profileName = profile.data?.name?.trim() || null;
+  const planLabel = plan?.pro ? t`Pro plan` : t`Free plan`;
+
+  // Fork: the name on its own line and the email under it in small muted
+  // text, as Granola's Settings sidebar (redline-oct3 Settings). Without a
+  // name, the plan takes the first line so the email never sits in bold.
+  const signedInEmail = isSignedIn && email ? email : null;
+  const title = profileName ?? (signedInEmail ? planLabel : t`Upshot`);
+  const subtitle = signedInEmail ?? planLabel;
+  const initial = (
+    (profileName ?? signedInEmail ?? title).trim()[0] ?? "U"
+  ).toUpperCase();
+
+  return (
+    <div
+      data-testid="settings-account-header"
+      className="flex flex-col items-center gap-1 px-2 pt-2 pb-4 text-center"
+    >
+      <span
+        aria-hidden
+        className="bg-sidebar-accent text-foreground mb-1 flex size-10 items-center justify-center rounded-full text-base font-medium"
+      >
+        {initial}
+      </span>
+      <p className="w-full truncate text-sm font-medium" title={title}>
+        {title}
+      </p>
+      <p
+        className="text-muted-foreground w-full truncate text-xs"
+        title={subtitle}
+      >
+        {subtitle}
+      </p>
     </div>
   );
 }

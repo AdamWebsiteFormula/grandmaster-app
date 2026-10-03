@@ -89,6 +89,17 @@ vi.mock("./raw", async () => {
   };
 });
 
+vi.mock("./meta-chips", () => ({
+  NoteMetaChipsLayer: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="meta-chips-layer">{children}</div>
+  ),
+  NoteMetaChips: () => <div data-testid="meta-chips">chips</div>,
+}));
+
+vi.mock("./transcript-toolbar", () => ({
+  TranscriptToolbar: () => <div data-testid="transcript-toolbar" />,
+}));
+
 vi.mock("./search/bar", () => ({
   SearchBar: () => <div data-testid="search-bar" />,
 }));
@@ -181,12 +192,14 @@ function renderNoteInput({
   transcriptEditMode = false,
   eventTitle,
   eventDescription,
+  showMetaChips = false,
 }: {
   currentTab?: EditorView;
   handleTabChange?: (view: EditorView) => void;
   transcriptEditMode?: boolean;
   eventTitle?: string;
   eventDescription?: string;
+  showMetaChips?: boolean;
 } = {}) {
   return {
     handleTabChange,
@@ -208,6 +221,7 @@ function renderNoteInput({
         currentTab={currentTab}
         handleTabChange={handleTabChange}
         transcriptEditMode={transcriptEditMode}
+        showMetaChips={showMetaChips}
       />,
     ),
   };
@@ -405,4 +419,35 @@ describe("NoteInput tab selection", () => {
       expect(screen.queryByTestId("search-bar") !== null).toBe(searchVisible);
     },
   );
+
+  // granola-compare-oct3 §1: centered column and the chip row under the title.
+  it("sets the note in a centered 680 px column with the chip row", () => {
+    renderNoteInput({ showMetaChips: true });
+
+    const column = document.querySelector("[data-note-column]")!;
+    expect(column.className).toContain("mx-auto");
+    expect(column.className).toContain("max-w-[680px]");
+    expect(column.className).toContain("note-meta-chips-host");
+    expect(column.contains(screen.getByTestId("meta-chips"))).toBe(true);
+    expect(column.contains(screen.getByTestId("raw-editor"))).toBe(true);
+  });
+
+  it("keeps the chip row off other note surfaces", () => {
+    renderNoteInput();
+
+    expect(screen.queryByTestId("meta-chips")).toBeNull();
+    expect(
+      document.querySelector("[data-note-column]")?.className,
+    ).not.toContain("note-meta-chips-host");
+  });
+
+  it("puts the transcript toolbar above the transcript on the note page", () => {
+    renderNoteInput({
+      currentTab: { type: "transcript" },
+      showMetaChips: true,
+    });
+
+    expect(screen.getByTestId("transcript-toolbar")).not.toBeNull();
+    expect(screen.queryByTestId("meta-chips")).toBeNull();
+  });
 });

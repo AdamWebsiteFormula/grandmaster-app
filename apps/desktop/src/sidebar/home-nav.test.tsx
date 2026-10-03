@@ -72,6 +72,15 @@ describe("SidebarHomeNav", () => {
     expect(screen.getByRole("button", { name: "Folders" })).toBeTruthy();
   });
 
+  it("keeps the Search shortcut in a tooltip, not a chip on the row", () => {
+    render(<SidebarHomeNav />);
+
+    const search = screen.getByRole("button", { name: "Search" });
+    expect(search.textContent).toBe("Search");
+    expect(search.getAttribute("aria-keyshortcuts")).toBe("Meta+K");
+    expect(screen.queryByText("⌘ K")).toBeNull();
+  });
+
   it("goes back to the existing home tab, or opens one", () => {
     mocks.currentTab = { type: "sessions" };
     const homeTab = { type: "empty" };
@@ -84,6 +93,30 @@ describe("SidebarHomeNav", () => {
     mocks.tabs = [{ type: "sessions" }];
     fireEvent.click(screen.getByRole("button", { name: "Home" }));
     expect(mocks.openCurrent).toHaveBeenCalledWith({ type: "empty" });
+  });
+
+  it("lists Chat between Search and Folders and opens one Chat page", () => {
+    render(<SidebarHomeNav />);
+
+    const names = screen
+      .getAllByRole("button")
+      .map((button) => button.textContent ?? "");
+    expect(names.findIndex((name) => name.startsWith("Search"))).toBe(1);
+    expect(names[2]).toBe("Chat");
+    expect(names[3]).toBe("Folders");
+
+    fireEvent.click(screen.getByRole("button", { name: "Chat" }));
+    expect(mocks.openCurrent).toHaveBeenCalledWith({ type: "chat" });
+
+    const chatTab = { type: "chat" };
+    mocks.tabs = [chatTab];
+    mocks.currentTab = chatTab;
+    cleanup();
+    render(<SidebarHomeNav />);
+    const chat = screen.getByRole("button", { name: "Chat" });
+    expect(chat.getAttribute("aria-current")).toBe("page");
+    fireEvent.click(chat);
+    expect(mocks.select).toHaveBeenCalledWith(chatTab);
   });
 
   it("opens the ⌘K note search", () => {

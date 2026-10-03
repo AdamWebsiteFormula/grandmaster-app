@@ -165,7 +165,7 @@ export function OnboardingButton({
       className={cn([
         "w-fit rounded-full px-6 py-2.5 text-sm font-medium transition-all duration-200",
         variant === "primary" &&
-          "border-primary bg-primary text-primary-foreground hover:bg-primary/90 border-2",
+          "border-primary bg-primary text-primary-foreground hover:brightness-90 border-2",
         variant === "secondary" &&
           "border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground border disabled:opacity-50",
         variant === "ghost" && "text-muted-foreground hover:text-foreground",

@@ -15,6 +15,7 @@ import {
   getEnhancedNoteTitle,
   getStoredNoteMarkdown,
   iconHeaderViewClassName,
+  noteChipClassName,
 } from "./header-shared";
 import {
   TemplatePickerPopover,
@@ -40,6 +41,7 @@ export function HeaderViewEnhanced({
   canRemove = false,
   onRemove,
   onSelectNote,
+  variant = "tray",
 }: {
   isActive: boolean;
   onClick?: () => void;
@@ -48,12 +50,15 @@ export function HeaderViewEnhanced({
   canRemove?: boolean;
   onRemove?: () => void;
   onSelectNote?: (enhancedNoteId: string) => void;
+  /** "chip": the template pill in the row under the note title. */
+  variant?: "tray" | "chip";
 }) {
   if (!isActive) {
     return (
       <HeaderViewEnhancedInactive
         enhancedNoteId={enhancedNoteId}
         onClick={onClick}
+        variant={variant}
       />
     );
   }
@@ -65,6 +70,7 @@ export function HeaderViewEnhanced({
       canRemove={canRemove}
       onRemove={onRemove}
       onSelectNote={onSelectNote}
+      variant={variant}
     />
   );
 }
@@ -100,12 +106,32 @@ function useEnhancedViewGenerating(enhancedNoteId: string) {
 function HeaderViewEnhancedInactive({
   onClick = () => {},
   enhancedNoteId,
+  variant = "tray",
 }: {
   enhancedNoteId: string;
   onClick?: () => void;
+  variant?: "tray" | "chip";
 }) {
   const { viewTitle, templateTooltip } = useEnhancedViewTitle(enhancedNoteId);
   const isGenerating = useEnhancedViewGenerating(enhancedNoteId);
+
+  if (variant === "chip") {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        title={templateTooltip}
+        className={noteChipClassName(false)}
+      >
+        {isGenerating ? (
+          <Spinner size={14} className="shrink-0" />
+        ) : (
+          <Sparkle aria-hidden />
+        )}
+        <span className="min-w-0 truncate">{viewTitle}</span>
+      </button>
+    );
+  }
 
   return (
     <button
@@ -133,12 +159,14 @@ function HeaderViewEnhancedActive({
   canRemove = false,
   onRemove,
   onSelectNote,
+  variant = "tray",
 }: {
   sessionId: string;
   enhancedNoteId: string;
   canRemove?: boolean;
   onRemove?: () => void;
   onSelectNote?: (enhancedNoteId: string) => void;
+  variant?: "tray" | "chip";
 }) {
   const { isGenerating, isError, onRegenerate } = useEnhanceLogic(
     sessionId,
@@ -238,47 +266,87 @@ function HeaderViewEnhancedActive({
     onRemove,
   ]);
   const showContextMenu = useNativeContextMenu(contextMenu);
-  const templateMenuTrigger = (
-    <button
-      data-main-area-window-drag-region
-      data-tauri-drag-region="false"
-      type="button"
-      aria-label={viewTitle}
-      aria-current="page"
-      aria-disabled={isGenerating}
-      tabIndex={isGenerating ? -1 : 0}
-      onClick={(event) => event.stopPropagation()}
-      onPointerDown={(event) => event.stopPropagation()}
-      onContextMenu={showContextMenu}
-      title={templateTooltip}
-      className={iconHeaderViewClassName(
-        true,
-        "tray",
-        cn([
-          "max-w-56 min-w-[62px] gap-1.5 px-2 @max-[480px]:max-w-12 @max-[480px]:min-w-12 @max-[480px]:gap-0 @max-[480px]:px-1.5",
-          isGenerating ? "cursor-not-allowed opacity-70" : "cursor-pointer",
-          isError
-            ? [
-                "text-destructive hover:bg-destructive/10 hover:text-destructive focus-visible:bg-destructive/10",
-              ]
-            : [
-                "focus-visible:text-foreground focus-visible:bg-white",
-                "dark:focus-visible:text-foreground dark:focus-visible:bg-accent",
-              ],
-        ]),
-      )}
-    >
-      {isGenerating ? (
-        <Spinner size={16} className="shrink-0" />
-      ) : (
-        <Sparkle className="size-4" />
-      )}
-      <span className="min-w-0 truncate text-xs font-medium @max-[480px]:sr-only">
-        {viewTitle}
-      </span>
-      <CaretDown className="size-3.5" />
-    </button>
-  );
+  const templateMenuTrigger =
+    variant === "chip" ? (
+      <button
+        type="button"
+        aria-label={viewTitle}
+        aria-current="page"
+        aria-disabled={isGenerating}
+        tabIndex={isGenerating ? -1 : 0}
+        onContextMenu={showContextMenu}
+        title={templateTooltip}
+        className={noteChipClassName(
+          false,
+          cn([
+            "text-foreground",
+            isGenerating && "cursor-not-allowed opacity-70",
+            isError && "text-destructive hover:text-destructive",
+          ]),
+        )}
+      >
+        {isGenerating ? (
+          <Spinner size={14} className="shrink-0" />
+        ) : (
+          <Sparkle aria-hidden />
+        )}
+        <span className="min-w-0 truncate">{viewTitle}</span>
+        <CaretDown aria-hidden className="!size-3" />
+      </button>
+    ) : (
+      <button
+        data-main-area-window-drag-region
+        data-tauri-drag-region="false"
+        type="button"
+        aria-label={viewTitle}
+        aria-current="page"
+        aria-disabled={isGenerating}
+        tabIndex={isGenerating ? -1 : 0}
+        onClick={(event) => event.stopPropagation()}
+        onPointerDown={(event) => event.stopPropagation()}
+        onContextMenu={showContextMenu}
+        title={templateTooltip}
+        className={iconHeaderViewClassName(
+          true,
+          "tray",
+          cn([
+            "max-w-56 min-w-[62px] gap-1.5 px-2 @max-[480px]:max-w-12 @max-[480px]:min-w-12 @max-[480px]:gap-0 @max-[480px]:px-1.5",
+            isGenerating ? "cursor-not-allowed opacity-70" : "cursor-pointer",
+            isError
+              ? [
+                  "text-destructive hover:bg-destructive/10 hover:text-destructive focus-visible:bg-destructive/10",
+                ]
+              : [
+                  "focus-visible:text-foreground focus-visible:bg-white",
+                  "dark:focus-visible:text-foreground dark:focus-visible:bg-accent",
+                ],
+          ]),
+        )}
+      >
+        {isGenerating ? (
+          <Spinner size={16} className="shrink-0" />
+        ) : (
+          <Sparkle className="size-4" />
+        )}
+        <span className="min-w-0 truncate text-xs font-medium @max-[480px]:sr-only">
+          {viewTitle}
+        </span>
+        <CaretDown className="size-3.5" />
+      </button>
+    );
+
+  if (variant === "chip") {
+    // Copy notes lives in the ⋯ and Share menus on the note page.
+    return (
+      <TemplatePickerPopover
+        onSelectTemplate={handleSelectTemplate}
+        usedTemplateId={usedTemplateId}
+        onRegenerateUsed={handleRegenerate}
+        isRegenerating={isGenerating}
+        trigger={templateMenuTrigger}
+      />
+    );
+  }
 
   return (
     <>

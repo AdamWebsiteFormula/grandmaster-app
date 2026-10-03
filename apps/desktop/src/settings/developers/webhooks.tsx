@@ -17,6 +17,7 @@ import { cn } from "@anlg/utils";
 import { copyText } from "./clipboard";
 
 import { SettingsSectionTitle } from "~/settings/page-title";
+import { SettingsCard } from "~/settings/setting-row";
 import { DestructiveConfirmationDialog } from "~/shared/ui/destructive-confirmation-dialog";
 
 const WEBHOOKS_QUERY_KEY = ["webhooks"] as const;
@@ -91,97 +92,104 @@ export function WebhooksSection() {
   );
 
   return (
-    <section className="flex flex-col gap-4">
-      <SettingsSectionTitle>{t`Webhooks`}</SettingsSectionTitle>
-      <div>
-        {/* Fork: a visible label, an Upshot placeholder, and a confirm before
-            delete (ux-audit-oct3 E, WCAG 4.1.2, NN/g #5). */}
-        <label htmlFor={urlInputId} className="mb-2 block text-xs font-medium">
-          <Trans>Webhook URL</Trans>
-        </label>
-        <form
-          className="flex gap-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            void form.handleSubmit();
-          }}
-        >
-          <form.Field name="url">
-            {(field) => (
-              <Input
-                id={urlInputId}
-                className="h-8 max-w-md text-sm"
-                placeholder="https://example.com/webhooks/upshot"
-                value={field.state.value}
-                onChange={(event) => field.handleChange(event.target.value)}
-              />
-            )}
-          </form.Field>
-          <Button
-            type="submit"
-            size="sm"
-            variant="outline"
-            disabled={createMutation.isPending}
-          >
-            <Trans>Add webhook</Trans>
-          </Button>
-        </form>
-
-        {createdWebhook && (
-          <div className="border-border bg-muted/30 mt-3 rounded-xl border p-3">
-            <p className="text-muted-foreground text-xs">
-              <Trans>
-                Copy this signing secret now — it is only shown once.
-              </Trans>
-            </p>
-            <div className="mt-2 flex items-center gap-2">
-              <code className="bg-muted scrollbar-hide overflow-x-auto rounded-md px-1.5 py-0.5 text-xs">
-                {createdWebhook.secret}
-              </code>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-7 shrink-0"
-                onClick={async () => {
-                  if (
-                    await copyText(
-                      createdWebhook.secret,
-                      t`Signing secret copied`,
-                    )
-                  ) {
-                    createMutation.reset();
-                  }
-                }}
-              >
-                <Copy className="size-3.5" />
-                <Trans>Copy</Trans>
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {webhooks.length > 0 && (
-          <ul className="mt-3 flex flex-col gap-1.5">
-            {webhooks.map((webhook) => (
-              <WebhookRow
-                key={webhook.id}
-                webhook={webhook}
-                onTest={() => testMutation.mutate(webhook.id)}
-                onDelete={() => setWebhookToDelete(webhook)}
-                onToggleActive={() =>
-                  setActiveMutation.mutate({
-                    id: webhook.id,
-                    active: !webhook.active,
-                  })
-                }
-                isTesting={testMutation.isPending}
-              />
-            ))}
-          </ul>
-        )}
+    <section className="flex flex-col gap-2">
+      <div className="px-1">
+        <SettingsSectionTitle>{t`Webhooks`}</SettingsSectionTitle>
       </div>
+      <SettingsCard>
+        <div>
+          {/* Fork: a visible label, an Upshot placeholder, and a confirm before
+            delete (ux-audit-oct3 E, WCAG 4.1.2, NN/g #5). */}
+          <label
+            htmlFor={urlInputId}
+            className="mb-2 block text-xs font-medium"
+          >
+            <Trans>Webhook URL</Trans>
+          </label>
+          <form
+            className="flex gap-2"
+            onSubmit={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              void form.handleSubmit();
+            }}
+          >
+            <form.Field name="url">
+              {(field) => (
+                <Input
+                  id={urlInputId}
+                  className="h-8 max-w-md text-sm"
+                  placeholder="https://example.com/webhooks/upshot"
+                  value={field.state.value}
+                  onChange={(event) => field.handleChange(event.target.value)}
+                />
+              )}
+            </form.Field>
+            <Button
+              type="submit"
+              size="sm"
+              variant="outline"
+              disabled={createMutation.isPending}
+            >
+              <Trans>Add webhook</Trans>
+            </Button>
+          </form>
+
+          {createdWebhook && (
+            <div className="border-border bg-card mt-3 rounded-xl border p-3">
+              <p className="text-muted-foreground text-xs">
+                <Trans>
+                  Copy this signing secret now — it is only shown once.
+                </Trans>
+              </p>
+              <div className="mt-2 flex items-center gap-2">
+                <code className="bg-accent scrollbar-hide overflow-x-auto rounded-md px-1.5 py-0.5 text-xs">
+                  {createdWebhook.secret}
+                </code>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 shrink-0"
+                  onClick={async () => {
+                    if (
+                      await copyText(
+                        createdWebhook.secret,
+                        t`Signing secret copied`,
+                      )
+                    ) {
+                      createMutation.reset();
+                    }
+                  }}
+                >
+                  <Copy className="size-3.5" />
+                  <Trans>Copy</Trans>
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {webhooks.length > 0 && (
+            <ul className="mt-3 flex flex-col gap-1.5">
+              {webhooks.map((webhook) => (
+                <WebhookRow
+                  key={webhook.id}
+                  webhook={webhook}
+                  onTest={() => testMutation.mutate(webhook.id)}
+                  onDelete={() => setWebhookToDelete(webhook)}
+                  onToggleActive={() =>
+                    setActiveMutation.mutate({
+                      id: webhook.id,
+                      active: !webhook.active,
+                    })
+                  }
+                  isTesting={testMutation.isPending}
+                />
+              ))}
+            </ul>
+          )}
+        </div>
+      </SettingsCard>
       <DestructiveConfirmationDialog
         open={webhookToDelete !== null}
         onOpenChange={(open) => {

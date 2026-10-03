@@ -145,7 +145,7 @@ export function SearchableSelect({
                   >
                     <span className="flex-1 truncate">{option.label}</span>
                     {option.detail && (
-                      <span className="text-muted-foreground shrink-0 font-mono text-xs">
+                      <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
                         {option.detail}
                       </span>
                     )}

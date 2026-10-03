@@ -8,6 +8,9 @@ const TabContentAutomations = lazy(async () => ({
 const TabContentFolders = lazy(async () => ({
   default: (await import("~/folders")).TabContentFolders,
 }));
+const TabContentChat = lazy(async () => ({
+  default: (await import("~/chat/components/chat-page")).TabContentChat,
+}));
 const TabContentCalendar = lazy(async () => ({
   default: (await import("~/calendar")).TabContentCalendar,
 }));
@@ -59,6 +62,9 @@ function LazyTabContent({ tab }: { tab: Tab }) {
   }
   if (tab.type === "folders") {
     return <TabContentFolders />;
+  }
+  if (tab.type === "chat") {
+    return <TabContentChat />;
   }
   if (tab.type === "sessions") {
     return <TabContentNote tab={tab} />;

@@ -7,8 +7,8 @@ import {
   ClockCounterClockwise,
   Copy,
   DotsThree,
-  FileArrowDown,
   FileText,
+  Microphone,
   PictureInPicture,
   Trash,
   Waveform,
@@ -21,12 +21,20 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@anlg/ui/components/ui/dropdown-menu";
 import { cn } from "@anlg/utils";
 
+import { AudioSavedMenuItem } from "../audio-saved";
+import {
+  menuContentClassName,
+  menuTriggerFocusClassName,
+  usePointerCloseAutoFocus,
+} from "../menu-focus";
 import { DeleteNote } from "./delete";
-import { ExportModal } from "./export-modal";
 import { Listening } from "./listening";
 import { LockNote } from "./lock-note";
 import { ShowInFolder } from "./misc";
@@ -60,8 +68,7 @@ export function OverflowButton({
 }) {
   const { t } = useLingui();
   const [open, setOpen] = useState(false);
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [hasOpenedExportModal, setHasOpenedExportModal] = useState(false);
+  const menuFocus = usePointerCloseAutoFocus();
   const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false);
   const [hasOpenedVersionHistory, setHasOpenedVersionHistory] = useState(false);
   const hasTranscript = useHasTranscript(sessionId);
@@ -99,11 +106,6 @@ export function OverflowButton({
     showRetranscribeAction ||
     showUploadActions ||
     canOpenFloatingPanel;
-  const openExportModal = () => {
-    setOpen(false);
-    setHasOpenedExportModal(true);
-    requestAnimationFrame(() => setIsExportModalOpen(true));
-  };
   const openVersionHistory = () => {
     setOpen(false);
     setHasOpenedVersionHistory(true);
@@ -144,29 +146,34 @@ export function OverflowButton({
   return (
     <>
       <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger asChild>
+        <DropdownMenuTrigger asChild {...menuFocus.triggerProps}>
           <Button
             size="icon"
             variant="ghost"
             data-tauri-drag-region="false"
             aria-label={t`More`}
-            className="text-muted-foreground hover:bg-accent hover:text-foreground rounded-full [&_svg]:size-4"
+            title={t`More`}
+            className={cn([
+              "text-muted-foreground hover:bg-accent hover:text-foreground rounded-full [&_svg]:size-4",
+              menuTriggerFocusClassName,
+              open && "bg-accent text-foreground",
+            ])}
           >
             <DotsThree className="size-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent variant="app" align="end" className="w-56">
+        <DropdownMenuContent
+          variant="app"
+          align="end"
+          sideOffset={6}
+          className={cn([menuContentClassName, "w-56"])}
+          {...menuFocus.contentProps}
+        >
           <AppFloatingPanel className={appFloatingMenuPanelClassName}>
-            {/* Fork: Meeting info moved to a header button, so Tab no longer gets trapped in a submenu (ux-audit-oct3 C, WCAG 2.1.1). */}
-            <DropdownMenuItem
-              onClick={openExportModal}
-              className="cursor-pointer"
-            >
-              <FileArrowDown />
-              <span>
-                <Trans>Export…</Trans>
-              </span>
-            </DropdownMenuItem>
+            {/* Fork: sharing (copy, email, export) lives in Share only, so
+                each action has one home (redline-oct3, H2). Then the note,
+                the recording in one submenu, and Delete note last in red
+                after a separator (Granola's note menu; Apple HIG, Menus). */}
             <DropdownMenuItem
               onClick={openVersionHistory}
               className="cursor-pointer"
@@ -176,70 +183,6 @@ export function OverflowButton({
                 <Trans>Version history</Trans>
               </span>
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            {showListeningAction && (
-              <Listening
-                sessionId={sessionId}
-                resume={audioExists || hasTranscript}
-              />
-            )}
-            {showRetranscribeAction && (
-              <DropdownMenuItem
-                onClick={handleRetranscribe}
-                className="cursor-pointer"
-              >
-                <ArrowsClockwise />
-                <span>
-                  <Trans>Transcribe again</Trans>
-                </span>
-              </DropdownMenuItem>
-            )}
-            {showUploadActions && (
-              <>
-                <DropdownMenuItem
-                  onClick={handleUploadAudio}
-                  className="cursor-pointer"
-                >
-                  <Waveform />
-                  <span>
-                    <Trans>Upload audio</Trans>
-                  </span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={handleUploadTranscript}
-                  className="cursor-pointer"
-                >
-                  <FileText />
-                  <span>
-                    <Trans>Upload transcript</Trans>
-                  </span>
-                </DropdownMenuItem>
-              </>
-            )}
-            {canOpenFloatingPanel && (
-              <DropdownMenuItem
-                onClick={handleOpenFloatingPanel}
-                className="cursor-pointer"
-              >
-                <PictureInPicture />
-                <span>
-                  <Trans>Open floating panel</Trans>
-                </span>
-              </DropdownMenuItem>
-            )}
-            {/* Fork: Copy transcript and Delete recording were right-click only (ux-audit-oct3 C; HIG context menus). */}
-            {canCopyTranscript && (
-              <DropdownMenuItem
-                onClick={handleCopyTranscript}
-                className="cursor-pointer"
-              >
-                <Copy />
-                <span>
-                  <Trans>Copy transcript</Trans>
-                </span>
-              </DropdownMenuItem>
-            )}
-            {hasMeetingActions && <DropdownMenuSeparator />}
             {!standaloneWindow && (
               <DropdownMenuItem
                 onClick={handleOpenStandaloneWindow}
@@ -253,33 +196,111 @@ export function OverflowButton({
             )}
             <ShowInFolder sessionId={sessionId} />
             <LockNote sessionId={sessionId} />
-            <DropdownMenuSeparator />
-            {showRetranscribeAction && (
-              <DropdownMenuItem
-                onClick={handleDeleteRecording}
-                className={cn([
-                  "text-destructive cursor-pointer",
-                  "hover:bg-destructive/10 hover:text-destructive",
-                ])}
-              >
-                <Trash />
-                <span>
-                  <Trans>Delete recording</Trans>
-                </span>
-              </DropdownMenuItem>
+            {hasMeetingActions && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="cursor-pointer">
+                    <Microphone />
+                    <span>
+                      <Trans>Recording</Trans>
+                    </span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent
+                    variant="app"
+                    className={cn([menuContentClassName, "w-56"])}
+                    sideOffset={6}
+                  >
+                    <AppFloatingPanel className={appFloatingMenuPanelClassName}>
+                      {showListeningAction && (
+                        <Listening
+                          sessionId={sessionId}
+                          resume={audioExists || hasTranscript}
+                        />
+                      )}
+                      {showRetranscribeAction && (
+                        <DropdownMenuItem
+                          onClick={handleRetranscribe}
+                          className="cursor-pointer"
+                        >
+                          <ArrowsClockwise />
+                          <span>
+                            <Trans>Transcribe again</Trans>
+                          </span>
+                        </DropdownMenuItem>
+                      )}
+                      {showUploadActions && (
+                        <>
+                          <DropdownMenuItem
+                            onClick={handleUploadAudio}
+                            className="cursor-pointer"
+                          >
+                            <Waveform />
+                            <span>
+                              <Trans>Upload audio</Trans>
+                            </span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={handleUploadTranscript}
+                            className="cursor-pointer"
+                          >
+                            <FileText />
+                            <span>
+                              <Trans>Upload transcript</Trans>
+                            </span>
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      {canCopyTranscript && (
+                        <DropdownMenuItem
+                          onClick={handleCopyTranscript}
+                          className="cursor-pointer"
+                        >
+                          <Copy />
+                          <span>
+                            <Trans>Copy transcript</Trans>
+                          </span>
+                        </DropdownMenuItem>
+                      )}
+                      {canOpenFloatingPanel && (
+                        <DropdownMenuItem
+                          onClick={handleOpenFloatingPanel}
+                          className="cursor-pointer"
+                        >
+                          <PictureInPicture />
+                          <span>
+                            <Trans>Open floating panel</Trans>
+                          </span>
+                        </DropdownMenuItem>
+                      )}
+                      {showRetranscribeAction && (
+                        <>
+                          <AudioSavedMenuItem onSelect={() => setOpen(false)} />
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={handleDeleteRecording}
+                            className={cn([
+                              "text-destructive cursor-pointer",
+                              "hover:bg-destructive/10 hover:text-destructive",
+                            ])}
+                          >
+                            <Trash />
+                            <span>
+                              <Trans>Delete recording</Trans>
+                            </span>
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </AppFloatingPanel>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              </>
             )}
+            <DropdownMenuSeparator />
             <DeleteNote sessionId={sessionId} />
           </AppFloatingPanel>
         </DropdownMenuContent>
       </DropdownMenu>
-      {hasOpenedExportModal && (
-        <ExportModal
-          sessionId={sessionId}
-          currentView={currentView}
-          open={isExportModalOpen}
-          onOpenChange={setIsExportModalOpen}
-        />
-      )}
       {hasOpenedVersionHistory && (
         <VersionHistoryDialog
           sessionId={sessionId}

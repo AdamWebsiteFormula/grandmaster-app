@@ -49,7 +49,7 @@ export function TrialPaymentReminderDialog({
             {t`Not now`}
           </GlassDialogCancelButton>
           <Button
-            className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-full px-4 text-xs font-medium shadow-sm dark:bg-white dark:text-black dark:hover:bg-white/90"
+            className="bg-primary text-primary-foreground hover:brightness-90 h-8 rounded-full px-4 text-xs font-medium shadow-sm dark:bg-white dark:text-black dark:hover:bg-white/90"
             onClick={() => {
               onAddPaymentMethod();
               onOpenChange(false);

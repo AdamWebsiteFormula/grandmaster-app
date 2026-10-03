@@ -28,7 +28,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("./segment-header", () => ({
-  SegmentHeader: () => null,
+  SegmentHeader: () => <div data-testid="segment-header" />,
 }));
 
 vi.mock("./speaker-assign", () => ({
@@ -384,6 +384,70 @@ function createSearch(activeMatchId: string): TranscriptSearchRenderState {
     wholeWord: false,
   };
 }
+
+// granola-compare-oct3 §2: transcript as chat bubbles.
+describe("SegmentRenderer bubbles", () => {
+  const renderBubble = (props: {
+    isSelf?: boolean;
+    showSpeaker?: boolean;
+    editMode?: boolean;
+  }) =>
+    render(
+      <SegmentRenderer
+        segment={createSegment()}
+        offsetMs={0}
+        transcriptId="transcript-1"
+        speakerLabel="Bruce"
+        currentMs={0}
+        seekAndPlay={vi.fn()}
+        audioExists
+        search={EMPTY_TRANSCRIPT_SEARCH}
+        {...props}
+      />,
+    );
+  const header = (view: ReturnType<typeof render>) =>
+    view.container.querySelector("[data-testid='segment-header']");
+
+  it("puts your own words in a right-aligned bubble with no name", () => {
+    const view = renderBubble({ isSelf: true });
+
+    const section = view.container.querySelector("section")!;
+    expect(section.dataset.transcriptSelf).toBe("true");
+    expect(section.className).toContain("items-end");
+    const bubble = section.querySelector("[data-transcript-bubble]")!;
+    expect(bubble.className).toContain("bg-accent");
+    expect(bubble.className).toContain("rounded-2xl");
+    expect(bubble.className).toContain("max-w-[80%]");
+    expect(header(view)).toBeNull();
+    view.unmount();
+  });
+
+  it("puts others on the left with the speaker name over the first bubble", () => {
+    const view = renderBubble({});
+
+    const section = view.container.querySelector("section")!;
+    expect(section.className).toContain("items-start");
+    expect(
+      section.querySelector("[data-transcript-bubble]")!.className,
+    ).toContain("bg-muted");
+    expect(header(view)).not.toBeNull();
+    view.unmount();
+  });
+
+  it("drops the name on later bubbles of the same run", () => {
+    const view = renderBubble({ showSpeaker: false });
+
+    expect(header(view)).toBeNull();
+    view.unmount();
+  });
+
+  it("keeps the name on your bubbles while editing, to reassign speakers", () => {
+    const view = renderBubble({ isSelf: true, editMode: true });
+
+    expect(header(view)).not.toBeNull();
+    view.unmount();
+  });
+});
 
 function createSegment(): Segment {
   return {

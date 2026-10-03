@@ -1,17 +1,15 @@
 import { t } from "@lingui/core/macro";
 import { useCallback } from "react";
 
-import {
-  CalendarBlank,
-  Envelope,
-  ListChecks,
-  MagnifyingGlass,
-  TextAlignLeft,
-} from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
+import { homeChatSuggestions } from "~/chat/components/recipes";
 import type { ContextRef } from "~/chat/context/entities";
 import { useChatAppearance } from "~/chat/hooks/use-chat-appearance";
+
+// Fork: the home starters live with the other recipes; re-exported for the
+// home composer.
+export { homeChatSuggestions };
 
 export function ChatBodyEmpty({
   isModelConfigured = true,
@@ -27,46 +25,10 @@ export function ChatBodyEmpty({
   ) => void;
 }) {
   const { isDarkAppearance } = useChatAppearance();
-  // Fork: chip labels have no trailing periods (ux-audit-oct3 D, HIG buttons).
-  const noteSuggestions = [
-    {
-      label: t`List action items`,
-      icon: ListChecks,
-      prompt: t`What are my action items from this meeting?`,
-    },
-    {
-      label: t`Draft follow-up email`,
-      icon: Envelope,
-      prompt: t`Draft a follow-up email to the participants`,
-    },
-    {
-      label: t`Find key decisions`,
-      icon: MagnifyingGlass,
-      prompt: t`What were the key decisions that have been made?`,
-    },
-  ];
-  // Fork: home chat (no note open) gets starter prompts across all meetings,
-  // as Granola recipes do (ux-audit-oct3 D P1,
-  // docs.granola.ai/help-center/getting-more-from-your-notes/recipes; NN/g #6).
-  // use-transport.ts tells the model which meeting tools answer each one.
-  const homeSuggestions = [
-    {
-      label: t`What did I commit to this week?`,
-      icon: ListChecks,
-      prompt: t`What did I commit to this week?`,
-    },
-    {
-      label: t`Summarize this week's meetings`,
-      icon: TextAlignLeft,
-      prompt: t`Summarize this week's meetings`,
-    },
-    {
-      label: t`Prep me for my next meeting`,
-      icon: CalendarBlank,
-      prompt: t`Prep me for my next meeting`,
-    },
-  ];
-  const suggestions = hasContext ? noteSuggestions : homeSuggestions;
+  // Fork: with a note attached, the recipe row above the field carries the
+  // prompts as chips, so the empty state stays quiet (granola-compare-oct3
+  // section 4: chips, not a list).
+  const suggestions = hasContext ? [] : homeChatSuggestions();
 
   const handleSuggestionClick = useCallback(
     (prompt: string) => {
@@ -108,6 +70,8 @@ export function ChatBodyEmpty({
       </div>
     );
   }
+
+  if (suggestions.length === 0) return null;
 
   return (
     <div className="flex justify-start pb-1">

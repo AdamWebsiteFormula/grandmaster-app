@@ -427,7 +427,7 @@ test("checkout branding, Link hidden, and the renewal terms", () => {
   const year = checkoutParams(baseEnv, "https://w.dev", user, null, "year");
   assert.equal(year.get("branding_settings[display_name]"), "Upshot");
   assert.equal(year.get("branding_settings[background_color]"), "#FFFFFF");
-  assert.equal(year.get("branding_settings[button_color]"), "#FF6A1F");
+  assert.equal(year.get("branding_settings[button_color]"), "#C74200");
   assert.equal(year.get("branding_settings[font_family]"), "inter");
   assert.equal(year.get("branding_settings[border_style]"), "rounded");
   assert.equal(year.get("branding_settings[logo][type]"), "url");

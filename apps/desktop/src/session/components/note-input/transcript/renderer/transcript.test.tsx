@@ -402,6 +402,93 @@ describe("RenderTranscript", () => {
     expect(screen.getByRole("button", { name: "Ada" })).toBeTruthy();
   });
 
+  // granola-compare-oct3 §2: centered time labels between bubble runs.
+  it("shows a centered timestamp before the first bubble and after a minute", () => {
+    const first = createSegment("a", 0);
+    const second = createSegment("b", 1);
+    const later = createSegment("c", 0);
+    later.words[0]!.start_ms = 75_000;
+    const segments = [first, second, later];
+    mocks.useRenderedTranscriptData.mockReturnValue({
+      maxSpeakerNumber: undefined,
+      request: createRenderRequest(segments),
+      segments,
+    });
+
+    renderTranscript();
+
+    const labels = Array.from(
+      document.querySelectorAll("[data-transcript-timestamp]"),
+    );
+    expect(labels.map((label) => label.textContent)).toEqual([
+      "00:00",
+      "01:15",
+    ]);
+    expect(labels[0]?.className).toContain("text-center");
+    expect(document.querySelectorAll("[data-transcript-bubble]").length).toBe(
+      3,
+    );
+  });
+
+  // Fork: display only, stored words untouched (redline-oct3, H2).
+  it("shows one bubble per spoken result, a space after a glued sentence, and a timestamp every 30 seconds", () => {
+    const words = [
+      ["Okay,", 0],
+      [" a", 400],
+      [" reminder.", 800],
+      ["I", 2_000],
+      [" respond", 2_400],
+      [" to", 2_800],
+      [" messages.and", 3_200],
+      [" make", 3_600],
+      [" sure.", 4_000],
+      ["And", 33_000],
+      [" then.", 33_400],
+    ] as const;
+    const monologue: Segment = {
+      id: "segment-mono",
+      key: {
+        channel: "DirectMic",
+        speaker_index: null,
+        speaker_human_id: null,
+      },
+      start_ms: 0,
+      end_ms: 33_700,
+      text: words.map(([text]) => text).join(""),
+      words: words.map(([text, start], index) => ({
+        id: `mono-${index}`,
+        text,
+        start_ms: start,
+        end_ms: start + 300,
+        channel: "DirectMic",
+        is_final: true,
+      })),
+    };
+    const stored = JSON.stringify(monologue);
+    mocks.useRenderedTranscriptData.mockReturnValue({
+      maxSpeakerNumber: undefined,
+      request: createRenderRequest([monologue]),
+      segments: [monologue],
+    });
+
+    renderTranscript();
+
+    const bubbles = Array.from(
+      document.querySelectorAll("[data-transcript-bubble]"),
+    ).map((bubble) => bubble.textContent);
+    expect(bubbles).toEqual([
+      "Okay, a reminder.",
+      "I respond to messages. and make sure.",
+      "And then.",
+    ]);
+    expect(
+      Array.from(document.querySelectorAll("[data-transcript-timestamp]")).map(
+        (label) => label.textContent,
+      ),
+    ).toEqual(["00:00", "00:33"]);
+    expect(JSON.stringify(monologue)).toBe(stored);
+  });
+
   it("keeps the DOM bounded for a multi-hour transcript fixture", () => {
     const segments = createSegments(10_000);
     mocks.useRenderedTranscriptData.mockReturnValue({

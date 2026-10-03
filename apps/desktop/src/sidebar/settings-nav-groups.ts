@@ -17,6 +17,7 @@ import {
   type Icon,
   Lock,
   Microphone,
+  PlugsConnected,
   ShieldCheck,
   Sparkle,
   Sun,
@@ -46,6 +47,8 @@ type SettingsNavItem =
       destination: TabInput;
       requiresPro?: boolean;
       keywords?: string;
+      /** Listed in the ⌘K navigator only, not in the Settings sidebar. */
+      navigatorOnly?: boolean;
     };
 
 export type SettingsNavGroup = { label: string; items: SettingsNavItem[] };
@@ -94,7 +97,15 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           id: "app",
           label: t`General`,
           icon: Gear,
-          keywords: t`language, region, time zone, timezone, week start, spoken languages, login, startup, Dock, menu bar, storage, export location`,
+          keywords: t`language, region, time zone, timezone, spoken languages, login, startup, Dock, menu bar, storage, export location`,
+        },
+        // Fork: a local profile page, as Granola's Settings › Profile
+        // (granola-compare-oct3 section 8). No account needed.
+        {
+          id: "profile",
+          label: t`Profile`,
+          icon: User,
+          keywords: t`name, job title, company, email, LinkedIn, photo`,
         },
         // Fork: Upshot's plan page, where Granola keeps Settings › Billing
         // (docs.granola.ai/help-center/managing-your-account/subscriptions-and-billing).
@@ -171,19 +182,40 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           icon: VideoCamera,
           keywords: t`microphone, mic, audio, recording, auto-join, summaries, summary length, speakers, retention`,
         },
+        // Fork: Calendar settings stay inside Settings, as in Granola; the
+        // page links to the month view (granola-compare-oct3 section 8).
+        {
+          id: "calendars",
+          label: t`Calendar`,
+          icon: CalendarDots,
+          keywords: t`events, schedule, Apple Calendar, visible calendars, week start`,
+        },
+        // The month view keeps its ⌘K entry; the sidebar row above opens
+        // the settings page.
+        {
+          id: "calendar",
+          label: t`Calendar`,
+          icon: CalendarDots,
+          destination: { type: "calendar" },
+          keywords: t`events, schedule, month`,
+          navigatorOnly: true,
+        },
+        {
+          id: "connectors",
+          label: t`Connectors`,
+          icon: PlugsConnected,
+          keywords: t`integrations, Glaido, MCP, CLI, webhooks, export, import`,
+        },
         {
           id: "folders",
           label: t`Folders`,
           icon: FolderSimple,
           destination: { type: "folders" },
           keywords: t`folder`,
-        },
-        {
-          id: "calendar",
-          label: t`Calendar`,
-          icon: CalendarDots,
-          destination: { type: "calendar" },
-          keywords: t`events, schedule`,
+          // Fork: Folders and Templates are workspaces, not settings; they
+          // stay in ⌘K and leave the Settings sidebar, as Granola's
+          // Settings lists only settings pages (redline-oct3 Settings).
+          navigatorOnly: true,
         },
         {
           id: "contacts",
@@ -197,6 +229,7 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           icon: FileText,
           destination: { type: "templates" },
           keywords: t`template, format`,
+          navigatorOnly: true,
         },
         {
           id: "automations",

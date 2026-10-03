@@ -6,9 +6,9 @@
     --card-foreground: 24 10% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 24 10% 10%;
-    --primary: 20 100% 46%;
+    --primary: 20 100% 39%;
     --primary-text: 20 100% 35%;
-    --primary-foreground: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 60 5% 96%;
     --secondary-foreground: 24 10% 10%;
     --muted: 60 5% 96%;
@@ -23,7 +23,7 @@
     --alert-border: 0 90% 86%;
     --border: 24 6% 90%;
     --input: 24 5% 50%;
-    --ring: 20 100% 46%;
+    --ring: 20 100% 39%;
     --app-floating-chrome: 60 5% 94%;
     --app-floating-panel: 60 9% 98%;
     --app-floating-border: 24 6% 86%;

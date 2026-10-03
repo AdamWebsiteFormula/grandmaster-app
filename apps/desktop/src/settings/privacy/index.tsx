@@ -1,6 +1,7 @@
 import { useLingui } from "@lingui/react/macro";
 import { platform } from "@tauri-apps/plugin-os";
 
+import { LockKey } from "@anlg/ui/components/icons";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 
 import { DEVICE_AUTH_REASON } from "~/lock/auth";
@@ -11,7 +12,7 @@ import {
   useSetSettingValues,
   useStoredSettingValuesQuery,
 } from "~/settings/queries";
-import { SettingSwitchRow } from "~/settings/setting-row";
+import { SettingsGroup, SettingSwitchRow } from "~/settings/setting-row";
 import { resolveConfigValue } from "~/shared/config";
 
 export function SettingsPrivacy() {
@@ -45,10 +46,14 @@ export function SettingsPrivacy() {
 
   return (
     <div className="flex flex-col gap-8">
-      <SettingsPageTitle title={i18n._(privacyMessages.title)} />
+      <SettingsPageTitle
+        title={i18n._(privacyMessages.title)}
+        description={t`Lock Upshot and choose what it shares.`}
+      />
 
-      <section className="flex flex-col gap-4">
+      <SettingsGroup>
         <SettingSwitchRow
+          icon={LockKey}
           title={t`Lock app`}
           description={lockAppDescription}
           checked={lockAppEnabled && authAvailable}
@@ -66,12 +71,12 @@ export function SettingsPrivacy() {
             })();
           }}
         />
-      </section>
+      </SettingsGroup>
 
       {/* Fork: the usage-data and error-report switches did nothing (no
           telemetry keys ship in Upshot), so they are gone; say so plainly
           instead (ux-audit-oct3 E, NN/g #1, #2). */}
-      <p className="text-muted-foreground text-xs">
+      <p className="text-muted-foreground -mt-6 px-1 text-xs">
         {t`Upshot sends no usage data or crash reports.`}
       </p>
     </div>

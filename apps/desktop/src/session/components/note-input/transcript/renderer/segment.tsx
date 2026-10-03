@@ -18,6 +18,7 @@ import {
   getActiveLineIndex,
   groupWordsIntoLines,
   type HighlightSegment,
+  repairJoinedSentences,
 } from "./utils";
 import { WordSpan } from "./word-span";
 
@@ -66,6 +67,8 @@ export const SegmentRenderer = memo(
     audioExists,
     search,
     editMode = false,
+    isSelf = false,
+    showSpeaker = true,
   }: {
     segment: Segment;
     offsetMs: number;
@@ -77,6 +80,10 @@ export const SegmentRenderer = memo(
     audioExists: boolean;
     search: TranscriptSearchRenderState;
     editMode?: boolean;
+    /** Your own words: a right-aligned bubble with no speaker name. */
+    isSelf?: boolean;
+    /** First bubble of a speaker run. */
+    showSpeaker?: boolean;
   }) => {
     const lines = useMemo(
       () => groupWordsIntoLines(segment.words),
@@ -118,75 +125,91 @@ export const SegmentRenderer = memo(
         data-segment-speaker-human-id={segment.key.speaker_human_id ?? ""}
         data-transcript-offset-ms={offsetMs}
         data-transcript-selected={selected ? "true" : undefined}
+        data-transcript-self={isSelf ? "true" : undefined}
         className={cn([
-          "rounded-lg px-2 transition-colors",
+          "flex flex-col rounded-lg px-2 transition-colors",
+          isSelf ? "items-end" : "items-start",
           selectMode ? "cursor-pointer" : null,
           "data-[transcript-selected=true]:bg-primary/10 data-[transcript-selected=true]:ring-primary/30 data-[transcript-selected=true]:ring-1 data-[transcript-selected=true]:ring-inset",
         ])}
       >
-        <SegmentHeader
-          segment={segment}
-          transcriptId={transcriptId}
-          sessionId={sessionId}
-          label={speakerLabel}
-          selected={selected}
-        />
-
-        {editMode ? (
-          <EditableSegmentText
+        {/* Fork: the name shows over the first bubble of someone else's
+            run, never over your own (Granola). Select and edit modes keep
+            it on every bubble for the checkbox and speaker reassignment. */}
+        {selectMode || editMode || (showSpeaker && !isSelf) ? (
+          <SegmentHeader
             segment={segment}
             transcriptId={transcriptId}
             sessionId={sessionId}
+            label={speakerLabel}
+            selected={selected}
           />
-        ) : (
-          <div
-            data-transcript-segment-content
-            className={cn([
-              "overflow-wrap-anywhere mt-1.5 text-sm leading-relaxed wrap-break-word",
-              selectMode ? "select-none" : "select-text-deep",
-            ])}
-          >
-            {lines.map((line, lineIdx) => {
-              const lineStartMs = offsetMs + line.startMs;
-              const lineEndMs = offsetMs + line.endMs;
-              const isCurrentLine =
-                audioExists &&
-                currentMs > 0 &&
-                currentMs >= lineStartMs &&
-                currentMs <= lineEndMs;
+        ) : null}
 
-              return (
-                <span
-                  key={line.words[0]?.id ?? `line-${lineIdx}`}
-                  data-line-current={isCurrentLine ? "true" : undefined}
-                  className={cn([
-                    "-mx-0.5 rounded-xs px-0.5",
-                    isCurrentLine && "bg-primary/10",
-                  ])}
-                >
-                  {lineIdx > 0 ? " " : null}
-                  {line.words.map((word, idx) => (
-                    <Fragment key={word.id ?? `${word.start_ms}-${idx}`}>
-                      {idx > 0 ? " " : null}
-                      <WordSpan
-                        word={word}
-                        displayText={getWordDisplayText(word)}
-                        audioExists={audioExists}
-                        onClickWord={seekAndPlay}
-                        highlightSegments={
-                          highlightSegmentsByWord?.get(word) ?? undefined
-                        }
-                        isActiveMatch={
-                          Boolean(word.id) && word.id === search.activeMatchId
-                        }
-                      />
-                    </Fragment>
-                  ))}
-                </span>
-              );
-            })}
-          </div>
-        )}
+        <div
+          data-transcript-bubble
+          className={cn([
+            "w-fit max-w-[80%] min-w-0 rounded-2xl px-3 py-2",
+            "border-border border dark:border-transparent",
+            isSelf ? "bg-accent" : "bg-muted",
+          ])}
+        >
+          {editMode ? (
+            <EditableSegmentText
+              segment={segment}
+              transcriptId={transcriptId}
+              sessionId={sessionId}
+            />
+          ) : (
+            <div
+              data-transcript-segment-content
+              className={cn([
+                "overflow-wrap-anywhere text-sm leading-relaxed wrap-break-word",
+                selectMode ? "select-none" : "select-text-deep",
+              ])}
+            >
+              {lines.map((line, lineIdx) => {
+                const lineStartMs = offsetMs + line.startMs;
+                const lineEndMs = offsetMs + line.endMs;
+                const isCurrentLine =
+                  audioExists &&
+                  currentMs > 0 &&
+                  currentMs >= lineStartMs &&
+                  currentMs <= lineEndMs;
+
+                return (
+                  <span
+                    key={line.words[0]?.id ?? `line-${lineIdx}`}
+                    data-line-current={isCurrentLine ? "true" : undefined}
+                    className={cn([
+                      "-mx-0.5 rounded-xs px-0.5",
+                      isCurrentLine && "bg-primary/10",
+                    ])}
+                  >
+                    {lineIdx > 0 ? " " : null}
+                    {line.words.map((word, idx) => (
+                      <Fragment key={word.id ?? `${word.start_ms}-${idx}`}>
+                        {idx > 0 ? " " : null}
+                        <WordSpan
+                          word={word}
+                          displayText={getWordDisplayText(word)}
+                          audioExists={audioExists}
+                          onClickWord={seekAndPlay}
+                          highlightSegments={
+                            highlightSegmentsByWord?.get(word) ?? undefined
+                          }
+                          isActiveMatch={
+                            Boolean(word.id) && word.id === search.activeMatchId
+                          }
+                        />
+                      </Fragment>
+                    ))}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </section>
     );
   },
@@ -199,7 +222,9 @@ export const SegmentRenderer = memo(
       prev.speakerLabel !== next.speakerLabel ||
       prev.audioExists !== next.audioExists ||
       prev.seekAndPlay !== next.seekAndPlay ||
-      prev.editMode !== next.editMode
+      prev.editMode !== next.editMode ||
+      prev.isSelf !== next.isSelf ||
+      prev.showSpeaker !== next.showSpeaker
     ) {
       return false;
     }
@@ -324,7 +349,7 @@ const EditableSegmentText = memo(function EditableSegmentText({
         suppressContentEditableWarning
         spellCheck
         className={cn([
-          "overflow-wrap-anywhere mt-1.5 rounded-md text-sm leading-relaxed wrap-break-word outline-hidden",
+          "overflow-wrap-anywhere rounded-md text-sm leading-relaxed wrap-break-word outline-hidden",
           "select-text-deep",
         ])}
         onBlur={handleBlur}
@@ -335,7 +360,7 @@ const EditableSegmentText = memo(function EditableSegmentText({
       {speakerChange && (
         <div
           data-transcript-split-preview
-          className="mt-1.5 text-sm leading-relaxed wrap-break-word"
+          className="text-sm leading-relaxed wrap-break-word"
         >
           {speakerChange.text.slice(0, speakerChange.offset).trim()}
           <PopoverAnchor asChild>
@@ -413,5 +438,5 @@ function segmentContainsWordId(segment: Segment, wordId: string | null) {
 }
 
 function getWordDisplayText(word: SegmentWord) {
-  return word.text.trim();
+  return repairJoinedSentences(word.text.trim());
 }

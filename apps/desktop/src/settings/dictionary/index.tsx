@@ -34,7 +34,10 @@ export function SettingsDictionary() {
   // no explanation (ux-audit-oct3 E, NN/g #1, #6).
   return (
     <div className="flex flex-col gap-8">
-      <SettingsPageTitle title={<Trans>Dictionary</Trans>} />
+      <SettingsPageTitle
+        title={<Trans>Dictionary</Trans>}
+        description={<Trans>Names and terms Upshot should spell right.</Trans>}
+      />
       <DictionarySettings terms={terms} onSave={setTerms} />
     </div>
   );

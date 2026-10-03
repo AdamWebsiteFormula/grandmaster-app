@@ -503,6 +503,9 @@ export function TranscriptViewer({
           onContextMenu={handleContextMenu}
           className={cn([
             "flex min-h-0 min-w-0 flex-1 flex-col gap-8 overflow-x-clip overflow-y-auto",
+            // Fork: the same centered 680 px column as the notes, while the
+            // whole pane still scrolls (granola-compare-oct3 §1-2).
+            "px-[max(0px,calc((100%_-_680px)/2))]",
             "scrollbar-hide",
             "scroll-pb-[calc(8rem+env(safe-area-inset-bottom))]",
             "pb-[calc(4rem+env(safe-area-inset-bottom))]",

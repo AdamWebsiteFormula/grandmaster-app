@@ -1,13 +1,7 @@
 import { useLingui } from "@lingui/react/macro";
 
 import { HardDrive } from "@anlg/ui/components/icons";
-import { Button } from "@anlg/ui/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@anlg/ui/components/ui/tooltip";
+import { DropdownMenuItem } from "@anlg/ui/components/ui/dropdown-menu";
 
 import {
   normalizeAudioRetention,
@@ -17,10 +11,10 @@ import { useConfigValue } from "~/shared/config";
 import { useTabs } from "~/store/zustand/tabs";
 
 // Fork: Granola deletes audio after transcription; we keep it, so say so.
-// An icon with the sentence as its tooltip keeps the note header light.
-export function AudioSavedLine() {
+// It lives in the ⋯ Recording menu as a labeled row, not as an unlabeled
+// header icon (redline-oct3, H2; Apple HIG, Menus: every item has a title).
+export function useAudioSavedLabel() {
   const { t } = useLingui();
-  const openNew = useTabs((state) => state.openNew);
   const retention = normalizeAudioRetention(useConfigValue("audio_retention"));
   const keptFor: Record<AudioRetentionPolicy, string> = {
     none: t`until transcribed`,
@@ -32,30 +26,26 @@ export function AudioSavedLine() {
   };
   const kept = keptFor[retention];
 
-  const label = t`Audio saved on this Mac · kept ${kept}`;
+  return t`Audio saved on this Mac · kept ${kept}`;
+}
 
-  // Own provider so the header renders anywhere, including tests.
+export function AudioSavedMenuItem({ onSelect }: { onSelect?: () => void }) {
+  const openNew = useTabs((state) => state.openNew);
+  const label = useAudioSavedLabel();
+
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            data-audio-saved-line
-            data-tauri-drag-region="false"
-            aria-label={label}
-            onClick={() =>
-              openNew({ type: "settings", state: { tab: "meetings" } })
-            }
-            className="text-muted-foreground hover:bg-accent hover:text-foreground rounded-full [&_svg]:size-4"
-          >
-            <HardDrive className="size-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">{label}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <DropdownMenuItem
+      data-audio-saved-line
+      onClick={() => {
+        onSelect?.();
+        openNew({ type: "settings", state: { tab: "meetings" } });
+      }}
+      className="cursor-pointer items-start"
+    >
+      <HardDrive className="mt-0.5" />
+      <span className="text-muted-foreground text-xs leading-snug">
+        {label}
+      </span>
+    </DropdownMenuItem>
   );
 }

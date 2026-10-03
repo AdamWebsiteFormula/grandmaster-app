@@ -1,3 +1,4 @@
+import { useLingui } from "@lingui/react/macro";
 import type { ChatStatus } from "ai";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -5,6 +6,7 @@ import { ArrowElbowDownRight, Trash } from "@anlg/ui/components/icons";
 
 import { ChatBody } from "./body";
 import { ChatMessageInput } from "./input";
+import { noteChatRecipes, RecipeRow } from "./recipes";
 
 import type { useLanguageModel } from "~/ai/hooks";
 import { dedupeByKey, type ContextRef } from "~/chat/context/entities";
@@ -12,6 +14,7 @@ import {
   hasSessionContextDragData,
   readSessionContextDragData,
 } from "~/chat/context/session-drag";
+import { takeChatPrompt, usePendingChatPrompt } from "~/chat/pending-prompt";
 import type { ChatMessageSender, AnlgUIMessage } from "~/chat/types";
 import { id } from "~/shared/utils";
 
@@ -40,6 +43,7 @@ export function ChatContent({
   onDraftContentChange,
   onDraftContextRefsChange,
   isSystemPromptReady,
+  showRecipes = false,
   children,
 }: {
   layout?: "floating" | "right-panel";
@@ -62,8 +66,11 @@ export function ChatContent({
   onDraftContentChange?: (hasDraftContent: boolean) => void;
   onDraftContextRefsChange?: (refs: ContextRef[]) => void;
   isSystemPromptReady: boolean;
+  /** Fork: a recipe chip row above the field when a note is attached. */
+  showRecipes?: boolean;
   children?: React.ReactNode;
 }) {
+  const { t } = useLingui();
   const isModelConfigured = !!model;
   const isFloating = layout === "floating";
   const disabled = !isSystemPromptReady;
@@ -130,6 +137,14 @@ export function ChatContent({
       setQueuedMessages,
     ],
   );
+  // Fork: send a prompt picked on Home (composer or starter chip) once the
+  // chat is ready.
+  const pendingPrompt = usePendingChatPrompt((state) => state.prompt);
+  useEffect(() => {
+    if (!pendingPrompt || !isModelConfigured || disabled) return;
+    const prompt = takeChatPrompt();
+    if (prompt) submitOrQueueMessage(prompt, [{ type: "text", text: prompt }]);
+  }, [disabled, isModelConfigured, pendingPrompt, submitOrQueueMessage]);
   const removeQueuedMessage = useCallback(
     (queuedMessageId: string) => {
       setQueuedMessages((messages) =>
@@ -226,6 +241,19 @@ export function ChatContent({
             messages={queuedMessages}
             onRemoveMessage={removeQueuedMessage}
           />
+          {/* Fork: Granola keeps recipe chips above the note chat field, in
+              empty and non-empty chats (granola-compare-oct3 section 4). */}
+          {showRecipes ? (
+            <RecipeRow
+              label={t`Recipes`}
+              recipes={noteChatRecipes()}
+              disabled={disabled}
+              onSelect={(prompt) =>
+                submitOrQueueMessage(prompt, [{ type: "text", text: prompt }])
+              }
+              className="shrink-0 px-3 pb-2"
+            />
+          ) : null}
           <ChatMessageInput
             draftKey={sessionId}
             layout={layout}

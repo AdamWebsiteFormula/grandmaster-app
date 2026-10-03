@@ -18,8 +18,11 @@ const DEVELOPERS_GUIDE_URL =
 export function SettingsDevelopers() {
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex items-center justify-between gap-4">
-        <SettingsPageTitle title={t`Developers`} />
+      <div className="flex items-start justify-between gap-4">
+        <SettingsPageTitle
+          title={t`Developers`}
+          description={t`Connect Upshot to Glaido, the CLI and webhooks.`}
+        />
         {/* Fork: one name and style for help links across Settings
             (ux-audit-oct3 E, NN/g #4). */}
         <Button

@@ -29,6 +29,8 @@ interface SearchContextValue {
   onNext: () => void;
   onPrev: () => void;
   close: () => void;
+  /** Shows the search bar (the transcript toolbar's search button). */
+  open: () => void;
   setQuery: (query: string) => void;
   toggleCaseSensitive: () => void;
   toggleWholeWord: () => void;
@@ -272,6 +274,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
       onNext,
       onPrev,
       close: () => dispatch({ type: "close" }),
+      open: () => dispatch({ type: "open_visible" }),
       setQuery: (query: string) => dispatch({ type: "set_query", query }),
       toggleCaseSensitive: () => dispatch({ type: "toggle_case_sensitive" }),
       toggleWholeWord: () => dispatch({ type: "toggle_whole_word" }),

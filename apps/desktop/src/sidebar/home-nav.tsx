@@ -4,15 +4,17 @@
 // day). Every note stays one step away: Home lists them all, Search opens the
 // ⌘K dialog, and each folder opens its notes.
 import { Trans, useLingui } from "@lingui/react/macro";
-import type { ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 import {
+  ChatCircle,
   FolderSimple,
   House,
   MagnifyingGlass,
 } from "@anlg/ui/components/icons";
-import { Kbd } from "@anlg/ui/components/ui/kbd";
 import { cn } from "@anlg/utils";
+
+import { ShortcutTooltip } from "./shortcut-tooltip";
 
 import { useFolderSelection } from "~/folders/selection";
 import { resolvedFolderIcon } from "~/session/folder-icon";
@@ -44,6 +46,17 @@ export function SidebarHomeNav() {
     }
   };
 
+  // Fork: one Chat page, like Home (granola-compare-oct3 section 6).
+  const openChatPage = () => {
+    const { tabs, select, openCurrent } = useTabs.getState();
+    const chatTab = tabs.find((tab) => tab.type === "chat");
+    if (chatTab) {
+      select(chatTab);
+    } else {
+      openCurrent({ type: "chat" });
+    }
+  };
+
   // Same entry as "See all folders" in the note's folder picker.
   const openFolder = (folder: string | null) => {
     if (folder) setSelectedPath(folder);
@@ -62,12 +75,21 @@ export function SidebarHomeNav() {
       >
         <Trans>Home</Trans>
       </NavItem>
+      <ShortcutTooltip label={t`Search`} keys="⌘ K">
+        <NavItem
+          icon={<MagnifyingGlass size={16} />}
+          onClick={() => openNoteDialog.open()}
+          keyShortcuts="Meta+K"
+        >
+          <Trans>Search</Trans>
+        </NavItem>
+      </ShortcutTooltip>
       <NavItem
-        icon={<MagnifyingGlass size={16} />}
-        onClick={() => openNoteDialog.open()}
-        trailing={<Kbd>⌘ K</Kbd>}
+        icon={<ChatCircle size={16} />}
+        active={currentTab?.type === "chat"}
+        onClick={openChatPage}
       >
-        <Trans>Search</Trans>
+        <Trans>Chat</Trans>
       </NavItem>
       <NavItem
         icon={<FolderSimple size={16} />}
@@ -108,20 +130,23 @@ export function SidebarHomeNav() {
 function NavItem({
   icon,
   active = false,
-  trailing,
+  keyShortcuts,
   onClick,
   children,
+  ...rest
 }: {
   icon: ReactNode;
   active?: boolean;
-  trailing?: ReactNode;
+  keyShortcuts?: string;
   onClick: () => void;
   children: ReactNode;
-}) {
+} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onClick" | "children">) {
   return (
     <button
+      {...rest}
       type="button"
       aria-current={active ? "page" : undefined}
+      aria-keyshortcuts={keyShortcuts}
       onClick={onClick}
       className={cn([
         NAV_ITEM_CLASS,
@@ -134,7 +159,6 @@ function NavItem({
         {icon}
       </span>
       <span className="flex min-w-0 flex-1 items-center">{children}</span>
-      {trailing}
     </button>
   );
 }

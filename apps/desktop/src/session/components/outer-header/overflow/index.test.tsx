@@ -13,7 +13,6 @@ const {
   audioExists,
   audioExistsResolved,
   currentNoteContent,
-  exportModalMock,
   useHasTranscriptMock,
   useListenerMock,
   useConfigValueMock,
@@ -32,9 +31,6 @@ const {
   audioExists: { value: false },
   audioExistsResolved: { value: true },
   currentNoteContent: { value: "" },
-  exportModalMock: vi.fn(
-    (_props: { open: boolean; onOpenChange: (open: boolean) => void }) => null,
-  ),
   useHasTranscriptMock: vi.fn(),
   useListenerMock: vi.fn(),
   useConfigValueMock: vi.fn(),
@@ -98,12 +94,14 @@ vi.mock("@anlg/ui/components/ui/dropdown-menu", () => ({
   ),
 }));
 
-vi.mock("./delete", () => ({
-  DeleteNote: () => <button type="button">Delete note</button>,
+vi.mock("../audio-saved", () => ({
+  AudioSavedMenuItem: () => (
+    <button type="button">Audio saved on this Mac</button>
+  ),
 }));
 
-vi.mock("./export-modal", () => ({
-  ExportModal: exportModalMock,
+vi.mock("./delete", () => ({
+  DeleteNote: () => <button type="button">Delete note</button>,
 }));
 
 vi.mock("./listening", () => ({
@@ -398,20 +396,49 @@ describe("OverflowButton", () => {
     });
   });
 
-  it("opens the export modal when export is selected", () => {
-    vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
-      callback(0);
-      return 0;
-    });
+  // Fork: sharing lives in Share only (redline-oct3, H2).
+  it("leaves copy, email and export to the Share menu", () => {
     renderOverflow();
 
-    expect(exportModalMock).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "Copy notes" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Send notes via email" }),
+    ).toBeNull();
+    expect(screen.queryByRole("button", { name: "Export…" })).toBeNull();
+  });
 
-    fireEvent.click(screen.getByRole("button", { name: "Export…" }));
+  // granola-compare-oct3 §5: the note, then the recording, Delete note last.
+  it("orders the menu like Granola's: note, recording, delete", () => {
+    arrange({ transcript: true, audio: true });
+    canCopyTranscript.value = true;
+    renderOverflow();
 
-    expect(exportModalMock).toHaveBeenLastCalledWith(
-      expect.objectContaining({ open: true }),
-      undefined,
+    const labels = Array.from(document.querySelectorAll("button, hr")).map(
+      (element) =>
+        element.tagName === "HR"
+          ? "---"
+          : (element.getAttribute("aria-label") ?? element.textContent ?? "")
+              .replace("›", "")
+              .trim(),
     );
+    canCopyTranscript.value = false;
+
+    expect(labels).toEqual([
+      "More",
+      "Version history",
+      "Open in new window",
+      "Show in folder",
+      "Lock Note",
+      "---",
+      "Recording",
+      "Resume listening",
+      "Transcribe again",
+      "Copy transcript",
+      "Audio saved on this Mac",
+      "---",
+      "Delete recording",
+      "---",
+      "Delete note",
+    ]);
   });
 });

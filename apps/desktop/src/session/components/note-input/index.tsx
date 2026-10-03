@@ -16,10 +16,12 @@ import { cn } from "@anlg/utils";
 
 import { Enhanced } from "./enhanced";
 import { Header, SessionViewSwitcher, useEditorTabs } from "./header";
+import { NoteMetaChips, NoteMetaChipsLayer } from "./meta-chips";
 import { RawEditor } from "./raw";
 import { SearchBar } from "./search/bar";
 import { useSearch } from "./search/context";
 import { Transcript } from "./transcript";
+import { TranscriptToolbar } from "./transcript-toolbar";
 
 import {
   registerCanonicalSessionEditor,
@@ -55,6 +57,8 @@ type NoteInputProps = {
   currentTab?: TabEditorView;
   handleTabChange?: (view: TabEditorView) => void;
   hideHeader?: boolean;
+  /** Note page: chip row under the title and a centered reading column. */
+  showMetaChips?: boolean;
   sessionMode?: SessionMode;
   transcriptEditMode?: boolean;
   onTranscriptEditModeChange?: (editMode: boolean) => void;
@@ -153,6 +157,7 @@ const NoteInputContent = forwardRef<
       currentTab,
       commitTabChange,
       hideHeader = false,
+      showMetaChips = false,
       sessionMode,
       transcriptEditMode = false,
       onTranscriptEditModeChange,
@@ -370,40 +375,76 @@ const NoteInputContent = forwardRef<
               "pt-2",
               renderedCurrentTab.type === "transcript"
                 ? "overflow-hidden pb-0"
-                : "overflow-x-hidden overflow-y-auto pb-6",
+                : "overflow-x-hidden overflow-y-auto pb-16",
             ])}
           >
-            {renderedCurrentTab.type === "enhanced" && (
-              <Enhanced
-                ref={internalEditorRef}
-                sessionId={sessionId}
-                sessionTitle={sessionTitle}
-                enhancedNoteId={renderedCurrentTab.id}
-                onNavigateToTitle={onNavigateToTitle}
-                onViewReady={handleSessionViewReady}
-                onViewDisposed={handleSessionViewDisposed}
-              />
-            )}
-            {renderedCurrentTab.type === "raw" && (
-              <RawEditor
-                ref={internalEditorRef}
-                sessionId={sessionId}
-                rawMd={rawMd}
-                sessionTitle={sessionTitle}
-                eventTitle={eventTitle}
-                eventDescription={eventDescription}
-                onNavigateToTitle={onNavigateToTitle}
-                onViewReady={handleSessionViewReady}
-                onViewDisposed={handleSessionViewDisposed}
-              />
+            {isEditableTab && (
+              // Fork: a centered reading column, as Granola sets its notes
+              // (about 620-680 px; Baymard and Butterick put comfortable lines
+              // at 45-75 characters). granola-compare-oct3 §1, P1.
+              <div
+                data-note-column
+                className={cn([
+                  "relative mx-auto w-full max-w-[680px]",
+                  showMetaChips && "note-meta-chips-host",
+                ])}
+              >
+                {showMetaChips && (
+                  <NoteMetaChipsLayer>
+                    <NoteMetaChips
+                      sessionId={sessionId}
+                      editorTabs={editorTabs}
+                      currentTab={renderedCurrentTab}
+                      onSelectView={handleTabChange}
+                    />
+                  </NoteMetaChipsLayer>
+                )}
+                {renderedCurrentTab.type === "enhanced" && (
+                  <Enhanced
+                    ref={internalEditorRef}
+                    sessionId={sessionId}
+                    sessionTitle={sessionTitle}
+                    enhancedNoteId={renderedCurrentTab.id}
+                    onNavigateToTitle={onNavigateToTitle}
+                    onViewReady={handleSessionViewReady}
+                    onViewDisposed={handleSessionViewDisposed}
+                  />
+                )}
+                {renderedCurrentTab.type === "raw" && (
+                  <RawEditor
+                    ref={internalEditorRef}
+                    sessionId={sessionId}
+                    rawMd={rawMd}
+                    sessionTitle={sessionTitle}
+                    eventTitle={eventTitle}
+                    eventDescription={eventDescription}
+                    onNavigateToTitle={onNavigateToTitle}
+                    onViewReady={handleSessionViewReady}
+                    onViewDisposed={handleSessionViewDisposed}
+                  />
+                )}
+              </div>
             )}
             {renderedCurrentTab.type === "transcript" && (
-              <Transcript
-                sessionId={sessionId}
-                scrollRef={scrollRef}
-                editMode={transcriptEditMode}
-                onEditModeChange={onTranscriptEditModeChange}
-              />
+              <div className="flex h-full min-h-0 flex-col">
+                {showMetaChips && (
+                  <TranscriptToolbar
+                    sessionId={sessionId}
+                    editMode={transcriptEditMode}
+                    onEditModeChange={onTranscriptEditModeChange}
+                    editorTabs={editorTabs}
+                    onSelectView={handleTabChange}
+                  />
+                )}
+                <div className="min-h-0 flex-1">
+                  <Transcript
+                    sessionId={sessionId}
+                    scrollRef={scrollRef}
+                    editMode={transcriptEditMode}
+                    onEditModeChange={onTranscriptEditModeChange}
+                  />
+                </div>
+              </div>
             )}
           </div>
         </div>

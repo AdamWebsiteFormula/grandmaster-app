@@ -29,6 +29,16 @@ vi.mock("~/settings/stats", () => ({
   SettingsInsights: () => <div>Personal insights</div>,
 }));
 vi.mock("~/settings/sync", () => ({ SettingsSync: () => null }));
+vi.mock("~/settings/calendar", () => ({
+  SettingsCalendar: () => <div>Calendar settings</div>,
+}));
+vi.mock("~/settings/connectors", () => ({
+  SettingsConnectors: () => <div>Connectors settings</div>,
+}));
+vi.mock("~/settings/profile", () => ({
+  SettingsProfile: () => <div>Profile settings</div>,
+}));
+vi.mock("~/settings/plan", () => ({ SettingsPlan: () => null }));
 vi.mock("~/settings/team", () => ({ SettingsTeam: () => null }));
 vi.mock("~/shared/main", () => ({
   StandardContentWrapper: ({ children }: { children: React.ReactNode }) =>
@@ -46,6 +56,9 @@ describe("TabContentSettings", () => {
     ["billing", "Billing settings"],
     ["insights", "Personal insights"],
     ["stats", "Personal insights"],
+    ["calendars", "Calendar settings"],
+    ["connectors", "Connectors settings"],
+    ["profile", "Profile settings"],
   ] as const)("opens the %s destination", (destination, heading) => {
     render(
       <TabContentSettings
@@ -53,5 +66,16 @@ describe("TabContentSettings", () => {
       />,
     );
     expect(screen.getByText(heading)).toBeTruthy();
+  });
+
+  it("centers the page in one column about 680 px wide", () => {
+    render(
+      <TabContentSettings
+        tab={createSettingsTab({ state: { tab: "insights" } })}
+      />,
+    );
+    const column = screen.getByText("Personal insights").parentElement;
+    expect(column?.className).toContain("max-w-[680px]");
+    expect(column?.className).toContain("mx-auto");
   });
 });

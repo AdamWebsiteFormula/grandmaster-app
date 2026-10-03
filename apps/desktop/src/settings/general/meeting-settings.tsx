@@ -1,7 +1,16 @@
 import { Trans } from "@lingui/react/macro";
 import { platform } from "@tauri-apps/plugin-os";
 
-import { SettingSwitchRow } from "~/settings/setting-row";
+import {
+  Chats,
+  Megaphone,
+  Pause,
+  PictureInPicture,
+  Play,
+  VideoCamera,
+} from "@anlg/ui/components/icons";
+
+import { SettingsGroup, SettingSwitchRow } from "~/settings/setting-row";
 
 interface SettingItem {
   value: boolean;
@@ -29,16 +38,18 @@ export function MeetingSettingsView({
   const supportsMicDetection = currentPlatform !== "windows";
 
   return (
-    <div className="flex flex-col gap-4">
+    <SettingsGroup title={<Trans>Recording</Trans>}>
       <SettingSwitchRow
+        icon={Play}
         title={<Trans>Start when meeting begins</Trans>}
         description={
-          <Trans>Start listening when a scheduled meeting begins.</Trans>
+          <Trans>Start recording when a scheduled meeting begins.</Trans>
         }
         checked={autoStartScheduledMeetings.value}
         onChange={autoStartScheduledMeetings.onChange}
       />
       <SettingSwitchRow
+        icon={VideoCamera}
         title={<Trans>Join scheduled meetings</Trans>}
         description={
           // Fork: a disabled row says why (ux-audit-oct3 E, NN/g #1).
@@ -56,8 +67,9 @@ export function MeetingSettingsView({
       />
       {supportsMicDetection && (
         <SettingSwitchRow
+          icon={Pause}
           title={<Trans>Stop when meeting ends</Trans>}
-          description={<Trans>Stop listening when your call ends.</Trans>}
+          description={<Trans>Stop recording when your call ends.</Trans>}
           checked={autoStopMeetings.value}
           onChange={autoStopMeetings.onChange}
         />
@@ -65,10 +77,11 @@ export function MeetingSettingsView({
       {supportsMeetingAx && (
         <>
           <SettingSwitchRow
+            icon={Megaphone}
             title={<Trans>Post recording disclosure in meeting chat</Trans>}
             description={
               <Trans>
-                Tell participants when listening starts; this does not confirm
+                Tell participants when recording starts; this does not confirm
                 consent.
               </Trans>
             }
@@ -76,6 +89,7 @@ export function MeetingSettingsView({
             onChange={meetingDisclosureAutoPost.onChange}
           />
           <SettingSwitchRow
+            icon={Chats}
             title={<Trans>Save meeting chat to your notes</Trans>}
             description={
               <Trans>
@@ -88,11 +102,12 @@ export function MeetingSettingsView({
         </>
       )}
       <SettingSwitchRow
+        icon={PictureInPicture}
         title={<Trans>Show floating bar</Trans>}
-        description={<Trans>Control listening without reopening Upshot.</Trans>}
+        description={<Trans>Control recording without reopening Upshot.</Trans>}
         checked={floatingBar.value}
         onChange={floatingBar.onChange}
       />
-    </div>
+    </SettingsGroup>
   );
 }

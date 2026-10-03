@@ -26,8 +26,9 @@ import { json, ok, rateLimited, readSmallJson } from "./http.js";
 const STRIPE = "https://api.stripe.com/v1";
 const SIGNATURE_TOLERANCE_SECONDS = 300;
 const PRO_STATUSES = new Set(["active", "trialing"]);
-// Orange accent, hsl(20 100% 56%), sampled from the app icon (design-system.md).
-const ACCENT = "#FF6A1F";
+// Button fill: hsl(20 100% 39%) with white text, per the Oct 3 button research
+// (WCAG 2.2 4.99:1, APCA Lc 79). The logo orange #FF6A1F is unchanged.
+const ACCENT = "#C74200";
 // Served from ./public by Workers static assets (wrangler.jsonc).
 const BRAND_LOGO = "/brand/upshot-logo-orange-on-light.png";
 
@@ -385,7 +386,7 @@ main{max-width:400px;margin:24px;padding:32px;text-align:center}
 .logo{display:block;height:32px;width:auto;margin:0 auto 32px}
 .check{display:block;width:40px;height:40px;margin:0 auto 16px}
 h1{font-size:23px;line-height:1.3;margin:0 0 8px;text-wrap:balance}p{margin:0;color:#525252;font-size:16px}
-.open{display:inline-block;margin-top:24px;padding:10px 20px;border-radius:8px;background:${ACCENT};color:#000;font-weight:600;font-size:16px;text-decoration:none}
+.open{display:inline-block;margin-top:24px;padding:10px 20px;border-radius:8px;background:${ACCENT};color:#fff;font-weight:600;font-size:16px;text-decoration:none}
 .open:focus-visible{outline:2px solid #171717;outline-offset:2px}
 .note{margin-top:24px;color:#737373;font-size:12px}
 </style></head><body><main><img class="logo" src="${BRAND_LOGO}" alt="Upshot">${check ? CHECK_SVG : ""}<h1>${heading}</h1><p>${line}</p><a class="open" href="upshot://">Open Upshot</a><p class="note">Test mode: no real money was charged.</p></main></body></html>`;

@@ -153,7 +153,7 @@ export const SessionNodeView = forwardRef<
           </div>
           {displayTime && (
             <span
-              className="text-muted-foreground shrink-0 font-mono text-xs"
+              className="text-muted-foreground shrink-0 text-xs tabular-nums"
               contentEditable={false}
             >
               {displayTime}

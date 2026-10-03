@@ -3,27 +3,18 @@ import { useCallback, useRef, useState } from "react";
 
 import { commands as deeplinkCommands } from "@anlg/plugin-deeplink2";
 import { commands as openerCommands } from "@anlg/plugin-opener2";
-import {
-  CalendarBlank,
-  Headset,
-  Square,
-  VideoCamera,
-} from "@anlg/ui/components/icons";
+import { Headset, Square, VideoCamera } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 import {
   Popover,
   PopoverAnchor,
   PopoverContent,
-  PopoverTrigger,
 } from "@anlg/ui/components/ui/popover";
 import { cn, parseEventInstant, safeParseDate } from "@anlg/utils";
 
-import { FolderPicker } from "../folder-picker";
 import { RecordingIcon, useHasTranscript } from "../shared";
-import { TitleInput } from "../title-input";
-import { AudioSavedLine } from "./audio-saved";
-import { MetadataPopoverContent } from "./metadata";
 import { OverflowButton } from "./overflow";
+import { ShareMenu } from "./share-menu";
 
 import { useAudioPlayer } from "~/audio-player";
 import { useNow } from "~/calendar/hooks";
@@ -45,7 +36,6 @@ import {
   WINDOW_CONTROLS_GUTTER_CLASS,
   WINDOW_CONTROLS_GUTTER_PLUS_32_CLASS,
 } from "~/shared/hooks/useWindowControlsGutter";
-import { NewNoteButton } from "~/shared/new-note-button";
 import { getScheme } from "~/shared/utils";
 import type { EditorView, Tab } from "~/store/zustand/tabs/schema";
 import { useListener } from "~/stt/contexts";
@@ -55,18 +45,18 @@ import {
   requestMainListenerControl,
 } from "~/stt/window-control";
 
+// Fork: Granola's note header holds only back, ⋯ and Share. Folder, date and
+// attendees moved to the chip row under the title, the view switcher split
+// into that row and the bottom note bar (granola-compare-oct3 §1, P2).
 export function OuterHeader({
   sessionId,
   currentView,
-  tab,
   standaloneWindow = false,
-  viewSwitcher,
 }: {
   sessionId: string;
   currentView: EditorView;
   tab?: Extract<Tab, { type: "sessions" }>;
   standaloneWindow?: boolean;
-  viewSwitcher?: React.ReactNode;
 }) {
   const { leftsidebar } = useShell();
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
@@ -83,10 +73,7 @@ export function OuterHeader({
   const ended = !!endedAt && endedAt.getTime() <= now.getTime();
   const isRecording =
     sessionMode === "active" || sessionMode === "running_batch";
-  const isLiveMeeting = isRecording || sessionMode === "finalizing";
   const meetingOver = !isRecording && (ended || hasTranscript || audioExists);
-  const showTitleInput =
-    Boolean(tab) && !viewSwitcher && !isLiveMeeting && !meetingOver;
 
   return (
     <div
@@ -105,69 +92,30 @@ export function OuterHeader({
             : "pl-[32px]"),
       ])}
     >
-      {viewSwitcher}
-      {showTitleInput && tab ? (
-        <div className="flex min-w-0 shrink items-center gap-1">
-          <FolderPicker sessionId={sessionId} />
-          <span aria-hidden="true" className="text-muted-foreground shrink-0">
-            /
-          </span>
-          <div className="max-w-56 min-w-0 shrink">
-            <TitleInput key={tab.id} tab={tab} variant="breadcrumb" />
-          </div>
-        </div>
-      ) : null}
       <div
         data-tauri-drag-region
         data-session-header-spacer
         className="flex min-h-full min-w-0 flex-1 items-center justify-end"
-      >
-        {audioExists && !isLiveMeeting ? <AudioSavedLine /> : null}
-      </div>
+      />
       <div
         data-tauri-drag-region
         className="relative z-10 flex shrink-0 items-center pr-1"
       >
-        {!showTitleInput && <FolderPicker sessionId={sessionId} align="end" />}
         <HeaderMeetingControl
           sessionId={sessionId}
           sessionMode={sessionMode}
           meetingOver={meetingOver}
         />
-        <MeetingInfoButton sessionId={sessionId} />
         <OverflowButton
           standaloneWindow={standaloneWindow}
           sessionId={sessionId}
           currentView={currentView}
         />
-        {!standaloneWindow && <NewNoteButton className="ml-1" />}
+        {/* Fork: no New note here; Granola's note header holds only ⋯ and
+            Share (redline-oct3, H2). */}
+        <ShareMenu sessionId={sessionId} currentView={currentView} />
       </div>
     </div>
-  );
-}
-
-// Fork: Meeting info was a submenu inside the … menu, where Tab got trapped;
-// a header button opens the same panel as a popover (ux-audit-oct3 C, WCAG 2.1.1).
-function MeetingInfoButton({ sessionId }: { sessionId: string }) {
-  const { t } = useLingui();
-  const label = t`Meeting info`;
-
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          size="icon"
-          variant="ghost"
-          data-tauri-drag-region="false"
-          aria-label={label}
-          title={label}
-          className="text-muted-foreground hover:bg-accent hover:text-foreground rounded-full [&_svg]:size-4"
-        >
-          <CalendarBlank className="size-4" />
-        </Button>
-      </PopoverTrigger>
-      <MetadataPopoverContent sessionId={sessionId} />
-    </Popover>
   );
 }
 
@@ -416,7 +364,7 @@ function HeaderMeetingAction({
         ) : showCountdown ? (
           <div
             data-header-meeting-countdown
-            className="border-border bg-popover text-popover-foreground pointer-events-none absolute top-full left-1/2 z-20 mt-2 -translate-x-1/2 rounded-md border px-2.5 py-1 font-mono text-xs whitespace-nowrap tabular-nums shadow-sm"
+            className="border-border bg-popover text-popover-foreground pointer-events-none absolute top-full left-1/2 z-20 mt-2 -translate-x-1/2 rounded-md border px-2.5 py-1 text-xs whitespace-nowrap tabular-nums shadow-sm"
           >
             <span
               data-header-meeting-countdown-tail

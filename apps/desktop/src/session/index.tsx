@@ -13,10 +13,7 @@ import {
   shouldShowTranscriptTabSpinner,
   type NoteInputHandle,
 } from "./components/note-input";
-import {
-  createEditorTabs,
-  SessionViewSwitcher,
-} from "./components/note-input/header";
+import { createEditorTabs } from "./components/note-input/header";
 import { SearchProvider } from "./components/note-input/search/context";
 import { OuterHeader } from "./components/outer-header";
 import { PendingProposalsBanner } from "./components/pending-proposals-banner";
@@ -273,19 +270,6 @@ function TabContentNoteInner({
               currentView={currentView}
               tab={tab}
               standaloneWindow={standaloneWindow}
-              viewSwitcher={
-                editorTabs.length > 1 ? (
-                  <SessionViewSwitcher
-                    sessionId={sessionId}
-                    editorTabs={editorTabs}
-                    currentTab={currentView}
-                    handleTabChange={handleTabChange}
-                    isTranscribing={isTranscribing}
-                    transcriptEditMode={transcriptEditMode}
-                    onTranscriptEditModeChange={handleTranscriptEditModeChange}
-                  />
-                ) : null
-              }
             />
           )
         }
@@ -295,6 +279,9 @@ function TabContentNoteInner({
               allowListening={!standaloneWindow}
               audioExists={audioExists}
               currentView={currentView}
+              editorTabs={editorTabs}
+              onSelectView={handleTabChange}
+              isTranscribing={isTranscribing}
               skipReason={skipReason}
               tab={tab}
             />
@@ -334,6 +321,7 @@ function TabContentNoteInner({
                 transcriptEditMode={transcriptEditMode}
                 onTranscriptEditModeChange={handleTranscriptEditModeChange}
                 hideHeader
+                showMetaChips
               />
             ) : (
               <SessionContentLoading />

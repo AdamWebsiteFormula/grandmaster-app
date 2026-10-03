@@ -45,7 +45,7 @@ export function TrialStartedDialog({
         </DialogHeader>
         <DialogFooter className="sm:justify-center">
           <Button
-            className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-full rounded-full px-4 text-xs font-medium shadow-sm dark:bg-white dark:text-black dark:hover:bg-white/90"
+            className="bg-primary text-primary-foreground hover:brightness-90 h-8 w-full rounded-full px-4 text-xs font-medium shadow-sm dark:bg-white dark:text-black dark:hover:bg-white/90"
             onClick={() => onOpenChange(false)}
           >
             {t`Got it`}

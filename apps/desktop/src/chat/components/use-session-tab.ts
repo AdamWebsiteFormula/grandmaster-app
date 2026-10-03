@@ -14,7 +14,8 @@ export function useSessionTab() {
       : undefined;
 
   const stickySessionIdRef = useRef(sessionTabId);
-  if (currentTab?.type === "empty") {
+  // Fork: Home and the Chat page chat across all notes, not the last one.
+  if (currentTab?.type === "empty" || currentTab?.type === "chat") {
     stickySessionIdRef.current = undefined;
   } else if (sessionTabId) {
     stickySessionIdRef.current = sessionTabId;

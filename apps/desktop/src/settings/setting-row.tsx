@@ -1,18 +1,97 @@
 import { type ReactNode, useId } from "react";
 
+import { ArrowUpRight, CaretRight, type Icon } from "@anlg/ui/components/icons";
 import { Switch } from "@anlg/ui/components/ui/switch";
 import { cn } from "@anlg/utils";
 
+import { SettingsSectionTitle } from "~/settings/page-title";
+
 export const SETTING_CONTROL_CLASS = "bg-card h-9 w-full shadow-none";
+
+// Fork: Settings rows sit in rounded cards with hairlines between them, as
+// macOS System Settings and Granola's Settings do (Apple HIG, "Settings";
+// granola-compare-oct3 section 8). The card is one surface step up from the
+// panel, and a switch track inside it steps up again so it stays visible
+// (design-system "Contrast": raised is lighter).
+export function SettingsCard({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      data-settings-card
+      className={cn([
+        "border-border bg-muted divide-border flex min-w-0 flex-col divide-y rounded-xl border",
+        "[&>*]:px-4 [&>*]:py-3.5",
+        "[&_[role=switch][data-state=unchecked]]:bg-accent",
+        className,
+      ])}
+    >
+      {children}
+    </div>
+  );
+}
+
+// A group title above a card (sentence case, a real heading, not an
+// eyebrow on one element) and the card itself.
+export function SettingsGroup({
+  title,
+  action,
+  children,
+  className,
+}: {
+  title?: ReactNode;
+  action?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  const titleId = useId();
+
+  return (
+    <section
+      aria-labelledby={title ? titleId : undefined}
+      className={cn(["flex min-w-0 flex-col gap-2", className])}
+    >
+      {title || action ? (
+        <div className="flex min-h-6 items-center justify-between gap-3 px-1">
+          {title ? (
+            <SettingsSectionTitle id={titleId}>{title}</SettingsSectionTitle>
+          ) : (
+            <span />
+          )}
+          {action}
+        </div>
+      ) : null}
+      <SettingsCard>{children}</SettingsCard>
+    </section>
+  );
+}
+
+export function SettingIconTile({ icon: IconComponent }: { icon: Icon }) {
+  return (
+    <span
+      aria-hidden
+      data-testid="setting-icon"
+      className="border-border bg-card flex size-8 shrink-0 items-center justify-center rounded-lg border"
+    >
+      <IconComponent className="text-muted-foreground size-4" />
+    </span>
+  );
+}
 
 export function SettingRow({
   title,
   description,
+  icon,
   controlWidth = "fixed",
   children,
 }: {
   title: ReactNode;
   description?: ReactNode;
+  icon?: Icon;
   controlWidth?: "fixed" | "content";
   children: (labelProps: {
     "aria-labelledby": string;
@@ -24,15 +103,21 @@ export function SettingRow({
 
   return (
     <div className="flex w-full min-w-0 items-center justify-between gap-4">
-      <div className="min-w-0 flex-1">
-        <h3 id={titleId} className="mb-1 text-sm font-medium">
-          {title}
-        </h3>
-        {description && (
-          <p id={descriptionId} className="text-muted-foreground text-xs">
-            {description}
-          </p>
-        )}
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        {icon ? <SettingIconTile icon={icon} /> : null}
+        <div className="min-w-0 flex-1">
+          <h3 id={titleId} className="text-sm font-medium">
+            {title}
+          </h3>
+          {description && (
+            <p
+              id={descriptionId}
+              className="text-muted-foreground mt-0.5 text-xs"
+            >
+              {description}
+            </p>
+          )}
+        </div>
       </div>
       <div
         className={cn([
@@ -53,18 +138,25 @@ export function SettingRow({
 export function SettingSwitchRow({
   title,
   description,
+  icon,
   checked,
   onChange,
   disabled = false,
 }: {
   title: ReactNode;
   description?: ReactNode;
+  icon?: Icon;
   checked: boolean;
   onChange: (checked: boolean) => void;
   disabled?: boolean;
 }) {
   return (
-    <SettingRow title={title} description={description} controlWidth="content">
+    <SettingRow
+      title={title}
+      description={description}
+      icon={icon}
+      controlWidth="content"
+    >
       {(labelProps) => (
         <Switch
           {...labelProps}
@@ -74,5 +166,59 @@ export function SettingSwitchRow({
         />
       )}
     </SettingRow>
+  );
+}
+
+// A row that opens another page: icon, title, description, a value and a
+// chevron, as Granola's Connectors list and macOS System Settings rows.
+export function SettingLinkRow({
+  icon,
+  title,
+  description,
+  value,
+  external = false,
+  onClick,
+}: {
+  icon: Icon;
+  title: ReactNode;
+  description?: ReactNode;
+  value?: ReactNode;
+  external?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn([
+        "flex w-full min-w-0 items-center gap-3 text-left transition-colors",
+        "hover:bg-accent focus-visible:bg-accent focus-visible:outline-hidden",
+        "first:rounded-t-xl last:rounded-b-xl",
+      ])}
+    >
+      <SettingIconTile icon={icon} />
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium">{title}</span>
+        {description ? (
+          <span className="text-muted-foreground mt-0.5 block text-xs">
+            {description}
+          </span>
+        ) : null}
+      </span>
+      {value ? (
+        <span className="text-muted-foreground shrink-0 text-xs">{value}</span>
+      ) : null}
+      {external ? (
+        <ArrowUpRight
+          aria-hidden
+          className="text-muted-foreground size-4 shrink-0"
+        />
+      ) : (
+        <CaretRight
+          aria-hidden
+          className="text-muted-foreground size-4 shrink-0"
+        />
+      )}
+    </button>
   );
 }

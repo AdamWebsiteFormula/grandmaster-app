@@ -1,6 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import type { ReactNode } from "react";
 
+import { TextAlignLeft } from "@anlg/ui/components/icons";
 import {
   Select,
   SelectContent,
@@ -28,6 +29,7 @@ export function SummaryLengthSelector() {
 
   return (
     <SettingRow
+      icon={TextAlignLeft}
       title={<Trans>Summary length</Trans>}
       description={
         <Trans>

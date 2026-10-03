@@ -1,7 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useMemo, useState } from "react";
 
-import { MagnifyingGlass, X } from "@anlg/ui/components/icons";
+import { ChatCircle, MagnifyingGlass, X } from "@anlg/ui/components/icons";
 import { Badge } from "@anlg/ui/components/ui/badge";
 import { Button } from "@anlg/ui/components/ui/button";
 import { cn } from "@anlg/utils";
@@ -11,6 +11,8 @@ import {
   getBaseLanguageCode,
   getBaseLanguageDisplayName,
 } from "./language";
+
+import { SettingIconTile } from "~/settings/setting-row";
 
 interface SpokenLanguagesViewProps {
   mainLanguage: string;
@@ -112,12 +114,17 @@ export function SpokenLanguagesView({
 
   return (
     <div>
-      <h3 className="mb-1 text-sm font-medium">
-        <Trans>Additional spoken languages</Trans>
-      </h3>
-      <p className="text-muted-foreground mb-3 text-xs">
-        <Trans>Transcribe meetings that use more than one language.</Trans>
-      </p>
+      <div className="mb-3 flex items-center gap-3">
+        <SettingIconTile icon={ChatCircle} />
+        <div className="min-w-0">
+          <h3 className="text-sm font-medium">
+            <Trans>Additional spoken languages</Trans>
+          </h3>
+          <p className="text-muted-foreground mt-0.5 text-xs">
+            <Trans>Transcribe meetings that use more than one language.</Trans>
+          </p>
+        </div>
+      </div>
       <div className="relative">
         <div
           className={cn([

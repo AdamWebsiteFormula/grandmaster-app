@@ -1,4 +1,4 @@
-// Fork: data for the home screen (Up next, Follow-ups, Recent notes).
+// Fork: data for the home screen (Coming up, Follow-ups, Recent notes).
 // Pure helpers are exported for tests; the hooks wrap them in live queries.
 
 import { useEffect, useMemo, useState } from "react";
@@ -14,7 +14,7 @@ import { useUndoDelete } from "~/store/zustand/undo-delete";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// ---------------------------------------------------------------- Up next
+// -------------------------------------------------------------- Coming up
 
 export type UpcomingEventRow = {
   id: string;
@@ -24,31 +24,47 @@ export type UpcomingEventRow = {
   tracking_id_event: string | null;
   recurrence_series_id: string | null;
   participants_json: string | null;
+  calendar_color?: string | null;
 };
 
-export type UpNextEvent = {
+export type ComingUpEvent = {
   id: string;
   title: string;
   startMs: number;
   endMs: number | null;
   attendees: number;
-  /** "now" while it runs, otherwise the day it starts on. */
-  when: "now" | "today" | "tomorrow";
+  /** The calendar's color, or null to use the neutral bar. */
+  color: string | null;
+  /** True while the meeting runs. */
+  live: boolean;
 };
+
+export type ComingUpDay = {
+  /** Local midnight of the day. */
+  dayMs: number;
+  isToday: boolean;
+  events: ComingUpEvent[];
+};
+
+/** Days of meetings the Coming up card covers, today included. */
+export const COMING_UP_DAYS = 7;
 
 // Coarse window in SQL (uses idx_events_started_at); exact checks in JS.
 // Params: from (ISO), to (ISO).
 export const UPCOMING_EVENTS_SQL = `
   SELECT
-    id, title, started_at, ended_at, tracking_id_event, recurrence_series_id,
-    participants_json
-  FROM events
-  WHERE deleted_at IS NULL
-    AND is_all_day = 0
-    AND started_at >= ?
-    AND started_at < ?
-  ORDER BY started_at, id
-  LIMIT 50
+    event.id, event.title, event.started_at, event.ended_at,
+    event.tracking_id_event, event.recurrence_series_id,
+    event.participants_json, calendar.color AS calendar_color
+  FROM events AS event
+  LEFT JOIN calendars AS calendar
+    ON calendar.id = event.calendar_id AND calendar.deleted_at IS NULL
+  WHERE event.deleted_at IS NULL
+    AND event.is_all_day = 0
+    AND event.started_at >= ?
+    AND event.started_at < ?
+  ORDER BY event.started_at, event.id
+  LIMIT 200
 `;
 
 function startOfLocalDay(ms: number, addDays = 0): number {
@@ -60,40 +76,63 @@ function startOfLocalDay(ms: number, addDays = 0): number {
   ).getTime();
 }
 
-/** The next meeting that is running now or starts later today or tomorrow. */
-export function pickUpNext(
+// Calendar colors are stored as hex ("#888" is the unset default).
+function calendarColor(value: string | null | undefined): string | null {
+  const color = value?.trim() ?? "";
+  if (!/^#[0-9a-f]{3,8}$/i.test(color) || color === "#888") return null;
+  return color;
+}
+
+/**
+ * Granola 101 "Coming up": today first (even when nothing is left), then
+ * each later day that has a meeting, up to COMING_UP_DAYS. Meetings that
+ * already ended drop off; a running one stays, marked live.
+ */
+export function groupComingUp(
   rows: UpcomingEventRow[],
   nowMs: number,
   isIgnored: (
     trackingId: string | null | undefined,
     seriesId: string | null | undefined,
   ) => boolean = () => false,
-): UpNextEvent | null {
-  const tomorrowStart = startOfLocalDay(nowMs, 1);
-  const windowEnd = startOfLocalDay(nowMs, 2);
-  let best: UpNextEvent | null = null;
+): ComingUpDay[] {
+  const todayStart = startOfLocalDay(nowMs);
+  const windowEnd = startOfLocalDay(nowMs, COMING_UP_DAYS);
+  const days: ComingUpDay[] = [
+    { dayMs: todayStart, isToday: true, events: [] },
+  ];
+  const events: ComingUpEvent[] = [];
 
   for (const row of rows) {
     if (isIgnored(row.tracking_id_event, row.recurrence_series_id)) continue;
     const start = safeParseDate(row.started_at)?.getTime();
     if (start === undefined || Number.isNaN(start)) continue;
     const end = safeParseDate(row.ended_at)?.getTime() ?? null;
-    const running = start <= nowMs && end !== null && end > nowMs;
-    if (!running && (start <= nowMs || start >= windowEnd)) continue;
-
-    if (best && start >= best.startMs) continue;
-    best = {
+    const live = start <= nowMs && end !== null && end > nowMs;
+    if (!live && (start <= nowMs || start >= windowEnd)) continue;
+    events.push({
       id: row.id,
       title: row.title?.trim() || "",
       startMs: start,
       endMs: end,
       attendees: parseEventParticipants(row.participants_json ?? undefined)
         .length,
-      when: running ? "now" : start < tomorrowStart ? "today" : "tomorrow",
-    };
+      color: calendarColor(row.calendar_color),
+      live,
+    });
   }
 
-  return best;
+  events.sort((a, b) => a.startMs - b.startMs || a.id.localeCompare(b.id));
+  for (const event of events) {
+    const dayMs = event.live ? todayStart : startOfLocalDay(event.startMs);
+    let day = days[days.length - 1];
+    if (day.dayMs !== dayMs) {
+      day = { dayMs, isToday: false, events: [] };
+      days.push(day);
+    }
+    day.events.push(event);
+  }
+  return days;
 }
 
 function useMinuteTick(): number {
@@ -105,7 +144,7 @@ function useMinuteTick(): number {
   return now;
 }
 
-export function useUpNext(): { isLoading: boolean; event: UpNextEvent | null } {
+export function useComingUp(): { isLoading: boolean; days: ComingUpDay[] } {
   const nowMs = useMinuteTick();
   const { isIgnored } = useIgnoredEvents();
   // Params change once per local day, so the live query is not re-created
@@ -114,7 +153,7 @@ export function useUpNext(): { isLoading: boolean; event: UpNextEvent | null } {
   const [fromIso, toIso] = useMemo(
     () => [
       new Date(today - DAY_MS).toISOString(),
-      new Date(today + 3 * DAY_MS).toISOString(),
+      new Date(today + (COMING_UP_DAYS + 1) * DAY_MS).toISOString(),
     ],
     [today],
   );
@@ -128,8 +167,8 @@ export function useUpNext(): { isLoading: boolean; event: UpNextEvent | null } {
 
   return {
     isLoading,
-    event: useMemo(
-      () => pickUpNext(data ?? [], nowMs, isIgnored),
+    days: useMemo(
+      () => groupComingUp(data ?? [], nowMs, isIgnored),
       [data, nowMs, isIgnored],
     ),
   };
@@ -225,6 +264,8 @@ export type RecentSessionRow = {
   created_at: string;
   event_json: string | null;
   attendees: number | null;
+  participant_names?: string | null;
+  duration_ms?: number | null;
   locked?: number | boolean | null;
 };
 
@@ -233,6 +274,10 @@ export type RecentNote = {
   title: string;
   timeMs: number;
   attendees: number;
+  /** Other people in the meeting, first four, you left out. */
+  people: string[];
+  /** Recorded length across the note's transcripts; 0 when none. */
+  durationMs: number;
   locked: boolean;
   trackingId: string | null;
 };
@@ -248,6 +293,56 @@ export type RecentGroup = {
 };
 
 export const RECENT_PAGE_SIZE = 20;
+
+// Fork: the second line of a note row names who was there, as Granola's
+// home list does ("Bbaird & Jimharbaugh104"). You are left out: your own
+// human row has the owner user id. JSON array, first four names.
+const PARTICIPANT_NAMES_SQL = `(
+      SELECT json_group_array(name) FROM (
+        SELECT COALESCE(
+          NULLIF(TRIM(human.name), ''),
+          NULLIF(TRIM(participant.display_name), ''),
+          NULLIF(TRIM(participant.email), '')
+        ) AS name
+        FROM session_participants AS participant
+        LEFT JOIN humans AS human
+          ON human.id = participant.human_id AND human.deleted_at IS NULL
+        WHERE participant.session_id = session.id
+          AND participant.deleted_at IS NULL
+          AND participant.source <> 'excluded'
+          AND participant.human_id <> session.owner_user_id
+        ORDER BY participant.created_at, participant.id
+        LIMIT 4
+      ) WHERE name IS NOT NULL
+    )`;
+
+// Fork: recorded length for the row's second line ("32 min · Ana & Bo").
+// ended_at_ms comes first (no JSON to parse; COALESCE stops there); else the
+// last word's end_ms, which Settings › Insights also reads as the length.
+const DURATION_SQL = `(
+      SELECT SUM(COALESCE(
+        CASE WHEN transcript.ended_at_ms > transcript.started_at_ms
+          THEN transcript.ended_at_ms - transcript.started_at_ms END,
+        CASE WHEN json_valid(transcript.words_json)
+          THEN json_extract(transcript.words_json, '$[#-1].end_ms') END,
+        0
+      ))
+      FROM transcripts AS transcript
+      WHERE transcript.session_id = session.id
+        AND transcript.deleted_at IS NULL
+    )`;
+
+function parseNames(value: string | null | undefined): string[] {
+  if (!value) return [];
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((name): name is string => typeof name === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
 // Notes for future calendar events are dropped in JS, so fetch a margin.
 const RECENT_FETCH_MARGIN = 50;
 
@@ -263,7 +358,9 @@ export const RECENT_SESSIONS_SQL = `
       SELECT COUNT(*) FROM session_participants AS participant
       WHERE participant.session_id = session.id
         AND participant.deleted_at IS NULL
-    ) AS attendees
+    ) AS attendees,
+    ${PARTICIPANT_NAMES_SQL} AS participant_names,
+    ${DURATION_SQL} AS duration_ms
   FROM sessions AS session
   WHERE session.deleted_at IS NULL
   ORDER BY session.created_at DESC, session.id
@@ -283,6 +380,8 @@ export function groupRecentNotes(
       title: row.title?.trim() || "",
       timeMs: sessionSearchTimestamp(row.event_json, row.created_at),
       attendees: Number(row.attendees ?? 0),
+      people: parseNames(row.participant_names),
+      durationMs: Math.max(0, Number(row.duration_ms ?? 0) || 0),
       locked: row.locked === true || Number(row.locked) === 1,
       trackingId: getSessionEvent(row)?.tracking_id ?? null,
     }))
@@ -328,7 +427,9 @@ export const FOLDER_SESSIONS_SQL = `
       SELECT COUNT(*) FROM session_participants AS participant
       WHERE participant.session_id = session.id
         AND participant.deleted_at IS NULL
-    ) AS attendees
+    ) AS attendees,
+    ${PARTICIPANT_NAMES_SQL} AS participant_names,
+    ${DURATION_SQL} AS duration_ms
   FROM sessions AS session
   WHERE session.deleted_at IS NULL
     AND (

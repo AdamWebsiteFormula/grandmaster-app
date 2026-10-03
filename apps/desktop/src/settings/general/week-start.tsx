@@ -1,6 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useMemo } from "react";
 
+import { CalendarBlank } from "@anlg/ui/components/icons";
 import {
   Select,
   SelectContent,
@@ -46,6 +47,7 @@ export function WeekStartSelector() {
 
   return (
     <SettingRow
+      icon={CalendarBlank}
       title={<Trans>Week starts on</Trans>}
       description={<Trans>Choose which day begins your calendar week.</Trans>}
     >

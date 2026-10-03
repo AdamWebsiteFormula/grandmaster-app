@@ -121,6 +121,18 @@ export function iconHeaderViewClassName(
   ]);
 }
 
+// Fork: one outlined chip style for the row under the note title (template,
+// date and attendees, folder), as Granola sets them (granola-compare-oct3 §1).
+export function noteChipClassName(active = false, className?: string) {
+  return cn([
+    "border-border inline-flex h-6 max-w-56 min-w-0 shrink-0 cursor-pointer items-center gap-1 rounded-md border px-2 text-xs whitespace-nowrap transition-colors select-none",
+    "hover:bg-accent hover:text-foreground [&_svg]:size-3.5 [&_svg]:shrink-0",
+    "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
+    active ? "bg-accent text-foreground" : "text-muted-foreground",
+    className,
+  ]);
+}
+
 export function getEnhancedNoteTitle({
   rawTitle,
   templateTitle,

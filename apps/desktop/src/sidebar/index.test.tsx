@@ -79,7 +79,10 @@ describe("LeftSidebar", () => {
   it("opens Settings from the button at the bottom of the sidebar", () => {
     render(<LeftSidebar />);
 
-    fireEvent.click(screen.getByRole("button", { name: /Settings/ }));
+    const settings = screen.getByRole("button", { name: "Settings" });
+    expect(settings.getAttribute("aria-keyshortcuts")).toBe("Meta+,");
+    expect(screen.queryByText("⌘ ,")).toBeNull();
+    fireEvent.click(settings);
 
     expect(mocks.openNew).toHaveBeenCalledWith({
       type: "settings",

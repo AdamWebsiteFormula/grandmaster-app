@@ -13,8 +13,13 @@ const IMPORTS_DOCUMENTATION_URL =
 export function SettingsImports() {
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex items-center justify-between gap-4">
-        <SettingsPageTitle title={<Trans>Imports</Trans>} />
+      <div className="flex items-start justify-between gap-4">
+        <SettingsPageTitle
+          title={<Trans>Imports</Trans>}
+          description={
+            <Trans>Bring in notes from Granola or transcript files.</Trans>
+          }
+        />
         <Button
           type="button"
           variant="ghost"

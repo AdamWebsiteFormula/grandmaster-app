@@ -10,7 +10,18 @@ import {
   type Result,
 } from "@anlg/plugin-detect";
 import { commands as notificationCommands } from "@anlg/plugin-notification";
-import { X } from "@anlg/ui/components/icons";
+import {
+  AppWindow,
+  Prohibit,
+  CalendarDots,
+  Microphone,
+  Moon,
+  RadioButton,
+  Sparkle,
+  SpeakerHigh,
+  Waveform,
+  X,
+} from "@anlg/ui/components/icons";
 import { Badge } from "@anlg/ui/components/ui/badge";
 import { Button } from "@anlg/ui/components/ui/button";
 import {
@@ -44,7 +55,11 @@ import {
 } from "./notification-app-options";
 
 import { useSetSettingValues } from "~/settings/queries";
-import { SettingRow, SettingSwitchRow } from "~/settings/setting-row";
+import {
+  SettingRow,
+  SettingsGroup,
+  SettingSwitchRow,
+} from "~/settings/setting-row";
 import {
   normalizeCompletionSoundName,
   previewCompletionSound,
@@ -192,182 +207,74 @@ export function NotificationSettingsView() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <form.Field name="notification_disabled">
-        {(field) => (
-          <SettingSwitchRow
-            title={<Trans>Disable all notifications</Trans>}
-            description={
-              <Trans>
-                Hide all notification panels, Dock alerts, and completion
-                sounds.
-              </Trans>
-            }
-            checked={field.state.value}
-            onChange={(disabled) => {
-              field.handleChange(disabled);
-              if (disabled) {
-                void notificationCommands.clearNotifications();
+    <div className="flex flex-col gap-8">
+      <SettingsGroup>
+        <form.Field name="notification_disabled">
+          {(field) => (
+            <SettingSwitchRow
+              icon={Prohibit}
+              title={<Trans>Disable all notifications</Trans>}
+              description={
+                <Trans>
+                  Hide all notification panels, Dock alerts, and completion
+                  sounds.
+                </Trans>
               }
-            }}
-          />
+              checked={field.state.value}
+              onChange={(disabled) => {
+                field.handleChange(disabled);
+                if (disabled) {
+                  void notificationCommands.clearNotifications();
+                }
+              }}
+            />
+          )}
+        </form.Field>
+        {supportsDoNotDisturb && (
+          <div className="flex flex-col gap-6">
+            <form.Subscribe
+              selector={(state) =>
+                !state.values.notification_disabled &&
+                (state.values.notification_event ||
+                  state.values.notification_detect)
+              }
+            >
+              {(anyNotificationEnabled) => (
+                <form.Field name="respect_dnd">
+                  {(field) => (
+                    <SettingSwitchRow
+                      icon={Moon}
+                      title={<Trans>Respect Do Not Disturb</Trans>}
+                      description={
+                        <Trans>Pause alerts while Do Not Disturb is on.</Trans>
+                      }
+                      checked={field.state.value}
+                      onChange={field.handleChange}
+                      disabled={!anyNotificationEnabled}
+                    />
+                  )}
+                </form.Field>
+              )}
+            </form.Subscribe>
+          </div>
         )}
-      </form.Field>
+      </SettingsGroup>
 
       <form.Subscribe selector={(state) => state.values.notification_disabled}>
         {(notificationsDisabled) => (
           <>
-            <form.Field name="notification_transcription_complete">
-              {(field) => (
-                <SettingSwitchRow
-                  title={<Trans>Transcription complete</Trans>}
-                  description={<Trans>Show when a transcript is ready.</Trans>}
-                  checked={field.state.value}
-                  onChange={field.handleChange}
-                  disabled={notificationsDisabled}
-                />
-              )}
-            </form.Field>
-
-            <form.Field name="notification_summary_complete">
-              {(field) => (
-                <SettingSwitchRow
-                  title={<Trans>Summary complete</Trans>}
-                  description={<Trans>Show when a summary is ready.</Trans>}
-                  checked={field.state.value}
-                  onChange={field.handleChange}
-                  disabled={notificationsDisabled}
-                />
-              )}
-            </form.Field>
-
-            {/* Fork: cloud sync is hidden, so its notification row is too. */}
-
-            <form.Field name="notification_event">
-              {(field) => (
-                <SettingSwitchRow
-                  title={<Trans>Event notifications</Trans>}
-                  description={
-                    <Trans>Prepare for events with a 5-minute reminder.</Trans>
-                  }
-                  checked={field.state.value}
-                  onChange={field.handleChange}
-                  disabled={notificationsDisabled}
-                />
-              )}
-            </form.Field>
-
-            <form.Field name="notification_recording">
-              {(field) => (
-                <SettingSwitchRow
-                  title={<Trans>Recording status prompts</Trans>}
-                  description={
-                    <Trans>
-                      Ask before stopping when a meeting may have ended. When
-                      alerts are off, Upshot keeps listening.
-                    </Trans>
-                  }
-                  checked={field.state.value}
-                  onChange={field.handleChange}
-                  disabled={notificationsDisabled}
-                />
-              )}
-            </form.Field>
-
-            <form.Field name="notification_completion_sound">
-              {(field) => (
-                <div className="flex flex-col gap-4">
-                  <SettingSwitchRow
-                    title={<Trans>Completion sound</Trans>}
-                    description={
-                      <Trans>
-                        Play a sound when a transcript or summary is ready.
-                      </Trans>
-                    }
-                    checked={field.state.value}
-                    onChange={field.handleChange}
-                    disabled={notificationsDisabled}
-                  />
-
-                  {field.state.value && (
-                    <div className={cn(["border-muted ml-3 border-l-2 pl-4"])}>
-                      <form.Field name="notification_completion_sound_name">
-                        {(soundField) => (
-                          <SettingRow
-                            title={<Trans>Sound</Trans>}
-                            description={
-                              <Trans>Choose from five completion sounds.</Trans>
-                            }
-                          >
-                            {(labelProps) => (
-                              <div className="flex w-full items-center gap-2">
-                                <Select
-                                  value={soundField.state.value}
-                                  onValueChange={(value) => {
-                                    const sound =
-                                      normalizeCompletionSoundName(value);
-                                    soundField.handleChange(sound);
-                                    previewCompletionSound(sound);
-                                  }}
-                                  disabled={notificationsDisabled}
-                                >
-                                  <SelectTrigger
-                                    {...labelProps}
-                                    className="min-w-0 flex-1"
-                                  >
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent align="end">
-                                    <SelectItem value="ready">
-                                      <Trans>Ready</Trans>
-                                    </SelectItem>
-                                    <SelectItem value="success">
-                                      <Trans>Success</Trans>
-                                    </SelectItem>
-                                    <SelectItem value="chime">
-                                      <Trans>Chime</Trans>
-                                    </SelectItem>
-                                    <SelectItem value="sparkle">
-                                      <Trans>Sparkle</Trans>
-                                    </SelectItem>
-                                    <SelectItem value="bloom">
-                                      <Trans>Bloom</Trans>
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  disabled={notificationsDisabled}
-                                  onClick={() =>
-                                    previewCompletionSound(
-                                      soundField.state.value,
-                                    )
-                                  }
-                                >
-                                  <Trans>Preview</Trans>
-                                </Button>
-                              </div>
-                            )}
-                          </SettingRow>
-                        )}
-                      </form.Field>
-                    </div>
-                  )}
-                </div>
-              )}
-            </form.Field>
-
-            {(currentPlatform !== "macos" || configs.show_app_in_dock) && (
-              <form.Field name="notification_bounce">
+            {/* Fork: three cards, as Granola's Notifications page groups
+                meeting alerts apart from the rest (granola-compare-oct3
+                section 8). */}
+            <SettingsGroup title={<Trans>Meetings</Trans>}>
+              <form.Field name="notification_event">
                 {(field) => (
                   <SettingSwitchRow
-                    title={<Trans>Bounce app icon</Trans>}
+                    icon={CalendarDots}
+                    title={<Trans>Event notifications</Trans>}
                     description={
                       <Trans>
-                        Get your attention when Upshot finishes work in the
-                        background.
+                        Prepare for events with a 5-minute reminder.
                       </Trans>
                     }
                     checked={field.state.value}
@@ -376,280 +283,411 @@ export function NotificationSettingsView() {
                   />
                 )}
               </form.Field>
-            )}
+              {supportsMicDetection && (
+                <form.Field name="notification_detect">
+                  {(field) => (
+                    <div className="flex flex-col gap-4">
+                      <SettingSwitchRow
+                        icon={Microphone}
+                        title={<Trans>Microphone detection</Trans>}
+                        description={
+                          <Trans>
+                            Detect meetings from microphone activity.
+                          </Trans>
+                        }
+                        checked={field.state.value}
+                        onChange={field.handleChange}
+                        disabled={notificationsDisabled}
+                      />
 
-            {supportsMicDetection && (
-              <form.Field name="notification_detect">
+                      {field.state.value && !notificationsDisabled && (
+                        <div
+                          className={cn([
+                            "border-border ml-3 border-l-2 pt-2 pl-4",
+                          ])}
+                        >
+                          <form.Field name="mic_active_threshold">
+                            {(thresholdField) => (
+                              // Fork: a named, translated delay picker
+                              // (ux-audit-oct3 E, WCAG 4.1.2).
+                              <div className="mb-4">
+                                <SettingRow
+                                  title={<Trans>Detection delay</Trans>}
+                                  description={
+                                    <Trans>
+                                      Wait before treating microphone activity
+                                      as a meeting.
+                                    </Trans>
+                                  }
+                                  controlWidth="content"
+                                >
+                                  {(labelProps) => (
+                                    <Select
+                                      value={String(thresholdField.state.value)}
+                                      onValueChange={(v) =>
+                                        thresholdField.handleChange(Number(v))
+                                      }
+                                    >
+                                      <SelectTrigger
+                                        {...labelProps}
+                                        className="w-[120px]"
+                                      >
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent align="end">
+                                        <SelectItem value="5">
+                                          <Trans>5 seconds</Trans>
+                                        </SelectItem>
+                                        <SelectItem value="10">
+                                          <Trans>10 seconds</Trans>
+                                        </SelectItem>
+                                        <SelectItem value="15">
+                                          <Trans>15 seconds</Trans>
+                                        </SelectItem>
+                                        <SelectItem value="30">
+                                          <Trans>30 seconds</Trans>
+                                        </SelectItem>
+                                        <SelectItem value="60">
+                                          <Trans>1 minute</Trans>
+                                        </SelectItem>
+                                        <SelectItem value="120">
+                                          <Trans>2 minutes</Trans>
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  )}
+                                </SettingRow>
+                              </div>
+                            )}
+                          </form.Field>
+
+                          <div className="mb-3 flex flex-col gap-1">
+                            <h4 className="text-sm font-medium">
+                              <Trans>Exclude apps from detection</Trans>
+                            </h4>
+                            <p className="text-muted-foreground text-xs">
+                              <Trans>
+                                Prevent selected apps from triggering meeting
+                                detection.
+                              </Trans>
+                            </p>
+                          </div>
+                          <form.Subscribe selector={(state) => state.values}>
+                            {(values) => {
+                              const ignoredPlatforms = values.ignored_platforms;
+                              const includedPlatforms =
+                                values.included_platforms;
+                              const ignorableApps = getIgnorableApps({
+                                installedApps,
+                                ignoredPlatforms,
+                                includedPlatforms,
+                                inputValue: searchQuery,
+                                defaultIgnoredBundleIds,
+                              });
+                              const ignoredBundleIds = getIgnoredBundleIds({
+                                installedApps,
+                                ignoredPlatforms,
+                                includedPlatforms,
+                                defaultIgnoredBundleIds,
+                              });
+
+                              return (
+                                <div className="flex flex-col gap-3">
+                                  <Popover
+                                    open={searchOpen}
+                                    onOpenChange={setSearchOpen}
+                                  >
+                                    <PopoverTrigger asChild>
+                                      <div
+                                        role="button"
+                                        tabIndex={0}
+                                        aria-expanded={searchOpen}
+                                        className={cn([
+                                          "flex min-h-[38px] w-full cursor-text flex-wrap items-center gap-2 rounded-2xl border p-2",
+                                          "focus-visible:ring-ring focus-visible:ring-1 focus-visible:outline-hidden",
+                                        ])}
+                                        onKeyDown={(event) => {
+                                          if (
+                                            event.key === "Enter" ||
+                                            event.key === " "
+                                          ) {
+                                            event.preventDefault();
+                                            setSearchOpen(true);
+                                          }
+                                        }}
+                                      >
+                                        {ignoredBundleIds.map(
+                                          (bundleId: string) => {
+                                            const isDefault =
+                                              isDefaultIgnored(bundleId);
+                                            return (
+                                              <Badge
+                                                key={bundleId}
+                                                variant="secondary"
+                                                className={cn([
+                                                  "flex items-center gap-1 px-2 py-0.5 text-xs",
+                                                  isDefault
+                                                    ? [
+                                                        "bg-accent text-muted-foreground",
+                                                      ]
+                                                    : ["bg-muted"],
+                                                ])}
+                                                title={
+                                                  isDefault
+                                                    ? "default"
+                                                    : undefined
+                                                }
+                                              >
+                                                {bundleIdToName(bundleId)}
+                                                {isDefault && (
+                                                  <span className="text-xs opacity-70">
+                                                    <Trans>(default)</Trans>
+                                                  </span>
+                                                )}
+                                                <Button
+                                                  type="button"
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  aria-label={t`Remove ${bundleIdToName(bundleId)}`}
+                                                  className="-my-1 -mr-1.5 size-6 p-0 hover:bg-transparent"
+                                                  onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    handleToggleIgnoredApp(
+                                                      bundleId,
+                                                      ignoredPlatforms,
+                                                      includedPlatforms,
+                                                    );
+                                                  }}
+                                                >
+                                                  <X className="size-3" />
+                                                </Button>
+                                              </Badge>
+                                            );
+                                          },
+                                        )}
+                                        <span className="text-muted-foreground text-sm">
+                                          <Trans>Search installed apps…</Trans>
+                                        </span>
+                                      </div>
+                                    </PopoverTrigger>
+                                    <PopoverContent
+                                      variant="app"
+                                      align="start"
+                                      style={{
+                                        width:
+                                          "var(--radix-popover-trigger-width)",
+                                      }}
+                                    >
+                                      <AppFloatingPanel className="overflow-hidden">
+                                        <Command className="rounded-[inherit] border-0 bg-transparent">
+                                          <CommandInput
+                                            placeholder={t`Search installed apps…`}
+                                            value={searchQuery}
+                                            onValueChange={setSearchQuery}
+                                          />
+                                          <CommandEmpty>
+                                            <div className="text-muted-foreground px-2 py-1.5 text-sm">
+                                              <Trans>No apps found.</Trans>
+                                            </div>
+                                          </CommandEmpty>
+                                          <CommandList>
+                                            <CommandGroup className="max-h-[250px] overflow-y-auto">
+                                              {ignorableApps.map((app) => (
+                                                <CommandItem
+                                                  key={app.id}
+                                                  value={`${app.name} ${app.id}`}
+                                                  onSelect={() =>
+                                                    handleToggleIgnoredApp(
+                                                      app.id,
+                                                      ignoredPlatforms,
+                                                      includedPlatforms,
+                                                    )
+                                                  }
+                                                  className={cn([
+                                                    "cursor-pointer",
+                                                    "hover:bg-accent! focus:bg-accent! aria-selected:bg-transparent",
+                                                  ])}
+                                                >
+                                                  <span className="flex-1 truncate">
+                                                    {app.name}
+                                                  </span>
+                                                </CommandItem>
+                                              ))}
+                                            </CommandGroup>
+                                          </CommandList>
+                                        </Command>
+                                      </AppFloatingPanel>
+                                    </PopoverContent>
+                                  </Popover>
+                                </div>
+                              );
+                            }}
+                          </form.Subscribe>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </form.Field>
+              )}
+              <form.Field name="notification_recording">
+                {(field) => (
+                  <SettingSwitchRow
+                    icon={RadioButton}
+                    title={<Trans>Recording status prompts</Trans>}
+                    description={
+                      <Trans>
+                        Ask before stopping when a meeting may have ended. When
+                        alerts are off, Upshot keeps recording.
+                      </Trans>
+                    }
+                    checked={field.state.value}
+                    onChange={field.handleChange}
+                    disabled={notificationsDisabled}
+                  />
+                )}
+              </form.Field>
+            </SettingsGroup>
+
+            <SettingsGroup title={<Trans>When notes are ready</Trans>}>
+              <form.Field name="notification_transcription_complete">
+                {(field) => (
+                  <SettingSwitchRow
+                    icon={Waveform}
+                    title={<Trans>Transcription complete</Trans>}
+                    description={
+                      <Trans>Show when a transcript is ready.</Trans>
+                    }
+                    checked={field.state.value}
+                    onChange={field.handleChange}
+                    disabled={notificationsDisabled}
+                  />
+                )}
+              </form.Field>
+              <form.Field name="notification_summary_complete">
+                {(field) => (
+                  <SettingSwitchRow
+                    icon={Sparkle}
+                    title={<Trans>Summary complete</Trans>}
+                    description={<Trans>Show when a summary is ready.</Trans>}
+                    checked={field.state.value}
+                    onChange={field.handleChange}
+                    disabled={notificationsDisabled}
+                  />
+                )}
+              </form.Field>
+              {/* Fork: cloud sync is hidden, so its notification row is too. */}
+            </SettingsGroup>
+
+            <SettingsGroup title={<Trans>Sound and Dock</Trans>}>
+              <form.Field name="notification_completion_sound">
                 {(field) => (
                   <div className="flex flex-col gap-4">
                     <SettingSwitchRow
-                      title={<Trans>Microphone detection</Trans>}
+                      icon={SpeakerHigh}
+                      title={<Trans>Completion sound</Trans>}
                       description={
-                        <Trans>Detect meetings from microphone activity.</Trans>
+                        <Trans>
+                          Play a sound when a transcript or summary is ready.
+                        </Trans>
                       }
                       checked={field.state.value}
                       onChange={field.handleChange}
                       disabled={notificationsDisabled}
                     />
 
-                    {field.state.value && !notificationsDisabled && (
+                    {field.state.value && (
                       <div
-                        className={cn([
-                          "border-muted ml-3 border-l-2 pt-2 pl-4",
-                        ])}
+                        className={cn(["border-border ml-3 border-l-2 pl-4"])}
                       >
-                        <form.Field name="mic_active_threshold">
-                          {(thresholdField) => (
-                            // Fork: a named, translated delay picker
-                            // (ux-audit-oct3 E, WCAG 4.1.2).
-                            <div className="mb-4">
-                              <SettingRow
-                                title={<Trans>Detection delay</Trans>}
-                                description={
-                                  <Trans>
-                                    Wait before treating microphone activity as
-                                    a meeting.
-                                  </Trans>
-                                }
-                                controlWidth="content"
-                              >
-                                {(labelProps) => (
+                        <form.Field name="notification_completion_sound_name">
+                          {(soundField) => (
+                            <SettingRow
+                              title={<Trans>Sound</Trans>}
+                              description={
+                                <Trans>
+                                  Choose from five completion sounds.
+                                </Trans>
+                              }
+                            >
+                              {(labelProps) => (
+                                <div className="flex w-full items-center gap-2">
                                   <Select
-                                    value={String(thresholdField.state.value)}
-                                    onValueChange={(v) =>
-                                      thresholdField.handleChange(Number(v))
-                                    }
+                                    value={soundField.state.value}
+                                    onValueChange={(value) => {
+                                      const sound =
+                                        normalizeCompletionSoundName(value);
+                                      soundField.handleChange(sound);
+                                      previewCompletionSound(sound);
+                                    }}
+                                    disabled={notificationsDisabled}
                                   >
                                     <SelectTrigger
                                       {...labelProps}
-                                      className="w-[120px]"
+                                      className="min-w-0 flex-1"
                                     >
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent align="end">
-                                      <SelectItem value="5">
-                                        <Trans>5 seconds</Trans>
+                                      <SelectItem value="ready">
+                                        <Trans>Ready</Trans>
                                       </SelectItem>
-                                      <SelectItem value="10">
-                                        <Trans>10 seconds</Trans>
+                                      <SelectItem value="success">
+                                        <Trans>Success</Trans>
                                       </SelectItem>
-                                      <SelectItem value="15">
-                                        <Trans>15 seconds</Trans>
+                                      <SelectItem value="chime">
+                                        <Trans>Chime</Trans>
                                       </SelectItem>
-                                      <SelectItem value="30">
-                                        <Trans>30 seconds</Trans>
+                                      <SelectItem value="sparkle">
+                                        <Trans>Sparkle</Trans>
                                       </SelectItem>
-                                      <SelectItem value="60">
-                                        <Trans>1 minute</Trans>
-                                      </SelectItem>
-                                      <SelectItem value="120">
-                                        <Trans>2 minutes</Trans>
+                                      <SelectItem value="bloom">
+                                        <Trans>Bloom</Trans>
                                       </SelectItem>
                                     </SelectContent>
                                   </Select>
-                                )}
-                              </SettingRow>
-                            </div>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={notificationsDisabled}
+                                    onClick={() =>
+                                      previewCompletionSound(
+                                        soundField.state.value,
+                                      )
+                                    }
+                                  >
+                                    <Trans>Preview</Trans>
+                                  </Button>
+                                </div>
+                              )}
+                            </SettingRow>
                           )}
                         </form.Field>
-
-                        <div className="mb-3 flex flex-col gap-1">
-                          <h4 className="text-sm font-medium">
-                            <Trans>Exclude apps from detection</Trans>
-                          </h4>
-                          <p className="text-muted-foreground text-xs">
-                            <Trans>
-                              Prevent selected apps from triggering meeting
-                              detection.
-                            </Trans>
-                          </p>
-                        </div>
-                        <form.Subscribe selector={(state) => state.values}>
-                          {(values) => {
-                            const ignoredPlatforms = values.ignored_platforms;
-                            const includedPlatforms = values.included_platforms;
-                            const ignorableApps = getIgnorableApps({
-                              installedApps,
-                              ignoredPlatforms,
-                              includedPlatforms,
-                              inputValue: searchQuery,
-                              defaultIgnoredBundleIds,
-                            });
-                            const ignoredBundleIds = getIgnoredBundleIds({
-                              installedApps,
-                              ignoredPlatforms,
-                              includedPlatforms,
-                              defaultIgnoredBundleIds,
-                            });
-
-                            return (
-                              <div className="flex flex-col gap-3">
-                                <Popover
-                                  open={searchOpen}
-                                  onOpenChange={setSearchOpen}
-                                >
-                                  <PopoverTrigger asChild>
-                                    <div
-                                      role="button"
-                                      tabIndex={0}
-                                      aria-expanded={searchOpen}
-                                      className={cn([
-                                        "flex min-h-[38px] w-full cursor-text flex-wrap items-center gap-2 rounded-2xl border p-2",
-                                        "focus-visible:ring-ring focus-visible:ring-1 focus-visible:outline-hidden",
-                                      ])}
-                                      onKeyDown={(event) => {
-                                        if (
-                                          event.key === "Enter" ||
-                                          event.key === " "
-                                        ) {
-                                          event.preventDefault();
-                                          setSearchOpen(true);
-                                        }
-                                      }}
-                                    >
-                                      {ignoredBundleIds.map(
-                                        (bundleId: string) => {
-                                          const isDefault =
-                                            isDefaultIgnored(bundleId);
-                                          return (
-                                            <Badge
-                                              key={bundleId}
-                                              variant="secondary"
-                                              className={cn([
-                                                "flex items-center gap-1 px-2 py-0.5 text-xs",
-                                                isDefault
-                                                  ? [
-                                                      "bg-accent text-muted-foreground",
-                                                    ]
-                                                  : ["bg-muted"],
-                                              ])}
-                                              title={
-                                                isDefault
-                                                  ? "default"
-                                                  : undefined
-                                              }
-                                            >
-                                              {bundleIdToName(bundleId)}
-                                              {isDefault && (
-                                                <span className="text-xs opacity-70">
-                                                  <Trans>(default)</Trans>
-                                                </span>
-                                              )}
-                                              <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                aria-label={t`Remove ${bundleIdToName(bundleId)}`}
-                                                className="-my-1 -mr-1.5 size-6 p-0 hover:bg-transparent"
-                                                onClick={(event) => {
-                                                  event.stopPropagation();
-                                                  handleToggleIgnoredApp(
-                                                    bundleId,
-                                                    ignoredPlatforms,
-                                                    includedPlatforms,
-                                                  );
-                                                }}
-                                              >
-                                                <X className="size-3" />
-                                              </Button>
-                                            </Badge>
-                                          );
-                                        },
-                                      )}
-                                      <span className="text-muted-foreground text-sm">
-                                        <Trans>Search installed apps…</Trans>
-                                      </span>
-                                    </div>
-                                  </PopoverTrigger>
-                                  <PopoverContent
-                                    variant="app"
-                                    align="start"
-                                    style={{
-                                      width:
-                                        "var(--radix-popover-trigger-width)",
-                                    }}
-                                  >
-                                    <AppFloatingPanel className="overflow-hidden">
-                                      <Command className="rounded-[inherit] border-0 bg-transparent">
-                                        <CommandInput
-                                          placeholder={t`Search installed apps…`}
-                                          value={searchQuery}
-                                          onValueChange={setSearchQuery}
-                                        />
-                                        <CommandEmpty>
-                                          <div className="text-muted-foreground px-2 py-1.5 text-sm">
-                                            <Trans>No apps found.</Trans>
-                                          </div>
-                                        </CommandEmpty>
-                                        <CommandList>
-                                          <CommandGroup className="max-h-[250px] overflow-y-auto">
-                                            {ignorableApps.map((app) => (
-                                              <CommandItem
-                                                key={app.id}
-                                                value={`${app.name} ${app.id}`}
-                                                onSelect={() =>
-                                                  handleToggleIgnoredApp(
-                                                    app.id,
-                                                    ignoredPlatforms,
-                                                    includedPlatforms,
-                                                  )
-                                                }
-                                                className={cn([
-                                                  "cursor-pointer",
-                                                  "hover:bg-accent! focus:bg-accent! aria-selected:bg-transparent",
-                                                ])}
-                                              >
-                                                <span className="flex-1 truncate">
-                                                  {app.name}
-                                                </span>
-                                              </CommandItem>
-                                            ))}
-                                          </CommandGroup>
-                                        </CommandList>
-                                      </Command>
-                                    </AppFloatingPanel>
-                                  </PopoverContent>
-                                </Popover>
-                              </div>
-                            );
-                          }}
-                        </form.Subscribe>
                       </div>
                     )}
                   </div>
                 )}
               </form.Field>
-            )}
-
-            {supportsDoNotDisturb && (
-              <div className="flex flex-col gap-6">
-                <form.Subscribe
-                  selector={(state) =>
-                    !state.values.notification_disabled &&
-                    (state.values.notification_event ||
-                      state.values.notification_detect)
-                  }
-                >
-                  {(anyNotificationEnabled) => (
-                    <form.Field name="respect_dnd">
-                      {(field) => (
-                        <SettingSwitchRow
-                          title={<Trans>Respect Do Not Disturb</Trans>}
-                          description={
-                            <Trans>
-                              Pause alerts while Do Not Disturb is on.
-                            </Trans>
-                          }
-                          checked={field.state.value}
-                          onChange={field.handleChange}
-                          disabled={!anyNotificationEnabled}
-                        />
-                      )}
-                    </form.Field>
+              {(currentPlatform !== "macos" || configs.show_app_in_dock) && (
+                <form.Field name="notification_bounce">
+                  {(field) => (
+                    <SettingSwitchRow
+                      icon={AppWindow}
+                      title={<Trans>Bounce app icon</Trans>}
+                      description={
+                        <Trans>
+                          Get your attention when Upshot finishes work in the
+                          background.
+                        </Trans>
+                      }
+                      checked={field.state.value}
+                      onChange={field.handleChange}
+                      disabled={notificationsDisabled}
+                    />
                   )}
-                </form.Subscribe>
-              </div>
-            )}
+                </form.Field>
+              )}
+            </SettingsGroup>
           </>
         )}
       </form.Subscribe>

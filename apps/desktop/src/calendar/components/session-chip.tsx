@@ -92,7 +92,7 @@ export function SessionChip({
           <div className="border-border w-[4px] shrink-0 self-stretch rounded-full border bg-transparent" />
           <span className="truncate">{title}</span>
           {createdAt && (
-            <span className="text-muted-foreground ml-auto shrink-0 font-mono">
+            <span className="text-muted-foreground ml-auto shrink-0 tabular-nums">
               {createdAt}
             </span>
           )}
@@ -142,7 +142,7 @@ function SessionPopoverContent({
       )}
       <Button
         size="sm"
-        className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-8 w-full"
+        className="bg-primary text-primary-foreground min-h-8 w-full hover:brightness-90"
         onClick={handleOpen}
       >
         Open note

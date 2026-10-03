@@ -5,7 +5,6 @@ import {
   render,
   screen,
 } from "@testing-library/react";
-import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { EditorView } from "~/store/zustand/tabs/schema";
@@ -45,6 +44,10 @@ vi.mock("./metadata", () => ({
 
 vi.mock("./overflow", () => ({
   OverflowButton: () => <button type="button">More</button>,
+}));
+
+vi.mock("./share-menu", () => ({
+  ShareMenu: () => <button type="button">Share</button>,
 }));
 
 vi.mock("~/session-sharing", () => ({
@@ -168,7 +171,6 @@ function renderHeader(
   props: {
     view?: EditorView;
     withTab?: boolean;
-    viewSwitcher?: ReactNode;
     standaloneWindow?: boolean;
   } = {},
 ) {
@@ -178,7 +180,6 @@ function renderHeader(
       sessionId="session-1"
       currentView={view}
       standaloneWindow={props.standaloneWindow}
-      viewSwitcher={props.viewSwitcher}
       tab={
         props.withTab
           ? {
@@ -445,50 +446,36 @@ describe("OuterHeader", () => {
     expect(mocks.openUrl).not.toHaveBeenCalled();
   });
 
-  it.each<[string, Scenario, { view?: EditorView; tabs?: boolean }, boolean]>([
-    [
-      "summary tab before recording",
-      {},
-      { view: { type: "enhanced", id: "n" } as EditorView },
-      true,
-    ],
-    ["memo tab before recording", {}, {}, true],
-    ["view switcher is shown", {}, { tabs: true }, false],
-    ["transcript exists", { transcript: true }, {}, false],
-    ["meeting is over", { event: scheduled(), now: AFTER }, {}, false],
-    ["listening", { mode: "active" }, {}, false],
-    ["finalizing", { mode: "finalizing" }, {}, false],
-  ])(
-    "title input visibility when %s",
-    (_label, scenario, { view, tabs }, visible) => {
-      arrange(scenario);
-      renderHeader({
-        view,
-        withTab: true,
-        viewSwitcher: tabs ? <div>Tabs</div> : undefined,
-      });
-
-      expect(
-        screen.queryByRole("textbox", { name: "Note title" }) !== null,
-      ).toBe(visible);
-    },
-  );
-
-  it.each<[string, Scenario, boolean]>([
-    ["saved audio", { audio: true }, true],
-    ["saved audio and a transcript", { audio: true, transcript: true }, true],
-    ["no audio", { transcript: true }, false],
-    ["recording", { audio: true, mode: "active" }, false],
-    ["finalizing", { audio: true, mode: "finalizing" }, false],
-    ["transcribing", { audio: true, mode: "running_batch" }, false],
-  ])("audio saved line when %s", (_label, scenario, visible) => {
+  // Fork: Granola's note header keeps only ⋯ and Share on the right; title,
+  // folder, date and attendees live in the chip row under the title
+  // (granola-compare-oct3 §1).
+  it.each<[string, Scenario]>([
+    ["memo tab before recording", {}],
+    ["transcript exists", { transcript: true }],
+    ["listening", { mode: "active" }],
+  ])("keeps the header to ⋯ and Share when %s", (_l, scenario) => {
     arrange(scenario);
+    renderHeader({ withTab: true });
+
+    expect(screen.queryByRole("textbox", { name: "Note title" })).toBeNull();
+    expect(screen.queryByRole("combobox", { name: /folder/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Meeting info" })).toBeNull();
+    expect(screen.getByRole("button", { name: "More" })).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Share" })).not.toBeNull();
+    // Fork: no New note on the note page (redline-oct3, H2).
+    expect(screen.queryByRole("button", { name: "New note" })).toBeNull();
+  });
+
+  // Fork: the audio-saved note moved into ⋯ › Recording, so the header
+  // has no unlabeled icon (redline-oct3, H2).
+  it("has no audio-saved icon in the header", () => {
+    arrange({ audio: true });
     renderHeader();
 
     expect(
       screen.queryByRole("button", {
         name: "Audio saved on this Mac · kept forever",
-      }) !== null,
-    ).toBe(visible);
+      }),
+    ).toBeNull();
   });
 });

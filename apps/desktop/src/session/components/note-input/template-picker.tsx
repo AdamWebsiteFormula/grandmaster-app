@@ -3,8 +3,9 @@ import { useCallback, useMemo, useRef, useState } from "react";
 
 import {
   ArrowClockwise,
-  CaretRight,
+  Check,
   Heart,
+  ListBullets,
   MagnifyingGlass,
   Plus,
   X,
@@ -15,6 +16,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@anlg/ui/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@anlg/ui/components/ui/tooltip";
 import { cn } from "@anlg/utils";
 
 import { useWebResources } from "~/shared/ui/resource-list";
@@ -253,6 +260,30 @@ export function TemplatePickerPopover({
     handleWebTemplateClick,
     handleUseTemplate,
   ]);
+  // Fork: the template in use sits first, with a check and a regenerate
+  // button, as in Granola's template menu (granola-compare-oct3 §3).
+  const isUsedKey = useCallback(
+    (key: string) =>
+      usedTemplateId !== undefined &&
+      (key === "auto" ? usedTemplateId === null : key === usedTemplateId),
+    [usedTemplateId],
+  );
+  const listedTemplateItems = useMemo(() => {
+    if (searchQuery) {
+      return templateItems;
+    }
+    return templateItems.filter((item) => !isUsedKey(item.key));
+  }, [isUsedKey, searchQuery, templateItems]);
+  const currentTemplateItem = useMemo(() => {
+    if (
+      searchQuery ||
+      usedTemplateId === undefined ||
+      usedTemplateId === null
+    ) {
+      return null;
+    }
+    return templateItems.find((item) => item.key === usedTemplateId) ?? null;
+  }, [searchQuery, templateItems, usedTemplateId]);
   const resultSections = useMemo<
     Array<{
       key: string;
@@ -293,13 +324,24 @@ export function TemplatePickerPopover({
     };
 
     if (!hasSearch) {
+      const currentSection = currentTemplateItem
+        ? [
+            {
+              key: "current",
+              title: "Current template",
+              showHeader: false,
+              items: [currentTemplateItem],
+            },
+          ]
+        : [];
       return [
+        ...currentSection,
         autoSection,
         {
           key: "templates",
           title: "Templates",
           showHeader: false,
-          items: templateItems,
+          items: listedTemplateItems,
           emptyMessage: "No templates yet",
         },
       ];
@@ -333,9 +375,11 @@ export function TemplatePickerPopover({
         : []),
     ];
   }, [
+    currentTemplateItem,
     handleCreateTemplate,
     handleUseTemplate,
     hasSearch,
+    listedTemplateItems,
     templateItems,
     trimmedSearch,
   ]);
@@ -391,7 +435,7 @@ export function TemplatePickerPopover({
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-      <PopoverContent variant="app" className="w-80 pb-0" align="start">
+      <PopoverContent variant="app" className="w-64 pb-0" align="start">
         <div className="flex flex-col">
           <AppFloatingPanel className="flex flex-col overflow-hidden rounded-[20px]">
             <div className="border-border border-b py-1">
@@ -444,11 +488,7 @@ export function TemplatePickerPopover({
                           const itemIndex = resultIndex;
                           resultIndex += 1;
 
-                          const isUsedTemplate =
-                            usedTemplateId !== undefined &&
-                            (item.key === "auto"
-                              ? usedTemplateId === null
-                              : item.key === usedTemplateId);
+                          const isUsedTemplate = isUsedKey(item.key);
 
                           return (
                             <TemplateResultButton
@@ -459,6 +499,7 @@ export function TemplatePickerPopover({
                               title={item.title}
                               icon={item.icon}
                               isFavorite={item.isFavorite}
+                              isCurrent={isUsedTemplate}
                               onClick={item.onClick}
                               onKeyDown={(e) =>
                                 handleResultKeyDown(e, itemIndex)
@@ -485,18 +526,30 @@ export function TemplatePickerPopover({
                 </div>
               </div>
             </div>
+            {/* Fork: menu-style footer rows, as in Granola: "All
+                templates…" and "New template" (granola-compare-oct3 §3). */}
+            <div className="border-border flex flex-col border-t p-1">
+              <button
+                type="button"
+                onClick={handleSeeAllTemplates}
+                className={templateMenuRowClassName}
+              >
+                <ListBullets
+                  aria-hidden
+                  className="text-muted-foreground size-4"
+                />
+                <span>{t`All templates…`}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleCreateTemplate()}
+                className={templateMenuRowClassName}
+              >
+                <Plus aria-hidden className="text-muted-foreground size-4" />
+                <span>{t`New template`}</span>
+              </button>
+            </div>
           </AppFloatingPanel>
-
-          <button
-            onClick={handleSeeAllTemplates}
-            className={cn([
-              "flex w-full items-center justify-center gap-1 px-3 py-1.5 text-xs font-medium",
-              "text-muted-foreground hover:bg-accent hover:text-foreground transition-colors",
-            ])}
-          >
-            {t`See all templates`}
-            <CaretRight className="h-3.5 w-3.5" />
-          </button>
         </div>
       </PopoverContent>
     </Popover>
@@ -577,11 +630,17 @@ function TemplateSection({
   );
 }
 
+const templateMenuRowClassName = cn([
+  "text-foreground hover:bg-accent flex h-8 w-full cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-left text-sm transition-colors",
+  "focus-visible:bg-accent focus-visible:outline-none",
+]);
+
 function TemplateResultButton({
   buttonRef,
   title,
   icon,
   isFavorite = false,
+  isCurrent = false,
   onClick,
   onKeyDown,
   regenerateLabel,
@@ -592,12 +651,15 @@ function TemplateResultButton({
   title: string;
   icon: TemplateIcon;
   isFavorite?: boolean;
+  isCurrent?: boolean;
   onClick: () => void;
   onKeyDown?: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
   regenerateLabel?: string;
   isRegenerating?: boolean;
   onRegenerate?: () => void;
 }) {
+  const { t } = useLingui();
+
   return (
     <div
       className={cn([
@@ -607,6 +669,7 @@ function TemplateResultButton({
     >
       <button
         ref={buttonRef}
+        aria-current={isCurrent ? "true" : undefined}
         className="flex min-w-0 flex-1 items-center gap-1.5 text-left focus:outline-hidden"
         onClick={onClick}
         onKeyDown={onKeyDown}
@@ -620,25 +683,41 @@ function TemplateResultButton({
         ) : null}
       </button>
       {regenerateLabel && onRegenerate ? (
-        <button
-          type="button"
-          aria-label={regenerateLabel}
-          disabled={isRegenerating}
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            onRegenerate();
-          }}
-          className={cn([
-            "text-muted-foreground hover:text-foreground inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium",
-            isRegenerating ? "cursor-not-allowed opacity-70" : "cursor-pointer",
-          ])}
-        >
-          <ArrowClockwise
-            className={cn(["size-3", isRegenerating && "animate-spin"])}
-          />
-          {regenerateLabel}
-        </button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                aria-label={regenerateLabel}
+                disabled={isRegenerating}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onRegenerate();
+                }}
+                className={cn([
+                  "text-muted-foreground hover:bg-background hover:text-foreground inline-flex size-6 shrink-0 items-center justify-center rounded-md",
+                  "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
+                  isRegenerating
+                    ? "cursor-not-allowed opacity-70"
+                    : "cursor-pointer",
+                ])}
+              >
+                <ArrowClockwise
+                  aria-hidden
+                  className={cn(["size-3.5", isRegenerating && "animate-spin"])}
+                />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top">{regenerateLabel}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : null}
+      {isCurrent ? (
+        <Check
+          aria-label={t`Current template`}
+          className="text-foreground size-3.5 shrink-0"
+        />
       ) : null}
     </div>
   );

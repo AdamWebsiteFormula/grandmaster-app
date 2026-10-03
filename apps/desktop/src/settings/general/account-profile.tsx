@@ -1,6 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
+import { type ReactNode, useId } from "react";
 
 import { Button } from "@anlg/ui/components/ui/button";
 import { Input } from "@anlg/ui/components/ui/input";
@@ -17,6 +18,7 @@ import {
   usePersonalContact,
   useOrganizations,
 } from "~/contacts/queries";
+import { SettingsGroup } from "~/settings/setting-row";
 import { useOwnerUserId } from "~/shared/owner-user";
 
 export function AccountProfile() {
@@ -87,78 +89,81 @@ function ProfileForm({
   });
   const fields = [
     { name: "name", label: t`Name`, type: "text" },
-    { name: "jobTitle", label: t`Job Title`, type: "text" },
+    { name: "jobTitle", label: t`Job title`, type: "text" },
     { name: "email", label: t`Email`, type: "email" },
     { name: "phone", label: t`Phone`, type: "tel" },
     { name: "linkedinUsername", label: t`LinkedIn`, type: "text" },
   ] as const;
 
+  // Fork: label on the left, field on the right, rows in cards, as
+  // Granola's Settings › Profile (granola-compare-oct3 section 8).
   return (
     <form
-      className="flex flex-col gap-4"
+      className="flex flex-col gap-8"
       onSubmit={(event) => {
         event.preventDefault();
         void form.handleSubmit();
       }}
     >
-      <h3 className="text-sm font-medium">
-        <Trans>Your info</Trans>
-      </h3>
-      <p className="text-muted-foreground text-sm">
-        <Trans>
-          Update your personal contact card. Your sign-in email is managed
-          separately.
-        </Trans>
-      </p>
-      <fieldset className="flex min-w-0 flex-col gap-4">
-        <ProfilePhoto
-          userId={humanId}
-          name={human?.name || human?.email || humanId}
-          localPhoto={human?.avatarDataUrl ?? null}
-          onSave={(avatarDataUrl) =>
-            savePersonalContact(humanId, {
-              ...form.state.values,
-              phone: formatProfilePhone(
-                form.state.values.phone,
-                navigator.language,
-              ),
-              avatarDataUrl,
-            })
-          }
-        />
+      <SettingsGroup title={<Trans>Your info</Trans>}>
+        <div>
+          <ProfilePhoto
+            userId={humanId}
+            name={human?.name || human?.email || humanId}
+            localPhoto={human?.avatarDataUrl ?? null}
+            onSave={(avatarDataUrl) =>
+              savePersonalContact(humanId, {
+                ...form.state.values,
+                phone: formatProfilePhone(
+                  form.state.values.phone,
+                  navigator.language,
+                ),
+                avatarDataUrl,
+              })
+            }
+          />
+        </div>
         {fields.map(({ name, label, type }) => (
           <form.Field key={name} name={name}>
             {(field) => (
-              <label className="flex flex-col gap-2 text-sm">
-                {label}
-                <Input
-                  type={type}
-                  value={field.state.value}
-                  onChange={(event) => field.handleChange(event.target.value)}
-                  onBlur={() => {
-                    if (name === "phone") {
-                      field.handleChange(
-                        formatProfilePhone(
-                          field.state.value,
-                          navigator.language,
-                        ),
-                      );
+              <ProfileFieldRow label={label}>
+                {(id) => (
+                  <Input
+                    id={id}
+                    type={type}
+                    value={field.state.value}
+                    className="bg-card h-8 w-full"
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    onBlur={() => {
+                      if (name === "phone") {
+                        field.handleChange(
+                          formatProfilePhone(
+                            field.state.value,
+                            navigator.language,
+                          ),
+                        );
+                      }
+                      field.handleBlur();
+                    }}
+                    placeholder={
+                      name === "phone" ? "+1 202 555 0123" : undefined
                     }
-                    field.handleBlur();
-                  }}
-                  placeholder={name === "phone" ? "+1 202 555 0123" : undefined}
-                />
-              </label>
+                  />
+                )}
+              </ProfileFieldRow>
             )}
           </form.Field>
         ))}
+      </SettingsGroup>
+
+      <SettingsGroup title={<Trans>Your company</Trans>}>
         <form.Field name="organizationId">
           {(field) => (
-            <div className="flex flex-col gap-2 text-sm">
-              <span>
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-sm font-medium">
                 <Trans>Company</Trans>
               </span>
-              <div>
+              <div className="flex min-w-0 justify-end">
                 <ContactOrganizationSelector
                   organization={
                     organizations.find(
@@ -174,10 +179,13 @@ function ProfileForm({
         </form.Field>
         <form.Field name="memo">
           {(field) => (
-            <label className="flex flex-col gap-2 text-sm">
-              <Trans>Notes</Trans>
+            <label className="flex flex-col gap-2">
+              <span className="text-sm font-medium">
+                <Trans>Notes</Trans>
+              </span>
               <Textarea
                 value={field.state.value}
+                className="bg-card"
                 onChange={(event) => field.handleChange(event.target.value)}
                 onBlur={field.handleBlur}
                 rows={3}
@@ -185,7 +193,7 @@ function ProfileForm({
             </label>
           )}
         </form.Field>
-      </fieldset>
+      </SettingsGroup>
       {save.isError && (
         <div className="flex items-center gap-3">
           <p role="alert" className="text-destructive text-sm">
@@ -202,5 +210,23 @@ function ProfileForm({
         </span>
       )}
     </form>
+  );
+}
+
+function ProfileFieldRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: (id: string) => ReactNode;
+}) {
+  const id = useId();
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <label htmlFor={id} className="text-sm font-medium">
+        {label}
+      </label>
+      <div className="w-56 max-w-[60%] min-w-0">{children(id)}</div>
+    </div>
   );
 }

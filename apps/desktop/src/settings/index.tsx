@@ -11,6 +11,8 @@ import { SettingsTodo } from "./todo";
 
 import { STT } from "~/settings/ai/stt";
 import { SettingsAppearance } from "~/settings/appearance";
+import { SettingsCalendar } from "~/settings/calendar";
+import { SettingsConnectors } from "~/settings/connectors";
 import { SettingsCrm } from "~/settings/crm";
 import { SettingsDevelopers } from "~/settings/developers";
 import { SettingsDictation } from "~/settings/dictation";
@@ -20,6 +22,7 @@ import { SettingsHydrationBoundary } from "~/settings/hydration-boundary";
 import { SettingsImports } from "~/settings/imports";
 import { SettingsPlan } from "~/settings/plan";
 import { SettingsPrivacy } from "~/settings/privacy";
+import { SettingsProfile } from "~/settings/profile";
 import { SettingsInsights } from "~/settings/stats";
 import { SettingsSync } from "~/settings/sync";
 import { SettingsTeam } from "~/settings/team";
@@ -60,6 +63,14 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
       // Fork: Upshot's own plan page (Free and Pro).
       case "plan":
         return <SettingsPlan />;
+      // Fork: Granola's Profile, Calendar and Connectors pages, inside
+      // Settings (granola-compare-oct3 section 8).
+      case "profile":
+        return <SettingsProfile />;
+      case "calendars":
+        return <SettingsCalendar />;
+      case "connectors":
+        return <SettingsConnectors />;
       case "stats":
       case "insights":
         return <SettingsInsights />;
@@ -112,7 +123,11 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
             "scroll-fade-y scrollbar-hide h-full min-h-0 w-full min-w-0 overflow-x-hidden overflow-y-auto px-6 pt-6 pb-10",
           ])}
         >
-          {renderContent()}
+          {/* Fork: one centered column about 680 px wide, as Granola's
+              Settings (granola-compare-oct3 section 8; Baymard line length). */}
+          <div className="mx-auto w-full max-w-[680px] min-w-0">
+            {renderContent()}
+          </div>
         </div>
       </div>
     </div>

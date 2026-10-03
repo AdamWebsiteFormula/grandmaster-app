@@ -29,6 +29,12 @@ const mocks = vi.hoisted(() => ({
   updateTemplatesTabState: vi.fn(),
   workspaces: [] as Array<{ workspaceId: string }> | undefined,
   workspacesLoading: false,
+  upshot: {
+    email: null as string | null,
+    isSignedIn: false,
+    plan: null as { pro: boolean } | null,
+  },
+  profileName: null as string | null,
 }));
 
 const lingui = vi.hoisted(() => {
@@ -86,6 +92,24 @@ vi.mock("~/auth/billing-context", () => ({
   }),
 }));
 
+vi.mock("~/upshot-plan", () => ({
+  useUpshotPlan: () => mocks.upshot,
+}));
+
+vi.mock("~/auth", () => ({
+  useAuth: () => ({ session: null }),
+}));
+
+vi.mock("~/shared/owner-user", () => ({
+  useOwnerUserId: () => "local-owner",
+}));
+
+vi.mock("~/contacts/queries", () => ({
+  usePersonalContact: () => ({
+    data: mocks.profileName ? { name: mocks.profileName } : null,
+  }),
+}));
+
 vi.mock("~/settings/team/mirror", () => ({
   useMyWorkspacesWithMirror: () => ({
     data: mocks.workspaces,
@@ -132,6 +156,8 @@ describe("SettingsNav", () => {
     mocks.updateTemplatesTabState.mockClear();
     mocks.workspaces = [];
     mocks.workspacesLoading = false;
+    mocks.upshot = { email: null, isSignedIn: false, plan: null };
+    mocks.profileName = null;
   });
 
   const openedSettingsTab = () =>
@@ -148,6 +174,9 @@ describe("SettingsNav", () => {
   it.each([
     ["Permissions", "permissions"],
     ["Transcription", "transcription"],
+    ["Profile", "profile"],
+    ["Calendar", "calendars"],
+    ["Connectors", "connectors"],
   ])("opens %s inside settings", (label, tab) => {
     render(<SettingsNav />);
 
@@ -159,19 +188,14 @@ describe("SettingsNav", () => {
     );
   });
 
-  it.each([
-    ["Calendar", "calendar"],
-    ["Templates", "templates"],
-  ])("opens the %s workspace in a new tab", (label, type) => {
+  // Fork: Folders and Templates are workspaces, so they leave the Settings
+  // sidebar and stay in ⌘K (redline-oct3 Settings).
+  it.each(["Folders", "Templates"])("keeps %s out of the sidebar", (label) => {
     render(<SettingsNav />);
 
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: `${label}, opens outside Settings`,
-      }),
-    );
-
-    expect(mocks.openNew).toHaveBeenCalledWith({ type });
+    expect(
+      screen.queryByRole("button", { name: new RegExp(label) }),
+    ).toBeNull();
   });
 
   it("offers Insights instead of Stats to free users, including via search", () => {
@@ -240,7 +264,7 @@ describe("SettingsNav", () => {
 
     fireEvent.change(input, { target: { value: "workspace" } });
     expect(screen.getByText("Meetings")).toBeTruthy();
-    expect(screen.getByText("Templates")).toBeTruthy();
+    expect(screen.getByText("Connectors")).toBeTruthy();
     expect(screen.queryByText("Appearance")).toBeNull();
   });
 
@@ -325,5 +349,65 @@ describe("SettingsNav", () => {
         .getByRole("button", { name: "General" })
         .getAttribute("aria-current"),
     ).toBeNull();
+  });
+
+  describe("account header", () => {
+    const header = () => screen.getByTestId("settings-account-header");
+
+    it("names the app and the plan when signed out", () => {
+      render(<SettingsNav />);
+      expect(header().textContent).toContain("Upshot");
+      expect(header().textContent).toContain("Free plan");
+      expect(header().textContent).toContain("U");
+    });
+
+    it("shows the profile name and email when signed in", () => {
+      mocks.upshot = {
+        email: "ada@example.com",
+        isSignedIn: true,
+        plan: { pro: true },
+      };
+      mocks.profileName = "Ada Lovelace";
+      render(<SettingsNav />);
+      expect(screen.getByText("Ada Lovelace")).toBeTruthy();
+      expect(screen.getByText("ada@example.com")).toBeTruthy();
+      expect(header().querySelector("[aria-hidden]")?.textContent).toBe("A");
+    });
+
+    it("puts the name and the email on their own lines", () => {
+      mocks.upshot = {
+        email: "ada@example.com",
+        isSignedIn: true,
+        plan: { pro: true },
+      };
+      mocks.profileName = "Ada Lovelace";
+      render(<SettingsNav />);
+      const email = screen.getByText("ada@example.com");
+      expect(email.className).toContain("text-xs");
+      expect(email.className).toContain("text-muted-foreground");
+      expect(email.getAttribute("title")).toBe("ada@example.com");
+      expect(screen.getByText("Ada Lovelace")).not.toBe(email);
+    });
+
+    it("falls back to the email and plan without a profile name", () => {
+      mocks.upshot = {
+        email: "judge@example.com",
+        isSignedIn: true,
+        plan: { pro: true },
+      };
+      render(<SettingsNav />);
+      expect(screen.getByText("judge@example.com")).toBeTruthy();
+      expect(screen.getByText("Pro plan")).toBeTruthy();
+      expect(header().querySelector("[aria-hidden]")?.textContent).toBe("J");
+    });
+
+    it("sits above the search field", () => {
+      render(<SettingsNav />);
+      const search = screen.getByRole("textbox", { name: "Search settings" });
+      expect(
+        header().compareDocumentPosition(search) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
   });
 });

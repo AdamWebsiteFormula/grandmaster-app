@@ -39,7 +39,12 @@ const mocks = vi.hoisted(() => ({
     hasMore: false,
   },
   folderNoteCalls: [] as Array<[string, number]>,
+  noteCount: 0 as number | null,
   openCurrent: vi.fn(),
+}));
+
+vi.mock("./folder-stats", () => ({
+  useFolderNoteCount: () => mocks.noteCount,
 }));
 
 vi.mock("~/home/home-data", () => ({
@@ -191,6 +196,7 @@ describe("Folders workspace", () => {
       hasMore: false,
     };
     mocks.folderNoteCalls = [];
+    mocks.noteCount = 0;
     mocks.openCurrent.mockReset();
     mocks.createNamedFolder.mockResolvedValue("CS 101");
     mocks.deleteNamedFolder.mockResolvedValue(undefined);
@@ -415,6 +421,7 @@ describe("Folders workspace", () => {
               title: "Weekly sync",
               timeMs: nineAm,
               attendees: 0,
+              people: [],
               locked: false,
               trackingId: null,
             },
@@ -443,6 +450,26 @@ describe("Folders workspace", () => {
       "Work",
       40,
     ]);
+  });
+
+  it("heads the page with the folder description and counts", () => {
+    mocks.folders = ["Work"];
+    mocks.instructions = "Client calls for Acme\nMore detail";
+    mocks.noteCount = 12;
+    mocks.materials = [
+      {
+        id: "a",
+        filename: "brief.pdf",
+        contentType: "application/pdf",
+        sizeBytes: 1,
+        relativePath: "Work/materials/brief.pdf",
+      },
+    ];
+
+    renderFoldersWorkspace();
+
+    expect(screen.getByText("Client calls for Acme")).toBeTruthy();
+    expect(screen.getByText("12 notes · 1 file")).toBeTruthy();
   });
 
   it("says when a folder has no notes yet", () => {

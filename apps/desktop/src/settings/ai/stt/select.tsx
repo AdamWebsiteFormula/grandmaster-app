@@ -157,7 +157,7 @@ export function SelectProviderAndModel() {
   const alertDescription = !providerSettingsReady
     ? undefined
     : !isConfigured
-      ? t`Choose a transcription model to start listening.`
+      ? t`Choose a transcription model to start recording.`
       : hasError
         ? health.message
         : undefined;

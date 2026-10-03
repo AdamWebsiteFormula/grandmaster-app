@@ -32,9 +32,11 @@ import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
 import { FolderNotes } from "./folder-notes";
+import { useFolderNoteCount } from "./folder-stats";
 import { useFolderSelection } from "./selection";
 
 import { useOptionalAuth } from "~/auth";
+import { HOME_COLUMN_CLASS } from "~/home/home-view";
 import { ResourceShareButton, sharedFolderPayload } from "~/resource-sharing";
 import {
   deleteSharedResource,
@@ -59,6 +61,7 @@ import {
   renameNamedFolder,
   updateFolderIcon,
   updateFolderWorkspace,
+  useFolderInstructions,
   useFolderWorkspaceId,
 } from "~/session/folder-catalog";
 import { resolvedFolderIcon } from "~/session/folder-icon";
@@ -99,6 +102,8 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
   );
   const icon = resolvedFolderIcon(folderPath, persistedIcons, iconOverrides);
   const materials = useFolderMaterials(folderPath);
+  const noteCount = useFolderNoteCount(folderPath);
+  const description = useFolderInstructions(folderPath).trim().split("\n")[0];
   const upload = useFolderMaterialUpload(folderPath);
   const inputRef = useRef<HTMLInputElement>(null);
   const skipTitleCommit = useRef(false);
@@ -212,50 +217,7 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
 
   return (
     <section className="flex h-full flex-1 flex-col" aria-label={folderPath}>
-      <div className="flex h-12 items-center justify-between gap-3 pr-1 pl-3">
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          <TemplateIconPicker
-            size="sm"
-            label={t`Choose folder icon`}
-            value={icon}
-            onChange={(nextIcon) => {
-              setIconOverride(folderPath, nextIcon);
-              void updateFolderIcon(folderPath, nextIcon).catch((error) => {
-                clearIconOverride(folderPath, nextIcon);
-                console.error("[folder-editor] failed to update icon", error);
-              });
-            }}
-          />
-          <div className="relative max-w-full min-w-0">
-            <span
-              aria-hidden="true"
-              className="invisible block px-0 py-0 text-sm font-semibold whitespace-pre"
-            >
-              {(draft || t`Folder name`) + " "}
-            </span>
-            <Input
-              value={draft}
-              disabled={busy}
-              aria-label={t`Folder name`}
-              onChange={(event) => setDraft(event.target.value)}
-              onBlur={() => {
-                void commitTitle();
-              }}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.currentTarget.blur();
-                }
-                if (event.key === "Escape") {
-                  skipTitleCommit.current = true;
-                  setDraft(displayName);
-                  event.currentTarget.blur();
-                }
-              }}
-              placeholder={t`Folder name`}
-              className="absolute inset-0 h-auto w-full max-w-full min-w-0 border-0 px-0 py-0 text-sm font-semibold shadow-none focus-visible:ring-0 md:text-sm"
-            />
-          </div>
-        </div>
+      <div className="flex h-12 items-center justify-end gap-3 pr-1 pl-3">
         <div className="flex items-center gap-0.5">
           <ResourceShareButton
             resourceType="folder"
@@ -302,8 +264,68 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
         </div>
       </div>
 
-      <div className="scrollbar-hide flex-1 overflow-y-auto px-3 pt-3 pb-6">
-        <div className="flex max-w-2xl flex-col gap-6">
+      <div className="scrollbar-soft flex-1 overflow-y-auto pb-6">
+        {/* Fork: Home's column, so folder notes line up with Home's rows. */}
+        <div className={cn([HOME_COLUMN_CLASS, "flex flex-col gap-8"])}>
+          {/* Fork: a centered header like a Granola space: icon tile, large
+              name, a short description and a counts line
+              (granola-compare-oct3 section 7). */}
+          <header className="flex flex-col items-center gap-2 pt-2 text-center">
+            <TemplateIconPicker
+              label={t`Choose folder icon`}
+              value={icon}
+              onChange={(nextIcon) => {
+                setIconOverride(folderPath, nextIcon);
+                void updateFolderIcon(folderPath, nextIcon).catch((error) => {
+                  clearIconOverride(folderPath, nextIcon);
+                  console.error("[folder-editor] failed to update icon", error);
+                });
+              }}
+            />
+            <div className="relative max-w-full min-w-0">
+              <span
+                aria-hidden="true"
+                className="invisible block px-1 py-0 text-2xl font-semibold whitespace-pre"
+              >
+                {(draft || t`Folder name`) + " "}
+              </span>
+              <Input
+                value={draft}
+                disabled={busy}
+                aria-label={t`Folder name`}
+                onChange={(event) => setDraft(event.target.value)}
+                onBlur={() => {
+                  void commitTitle();
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.currentTarget.blur();
+                  }
+                  if (event.key === "Escape") {
+                    skipTitleCommit.current = true;
+                    setDraft(displayName);
+                    event.currentTarget.blur();
+                  }
+                }}
+                placeholder={t`Folder name`}
+                className="absolute inset-0 h-auto w-full max-w-full min-w-0 border-0 px-1 py-0 text-center text-2xl font-semibold shadow-none focus-visible:ring-0 md:text-2xl"
+              />
+            </div>
+            <p className="text-muted-foreground line-clamp-2 max-w-[60ch] text-sm text-pretty">
+              {description || t`Notes, files and context for this folder`}
+            </p>
+            {noteCount !== null ? (
+              <p className="text-muted-foreground text-sm tabular-nums">
+                {[
+                  noteCount === 1 ? t`1 note` : t`${noteCount} notes`,
+                  materials.length === 1
+                    ? t`1 file`
+                    : t`${materials.length} files`,
+                ].join(" · ")}
+              </p>
+            ) : null}
+          </header>
+
           <FolderNotes folderPath={folderPath} />
 
           {auth?.session?.user.id && availableWorkspaces.length > 0 ? (

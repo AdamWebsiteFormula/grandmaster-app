@@ -24,7 +24,8 @@ export function SegmentHeader({
   const colorVars = useSegmentColorVars(segment.key);
   const headerClassName = cn([
     "relative py-1",
-    "text-xs font-light",
+    // Fork: small, colored, medium weight (granola-compare-oct3 §2).
+    "text-xs font-medium",
     "flex items-center gap-2",
     "[--segment-color:var(--segment-color-light)]",
     "dark:[--segment-color:var(--segment-color-dark)]",

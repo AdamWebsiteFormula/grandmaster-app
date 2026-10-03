@@ -1,14 +1,17 @@
-// Fork: home screen, top to bottom: Up next, Follow-ups, Recent notes, with
-// the "Ask anything" bar floating below (added by main/empty.tsx).
+// Fork: home screen, top to bottom: Coming up, Follow-ups, notes by day,
+// with the Ask anything composer pinned below (home-composer.tsx, added by
+// main/empty.tsx). Layout and density follow Granola's Home (Granola 101,
+// docs.granola.ai/help-center/getting-started/granola-101, and Adam's
+// Granola screenshots, Oct 3) in Upshot's black, orange and Geist.
 // Sources:
-// - Up next: Granola 101 leads with "Coming up" meetings
-//   (docs.granola.ai/help-center/getting-started/granola-101); Notion AI
-//   meeting notes and Fireflies home do the same.
-// - Follow-ups: Otter action items and Fireflies Tasks; NN/g, dashboards
-//   should show what people can act on at a glance
-//   (nngroup.com/articles/dashboards-preattentive).
+// - Coming up: Granola 101 leads with a "Coming up" card of the next days'
+//   meetings; Notion AI meeting notes and Fireflies home do the same.
+// - Follow-ups: Granola's "Suggested follow-up emails" strip; Otter action
+//   items and Fireflies Tasks; NN/g, dashboards should show what people can
+//   act on at a glance (nngroup.com/articles/dashboards-preattentive).
 // - Notes: Granola 101, every note on Home grouped by day (the sidebar is
-//   navigation only), paged with "Show more".
+//   navigation only), two-line rows with who was there, paged with
+//   "Show more".
 // - No streak or stat cards here: broken streaks lower engagement
 //   (Silverman & Barasch 2023, Journal of Consumer Research).
 // - Shortcuts only when there are no notes: NN/g empty states
@@ -17,22 +20,31 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { platform } from "@tauri-apps/plugin-os";
 import { type ReactNode, useCallback, useState } from "react";
 
-import { Lock, Microphone } from "@anlg/ui/components/icons";
+import {
+  CalendarBlank,
+  CaretLeft,
+  CaretRight,
+  FileText,
+  Lock,
+  Microphone,
+} from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 import { Checkbox } from "@anlg/ui/components/ui/checkbox";
 import { Kbd } from "@anlg/ui/components/ui/kbd";
 import { cn, format } from "@anlg/utils";
 
 import {
+  COMING_UP_DAYS,
+  type ComingUpDay,
+  type ComingUpEvent,
   type FollowUpRow,
   RECENT_PAGE_SIZE,
   type RecentGroup,
   type RecentNote,
   setFollowUpDone,
-  type UpNextEvent,
+  useComingUp,
   useFollowUps,
   useRecentNotes,
-  useUpNext,
 } from "./home-data";
 
 import { revealLockedNote } from "~/lock/notes";
@@ -48,25 +60,32 @@ import {
 import { useSessionContextMenu } from "~/sidebar/timeline/item";
 import { useTabs } from "~/store/zustand/tabs";
 
+// Fork: one column for the list and the composer below it (Granola's is
+// about 750 px wide in a 1440 px window).
+export const HOME_COLUMN_CLASS = "mx-auto w-full max-w-[760px] px-8";
+
 export function HomeView() {
   const [limit, setLimit] = useState(RECENT_PAGE_SIZE);
   const recent = useRecentNotes(limit);
-  const upNext = useUpNext();
+  const comingUp = useComingUp();
 
-  if (recent.isLoading || upNext.isLoading) return null;
+  if (recent.isLoading || comingUp.isLoading) return null;
 
   return (
     // Fork: the scrollbar sits inside the panel with a soft thumb, and the
-    // bottom padding keeps the last row clear of the
-    // floating "Ask anything" bar: 40 px bar + 12 px offset + 16 px gap.
+    // bottom padding keeps the last row clear of the pinned composer.
     <div
       data-tauri-drag-region
       className="scrollbar-soft h-full overflow-y-auto"
     >
-      {/* Fork: one 640 px column; headings, card and row text share one
-          left edge; 8 px rhythm (mt-8 between sections, mb-3 under titles). */}
-      <div className="mx-auto flex w-full max-w-[640px] flex-col px-8 pt-16 pb-[68px] [&>section+section]:mt-8">
-        <UpNext event={upNext.event} />
+      {/* Fork: 8 px rhythm, mt-8 between sections. */}
+      <div
+        className={cn([
+          HOME_COLUMN_CLASS,
+          "flex flex-col pt-14 pb-40 [&>section+section]:mt-8",
+        ])}
+      >
+        <ComingUp days={comingUp.days} />
         <FollowUps />
         {recent.hasNotes ? (
           <RecentNotes
@@ -84,14 +103,19 @@ export function HomeView() {
 
 function SectionTitle({ id, children }: { id: string; children: ReactNode }) {
   return (
-    <h2 id={id} className="text-foreground mb-3 text-lg font-semibold">
+    <h2
+      id={id}
+      className="text-foreground mb-3 text-lg font-medium tracking-[-0.02em]"
+    >
       {children}
     </h2>
   );
 }
 
-// Fork: design-system.md, Geist Mono for numbers and times.
-const TIME_CLASS = "text-muted-foreground shrink-0 font-mono tabular-nums";
+// Fork: design-system.md, times in Geist sans with tabular figures. AM and PM
+// sit in small caps, as Granola sets them ("10:00 – 10:05 AM").
+const TIME_CLASS =
+  "text-muted-foreground shrink-0 tabular-nums [font-variant-caps:all-small-caps]";
 
 function useOpenNote() {
   const openCurrent = useTabs((state) => state.openCurrent);
@@ -109,97 +133,259 @@ function useFormatTime() {
   );
 }
 
-// The count includes you, so one person (a solo note) shows nothing.
-function useAttendeesLabel() {
-  const { t } = useLingui();
-  return (count: number) => (count > 1 ? t`${count} people` : null);
+// "10:00 – 10:05 AM": a shared AM or PM shows once.
+function useFormatRange() {
+  const formatTime = useFormatTime();
+  return useCallback(
+    (startMs: number, endMs: number | null) => {
+      const start = formatTime(startMs);
+      if (endMs === null) return start;
+      const end = formatTime(endMs);
+      const meridiem = /\s(AM|PM)$/;
+      const startMeridiem = start.match(meridiem)?.[1];
+      if (startMeridiem && startMeridiem === end.match(meridiem)?.[1]) {
+        return `${start.replace(meridiem, "")} – ${end}`;
+      }
+      return `${start} – ${end}`;
+    },
+    [formatTime],
+  );
 }
 
-// ---------------------------------------------------------------- Up next
+// -------------------------------------------------------------- Coming up
 
-export function UpNext({ event }: { event: UpNextEvent | null }) {
+const DAYS_PER_PAGE = 4;
+
+// Fork: one card, a day per block, like Granola's Coming up. Arrows page
+// through the days.
+export function ComingUp({ days }: { days: ComingUpDay[] }) {
   const { t } = useLingui();
-  const formatTime = useFormatTime();
-  const attendeesLabel = useAttendeesLabel();
-  const openNote = useOpenNote();
-  const [busy, setBusy] = useState(false);
-
-  const openEvent = useCallback(
-    (record: boolean) => {
-      if (!event || busy) return;
-      setBusy(true);
-      void getOrCreateSessionForEventId(event.id, event.title || undefined)
-        .then((sessionId) => {
-          if (record) {
-            openSessionAndListen(sessionId, { behavior: "current" });
-          } else {
-            openNote(sessionId);
-          }
-        })
-        .catch((error) => {
-          console.error("[home] failed to open event note", error);
-          setBusy(false);
-        });
-    },
-    [busy, event, openNote],
+  const [page, setPage] = useState(0);
+  const hasEvents = days.some((day) => day.events.length > 0);
+  const pages = Math.max(1, Math.ceil(days.length / DAYS_PER_PAGE));
+  const current = Math.min(page, pages - 1);
+  const visible = days.slice(
+    current * DAYS_PER_PAGE,
+    (current + 1) * DAYS_PER_PAGE,
   );
-
-  const when = event
-    ? event.when === "now"
-      ? event.endMs
-        ? t`Now, until ${formatTime(event.endMs)}`
-        : t`Now`
-      : event.when === "today"
-        ? t`Today, ${formatTime(event.startMs)}`
-        : t`Tomorrow, ${formatTime(event.startMs)}`
-    : null;
-  const people = event ? attendeesLabel(event.attendees) : null;
+  // The live meeting, or the next one, shows Record without hovering.
+  const nextId = days.find((day) => day.events.length > 0)?.events[0]?.id;
 
   return (
-    <section aria-labelledby="home-up-next" className="flex flex-col">
-      <SectionTitle id="home-up-next">
-        <Trans>Up next</Trans>
-      </SectionTitle>
-      {event ? (
-        <div className="bg-muted border-border flex min-h-16 items-center gap-4 rounded-xl border px-4 py-3">
-          <button
-            type="button"
-            onClick={() => openEvent(false)}
-            className="min-w-0 flex-1 cursor-pointer text-left"
-          >
-            {/* Fork: full title on hover when truncated (ux-audit-oct3 B, WCAG 1.3.1). */}
-            <p
-              title={event.title || t`Untitled`}
-              className="text-foreground truncate text-sm font-medium"
+    <section aria-labelledby="home-coming-up" className="flex flex-col">
+      <div className="mb-3 flex items-center justify-between gap-4">
+        <h2
+          id="home-coming-up"
+          // Fork: redline-oct3, page titles are medium with a slight negative
+          // track, as Granola sets "Coming up" (granola-screens/01).
+          className="text-foreground text-2xl font-medium tracking-[-0.02em]"
+        >
+          <Trans>Coming up</Trans>
+        </h2>
+        {hasEvents ? (
+          <div className="flex items-center gap-1">
+            <PageButton
+              label={t`Earlier days`}
+              disabled={current === 0}
+              onClick={() => setPage(current - 1)}
             >
-              {event.title || t`Untitled`}
-            </p>
-            <p className="text-muted-foreground truncate text-sm tabular-nums">
-              {people ? `${when} · ${people}` : when}
-            </p>
-          </button>
-          <RecordButton disabled={busy} onClick={() => openEvent(true)}>
-            <Trans>Record</Trans>
-          </RecordButton>
-        </div>
+              <CaretLeft className="size-4" />
+            </PageButton>
+            <PageButton
+              label={t`Later days`}
+              disabled={current >= pages - 1}
+              onClick={() => setPage(current + 1)}
+            >
+              <CaretRight className="size-4" />
+            </PageButton>
+          </div>
+        ) : null}
+      </div>
+      {hasEvents ? (
+        <ol className="bg-muted border-border divide-border flex flex-col divide-y rounded-xl border">
+          {visible.map((day) => (
+            <ComingUpDayBlock key={day.dayMs} day={day} nextId={nextId} />
+          ))}
+        </ol>
       ) : (
-        // Fork: no card for an empty state, one quiet line and a secondary
-        // button (NN/g empty states, nngroup.com/articles/empty-state-interface-design).
-        <div className="flex min-h-8 items-center gap-4">
-          <NoMeetingsLine />
-          <RecordButton
-            onClick={() => openNewNoteAndListen({ behavior: "current" })}
-          >
-            <Trans>Record now</Trans>
-          </RecordButton>
+        // Fork: an empty week keeps a compact card with one quiet line. With
+        // the calendar off, a secondary "Connect calendar" sits on the right;
+        // recording lives in "New note" only (redline-oct3: no duplicate
+        // action; NN/g empty states,
+        // nngroup.com/articles/empty-state-interface-design).
+        <div className="bg-muted border-border flex min-h-14 items-center gap-4 rounded-xl border px-4 py-3">
+          <EmptyWeek />
         </div>
       )}
     </section>
   );
 }
 
+function PageButton({
+  label,
+  disabled,
+  onClick,
+  children,
+}: {
+  label: string;
+  disabled: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      disabled={disabled}
+      onClick={onClick}
+      className="text-muted-foreground hover:bg-accent hover:text-foreground inline-flex size-7 cursor-pointer items-center justify-center rounded-lg transition-colors disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent"
+    >
+      {children}
+    </button>
+  );
+}
+
+function ComingUpDayBlock({
+  day,
+  nextId,
+}: {
+  day: ComingUpDay;
+  nextId: string | undefined;
+}) {
+  const date = new Date(day.dayMs);
+
+  return (
+    <li
+      data-coming-up-day
+      className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-x-2 px-4 py-2.5"
+    >
+      {/* Fork: big day number, month and weekday stacked beside it; today
+          gets a small orange dot (Granola marks today the same way). */}
+      <div className="flex items-start gap-2.5 pt-0.5">
+        <span className="text-foreground w-8 text-right text-2xl leading-none font-light tabular-nums">
+          {format(date, "d")}
+        </span>
+        <span className="flex flex-col pt-0.5 text-xs">
+          <span className="text-foreground flex items-center gap-1 font-medium">
+            {format(date, "MMMM")}
+            {day.isToday ? (
+              <span
+                aria-hidden="true"
+                className="bg-primary rounded-pill size-1.5"
+              />
+            ) : null}
+          </span>
+          <span className="text-muted-foreground">{format(date, "EEE")}</span>
+        </span>
+      </div>
+      <ul className="flex flex-col gap-1">
+        {day.events.length === 0 ? (
+          <li className="flex min-h-9 items-center gap-3 px-2">
+            <span
+              aria-hidden="true"
+              className="bg-input w-[3px] self-stretch rounded-full"
+            />
+            <span className="text-muted-foreground text-sm">
+              <Trans>No more events today</Trans>
+            </span>
+          </li>
+        ) : (
+          day.events.map((event) => (
+            <ComingUpEventRow
+              key={event.id}
+              event={event}
+              prominent={event.id === nextId}
+            />
+          ))
+        )}
+      </ul>
+    </li>
+  );
+}
+
+function ComingUpEventRow({
+  event,
+  prominent,
+}: {
+  event: ComingUpEvent;
+  prominent: boolean;
+}) {
+  const { t } = useLingui();
+  const formatRange = useFormatRange();
+  const openNote = useOpenNote();
+  const [busy, setBusy] = useState(false);
+  const title = event.title || t`Untitled`;
+
+  // Same event-to-note paths as the old Up next row.
+  const openEvent = (record: boolean) => {
+    if (busy) return;
+    setBusy(true);
+    void getOrCreateSessionForEventId(event.id, event.title || undefined)
+      .then((sessionId) => {
+        if (record) {
+          openSessionAndListen(sessionId, { behavior: "current" });
+        } else {
+          openNote(sessionId);
+        }
+        setBusy(false);
+      })
+      .catch((error) => {
+        console.error("[home] failed to open event note", error);
+        setBusy(false);
+      });
+  };
+
+  return (
+    <li className="group hover:bg-accent focus-within:bg-accent flex items-center gap-3 rounded-lg px-2 py-0.5 transition-colors">
+      <span
+        aria-hidden="true"
+        className={cn([
+          "w-[3px] self-stretch rounded-full",
+          !event.color && "bg-muted-foreground",
+        ])}
+        style={event.color ? { backgroundColor: event.color } : undefined}
+      />
+      <button
+        type="button"
+        onClick={() => openEvent(false)}
+        className="min-w-0 flex-1 cursor-pointer py-1 text-left focus-visible:outline-none"
+      >
+        {/* Fork: full title on hover when truncated (ux-audit-oct3 B, WCAG 1.3.1). */}
+        <p
+          title={title}
+          className="text-foreground truncate text-sm font-medium"
+        >
+          {title}
+        </p>
+        <p className={cn([TIME_CLASS, "text-xs"])}>
+          {event.live ? (
+            <span className="text-primary font-sans font-medium [font-variant-caps:normal]">
+              <Trans>Now</Trans>
+              {" · "}
+            </span>
+          ) : null}
+          {formatRange(event.startMs, event.endMs)}
+        </p>
+      </button>
+      {/* The wrapper fades the button and its squircle border overlay
+          (painted on the parent) together. */}
+      <span
+        className={cn([
+          "relative flex shrink-0",
+          !prominent &&
+            "opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100",
+        ])}
+      >
+        <RecordButton disabled={busy} onClick={() => openEvent(true)}>
+          <Trans>Record</Trans>
+        </RecordButton>
+      </span>
+    </li>
+  );
+}
+
 // Secondary on purpose: the orange "New note" is this screen's one primary
-// (Granola keeps "+ Quick note" as the single filled button top right).
+// (Granola keeps "+ New note" as the single filled button top right).
 function RecordButton({
   disabled,
   onClick,
@@ -215,7 +401,7 @@ function RecordButton({
       variant="outline"
       disabled={disabled}
       onClick={onClick}
-      className="h-8 shrink-0 gap-1.5 px-3 shadow-none"
+      className="h-7 shrink-0 gap-1.5 px-2.5 text-xs shadow-none"
     >
       <Microphone className="size-3.5" />
       {children}
@@ -224,8 +410,8 @@ function RecordButton({
 }
 
 // With calendar access off on macOS, point to Calendar instead of claiming
-// the day is free.
-function NoMeetingsLine() {
+// the week is free.
+function EmptyWeek() {
   const openNew = useTabs((state) => state.openNew);
   const calendar = usePermission("calendar");
   const needsCalendar =
@@ -235,19 +421,26 @@ function NoMeetingsLine() {
 
   if (needsCalendar) {
     return (
-      <button
-        type="button"
-        onClick={() => openNew({ type: "calendar" })}
-        className="text-muted-foreground hover:text-foreground min-w-0 flex-1 cursor-pointer truncate text-left text-sm underline-offset-4 transition-colors hover:underline"
-      >
-        <Trans>Connect your calendar</Trans>
-      </button>
+      <>
+        <p className="text-muted-foreground min-w-0 flex-1 text-sm">
+          <Trans>Your next meetings show up here</Trans>
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => openNew({ type: "calendar" })}
+          className="h-7 shrink-0 gap-1.5 px-2.5 text-xs shadow-none"
+        >
+          <CalendarBlank className="size-3.5" />
+          <Trans>Connect calendar</Trans>
+        </Button>
+      </>
     );
   }
 
   return (
     <p className="text-muted-foreground min-w-0 flex-1 text-sm">
-      <Trans>No meetings coming up</Trans>
+      <Trans>No meetings in the next {COMING_UP_DAYS} days</Trans>
     </p>
   );
 }
@@ -271,11 +464,19 @@ export function FollowUps() {
     });
   };
 
+  // Fork: a soft strip under Coming up, like Granola's "Suggested follow-up
+  // emails", shown only when there is something to do.
   return (
-    <section aria-labelledby="home-follow-ups" className="flex flex-col">
-      <SectionTitle id="home-follow-ups">
+    <section
+      aria-labelledby="home-follow-ups"
+      className="bg-muted mt-3! flex flex-col rounded-xl px-2 pt-2.5 pb-1.5"
+    >
+      <h2
+        id="home-follow-ups"
+        className="text-muted-foreground px-2 pb-1 text-xs font-medium"
+      >
         <Trans>Follow-ups</Trans>
-      </SectionTitle>
+      </h2>
       <ul className="flex flex-col">
         {items.map((item) => (
           <FollowUpItem key={item.id} item={item} onToggle={toggle} />
@@ -298,19 +499,20 @@ function FollowUpItem({
   const noteTitle = item.session_title?.trim() || t`Untitled`;
 
   return (
-    <li className="hover:bg-accent -mx-3 flex items-start gap-3 rounded-lg px-3 py-2 transition-colors">
+    <li className="hover:bg-accent flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors">
       <Checkbox
         checked={done}
         onCheckedChange={(value) => onToggle(item, value === true)}
         aria-label={done ? t`Mark as not done` : t`Mark as done`}
         // Fork: checkboxes stay neutral (design-system.md), never the accent.
-        className="border-muted-foreground data-[state=checked]:border-foreground data-[state=checked]:bg-foreground data-[state=checked]:text-background mt-0.5 size-4 cursor-pointer rounded shadow-none [&_svg]:size-3"
+        className="border-muted-foreground data-[state=checked]:border-foreground data-[state=checked]:bg-foreground data-[state=checked]:text-background size-4 cursor-pointer rounded shadow-none [&_svg]:size-3"
       />
       <span
         className={cn([
-          "min-w-0 flex-1 text-sm text-pretty",
+          "min-w-0 flex-1 truncate text-sm font-medium",
           done ? "text-muted-foreground line-through" : "text-foreground",
         ])}
+        title={item.text}
       >
         {item.text}
       </span>
@@ -319,7 +521,7 @@ function FollowUpItem({
           type="button"
           onClick={() => openNote(item.session_id!)}
           title={t`Open ${noteTitle}`}
-          className="text-muted-foreground hover:text-foreground max-w-48 shrink-0 cursor-pointer truncate text-sm transition-colors"
+          className="text-muted-foreground hover:text-foreground max-w-56 shrink-0 cursor-pointer truncate text-xs transition-colors"
         >
           {noteTitle}
         </button>
@@ -364,14 +566,16 @@ export function RecentNotes({
           <Trans>Notes</Trans>
         </h4>
       ) : (
-        <SectionTitle id={headingId}>
+        // Fork: Granola's Home has no "Notes" title; the day headers carry
+        // the list. Kept for screen readers.
+        <h2 id={headingId} className="sr-only">
           <Trans>Notes</Trans>
-        </SectionTitle>
+        </h2>
       )}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-5">
         {groups.map((group) => (
           <div key={group.key} className="flex flex-col">
-            <h3 className="text-muted-foreground pb-1 text-xs font-medium">
+            <h3 className="text-muted-foreground px-2 pb-1 text-xs font-medium">
               {groupLabel(group)}
             </h3>
             <ul className="flex flex-col">
@@ -388,7 +592,7 @@ export function RecentNotes({
             type="button"
             variant="ghost"
             onClick={onShowMore}
-            className="text-muted-foreground hover:text-foreground -mx-3 h-8 px-3"
+            className="text-muted-foreground hover:text-foreground h-8 px-2"
           >
             <Trans>Show more</Trans>
           </Button>
@@ -398,10 +602,43 @@ export function RecentNotes({
   );
 }
 
+// "Bbaird & Jimharbaugh104", "Ann, Bo & 2 others", as Granola lists them.
+function usePeopleLine() {
+  const { t } = useLingui();
+  return (note: RecentNote) => {
+    const names = note.people;
+    if (names.length === 0) return null;
+    // The count includes you; names leave you out.
+    const others = Math.max(names.length, note.attendees - 1);
+    const shown = others > 3 ? names.slice(0, 2) : names.slice(0, 3);
+    const rest = others - shown.length;
+    const parts = rest > 0 ? [...shown, t`${rest} others`] : shown;
+    if (parts.length === 1) return parts[0];
+    const first = parts.slice(0, -1).join(", ");
+    const last = parts[parts.length - 1];
+    return t`${first} & ${last}`;
+  };
+}
+
+// "45 min", "1 hr 5 min", as Apple Calendar and Screen Time write lengths;
+// null when nothing was recorded.
+function useFormatDuration() {
+  const { t } = useLingui();
+  return (ms: number) => {
+    if (!(ms > 0)) return null;
+    const total = Math.max(1, Math.round(ms / 60_000));
+    const hours = Math.floor(total / 60);
+    const minutes = total % 60;
+    if (hours === 0) return t`${minutes} min`;
+    if (minutes === 0) return t`${hours} hr`;
+    return t`${hours} hr ${minutes} min`;
+  };
+}
+
 function RecentNoteRow({ note }: { note: RecentNote }) {
   const { t } = useLingui();
   const formatTime = useFormatTime();
-  const attendeesLabel = useAttendeesLabel();
+  const peopleLine = usePeopleLine();
   const openNote = useOpenNote();
   const title = note.title || t`Untitled`;
   // Fork: same right-click menu as the old sidebar row (sidebar/timeline/item.tsx).
@@ -411,7 +648,11 @@ function RecentNoteRow({ note }: { note: RecentNote }) {
     trackingId: note.trackingId,
     locked: note.locked,
   });
-  const people = attendeesLabel(note.attendees);
+  const formatDuration = useFormatDuration();
+  const people = peopleLine(note);
+  const initial = Array.from(note.people[0]?.trim() ?? "")[0] ?? "";
+  const duration = formatDuration(note.durationMs);
+  const details = [duration, people].filter(Boolean).join(" · ");
 
   const open = () => {
     if (!note.locked) {
@@ -428,29 +669,56 @@ function RecentNoteRow({ note }: { note: RecentNote }) {
       <InteractiveButton
         onClick={open}
         contextMenu={contextMenu}
-        className="hover:bg-accent -mx-3 flex w-[calc(100%+1.5rem)] cursor-pointer items-center gap-4 rounded-lg px-3 py-2 text-left text-sm transition-colors"
+        className="hover:bg-accent flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors"
       >
-        {/* Fork: full title on hover and a lock mark on locked notes
-            (ux-audit-oct3 B, WCAG 1.3.1). */}
-        <span
-          title={title}
-          className="text-foreground flex min-w-0 flex-1 items-center gap-1.5"
-        >
-          <span className="min-w-0 truncate">{title}</span>
-          {note.locked ? (
-            <span
-              role="img"
-              aria-label={t`Locked`}
-              className="text-muted-foreground shrink-0"
-            >
-              <Lock className="size-3.5" aria-hidden="true" />
+        {/* Fork: the first attendee's initial in a rounded square, as
+            Granola's meeting rows have; a plain note gets a quiet document
+            glyph instead of its own first letter (redline-oct3). */}
+        {initial ? (
+          <span
+            aria-hidden="true"
+            className="bg-muted text-muted-foreground border-border flex size-8 shrink-0 items-center justify-center rounded-lg border text-sm font-medium uppercase"
+          >
+            {initial}
+          </span>
+        ) : (
+          <span
+            aria-hidden="true"
+            data-note-glyph
+            className="text-muted-foreground flex size-8 shrink-0 items-center justify-center"
+          >
+            <FileText className="size-4" />
+          </span>
+        )}
+        <span className="flex min-w-0 flex-1 flex-col">
+          {/* Fork: full title on hover and a lock mark on locked notes
+              (ux-audit-oct3 B, WCAG 1.3.1). */}
+          <span
+            title={title}
+            className="text-foreground flex min-w-0 items-center gap-1.5 text-sm font-medium"
+          >
+            <span className="min-w-0 truncate">{title}</span>
+            {note.locked ? (
+              <span
+                role="img"
+                aria-label={t`Locked`}
+                className="text-muted-foreground shrink-0"
+              >
+                <Lock className="size-3.5" aria-hidden="true" />
+              </span>
+            ) : null}
+          </span>
+          {details ? (
+            <span className="text-muted-foreground truncate text-xs tabular-nums">
+              {details}
             </span>
           ) : null}
         </span>
-        {people ? (
-          <span className="text-muted-foreground shrink-0">{people}</span>
-        ) : null}
-        <span className={TIME_CLASS}>{formatTime(note.timeMs)}</span>
+        {/* Fork: redline-oct3, row times at text-sm so they read at a
+            glance (Granola's "3:00 PM" sits at body size). */}
+        <span className={cn([TIME_CLASS, "text-sm"])}>
+          {formatTime(note.timeMs)}
+        </span>
       </InteractiveButton>
     </li>
   );

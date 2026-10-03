@@ -63,9 +63,10 @@ type LeftSidebarSizeStyle = CSSProperties & {
   "--left-sidebar-panel-width": string;
 };
 
-// Fork: tabs whose top-right corner is free. Note tabs show the button in
-// their own header; other tabs (templates, contacts, ...) have header actions there.
-const FLOATING_NEW_NOTE_TAB_TYPES = new Set<string>(["empty", "settings"]);
+// Fork: tabs that show the top-right New note. Note and Settings tabs don't
+// (Granola's note header holds only ⋯ and Share; redline-oct3, H2); other
+// tabs (templates, contacts, ...) have header actions there.
+export const FLOATING_NEW_NOTE_TAB_TYPES = new Set<string>(["empty"]);
 
 export function ClassicMainBody() {
   const { leftsidebar } = useShell();
@@ -591,14 +592,14 @@ export function ClassicMainBody() {
                 tab={currentTab as Tab}
               />
             ) : null}
-            {/* Fork: note tabs show this button in their own header.
-                16 px inside the panel's top and right edges (the panel's
-                1 px border sits 6 px in from this container), so nothing
-                touches an edge (design-system.md). */}
+            {/* Fork: 16 px inside the panel's top edge (the panel's 1 px
+                border sits 6 px in from this container); the right edge lines
+                up with Home's 760 px column, at least 32 px inside the
+                panel edge (design-system.md; redline-oct3, H1). */}
             {!isOnboarding &&
             currentTab &&
             FLOATING_NEW_NOTE_TAB_TYPES.has(currentTab.type) ? (
-              <NewNoteButton className="absolute top-[23px] right-[23px] z-30 h-8 px-3.5" />
+              <NewNoteButton className="absolute top-[23px] right-[max(39px,calc((100%-760px)/2+32px))] z-30 h-8 px-3.5" />
             ) : null}
           </div>
         </ResizablePanel>

@@ -66,11 +66,51 @@
   color: inherit;
 }
 
-/* First-line session title. */
+/* First-line session title. Medium weight, tight tracking at display size
+ * (redline-oct3, H2); the meta chip row (template, date, attendees, folder)
+ * sits in the reserved space below it, as Granola sets its title over one
+ * row of chips. */
 .note-typography.note-title-editor > h1:first-child {
   font-size: 1.728rem;
   line-height: 2.25rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
   margin-bottom: 1rem;
+}
+
+/* The chip row is drawn by the app over this gap; the app measures the row
+ * and sets the variable (8 px above, the row, 16 px below). */
+.note-meta-chips-host .note-typography.note-title-editor > h1:first-child {
+  margin-bottom: var(--note-meta-chips-space, 3rem);
+}
+
+/* Summary section headings at body scale, semibold, with air above
+ * (Granola: section heads read as labels, not as a second title).
+ * `--summary` covers both the editor and the streaming view, so the swap
+ * between them stays pixel-stable. */
+.note-typography.enhanced-summary-editor > h1:not(:first-child),
+.note-typography.enhanced-summary-editor > h2,
+.note-typography.enhanced-summary-stream > h1,
+.note-typography.enhanced-summary-stream > h2 {
+  font-size: 1.2em;
+  font-weight: 600;
+  line-height: 1.4444;
+}
+.note-typography.enhanced-summary-editor > h3,
+.note-typography.enhanced-summary-stream > h3 {
+  font-size: 1em;
+  font-weight: 600;
+}
+.note-typography.enhanced-summary-editor > :is(h1:not(:first-child), h2, h3),
+.note-typography.enhanced-summary-stream > :is(h1, h2, h3):not(:first-child) {
+  margin-top: 1.25em;
+}
+
+/* Body text one step softer than headings (Granola); 0.88 of the foreground
+ * stays well above 4.5:1 on both themes (contrast-audit.md). */
+.note-typography.enhanced-summary-editor :is(p, li):not(blockquote *),
+.note-typography.enhanced-summary-stream :is(p, li):not(blockquote *) {
+  color: color-mix(in oklab, var(--color-foreground, #111827) 88%, transparent);
 }
 
 /* Lists. Hide native `::marker` and draw our own via `::before`. */

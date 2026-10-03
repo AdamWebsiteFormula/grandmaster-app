@@ -35,14 +35,14 @@ export function ChatCTA({
       aria-label={ariaLabel}
       aria-keyshortcuts="Meta+J"
       onClick={handleClick}
-      className="group/anarlog-chat-cta relative h-10 w-[150px] max-w-full cursor-text focus-visible:outline-none"
+      className="group/anarlog-chat-cta relative h-10 w-[196px] max-w-full cursor-text focus-visible:outline-none"
     >
       <span
         data-chat-cta-surface
         aria-hidden="true"
         className={cn([
           // Fork: always labeled (Granola-style "Ask anything"), grows on hover.
-          "rounded-pill border-input bg-popover pointer-events-none absolute bottom-0 left-1/2 inline-flex h-9 w-[150px] -translate-x-1/2 items-center overflow-hidden border px-4 text-sm",
+          "rounded-pill border-input bg-popover pointer-events-none absolute bottom-0 left-1/2 inline-flex h-9 w-[196px] -translate-x-1/2 items-center overflow-hidden border px-4 text-sm",
           // Fork: flat, no drop shadow (design-system Shape and space).
           "origin-bottom transition-[width,height,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)]",
           "group-hover/anarlog-chat-cta:bg-card group-focus-visible/anarlog-chat-cta:bg-card",
@@ -68,7 +68,7 @@ export function ChatCTA({
 
 export function FloatingChatCTA({ label }: { label?: ReactNode }) {
   return (
-    <div className="pointer-events-none absolute bottom-3 left-1/2 z-20 flex h-10 w-[150px] max-w-[calc(100%-2rem)] -translate-x-1/2 items-end justify-center pb-0">
+    <div className="pointer-events-none absolute bottom-3 left-1/2 z-20 flex h-10 w-[196px] max-w-[calc(100%-2rem)] -translate-x-1/2 items-end justify-center pb-0">
       <div className="pointer-events-auto max-w-full">
         <ChatCTA label={label} />
       </div>

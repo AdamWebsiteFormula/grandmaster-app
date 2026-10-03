@@ -145,6 +145,7 @@ export function ChatPanelFrame({
           onDraftContentChange={onDraftContentChange}
           model={model}
           handleSendMessage={handleSendMessage}
+          showRecipes={sessionProps.contextEntities.length > 0}
         >
           <ChatBody
             messages={sessionProps.messages}

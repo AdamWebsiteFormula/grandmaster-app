@@ -10,6 +10,7 @@ import { cn } from "@anlg/utils";
 import { SkillsRow } from "./skills";
 
 import { SettingsSectionTitle } from "~/settings/page-title";
+import { SettingsCard } from "~/settings/setting-row";
 import { commands, type EmbeddedCliStatus } from "~/types/tauri.gen";
 
 const CLI_STATUS_QUERY_KEY = ["embedded-cli-status"] as const;
@@ -126,9 +127,11 @@ function CliSection({
   const isInstalled = status?.state === "installed";
 
   return (
-    <section className="flex flex-col gap-4">
-      <SettingsSectionTitle>{t`CLI & MCP`}</SettingsSectionTitle>
-      <div className="flex flex-col gap-4">
+    <section className="flex flex-col gap-2">
+      <div className="px-1">
+        <SettingsSectionTitle>{t`CLI & MCP`}</SettingsSectionTitle>
+      </div>
+      <SettingsCard>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <h3 className="flex items-center gap-1.5 text-sm font-medium">
@@ -161,7 +164,7 @@ function CliSection({
         </div>
         <McpRow status={status} />
         <SkillsRow />
-      </div>
+      </SettingsCard>
     </section>
   );
 }

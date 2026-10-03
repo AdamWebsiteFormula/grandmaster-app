@@ -7,7 +7,14 @@ import { useNewNoteAndListen } from "~/shared/useNewNote";
 import { useListener } from "~/stt/contexts";
 
 // Fork: Granola-style "New note" in the top right. Creates a note and starts recording.
-export function NewNoteButton({ className }: { className?: string }) {
+export function NewNoteButton({
+  className,
+  variant = "primary",
+}: {
+  className?: string;
+  /** "outline" on pages whose own main action is something else (a note). */
+  variant?: "primary" | "outline";
+}) {
   const { t } = useLingui();
   const newNoteAndListen = useNewNoteAndListen();
   // While recording, Stop is the main action, so this button steps back.
@@ -23,7 +30,9 @@ export function NewNoteButton({ className }: { className?: string }) {
       className={cn([
         recording
           ? "bg-secondary text-secondary-foreground hover:bg-accent"
-          : "bg-primary text-primary-foreground hover:bg-primary/90",
+          : variant === "outline"
+            ? "border-input text-foreground hover:bg-accent border bg-transparent"
+            : "bg-primary text-primary-foreground hover:brightness-90",
         "inline-flex h-7 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 text-sm font-medium whitespace-nowrap transition-colors",
         "focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
         className,

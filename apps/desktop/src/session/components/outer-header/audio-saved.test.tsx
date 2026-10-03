@@ -1,6 +1,12 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@anlg/ui/components/ui/dropdown-menu";
+
 const mocks = vi.hoisted(() => ({
   retention: undefined as unknown,
   openNew: vi.fn(),
@@ -15,14 +21,24 @@ vi.mock("~/store/zustand/tabs", () => ({
     selector({ openNew: mocks.openNew }),
 }));
 
-import { AudioSavedLine } from "./audio-saved";
+import { AudioSavedMenuItem } from "./audio-saved";
 
-const renderLine = () => render(<AudioSavedLine />);
+const onSelect = vi.fn();
+const renderItem = () =>
+  render(
+    <DropdownMenu open>
+      <DropdownMenuTrigger>More</DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <AudioSavedMenuItem onSelect={onSelect} />
+      </DropdownMenuContent>
+    </DropdownMenu>,
+  );
 
-describe("AudioSavedLine", () => {
+describe("AudioSavedMenuItem", () => {
   afterEach(() => {
     cleanup();
     mocks.openNew.mockClear();
+    onSelect.mockClear();
   });
 
   it.each([
@@ -36,26 +52,27 @@ describe("AudioSavedLine", () => {
     ["bogus", "Audio saved on this Mac · kept forever"],
   ])("describes retention %s in plain words", (retention, text) => {
     mocks.retention = retention;
-    renderLine();
+    renderItem();
 
-    expect(screen.getByRole("button", { name: text })).toBeTruthy();
+    expect(screen.getByRole("menuitem", { name: text })).toBeTruthy();
   });
 
-  it("is an icon button, not a line of text", () => {
+  it("is a labeled menu row, not an unlabeled icon", () => {
     mocks.retention = "forever";
-    renderLine();
+    renderItem();
 
-    const button = screen.getByRole("button");
-    expect(button.textContent).toBe("");
-    expect(button.querySelector("svg")).toBeTruthy();
+    const item = screen.getByRole("menuitem");
+    expect(item.textContent).toBe("Audio saved on this Mac · kept forever");
+    expect(item.querySelector("svg")).toBeTruthy();
   });
 
-  it("opens the retention setting", () => {
+  it("opens the retention setting and closes the menu", () => {
     mocks.retention = "oneWeek";
-    renderLine();
+    renderItem();
 
-    fireEvent.click(screen.getByRole("button"));
+    fireEvent.click(screen.getByRole("menuitem"));
 
+    expect(onSelect).toHaveBeenCalled();
     expect(mocks.openNew).toHaveBeenCalledWith({
       type: "settings",
       state: { tab: "meetings" },

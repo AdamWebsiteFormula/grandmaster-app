@@ -1,6 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import type { ReactNode } from "react";
 
+import { HardDrive, Microphone, Users } from "@anlg/ui/components/icons";
 import {
   Select,
   SelectContent,
@@ -12,6 +13,7 @@ import {
 import {
   SETTING_CONTROL_CLASS,
   SettingRow,
+  SettingsGroup,
   SettingSwitchRow,
 } from "~/settings/setting-row";
 
@@ -35,7 +37,7 @@ export function AudioSettingsView({
   };
 }) {
   return (
-    <div className="flex flex-col gap-4">
+    <SettingsGroup title={<Trans>Audio</Trans>}>
       <AudioDeviceRow
         title={<Trans>Microphone</Trans>}
         description={
@@ -50,6 +52,7 @@ export function AudioSettingsView({
         onChange={audioRetention.onChange}
       />
       <SettingSwitchRow
+        icon={Users}
         title={<Trans>Remember speakers</Trans>}
         description={
           <Trans>
@@ -61,7 +64,7 @@ export function AudioSettingsView({
         checked={rememberSpeakers.value}
         onChange={rememberSpeakers.onChange}
       />
-    </div>
+    </SettingsGroup>
   );
 }
 
@@ -90,7 +93,7 @@ export function AudioDeviceRow({
   }
 
   return (
-    <SettingRow title={title} description={description}>
+    <SettingRow title={title} description={description} icon={Microphone}>
       {(labelProps) => (
         <Select
           value={value || SYSTEM_DEFAULT_DEVICE}
@@ -151,6 +154,7 @@ function AudioRetentionRow({
 
   return (
     <SettingRow
+      icon={HardDrive}
       title={<Trans>Audio file retention</Trans>}
       description={
         <Trans>Choose how long recordings stay on this device.</Trans>

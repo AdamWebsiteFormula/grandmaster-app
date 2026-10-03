@@ -32,6 +32,7 @@ import {
   type TranscriptWordSelection,
 } from "./selection";
 import { useRegisterTranscriptSelectionSource } from "./selection-context";
+import { getSegmentBubbleLayouts, splitSegmentsForDisplay } from "./utils";
 import { useVirtualSegments, VirtualSegmentRow } from "./virtual-segments";
 
 import {
@@ -186,7 +187,12 @@ function TranscriptSegments({
     rawSegments,
     currentActive ? request : null,
   );
-  const segments = useStableSegments(resolvedSegments);
+  const stableSegments = useStableSegments(resolvedSegments);
+  // Fork: one bubble per spoken result (display only; redline-oct3, H2).
+  const segments = useMemo(
+    () => splitSegmentsForDisplay(stableSegments),
+    [stableSegments],
+  );
   const { offsetMs, sessionId } = useTranscriptTimelineMetadata(
     transcriptId,
     !currentActive,
@@ -294,6 +300,17 @@ const SegmentsList = memo(
       }
       return labels;
     }, [labelContext, segments, speakerLabelManager]);
+    const bubbleLayouts = useMemo(
+      () =>
+        getSegmentBubbleLayouts(segments, {
+          offsetMs,
+          selfHumanId: labelContext?.getSelfHumanId(),
+          speakerLabels: segments.map(
+            (segment) => speakerLabels.get(segment) ?? "",
+          ),
+        }),
+      [labelContext, offsetMs, segments, speakerLabels],
+    );
     const transcriptSearch = useMemo<TranscriptSearchRenderState>(() => {
       const query = search?.query.trim() ?? "";
       if (!search?.isVisible || !query) {
@@ -363,6 +380,7 @@ const SegmentsList = memo(
       >
         {virtual.virtualItems.map(({ index, key, top }) => {
           const segment = segments[index]!;
+          const layout = bubbleLayouts[index];
           return (
             <VirtualSegmentRow
               key={key}
@@ -373,7 +391,19 @@ const SegmentsList = memo(
               onFocus={virtual.handleRowFocus}
               onBlur={virtual.handleRowBlur}
             >
-              <div className={cn([index > 0 && "pt-4"])}>
+              <div
+                className={cn([
+                  index > 0 && (layout?.startsRun ? "pt-4" : "pt-1.5"),
+                ])}
+              >
+                {layout?.timestamp ? (
+                  <div
+                    data-transcript-timestamp
+                    className="text-muted-foreground pb-2 text-center text-xs tabular-nums"
+                  >
+                    {layout.timestamp}
+                  </div>
+                ) : null}
                 <SegmentRenderer
                   segment={segment}
                   offsetMs={offsetMs}
@@ -388,6 +418,8 @@ const SegmentsList = memo(
                   audioExists={audioExists}
                   search={transcriptSearch}
                   editMode={editMode}
+                  isSelf={layout?.isSelf ?? false}
+                  showSpeaker={layout?.startsRun ?? true}
                 />
               </div>
             </VirtualSegmentRow>

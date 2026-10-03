@@ -156,7 +156,7 @@ function ChatActionButton({
   );
 }
 
-function ChatGroups({
+export function ChatGroups({
   chatScope,
   currentChatGroupId,
   layout,

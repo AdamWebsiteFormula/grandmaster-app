@@ -87,7 +87,7 @@ import {
   HeartIcon,
   HighlighterIcon,
   HistoryIcon,
-  House01Icon,
+  Home01Icon,
   Image01Icon,
   InfoIcon,
   KanbanIcon,
@@ -572,7 +572,7 @@ export const Highlighter = /* @__PURE__ */ createIcon(
   HighlighterIcon,
   "Highlighter",
 );
-export const House = /* @__PURE__ */ createIcon(House01Icon, "House");
+export const House = /* @__PURE__ */ createIcon(Home01Icon, "House");
 export const Image = /* @__PURE__ */ createIcon(Image01Icon, "Image");
 export const Info = /* @__PURE__ */ createIcon(InfoIcon, "Info");
 export const Kanban = /* @__PURE__ */ createIcon(KanbanIcon, "Kanban");

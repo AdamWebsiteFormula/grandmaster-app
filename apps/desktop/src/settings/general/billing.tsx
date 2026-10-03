@@ -340,7 +340,7 @@ function PlanBillingSection({
       disabled={actionPending}
       className={cn([
         pillButtonClassName,
-        "bg-primary text-primary-foreground hover:bg-primary/90",
+        "bg-primary text-primary-foreground hover:brightness-90",
       ])}
     >
       <Trans>Add payment method</Trans>
@@ -352,7 +352,7 @@ function PlanBillingSection({
       disabled={actionPending}
       className={cn([
         pillButtonClassName,
-        "bg-primary text-primary-foreground hover:bg-primary/90",
+        "bg-primary text-primary-foreground hover:brightness-90",
       ])}
     >
       <Trans>Resume</Trans>
@@ -387,7 +387,7 @@ function PlanBillingSection({
       disabled={actionPending}
       className={cn([
         pillButtonClassName,
-        "bg-primary text-primary-foreground hover:bg-primary/90",
+        "bg-primary text-primary-foreground hover:brightness-90",
       ])}
     >
       {t(tierActionLabel(freePlanAction))}
@@ -675,7 +675,7 @@ function PlansSection({
           disabled={actionPending}
           className={cn([
             pillChipClassName,
-            "bg-primary text-primary-foreground hover:bg-primary/90",
+            "bg-primary text-primary-foreground hover:brightness-90",
           ])}
         >
           <Trans>Add payment method</Trans>
@@ -694,7 +694,7 @@ function PlansSection({
         className={cn([
           pillChipClassName,
           isUpgrade
-            ? "bg-primary text-primary-foreground hover:bg-primary/90"
+            ? "bg-primary text-primary-foreground hover:brightness-90"
             : "bg-muted text-muted-foreground hover:text-foreground",
         ])}
       >

@@ -33,14 +33,11 @@ export function ThemeSelector() {
   }[];
 
   return (
-    <section className="flex flex-col gap-4">
-      <div>
+    <section className="flex flex-col gap-2">
+      <div className="px-1">
         <SettingsSectionTitle>
           <Trans>Theme</Trans>
         </SettingsSectionTitle>
-        <p className="text-muted-foreground mt-1 text-sm">
-          <Trans>Choose how Upshot looks on this device.</Trans>
-        </p>
       </div>
       <div
         role="radiogroup"

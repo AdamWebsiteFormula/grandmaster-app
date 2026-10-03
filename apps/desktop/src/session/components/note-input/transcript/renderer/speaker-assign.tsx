@@ -586,7 +586,7 @@ export function SpeakerParticipantPicker({
           type="button"
           className={cn([
             "bg-primary text-primary-foreground h-8 rounded-full px-3 text-xs font-medium",
-            "hover:bg-primary/90",
+            "hover:brightness-90",
             "disabled:pointer-events-none disabled:opacity-50",
           ])}
           disabled={!selectedOption || assigning}

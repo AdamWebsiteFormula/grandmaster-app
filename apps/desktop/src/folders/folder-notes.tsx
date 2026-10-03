@@ -20,9 +20,16 @@ export function FolderNotes({ folderPath }: { folderPath: string }) {
         <h4 id="folder-notes" className="text-sm font-medium">
           <Trans>Notes</Trans>
         </h4>
-        <p className="text-muted-foreground text-sm">
-          <Trans>No notes in this folder yet</Trans>
-        </p>
+        {/* Fork: an empty state that says how to fill it (NN/g empty
+            states, nngroup.com/articles/empty-state-interface-design). */}
+        <div className="border-border flex flex-col items-center gap-1 rounded-xl border border-dashed px-6 py-8 text-center">
+          <p className="text-foreground text-sm font-medium">
+            <Trans>No notes in this folder yet</Trans>
+          </p>
+          <p className="text-muted-foreground text-sm text-pretty">
+            <Trans>Open a note and choose Add to folder under its title.</Trans>
+          </p>
+        </div>
       </section>
     );
   }

@@ -13,6 +13,7 @@ import {
   setSettingValue,
   useStoredSettingValuesQuery,
 } from "~/settings/queries";
+import { SettingIconTile } from "~/settings/setting-row";
 
 export function ExportLocationRow() {
   const { t } = useLingui();
@@ -51,13 +52,13 @@ export function ExportLocationRow() {
       <div className="grid grid-cols-[minmax(0,1fr)_9rem] items-center gap-3">
         <button
           type="button"
-          className="hover:bg-muted/40 flex min-w-0 items-center gap-2 rounded-lg px-2 py-2 text-left transition-colors"
+          className="hover:bg-accent -mx-2 flex min-w-0 items-center gap-3 rounded-lg px-2 py-1 text-left transition-colors"
           disabled={settings.isLoading || !!settings.error || !path}
           onClick={() => {
             if (path) void openerCommands.openPath(path, null);
           }}
         >
-          <FolderSimple className="text-muted-foreground size-4 shrink-0" />
+          <SettingIconTile icon={FolderSimple} />
           <div className="min-w-0">
             <p className="text-sm font-medium">
               <Trans>Export location</Trans>
@@ -80,26 +81,32 @@ export function ExportLocationRow() {
           <Trans>Choose folder</Trans>
         </Button>
       </div>
-      <p className="text-muted-foreground px-2 text-xs">
-        <Trans>Save PDF, text, Markdown, and Org exports to this folder.</Trans>
-      </p>
-      {directory && (
-        <Button
-          type="button"
-          variant="link"
-          size="sm"
-          className="px-2"
-          disabled={disabled}
-          onClick={() => changeMutation.mutate("reset")}
-        >
-          <Trans>Reset to Downloads</Trans>
-        </Button>
-      )}
-      {(settings.error || downloads.error || changeMutation.error) && (
-        <p role="alert" className="mt-1 px-2 text-xs text-destructive">
-          <Trans>Could not update the export folder</Trans>
+      {/* Fork: helper text lines up under the title, not the icon: the
+          32 px tile plus its 12 px gap (redline-oct3 Settings). */}
+      <div className="pl-11">
+        <p className="text-muted-foreground mt-2 text-xs">
+          <Trans>
+            Save PDF, text, Markdown, and Org exports to this folder.
+          </Trans>
         </p>
-      )}
+        {directory && (
+          <Button
+            type="button"
+            variant="link"
+            size="sm"
+            className="px-0"
+            disabled={disabled}
+            onClick={() => changeMutation.mutate("reset")}
+          >
+            <Trans>Reset to Downloads</Trans>
+          </Button>
+        )}
+        {(settings.error || downloads.error || changeMutation.error) && (
+          <p role="alert" className="text-destructive mt-1 text-xs">
+            <Trans>Could not update the export folder</Trans>
+          </p>
+        )}
+      </div>
     </div>
   );
 }

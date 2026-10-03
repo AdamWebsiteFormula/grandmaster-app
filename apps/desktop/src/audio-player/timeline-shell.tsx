@@ -4,7 +4,7 @@ import { cn } from "@anlg/utils";
 
 export function TimelineMeta({ children }: { children: ReactNode }) {
   return (
-    <div className="text-muted-foreground inline-flex shrink-0 items-center gap-1 font-mono text-xs tabular-nums select-none">
+    <div className="text-muted-foreground inline-flex shrink-0 items-center gap-1 text-xs tabular-nums select-none">
       {children}
     </div>
   );

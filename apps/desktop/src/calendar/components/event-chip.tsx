@@ -127,7 +127,7 @@ export function EventChip({
             />
             <span className="truncate">{title}</span>
             {startedAt && (
-              <span className="text-muted-foreground ml-auto shrink-0 font-mono">
+              <span className="text-muted-foreground ml-auto shrink-0 tabular-nums">
                 {startedAt}
               </span>
             )}
@@ -184,7 +184,7 @@ function EventPopoverContent({
       />
       <Button
         size="sm"
-        className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-8 w-full"
+        className="bg-primary text-primary-foreground min-h-8 w-full hover:brightness-90"
         disabled={openNote.isPending}
         onClick={() => openNote.mutate()}
       >

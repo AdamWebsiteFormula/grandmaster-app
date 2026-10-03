@@ -70,7 +70,10 @@ export function SettingsInsights() {
     <div className="flex w-full min-w-0 flex-col gap-8">
       {/* Fork: the title matches the nav item; weekday labels use the type
           scale (ux-audit-oct3 E, HIG typography). */}
-      <SettingsPageTitle title={<Trans>Insights</Trans>} />
+      <SettingsPageTitle
+        title={<Trans>Insights</Trans>}
+        description={<Trans>Your meetings and hours over time.</Trans>}
+      />
       {activity.error ? (
         <p role="alert" className="text-muted-foreground text-sm">
           <Trans>

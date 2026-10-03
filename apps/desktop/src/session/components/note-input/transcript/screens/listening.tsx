@@ -29,7 +29,7 @@ export function TranscriptListeningState({
       <div className="flex max-w-md flex-col gap-2">
         <p className="text-base font-medium">
           {/* Fork: plain words, no "first segment" jargon (ux-audit-oct3 C, NN/g #2). */}
-          {isFinalizing ? t`Finishing transcript…` : t`Listening…`}
+          {isFinalizing ? t`Finishing transcript…` : t`Recording…`}
         </p>
         <p className="text-muted-foreground text-sm leading-relaxed">
           {isFinalizing

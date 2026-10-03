@@ -31,6 +31,8 @@ export type TabInput =
   | SupportedWindowTabInput
   | { type: "automations" }
   | { type: "folders" }
+  // Fork: the Chat page (Granola's sidebar "Chat").
+  | { type: "chat" }
   | { type: "shared_sessions"; id: string }
   | { type: "shared_note_preview"; id: string };
 
@@ -48,6 +50,9 @@ export type SettingsTab =
   | "account"
   | "billing"
   | "plan"
+  | "profile"
+  | "calendars"
+  | "connectors"
   | "stats"
   | "insights"
   | "app"
@@ -74,6 +79,9 @@ const normalizeSettingsTab = (
   switch (tab) {
     case "billing":
     case "plan":
+    case "profile":
+    case "calendars":
+    case "connectors":
     case "stats":
     case "insights":
     case "app":
@@ -139,6 +147,7 @@ export type Tab =
     })
   | (BaseTab & { type: "automations" })
   | (BaseTab & { type: "folders" })
+  | (BaseTab & { type: "chat" })
   | (BaseTab & {
       type: "humans";
       id: string;
@@ -215,6 +224,8 @@ export const getDefaultState = (tab: TabInput): Tab => {
       return { ...base, type: "automations" };
     case "folders":
       return { ...base, type: "folders" };
+    case "chat":
+      return { ...base, type: "chat" };
     case "humans":
       return { ...base, type: "humans", id: tab.id };
     case "organizations":
@@ -278,6 +289,8 @@ export const uniqueIdfromTab = (tab: Tab): string => {
       return `automations`;
     case "folders":
       return `folders`;
+    case "chat":
+      return `chat`;
     case "empty":
       return `empty-${tab.slotId}`;
     case "calendar":
