@@ -70,6 +70,46 @@ describe("CustomChatTransport", () => {
     );
   });
 
+  it("keeps working after Stop left an approval card without a result", async () => {
+    const transport = new CustomChatTransport({} as never, {});
+
+    await expect(
+      transport.sendMessages({
+        abortSignal: new AbortController().signal,
+        chatId: "chat-1",
+        messageId: undefined,
+        messages: [
+          {
+            id: "user-1",
+            role: "user",
+            parts: [{ type: "text", text: "Move these meetings to Work" }],
+          },
+          {
+            id: "assistant-1",
+            role: "assistant",
+            parts: [
+              {
+                type: "tool-move_meetings_to_folder",
+                toolCallId: "call-1",
+                state: "input-available",
+                input: { meeting_ids: ["a"], folder_path: "Work" },
+              },
+            ],
+          },
+          {
+            id: "user-2",
+            role: "user",
+            parts: [{ type: "text", text: "Never mind" }],
+          },
+        ] as never,
+        trigger: "submit-message",
+      }),
+    ).resolves.toBeDefined();
+
+    const { messages } = mocks.agentStream.mock.calls[0]![0];
+    expect(JSON.stringify(messages)).not.toContain("call-1");
+  });
+
   it("reserves a final report step and retains the request and completed batches", async () => {
     const transport = new CustomChatTransport({} as never, {});
     await transport.sendMessages({

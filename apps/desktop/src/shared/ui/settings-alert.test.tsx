@@ -70,7 +70,7 @@ describe("SettingsAlertToast", () => {
     expect(mocks.dismiss).toHaveBeenCalledWith("settings-alert");
   });
 
-  it("auto-dismisses error settings alerts while keeping actions available", () => {
+  it("keeps actionable error settings alerts open until the user acts", () => {
     const onClick = vi.fn();
 
     render(
@@ -87,7 +87,8 @@ describe("SettingsAlertToast", () => {
       "Repair Keychain access.",
       expect.objectContaining({
         id: "keychain-alert",
-        duration: TOAST_DURATIONS.error,
+        // Fork: an error with an action stays open.
+        duration: Infinity,
         dismissible: false,
         closeButton: false,
         action: expect.objectContaining({ label: "Repair" }),

@@ -181,9 +181,13 @@ export function BadgeGallery({
     },
   };
   const number = new Intl.NumberFormat(i18n.locale);
-  const count = number.format(Object.keys(collected).length);
-  const total = number.format(progress.length);
-  const badges = progress.map((badge) => {
+  // Fork: NN/g "error prevention" - the "hello" badge needs an account, which this app cannot create.
+  const visibleProgress = progress.filter((badge) => badge.id !== "hello");
+  const count = number.format(
+    visibleProgress.filter((badge) => !!collected[badge.id]).length,
+  );
+  const total = number.format(visibleProgress.length);
+  const badges = visibleProgress.map((badge) => {
     const value = number.format(badge.value);
     const target = number.format(badge.target);
     return {
@@ -195,9 +199,7 @@ export function BadgeGallery({
           ? t`${value} / ${target} conversations`
           : badge.metric === "weeks"
             ? t`${value} / ${target} active weeks`
-            : badge.metric === "signup"
-              ? t`Create your account`
-              : t`Complete onboarding`,
+            : t`Complete onboarding`,
     };
   });
   const selected = badges.find((badge) => badge.id === selectedId);

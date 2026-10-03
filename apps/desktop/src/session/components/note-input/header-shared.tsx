@@ -55,7 +55,7 @@ export function IconHeaderView({
       aria-pressed={pressed}
       onClick={onClick}
       onContextMenu={onContextMenu}
-      title={title}
+      title={title ?? (isActive ? undefined : label)}
       data-hover-label={hoverLabel}
       className={iconHeaderViewClassName(
         isActive,

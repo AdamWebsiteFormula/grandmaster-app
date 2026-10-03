@@ -202,21 +202,28 @@ const PREFERRED_FAMILY: Record<string, string> = {
   anthropic: "claude-sonnet",
 };
 
+// Providers that only serve their own models under the catalog's IDs. Hosts
+// (OpenRouter, Groq, Venice...) mix vendors, so "newest" there is a random
+// model; Azure, subscriptions and the rest return null and the live list
+// decides instead.
+const RECOMMENDABLE_PROVIDERS = new Set([
+  "anthropic",
+  "openai",
+  "google_generative_ai",
+  "xai",
+  "deepseek",
+]);
+
 /**
- * The catalog's newest stable model for a provider, preferring its everyday
- * family. Only for providers whose own API uses the catalog's model IDs:
- * Azure deployments, hosts and subscriptions return null, so the live list
- * decides instead.
+ * The catalog's newest stable model for a first-party provider, preferring
+ * its everyday family.
  */
 export function getRecommendedModel(
   providerId: string,
   options: EnrichOptions = {},
 ): string | null {
   const catalogProvider = catalogProviderFor(providerId);
-  if (
-    !catalogProvider ||
-    (catalogProvider !== providerId && providerId !== "google_generative_ai")
-  ) {
+  if (!catalogProvider || !RECOMMENDABLE_PROVIDERS.has(providerId)) {
     return null;
   }
 

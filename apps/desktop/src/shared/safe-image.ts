@@ -1,29 +1,54 @@
 // Fork (red-team finding, grandmaster/sops/red-team.md): AI output must not
-// load remote images. A prompt-injected answer could put meeting text in an
-// image URL, and the app would send it to that server just by showing it.
-// Only images that already live on this Mac may load.
+// load remote images. The real guard is at render time (isSafeImageSrc in the
+// note editor, chat and preview cards). This strip is a second layer for text
+// that is saved before it is shown.
+import { isSafeImageSrc } from "@anlg/utils/safe-image";
 
-const LOCAL_SCHEMES = ["data:", "blob:", "asset:"];
-const LOCAL_ASSET_HOSTS = ["asset.localhost"];
+export { isSafeImageSrc };
 
-export function isSafeImageSrc(src: string | undefined | null): boolean {
-  if (!src) return false;
-  const value = src.trim().toLowerCase();
-  if (LOCAL_SCHEMES.some((scheme) => value.startsWith(scheme))) return true;
-  try {
-    const url = new URL(value);
-    return LOCAL_ASSET_HOSTS.includes(url.hostname);
-  } catch {
-    // Relative paths have no scheme or host and cannot reach a server.
-    return !/^[a-z][a-z0-9+.-]*:/.test(value) && !value.startsWith("//");
-  }
+// Optional title: "t", 't' or (t), possibly on the next line.
+const TITLE = String.raw`(?:\s+(?:"[^"]*"|'[^']*'|\([^)]*\)))?`;
+// Destination: <anything> or a bare URL with balanced parentheses.
+const DEST = String.raw`(?:<([^>\n]*)>|([^\s()<>]+(?:\([^\s()]*\)[^\s()<>]*)*))`;
+
+// Inline image: ![alt](url title)
+const INLINE_IMAGE = new RegExp(
+  String.raw`!\[([^\]]*)\]\(\s*${DEST}${TITLE}\s*\)`,
+  "g",
+);
+// Reference definition: [label]: url title
+const REFERENCE_DEFINITION = new RegExp(
+  String.raw`^ {0,3}\[([^\]]+)\]:[ \t]*\n?[ \t]*${DEST}${TITLE}[ \t]*$`,
+  "gm",
+);
+// Reference image: ![alt][label], ![alt][] or ![alt]
+const REFERENCE_IMAGE = /!\[([^\]]*)\](?:\[([^\]]*)\])?(?![(:])/g;
+
+function normalizeLabel(label: string) {
+  return label.trim().replace(/\s+/g, " ").toLowerCase();
 }
 
-// Markdown image: ![alt](url "title"). Keeps the alt text, drops the image.
-const MARKDOWN_IMAGE = /!\[([^\]]*)\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)/g;
-
 export function stripRemoteMarkdownImages(text: string): string {
-  return text.replace(MARKDOWN_IMAGE, (match, alt: string, src: string) =>
-    isSafeImageSrc(src) ? match : alt,
+  const unsafeLabels = new Set<string>();
+  const withoutDefinitions = text.replace(
+    REFERENCE_DEFINITION,
+    (match, label: string, angled?: string, bare?: string) => {
+      if (isSafeImageSrc(angled ?? bare)) return match;
+      unsafeLabels.add(normalizeLabel(label));
+      return "";
+    },
+  );
+
+  const withoutInline = withoutDefinitions.replace(
+    INLINE_IMAGE,
+    (match, alt: string, angled?: string, bare?: string) =>
+      isSafeImageSrc(angled ?? bare) ? match : alt,
+  );
+
+  if (unsafeLabels.size === 0) return withoutInline;
+  return withoutInline.replace(
+    REFERENCE_IMAGE,
+    (match, alt: string, label?: string) =>
+      unsafeLabels.has(normalizeLabel(label || alt)) ? alt : match,
   );
 }

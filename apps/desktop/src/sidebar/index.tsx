@@ -1,5 +1,7 @@
+import { Trans } from "@lingui/react/macro";
 import { type ReactNode } from "react";
 
+import { Gear } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
 import { AutomationsNav } from "./automations";
@@ -31,6 +33,7 @@ export function LeftSidebar({
   onShowIgnoredTimelineEventsChange?: (showIgnored: boolean) => void;
 } = {}) {
   const currentTab = useTabs((state) => state.currentTab);
+  const openNew = useTabs((state) => state.openNew);
 
   const isSettingsMode = currentTab?.type === "settings";
   const isCalendarMode = currentTab?.type === "calendar";
@@ -106,6 +109,23 @@ export function LeftSidebar({
           )}
         </div>
       </div>
+      {isTimelineSidebarLayout ? (
+        // Fork (Glaido and Granola pattern): a visible Settings entry at the
+        // bottom of the sidebar, so nobody has to know the shortcut.
+        <div className="shrink-0 px-2 pb-2">
+          <button
+            type="button"
+            onClick={() => openNew({ type: "settings", state: { tab: "app" } })}
+            className="text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-ring flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-hidden"
+          >
+            <Gear size={16} />
+            <span className="flex-1 text-left">
+              <Trans>Settings</Trans>
+            </span>
+            <kbd className="text-muted-foreground/70 font-mono text-xs">⌘,</kbd>
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

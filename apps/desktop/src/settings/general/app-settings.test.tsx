@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -42,15 +42,12 @@ describe("AppSettingsView", () => {
     mocks.platform.mockReturnValue("macos");
   });
 
-  it("toggles automatic updates", () => {
-    const automaticUpdates = setting(false);
-    renderAppSettings({ automaticUpdates });
+  it("does not offer automatic updates (the updater is off in this fork)", () => {
+    renderAppSettings();
 
-    fireEvent.click(
-      screen.getByRole("switch", { name: "Automatically install updates" }),
-    );
-
-    expect(automaticUpdates.onChange).toHaveBeenCalledWith(true);
+    expect(
+      screen.queryByRole("switch", { name: "Automatically install updates" }),
+    ).toBeNull();
   });
 
   it("hides direct-distribution controls in App Store builds", () => {

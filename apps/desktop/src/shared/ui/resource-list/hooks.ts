@@ -1,16 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
+import { BUNDLED_TEMPLATES } from "~/templates/bundled-templates";
 
+const BUNDLED_RESOURCES: Record<string, unknown[]> = {
+  templates: BUNDLED_TEMPLATES,
+};
+
+const EMPTY: unknown[] = [];
+
+// Resources ship with the app. No network call: Upshot is local-first.
 export function useWebResources<T>(endpoint: string) {
-  return useQuery({
-    queryKey: ["settings", endpoint, "suggestions"],
-    queryFn: async () => {
-      const response = await fetch(`https://anarlog.so/api/${endpoint}`, {
-        headers: { Accept: "application/json" },
-      });
-      if (!response.ok) {
-        return [];
-      }
-      return response.json() as Promise<T[]>;
-    },
-  });
+  return {
+    data: (BUNDLED_RESOURCES[endpoint] ?? EMPTY) as T[],
+    isLoading: false,
+  };
 }

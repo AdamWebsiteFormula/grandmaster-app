@@ -712,20 +712,10 @@ export function useConfiguredMapping(): {
         return [provider.id, { configured: false, models: [] }];
       }
 
+      // Fork (blueprint section 5): the upstream cloud transcription has no
+      // server behind it in this app, so it never counts as configured.
       if (provider.id === "anarlog") {
-        return [
-          provider.id,
-          {
-            configured: true,
-            models: [
-              {
-                id: "cloud",
-                isDownloaded: billing.isPaid,
-                category: "latest" as const,
-              },
-            ],
-          },
-        ];
+        return [provider.id, { configured: false, models: [] }];
       }
 
       if (provider.id === "soniqo") {

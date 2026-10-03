@@ -38,6 +38,23 @@ export class ProviderStateSettlingError extends Error {
   }
 }
 
+// Fork (Granola standard: the default is a strong model picked for the user;
+// docs.granola.ai/help-center/getting-more-from-your-notes/understanding-model-selection-in-granola-chat).
+// Apple Intelligence is a small on-device model: it stays in the picker for a
+// manual choice, but is never chosen automatically.
+export const MANUAL_ONLY_LLM_PROVIDERS: ReadonlySet<string> = new Set([
+  "apple_foundation",
+]);
+
+export function isAutoSelectableLlmProvider(
+  provider: string,
+  currentProvider?: string,
+) {
+  return (
+    provider === currentProvider || !MANUAL_ONLY_LLM_PROVIDERS.has(provider)
+  );
+}
+
 export async function getDefaultLlmSelection(
   providerIds: readonly string[],
   currentProvider: string | undefined,
@@ -57,6 +74,9 @@ export async function getDefaultLlmSelection(
   }
 
   for (const provider of providerIds) {
+    if (!isAutoSelectableLlmProvider(provider, currentProvider)) {
+      continue;
+    }
     try {
       const models = await loadModels(provider);
       const model = getPreferredProviderModel(

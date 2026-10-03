@@ -16,6 +16,18 @@ const mocks = vi.hoisted(() => ({
   setOnboardingNeeded: vi.fn(),
   setPendingWelcomeSession: vi.fn(),
   stopSfx: vi.fn(),
+  setSettingValues: vi.fn(),
+  autoPost: false,
+}));
+
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => "macos" }));
+
+vi.mock("~/settings/queries", () => ({
+  setSettingValues: mocks.setSettingValues,
+}));
+
+vi.mock("~/shared/config", () => ({
+  useConfigValue: () => mocks.autoPost,
 }));
 
 vi.mock("@anlg/plugin-analytics", () => ({
@@ -56,6 +68,8 @@ beforeEach(() => {
   mocks.getOrCreateWelcomeSession.mockResolvedValue("welcome-session");
   mocks.setOnboardingNeeded.mockResolvedValue({ status: "ok", data: null });
   mocks.stopSfx.mockResolvedValue(null);
+  mocks.setSettingValues.mockResolvedValue(undefined);
+  mocks.autoPost = false;
 });
 
 afterEach(cleanup);
@@ -160,4 +174,33 @@ it("links only to the Upshot repository, not upstream channels", () => {
     "https://github.com/AdamWebsiteFormula/grandmaster-app",
     null,
   );
+});
+
+it("reminds you to tell people and shows the chat notice switch, off by default", () => {
+  render(<FinalSection onContinue={vi.fn()} />);
+
+  expect(screen.getByText(/Tell people when you record them/)).toBeTruthy();
+  expect(
+    screen.getByText(/I'm using Upshot to record and transcribe this meeting/),
+  ).toBeTruthy();
+  const toggle = screen.getByRole("switch", {
+    name: "Post a short notice in the meeting chat",
+  });
+  expect(toggle.getAttribute("aria-checked")).toBe("false");
+
+  fireEvent.click(toggle);
+  expect(mocks.setSettingValues).toHaveBeenCalledWith({
+    consent_auto_send_chat: true,
+  });
+});
+
+it("shows the switch on when the notice is already on", () => {
+  mocks.autoPost = true;
+  render(<FinalSection onContinue={vi.fn()} />);
+
+  expect(
+    screen
+      .getByRole("switch", { name: "Post a short notice in the meeting chat" })
+      .getAttribute("aria-checked"),
+  ).toBe("true");
 });

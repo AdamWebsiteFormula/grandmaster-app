@@ -1,3 +1,5 @@
+import type { ComponentProps, ComponentType } from "react";
+
 import { Folder, Pencil, Swap } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 
@@ -92,7 +94,7 @@ function ApprovalFooter({
   );
 }
 
-export const ToolSessionCorrection = defineTool({
+const SessionCorrectionCard = defineTool({
   icon: <Pencil />,
   parseFn: parseApprovalToolOutput,
   isDone: (parsed) =>
@@ -117,7 +119,7 @@ export const ToolSessionCorrection = defineTool({
   renderFooter: (ctx) => <ApprovalFooter {...ctx} />,
 });
 
-export const ToolMoveMeetingContents = defineTool({
+const MoveMeetingContentsCard = defineTool({
   icon: <Swap />,
   parseFn: parseApprovalToolOutput,
   isDone: (parsed) => parsed?.status === "moved",
@@ -150,7 +152,7 @@ function folderMoveCounts(parsed: ApprovalToolOutput): string {
     .join(", ");
 }
 
-export const ToolMoveMeetingsToFolder = defineTool({
+const MoveMeetingsToFolderCard = defineTool({
   icon: <Folder />,
   parseFn: parseApprovalToolOutput,
   isDone: (parsed) => parsed?.status === "ok" || parsed?.status === "partial",
@@ -172,3 +174,39 @@ export const ToolMoveMeetingsToFolder = defineTool({
     ) : null,
   renderFooter: (ctx) => <ApprovalFooter {...ctx} />,
 });
+
+type ApprovalCardPart = ComponentProps<typeof SessionCorrectionCard>["part"];
+
+// Stop aborts the stream before the tool's "declined" result reaches the
+// message, so the part stays input-available. Show it as dismissed instead
+// of spinning forever.
+function showStopAsDeclined(Card: ComponentType<{ part: ApprovalCardPart }>) {
+  return function ApprovalCard({ part }: { part: ApprovalCardPart }) {
+    const stopped = usePendingApprovalStore((state) =>
+      state.stopped.has(part.toolCallId),
+    );
+    const pending =
+      part.state === "input-streaming" || part.state === "input-available";
+    return (
+      <Card
+        part={
+          stopped && pending
+            ? {
+                ...part,
+                state: "output-available",
+                output: { status: "declined" },
+              }
+            : part
+        }
+      />
+    );
+  };
+}
+
+export const ToolSessionCorrection = showStopAsDeclined(SessionCorrectionCard);
+export const ToolMoveMeetingContents = showStopAsDeclined(
+  MoveMeetingContentsCard,
+);
+export const ToolMoveMeetingsToFolder = showStopAsDeclined(
+  MoveMeetingsToFolderCard,
+);

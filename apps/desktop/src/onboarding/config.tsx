@@ -5,15 +5,20 @@ import type { SectionStatus } from "./shared";
 export type OnboardingStep =
   | "permissions"
   | "transcription"
+  | "ai-key"
   | "login"
   | "calendar"
   | "imports"
   | "final";
 
-// Fork: no sign-in and no cloud calendar step; both need upstream services.
+// Fork: no sign-in step (needs upstream services). The calendar step offers
+// only the local Apple Calendar; Granola connects the calendar during setup
+// (docs.granola.ai/help-center/getting-started/setting-up-granola-for-the-first-time).
 const STEPS_MACOS: OnboardingStep[] = [
   "permissions",
   "transcription",
+  "ai-key",
+  "calendar",
   "imports",
   "final",
 ];

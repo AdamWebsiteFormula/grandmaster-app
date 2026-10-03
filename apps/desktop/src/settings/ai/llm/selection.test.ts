@@ -115,11 +115,51 @@ describe("getDefaultLlmSelection", () => {
 
   test("still falls back when the chosen provider has no saved config", async () => {
     const selection = await getDefaultLlmSelection(
-      ["apple_foundation"],
+      ["apple_foundation", "openai"],
       "anthropic",
       "",
-      async () => ["System Language Model"],
+      async (provider) =>
+        provider === "openai" ? ["gpt-5.5"] : ["System Language Model"],
       { hasSavedConfig: async () => false },
+    );
+
+    expect(selection).toEqual({ provider: "openai", model: "gpt-5.5" });
+  });
+
+  test("never auto-selects apple_foundation on a fresh install", async () => {
+    const loadModels = vi.fn(async () => ["System Language Model"]);
+    const selection = await getDefaultLlmSelection(
+      ["apple_foundation"],
+      undefined,
+      undefined,
+      loadModels,
+    );
+
+    expect(selection).toBeNull();
+    expect(loadModels).not.toHaveBeenCalled();
+  });
+
+  test("never falls back to apple_foundation when another provider fails", async () => {
+    const selection = await getDefaultLlmSelection(
+      ["openai", "apple_foundation"],
+      undefined,
+      undefined,
+      async (provider) => {
+        if (provider === "openai") throw new Error("invalid key");
+        return ["System Language Model"];
+      },
+    );
+
+    expect(selection).toBeNull();
+  });
+
+  test("keeps apple_foundation when the user chose it", async () => {
+    const selection = await getDefaultLlmSelection(
+      ["apple_foundation", "openai"],
+      "apple_foundation",
+      undefined,
+      async (provider) =>
+        provider === "openai" ? ["gpt-5.5"] : ["System Language Model"],
     );
 
     expect(selection).toEqual({

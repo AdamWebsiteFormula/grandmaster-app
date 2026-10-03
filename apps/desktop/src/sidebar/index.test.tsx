@@ -1,9 +1,10 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   currentTab: { type: "empty" } as { type: string } | null,
   platform: "macos",
+  openNew: vi.fn(),
 }));
 
 vi.mock("@tauri-apps/plugin-os", () => ({
@@ -12,8 +13,11 @@ vi.mock("@tauri-apps/plugin-os", () => ({
 
 vi.mock("~/store/zustand/tabs", () => ({
   useTabs: (
-    selector: (state: { currentTab: typeof mocks.currentTab }) => unknown,
-  ) => selector({ currentTab: mocks.currentTab }),
+    selector: (state: {
+      currentTab: typeof mocks.currentTab;
+      openNew: typeof mocks.openNew;
+    }) => unknown,
+  ) => selector({ currentTab: mocks.currentTab, openNew: mocks.openNew }),
 }));
 
 vi.mock("~/sidebar/folder-materials", () => ({
@@ -66,6 +70,17 @@ describe("LeftSidebar", () => {
 
   afterEach(() => {
     cleanup();
+  });
+
+  it("opens Settings from the button at the bottom of the sidebar", () => {
+    render(<LeftSidebar />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Settings/ }));
+
+    expect(mocks.openNew).toHaveBeenCalledWith({
+      type: "settings",
+      state: { tab: "app" },
+    });
   });
 
   it("shows received notes without the personal timeline", () => {

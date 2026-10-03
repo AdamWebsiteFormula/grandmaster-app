@@ -65,7 +65,8 @@ describe("sidebar toast registry", () => {
     },
   );
 
-  it("suggests signing in before provider setup", () => {
+  // Fork: sign-in and upgrade tips are off (no accounts or plans).
+  it.skip("suggests signing in before provider setup", () => {
     const onSignIn = vi.fn();
     const toast = showToast({
       isAuthenticated: false,
@@ -88,7 +89,8 @@ describe("sidebar toast registry", () => {
     expect(toast?.id).toBe("missing-stt");
   });
 
-  it("promotes Pro after sign-in is dismissed, sharing one permanent dismissal", () => {
+  // Fork: sign-in and upgrade tips are off (no accounts or plans).
+  it.skip("promotes Pro after sign-in is dismissed, sharing one permanent dismissal", () => {
     expect(
       showToast(
         { isAuthenticated: false },

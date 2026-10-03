@@ -148,7 +148,8 @@ export function createToastRegistry({
           dismissalId: "auth-promotion",
         },
       },
-      condition: () => !isAuthLoading && !isAuthenticated,
+      // Fork: no accounts in this app, so never promote sign-in.
+      condition: () => false,
     },
     {
       toast: {
@@ -191,8 +192,10 @@ export function createToastRegistry({
           dismissalId: "auth-promotion",
         },
       },
+      // Fork: no plans in this app, so never promote an upgrade.
       // suppress until auth resolves to avoid flash on startup
       condition: () =>
+        false &&
         !isAuthLoading &&
         !isAuthenticated &&
         hasLLMConfigured &&

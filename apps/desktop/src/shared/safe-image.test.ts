@@ -18,6 +18,10 @@ describe("isSafeImageSrc", () => {
     "http://evil.example/x.png",
     "//evil.example/x.png",
     "HTTPS://EVIL.EXAMPLE/x.png",
+    "\\\\evil.example/x.png",
+    "/\\evil.example/x.png",
+    "/\t/evil.example/x.png",
+    " \n//evil.example/x.png",
     "",
     undefined,
   ])("blocks remote or empty %s", (src) => {
@@ -37,6 +41,31 @@ describe("stripRemoteMarkdownImages", () => {
   it("keeps local images and normal links", () => {
     const text =
       "![a](asset://localhost/a.png) and [docs](https://example.com/page)";
+    expect(stripRemoteMarkdownImages(text)).toBe(text);
+  });
+
+  it.each([
+    ["single-quoted title", "![a](https://evil.example/?d=x 't')"],
+    ["parenthesized title", "![a](https://evil.example/?d=x (t))"],
+    ["URL in angle brackets", "![a](<https://evil.example/?d=x y>)"],
+    ["title on the next line", '![a](https://evil.example/?d=x\n"t")'],
+    ["parentheses in the URL", "![a](https://evil.example/x_(1).png)"],
+  ])("drops a remote image with a %s", (_, image) => {
+    expect(stripRemoteMarkdownImages(`Plan ${image} done`)).toBe(
+      "Plan a done",
+    );
+  });
+
+  it("drops reference-style remote images and their definitions", () => {
+    const result = stripRemoteMarkdownImages(
+      "Plan ![a][r] and ![b][] done\n\n[r]: https://evil.example/?d=x\n[B]: <https://evil.example/y> 't'",
+    );
+    expect(result).not.toContain("evil.example");
+    expect(result).toContain("Plan a and b done");
+  });
+
+  it("keeps local reference images", () => {
+    const text = "![a][r]\n\n[r]: asset://localhost/a.png";
     expect(stripRemoteMarkdownImages(text)).toBe(text);
   });
 });

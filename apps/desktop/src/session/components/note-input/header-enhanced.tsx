@@ -1,7 +1,13 @@
 import { useCallback, useMemo } from "react";
 
-import { CaretDown, Sparkle } from "@anlg/ui/components/icons";
+import { CaretDown, Copy, Sparkle } from "@anlg/ui/components/icons";
 import { Spinner } from "@anlg/ui/components/ui/spinner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@anlg/ui/components/ui/tooltip";
 import { cn } from "@anlg/utils";
 
 import {
@@ -108,7 +114,8 @@ function HeaderViewEnhancedInactive({
       type="button"
       aria-label={viewTitle}
       onClick={onClick}
-      title={templateTooltip}
+      // WCAG 2.2 SC 4.1.2: bare icon tab needs a name (aria-label) and a visible tooltip.
+      title={templateTooltip ?? viewTitle}
       className={iconHeaderViewClassName(false, "tray", "px-2")}
     >
       {isGenerating ? (
@@ -270,13 +277,62 @@ function HeaderViewEnhancedActive({
   );
 
   return (
-    <TemplatePickerPopover
-      onSelectTemplate={handleSelectTemplate}
-      usedTemplateId={usedTemplateId}
-      onRegenerateUsed={handleRegenerate}
-      isRegenerating={isGenerating}
-      trigger={templateMenuTrigger}
-    />
+    <>
+      <TemplatePickerPopover
+        onSelectTemplate={handleSelectTemplate}
+        usedTemplateId={usedTemplateId}
+        onRegenerateUsed={handleRegenerate}
+        isRegenerating={isGenerating}
+        trigger={templateMenuTrigger}
+      />
+      <CopyNotesButton
+        disabled={noteMarkdown.length === 0}
+        onCopy={() => {
+          void handleCopy();
+        }}
+      />
+    </>
+  );
+}
+
+// Visible one-click copy (Granola "Copy as markdown", Otter copy to clipboard).
+// The right-click Copy on the summary title stays as well.
+function CopyNotesButton({
+  disabled,
+  onCopy,
+}: {
+  disabled: boolean;
+  onCopy: () => void;
+}) {
+  const label = "Copy notes";
+
+  // Own provider so the header renders anywhere, including tests.
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            data-main-area-window-drag-region
+            data-tauri-drag-region="false"
+            type="button"
+            aria-label={label}
+            disabled={disabled}
+            onClick={(event) => {
+              event.stopPropagation();
+              onCopy();
+            }}
+            className={iconHeaderViewClassName(
+              false,
+              "tray",
+              "px-1.5 disabled:pointer-events-none disabled:opacity-40",
+            )}
+          >
+            <Copy className="size-3.5" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">{label}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 

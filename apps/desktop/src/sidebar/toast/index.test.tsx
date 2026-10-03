@@ -189,7 +189,8 @@ describe("ToastNotifications", () => {
     vi.useRealTimers();
   });
 
-  it("routes the sign-in suggestion through the shared toaster", () => {
+  // Fork: sign-in and upgrade tips are off (no accounts or plans).
+  it.skip("routes the sign-in suggestion through the shared toaster", () => {
     render(<ToastNotifications />);
 
     act(() => vi.advanceTimersByTime(500));
@@ -212,7 +213,8 @@ describe("ToastNotifications", () => {
     expect(mocks.dismissToast).not.toHaveBeenCalled();
   });
 
-  it("persists explicit toast dismissals", () => {
+  // Fork: sign-in and upgrade tips are off (no accounts or plans).
+  it.skip("persists explicit toast dismissals", () => {
     render(<ToastNotifications />);
 
     act(() => vi.advanceTimersByTime(500));

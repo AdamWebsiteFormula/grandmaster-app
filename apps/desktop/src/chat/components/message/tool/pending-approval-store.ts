@@ -11,13 +11,18 @@ type PendingApproval = {
 
 type PendingApprovalStore = {
   approvals: Map<string, PendingApproval>;
+  // Tool calls dismissed by Stop. The aborted stream never delivers their
+  // "declined" result, so the card reads this to stop spinning.
+  stopped: Set<string>;
   addApproval: (approval: PendingApproval) => void;
   resolveApproval: (requestId: string, approved: boolean) => void;
+  markStopped: (requestId: string) => void;
 };
 
 export const usePendingApprovalStore = create<PendingApprovalStore>(
   (set, get) => ({
     approvals: new Map(),
+    stopped: new Set(),
     addApproval: (approval) => {
       set((state) => {
         const next = new Map(state.approvals);
@@ -37,6 +42,16 @@ export const usePendingApprovalStore = create<PendingApprovalStore>(
       });
       approval.resolve(approved);
     },
+    markStopped: (requestId) => {
+      set((state) => {
+        if (state.stopped.has(requestId)) {
+          return state;
+        }
+        const next = new Set(state.stopped);
+        next.add(requestId);
+        return { stopped: next };
+      });
+    },
   }),
 );
 
@@ -48,12 +63,16 @@ export function waitForApproval(
 ): Promise<boolean> {
   const { details, abortSignal } = options;
   if (abortSignal?.aborted) {
+    usePendingApprovalStore.getState().markStopped(requestId);
     return Promise.resolve(false);
   }
 
   return new Promise<boolean>((resolve) => {
-    const onAbort = () =>
-      usePendingApprovalStore.getState().resolveApproval(requestId, false);
+    const onAbort = () => {
+      const store = usePendingApprovalStore.getState();
+      store.markStopped(requestId);
+      store.resolveApproval(requestId, false);
+    };
     abortSignal?.addEventListener("abort", onAbort, { once: true });
     usePendingApprovalStore.getState().addApproval({
       requestId,

@@ -48,7 +48,8 @@ test.each([true, false])(
       ),
     });
 
-    expect(result.current.providers.anarlog.configured).toBe(true);
+    // Fork: the upstream cloud transcription is never configured.
+    expect(result.current.providers.anarlog.configured).toBe(false);
     expect(result.current.providers.deepgram.configured).toBe(false);
     expect(result.current.isReady).toBe(false);
 

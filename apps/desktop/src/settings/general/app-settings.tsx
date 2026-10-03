@@ -27,7 +27,6 @@ interface AppSettingsViewProps {
 export function AppSettingsView({
   appStoreBuild,
   autostart,
-  automaticUpdates,
   showAppInDock,
   showTrayIcon,
 }: AppSettingsViewProps) {
@@ -42,23 +41,11 @@ export function AppSettingsView({
             <>
               <SettingSwitchRow
                 title={<Trans>Start Upshot at login</Trans>}
-                description={
-                  <Trans>Have Upshot ready when you sign in.</Trans>
-                }
+                description={<Trans>Have Upshot ready when you sign in.</Trans>}
                 checked={autostart.value}
                 onChange={autostart.onChange}
               />
-              <SettingSwitchRow
-                title={<Trans>Automatically install updates</Trans>}
-                description={
-                  <Trans>
-                    Stay current with updates installed the next time Upshot
-                    opens.
-                  </Trans>
-                }
-                checked={automaticUpdates.value}
-                onChange={automaticUpdates.onChange}
-              />
+              {/* Fork: NN/g "error prevention" - the updater is off in this app, so no update toggle. */}
             </>
           )}
           {isMacos && (

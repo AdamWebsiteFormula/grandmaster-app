@@ -29,6 +29,8 @@ import { cn } from "@anlg/utils";
 import { trackAnalyticsEvent } from "~/analytics";
 import { useAuth } from "~/auth";
 import { useBillingAccess } from "~/auth/billing-context";
+import { useSearchEngine } from "~/search/contexts/engine";
+import { extractPlainText } from "~/search/contexts/engine/utils";
 import { useSessionSummaries } from "~/session/queries";
 import { useDurableSharedNotes } from "~/shared-notes/cache";
 import { useMainContentCenterOffset } from "~/shared/main/content-offset";
@@ -36,6 +38,11 @@ import { useSettingsNavGroups } from "~/sidebar/settings-nav-groups";
 import { type TabInput, useTabs } from "~/store/zustand/tabs";
 
 const MAX_RECENT_DISPLAY = 5;
+const CONTENT_SEARCH_MIN_CHARS = 2;
+const CONTENT_SEARCH_DEBOUNCE_MS = 200;
+const MAX_CONTENT_RESULTS = 8;
+const SNIPPET_BEFORE_CHARS = 40;
+const SNIPPET_MAX_CHARS = 120;
 
 interface OpenNoteDialogProps {
   open: boolean;
@@ -52,6 +59,11 @@ type NoteResult = {
   id: string;
   title: string;
   createdAt: string;
+};
+
+type ContentResult = {
+  note: NoteResult;
+  snippet: string;
 };
 
 type PageResult = {
@@ -128,6 +140,10 @@ export function OpenNoteDialog({
 
   const sessions = useSessionSummaries();
   const sharedNotes = useDurableSharedNotes(session?.user.id);
+  const { search } = useSearchEngine();
+  const [contentHits, setContentHits] = useState<
+    Array<{ id: string; title: string; content: string }>
+  >([]);
 
   const pageResults = useMemo<PageResult[]>(
     () => [
@@ -248,10 +264,71 @@ export function OpenNoteDialog({
     );
   }, [otherNotes, query]);
 
+  // Full-text search over note contents (Granola search across notes,
+  // Fireflies sentence-level search), using the same index as chat.
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (!open || trimmed.length < CONTENT_SEARCH_MIN_CHARS) {
+      setContentHits((prev) => (prev.length > 0 ? [] : prev));
+      return;
+    }
+
+    let cancelled = false;
+    const timeout = setTimeout(() => {
+      void search(trimmed).then((hits) => {
+        if (cancelled) return;
+        setContentHits(
+          hits
+            .filter((hit) => hit.document.type === "session")
+            .map((hit) => ({
+              id: hit.document.id,
+              title: hit.document.title,
+              content: hit.document.content,
+            })),
+        );
+      });
+    }, CONTENT_SEARCH_DEBOUNCE_MS);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
+  }, [open, query, search]);
+
+  const contentResults = useMemo<ContentResult[]>(() => {
+    if (query.trim().length < CONTENT_SEARCH_MIN_CHARS) return [];
+    const titleMatchIds = new Set([
+      ...filteredRecentSessions.map((note) => note.id),
+      ...filteredOtherNotes
+        .filter((note) => note.resourceType === "session")
+        .map((note) => note.id),
+    ]);
+    const seen = new Set<string>();
+    const results: ContentResult[] = [];
+
+    for (const hit of contentHits) {
+      if (results.length >= MAX_CONTENT_RESULTS) break;
+      if (titleMatchIds.has(hit.id) || seen.has(hit.id)) continue;
+      const note = sessionsMap.get(hit.id);
+      if (!note) continue;
+      seen.add(hit.id);
+      results.push({ note, snippet: buildSnippet(hit.content, query) });
+    }
+
+    return results;
+  }, [
+    contentHits,
+    filteredOtherNotes,
+    filteredRecentSessions,
+    query,
+    sessionsMap,
+  ]);
+
   const hasAnyResults =
     filteredPages.length > 0 ||
     filteredRecentSessions.length > 0 ||
-    filteredOtherNotes.length > 0;
+    filteredOtherNotes.length > 0 ||
+    contentResults.length > 0;
 
   useEffect(() => {
     if (!open || !query.trim()) return;
@@ -536,6 +613,50 @@ export function OpenNoteDialog({
                       ))}
                     </CommandPrimitive.Group>
                   )}
+
+                  {contentResults.length > 0 && (
+                    <CommandPrimitive.Group
+                      heading={
+                        <div className="flex flex-col gap-3">
+                          {(filteredPages.length > 0 ||
+                            filteredRecentSessions.length > 0 ||
+                            filteredOtherNotes.length > 0) && (
+                            <div className="bg-accent mx-2 h-px" />
+                          )}
+                          <div className="text-muted-foreground px-2 py-1.5 text-xs font-medium">
+                            <Trans>In notes</Trans>
+                          </div>
+                        </div>
+                      }
+                    >
+                      {contentResults.map(({ note, snippet }) => (
+                        <CommandPrimitive.Item
+                          key={`content-${note.id}`}
+                          value={`content-${note.id}`}
+                          onSelect={() => handleSelect(note)}
+                          className={cn([
+                            "flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2.5",
+                            "text-muted-foreground text-sm",
+                            "data-[selected=true]:bg-accent/60",
+                            "transition-colors",
+                          ])}
+                        >
+                          <FileText className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0" />
+                          <span className="flex min-w-0 flex-col gap-0.5">
+                            <span className="truncate">{note.title}</span>
+                            {snippet ? (
+                              <span
+                                className="text-muted-foreground/80 line-clamp-2 text-xs"
+                                data-testid="content-snippet"
+                              >
+                                {snippet}
+                              </span>
+                            ) : null}
+                          </span>
+                        </CommandPrimitive.Item>
+                      ))}
+                    </CommandPrimitive.Group>
+                  )}
                 </>
               )}
             </CommandPrimitive.List>
@@ -544,4 +665,26 @@ export function OpenNoteDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+export function buildSnippet(content: string, query: string): string {
+  const text = extractPlainText(content).replace(/\s+/g, " ").trim();
+  if (!text) return "";
+
+  const lowerText = text.toLowerCase();
+  const terms = [
+    query.trim().toLowerCase(),
+    ...query.toLowerCase().split(/\s+/),
+  ].filter((term) => term.length >= CONTENT_SEARCH_MIN_CHARS);
+  let matchIndex = -1;
+  for (const term of terms) {
+    matchIndex = lowerText.indexOf(term);
+    if (matchIndex !== -1) break;
+  }
+
+  const start = Math.max(0, matchIndex - SNIPPET_BEFORE_CHARS);
+  const end = Math.min(text.length, start + SNIPPET_MAX_CHARS);
+  const fragment = text.slice(start, end).trim();
+
+  return `${start > 0 ? "…" : ""}${fragment}${end < text.length ? "…" : ""}`;
 }

@@ -55,7 +55,10 @@ function SettingsAlertToastLifecycle({
     const dismissible = lifecycle === "persistent";
     const options = {
       id,
-      duration: variant === "error" ? TOAST_DURATIONS.error : Infinity,
+      // Fork: an error that offers an action stays until the user acts
+      // (it used to close after a few seconds, before the user could click).
+      duration:
+        variant === "error" && !action ? TOAST_DURATIONS.error : Infinity,
       dismissible,
       closeButton: dismissible,
       ...(action

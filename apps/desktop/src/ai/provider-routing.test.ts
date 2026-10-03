@@ -33,5 +33,7 @@ it.each([undefined, "https://api.anarlog.so"])(
     );
     expect(env.VITE_API_URL).toBe("http://localhost:3001");
   },
-  30_000,
+  // Re-imports two large provider modules after resetModules; under a full
+  // parallel run this can exceed 30 s, so give it room.
+  120_000,
 );

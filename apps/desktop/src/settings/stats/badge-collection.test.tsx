@@ -77,14 +77,14 @@ describe("badge collection", () => {
         "first-words",
       ]),
     );
-    expect(screen.getByText("0 of 9 collected")).toBeTruthy();
+    expect(screen.getByText("0 of 8 collected")).toBeTruthy();
     mocks.collection.data = {
       hello: now.toISOString(),
       "all-set": now.toISOString(),
       "first-words": now.toISOString(),
     };
     rerender(view());
-    expect(screen.getByText("3 of 9 collected")).toBeTruthy();
+    expect(screen.getByText("2 of 8 collected")).toBeTruthy();
     expect(mocks.collect).toHaveBeenCalledTimes(1);
   });
 
@@ -121,7 +121,7 @@ describe("badge collection", () => {
         collected={{ "first-words": "2026-09-01T12:00:00Z" }}
       />,
     );
-    expect(screen.getByText("1 of 9 collected")).toBeTruthy();
+    expect(screen.getByText("1 of 8 collected")).toBeTruthy();
     const first = screen.getByRole("button", { name: "First Words" });
     expect(within(first).getByText("Collected")).toBeTruthy();
     fireEvent.click(first);

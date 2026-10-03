@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ImgHTMLAttributes, ReactNode } from "react";
 import { Streamdown } from "streamdown";
 
 import { CircleNotch, XCircle } from "@anlg/ui/components/icons";
@@ -6,6 +6,7 @@ import { streamdownIcons } from "@anlg/ui/components/streamdown-icons";
 import { cn } from "@anlg/utils";
 
 import { extractMcpOutputText } from "~/chat/mcp/mcp-output-parser";
+import { isSafeImageSrc } from "~/shared/safe-image";
 
 export function ToolCard({
   failed,
@@ -132,6 +133,17 @@ export function ToolCardFooters({
   );
 }
 
+// Fork: the preview streams before Apply, so a remote image here would load
+// (and leak its URL) before the user decides. Same rule as chat messages.
+const previewComponents = {
+  img: (props: ImgHTMLAttributes<HTMLImageElement>) =>
+    isSafeImageSrc(typeof props.src === "string" ? props.src : null) ? (
+      <img {...props} className="max-w-full" />
+    ) : props.alt ? (
+      <span>{props.alt}</span>
+    ) : null,
+};
+
 export function MarkdownPreview({ children }: { children: string }) {
   return (
     <div className="border-border/80 bg-card rounded-lg border">
@@ -140,6 +152,7 @@ export function MarkdownPreview({ children }: { children: string }) {
           icons={streamdownIcons}
           className="text-muted-foreground text-sm leading-relaxed"
           linkSafety={{ enabled: false }}
+          components={previewComponents}
         >
           {children}
         </Streamdown>

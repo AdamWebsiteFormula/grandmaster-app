@@ -54,6 +54,7 @@ export function TranscriptionSetupSection({
   const [stalled, setStalled] = useState(false);
   const startedRef = useRef(false);
   const lastProgressRef = useRef(Date.now());
+  const isReady = phase.kind === "ready";
 
   useEffect(() => {
     if (startedRef.current) return;
@@ -105,8 +106,10 @@ export function TranscriptionSetupSection({
 
   // Progress events, plus a poll as a backstop: Apple Speech installs through
   // macOS and does not always report progress.
+  // Fork: once the engine is ready, stop polling and the stall timer, so
+  // "Try again" never shows next to "is ready" (it would re-download).
   useEffect(() => {
-    if (!choice) return;
+    if (!choice || isReady) return;
     const unlisten = localSttEvents.downloadProgressPayload.listen((event) => {
       const { model, status } = event.payload;
       if (model !== choice.model) return;
@@ -132,7 +135,7 @@ export function TranscriptionSetupSection({
       clearInterval(timer);
       void unlisten.then((fn) => fn());
     };
-  }, [choice]);
+  }, [choice, isReady]);
 
   const retry = async () => {
     if (!choice) return;
@@ -180,11 +183,13 @@ export function TranscriptionSetupSection({
         <OnboardingButton onClick={onContinue}>
           <Trans>Continue</Trans>
         </OnboardingButton>
-        {(stalled || phase.kind === "failed") && choice && (
-          <OnboardingButton variant="secondary" onClick={() => void retry()}>
-            <Trans>Try again</Trans>
-          </OnboardingButton>
-        )}
+        {((stalled && phase.kind === "downloading") ||
+          phase.kind === "failed") &&
+          choice && (
+            <OnboardingButton variant="secondary" onClick={() => void retry()}>
+              <Trans>Try again</Trans>
+            </OnboardingButton>
+          )}
       </div>
       {phase.kind === "downloading" && (
         <p className="text-muted-foreground text-sm">

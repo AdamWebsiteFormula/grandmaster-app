@@ -10,6 +10,7 @@ import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 import { cn } from "@anlg/utils";
 
 import { LoginSection } from "./account";
+import { AiKeySection } from "./ai-key";
 import { CalendarSection } from "./calendar";
 import {
   getInitialStep,
@@ -91,6 +92,8 @@ function OnboardingScreenContent({
   const [currentStep, setCurrentStep] = useState(getInitialStep);
   const [didSkipLogin, setDidSkipLogin] = useState(false);
   const [didSkipImports, setDidSkipImports] = useState(false);
+  const [didSkipCalendar, setDidSkipCalendar] = useState(false);
+  const [aiKeyConnected, setAiKeyConnected] = useState(false);
   const currentPlatform = platform();
 
   const goNext = useCallback(() => {
@@ -121,15 +124,33 @@ function OnboardingScreenContent({
     skipCurrentStep();
   }, [skipCurrentStep]);
 
+  const continueAiKey = useCallback(
+    (connected: boolean) => {
+      setAiKeyConnected(connected);
+      goNext();
+    },
+    [goNext],
+  );
+
+  const skipAiKey = useCallback(() => {
+    setAiKeyConnected(false);
+    skipCurrentStep();
+  }, [skipCurrentStep]);
+
   const goBack = useCallback(() => {
     const prev = getPrevStep(currentStep);
     if (prev) setCurrentStep(prev);
   }, [currentStep]);
 
-  const handleCalendarSignIn = useCallback(() => {
-    setCurrentStep("login");
-    void auth.signIn();
-  }, [auth]);
+  const continueCalendar = useCallback(() => {
+    setDidSkipCalendar(false);
+    goNext();
+  }, [goNext]);
+
+  const skipCalendar = useCallback(() => {
+    setDidSkipCalendar(true);
+    skipCurrentStep();
+  }, [skipCurrentStep]);
 
   useEffect(() => {
     trackAnalyticsEvent("onboarding_step_viewed", {
@@ -265,6 +286,29 @@ function OnboardingScreenContent({
           </OnboardingSection>
 
           <OnboardingSection
+            title={<Trans>Set up AI summaries</Trans>}
+            description={
+              <Trans>
+                Choose an AI provider and paste its key. Upshot uses it to turn
+                meetings into notes.
+              </Trans>
+            }
+            completedTitle={
+              aiKeyConnected ? (
+                <Trans>AI summaries ready</Trans>
+              ) : (
+                <Trans>AI summaries skipped</Trans>
+              )
+            }
+            status={getStepStatus("ai-key", currentStep)}
+            onBack={goBack}
+            onNext={() => continueAiKey(false)}
+            onSkip={skipAiKey}
+          >
+            <AiKeySection onContinue={continueAiKey} onSkip={skipAiKey} />
+          </OnboardingSection>
+
+          <OnboardingSection
             title={<Trans>Create account</Trans>}
             description={
               <Trans>
@@ -302,19 +346,23 @@ function OnboardingScreenContent({
             title={<Trans>Connect calendar</Trans>}
             description={
               <Trans>
-                Upshot will sync your calendar to get meeting reminders
+                Upshot reads Apple Calendar on this Mac to remind you before
+                meetings and add titles and attendees to your notes.
               </Trans>
             }
-            completedTitle={<Trans>Calendar connected</Trans>}
+            completedTitle={
+              didSkipCalendar ? (
+                <Trans>Calendar skipped</Trans>
+              ) : (
+                <Trans>Calendar connected</Trans>
+              )
+            }
             status={getStepStatus("calendar", currentStep)}
             onBack={goBack}
-            onNext={goNext}
-            onSkip={skipCurrentStep}
+            onNext={continueCalendar}
+            onSkip={skipCalendar}
           >
-            <CalendarSection
-              onContinue={goNext}
-              onSignIn={handleCalendarSignIn}
-            />
+            <CalendarSection onContinue={continueCalendar} />
           </OnboardingSection>
 
           <OnboardingSection

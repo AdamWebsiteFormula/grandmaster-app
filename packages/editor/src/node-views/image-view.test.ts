@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { listenForImageResize } from "./image-view";
+import { getDisplayImageSrc, listenForImageResize } from "./image-view";
 
 describe("listenForImageResize", () => {
   it("releases every listener after pointer cancellation", () => {
@@ -32,5 +32,22 @@ describe("listenForImageResize", () => {
     expect(onMove).not.toHaveBeenCalled();
     expect(onCommit).not.toHaveBeenCalled();
     expect(onCancel).not.toHaveBeenCalled();
+  });
+});
+
+describe("getDisplayImageSrc", () => {
+  it("keeps images stored on this Mac", () => {
+    expect(getDisplayImageSrc("asset://localhost/Users/me/a.png")).toBe(
+      "asset://localhost/Users/me/a.png",
+    );
+    expect(getDisplayImageSrc("data:image/png;base64,AAAA")).toBe(
+      "data:image/png;base64,AAAA",
+    );
+  });
+
+  it("never loads a remote image", () => {
+    expect(getDisplayImageSrc("https://evil.example/?d=secret")).toBeUndefined();
+    expect(getDisplayImageSrc("//evil.example/x.png")).toBeUndefined();
+    expect(getDisplayImageSrc(null)).toBeUndefined();
   });
 });

@@ -1,16 +1,28 @@
-# Questions for Adam (morning, Oct 3)
+# For Adam (Saturday morning, Oct 3)
 
-Work continued around each of these. Answer with the number and your pick.
+Everything below is either a quick check only you can do, or a decision. Fixed items moved to night-log.md.
 
-0. **Found in Adam's live test (Saturday fix, no decision needed):** after granting Accessibility in System Settings, onboarding did not notice until Upshot was restarted. Judges would get stuck the same way. Fix: re-check the permission when the window regains focus, and after 10 s show "Turned it on? Restart Upshot" with a Restart button. Also: the old "Upshot" entry from the previous app ID had to be removed (dev-only issue). Also check the onboarding "Bring your meeting history" step: Google Meet, Granola, Notion and Zoom show "Connect" buttons that likely need upstream cloud services (hidden). If they fail without the cloud, hide those rows and keep only local file imports (e.g. ChatGPT Record "Choose files"); a working Granola import would be a strong demo point. Final onboarding screen: "Meeting history imported" shows even when the step was skipped (should say "Skipped"), and "Join our community" Discord/GitHub/X icons likely point to Anarlog's channels (remove, or point to Adam's). **Bug (#8 auto-switch):** on the fresh release install, pasting an Anthropic key saved it (Keychain entry present) and showed a toast, but current_llm_provider stayed "apple_foundation" / "System Language Model". Check whether something resets the provider after we set current_llm_model "" (model auto-resolution), or whether Undo fired; fix so the switch sticks and also selects a default model (e.g. the newest in the provider's catalog). Rest of the live test passed: mic + system audio confirmed, "Apple Speech is ready" in the new transcription step.
-1. **F3 "Summaries without a key" needs your Cloudflare account.** The spec wants a small Cloudflare Worker that holds a capped key of yours (wrangler secret, rate limit, daily spend cap, kill date Oct 31), so a judge with no key still gets Enhance. I can't create your Cloudflare resources or handle your key.
-   - A (my pick): skip the Worker. Judges paste a key (the onboarding/Intelligence path is now one paste, and the provider switches automatically). Apple Intelligence works with no key on macOS 26.
-   - B: you run `wrangler login` and set the secret yourself; I write the Worker code and the steps.
-2. **Second-account DMG test** is still open (definition of done). It also checks the new onboarding transcription step and the window placement bug (#1), which only reproduce on a clean install.
-3. **Glaido import, by hand (2 min).** Settings → Developers → Connect to Glaido, then import the folder in Glaido and ask about a test meeting. Tell me which menu Glaido 0.3.2 shows ("Tools → Import" per the Glaido docs, or "Commands → Custom tools → Import folder" per features.md), so the on-screen steps match.
-4. **App ID (bundle identifier).** The app still uses `com.hyprnote.dev`, a name in Anarlog's company namespace. Apple's guidance: a unique reverse-domain ID you own. Data is safe either way (release builds always use the `anarlog/` folder).
-   - A (my pick): change it to `com.websiteformula.upshot` on Saturday, then update the self-detection lists (crates/detect, plugins/detect/policy.rs), re-test permissions, and re-enter your key once in the dev app.
-   - B: keep it for the contest. It works; only a Mac that also has Anarlog Dev installed could see clashes in permissions and saved keys.
-5. **Turn on private vulnerability reporting (1 min, only you can):** GitHub → grandmaster-app → Settings → Code security → "Private vulnerability reporting" → Enable. The new SECURITY.md links to it.
-6. **Account safety (from Jack's compliance lesson):** two-factor login on GitHub, Anthropic and OpenRouter, and a spend limit on the key you use for the demo.
-7. **Billing tests:** 2 upstream tests fail because they hard-code 2025 dates. Billing is hidden. Fix them (5 minutes) or leave them?
+## Quick checks (about 15 minutes)
+
+1. **Permissions again:** each new build is a "new app" to macOS (ad-hoc signing), so Upshot asks for the microphone, system audio and Accessibility once more. If the Accessibility row stays off after you allow it, click the new "Restart Upshot" button.
+2. **Record one note** with sound playing (a YouTube clip) and check that both You and Them meters move and a summary appears.
+3. **Granola import:** Settings › Imports › Granola › Connect. Do your Granola meetings appear?
+4. **Glaido:** Settings › Developers › Connect to Glaido, then import the folder in Glaido (the steps follow Glaido's docs: Tools → Import; tell me if the menu says something else) and ask one question about a meeting.
+5. **Model picker:** Settings › Intelligence: is there a "New" badge on recent models?
+6. **Audio playback:** in a note's transcript, click a word. Do you hear it?
+
+## One-minute account tasks (only you can do these)
+
+7. **Private vulnerability reporting:** GitHub → grandmaster-app → Settings → Code security → "Private vulnerability reporting" → Enable. SECURITY.md links to it.
+8. **Account safety** (from Jack's compliance lesson): two-factor login on GitHub, Anthropic and Google, and a spend limit on the key you use for the demo.
+
+## Decided (no action)
+
+- No demo server: judges use a free Gemini key (linked in the app) or their own key.
+- App ID changed to `com.websiteformula.upshot` (done).
+- Billing tests fixed (done).
+- Repo stays under AdamWebsiteFormula (Upshot is Website Formula work).
+
+## Optional, only if time allows
+
+- **Notarization** (needs an Apple Developer account): removes the "Open Anyway" step for judges and the repeated permission prompts after each build. Without it, the README explains the steps.

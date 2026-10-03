@@ -2,6 +2,7 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useRef, useState } from "react";
 
+import { commands as openerCommands } from "@anlg/plugin-opener2";
 import {
   Select,
   SelectContent,
@@ -17,6 +18,7 @@ import {
   getDefaultLlmSelection,
   getPreferredProviderModel,
   isSameModelSelection,
+  MANUAL_ONLY_LLM_PROVIDERS,
   ProviderStateSettlingError,
   shouldShowMissingModelWarning,
 } from "./selection";
@@ -302,6 +304,11 @@ export function SelectProviderAndModel() {
       ? health.message
       : undefined;
 
+  const showAddKeyHint =
+    providerSettingsReady &&
+    !isConfigured &&
+    configuredProviderIds.every((id) => MANUAL_ONLY_LLM_PROVIDERS.has(id));
+
   const handleProviderChange = (provider: string) => {
     if (provider === "anarlog" && !billing.isPaid) {
       billing.upgradeToPro();
@@ -415,6 +422,29 @@ export function SelectProviderAndModel() {
       <h3 className="text-md font-sans font-semibold">
         <Trans>Model being used</Trans>
       </h3>
+      {showAddKeyHint ? (
+        // Fork: no usable model yet (Apple Intelligence is never the default),
+        // so point to the one-step fix. Gemini has a free tier:
+        // ai.google.dev/gemini-api/docs/pricing.
+        <p className="text-muted-foreground -mt-2 text-sm text-pretty">
+          <Trans>
+            Add an AI key to turn meetings into notes. No key? Get a free one
+            from Google AI Studio.
+          </Trans>{" "}
+          <button
+            type="button"
+            className="hover:text-foreground underline underline-offset-4"
+            onClick={() =>
+              void openerCommands.openUrl(
+                "https://aistudio.google.com/apikey",
+                null,
+              )
+            }
+          >
+            <Trans>Get a free key</Trans>
+          </button>
+        </p>
+      ) : null}
       <div className="flex flex-row items-center gap-4">
         <div className="min-w-0 flex-2" data-llm-provider-selector>
           <Select

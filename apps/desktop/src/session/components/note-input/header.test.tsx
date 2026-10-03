@@ -55,6 +55,7 @@ const hoisted = vi.hoisted(() => ({
   transcriptSegments: [{ speaker: "Speaker 1", text: "Hello transcript" }],
   isGenerating: false,
   sessionTitle: "Weekly planning",
+  enhancedContent: "",
   nativeContextMenus: [] as CapturedMenuItem[][],
   userTemplates: [] as Array<{
     id: string;
@@ -199,7 +200,7 @@ vi.mock("~/services/enhancer", () => ({
 vi.mock("~/session/queries", () => ({
   deleteEnhancedNote: vi.fn(() => Promise.resolve()),
   useEnhancedNote: () => ({
-    content: "",
+    content: hoisted.enhancedContent,
     templateId: "template-1",
     title: "Summary",
   }),
@@ -409,6 +410,7 @@ describe("SessionViewSwitcher", () => {
     ];
     hoisted.isGenerating = false;
     hoisted.sessionTitle = "Weekly planning";
+    hoisted.enhancedContent = "";
     hoisted.nativeContextMenus = [];
     hoisted.userTemplates = [];
   });
@@ -445,6 +447,44 @@ describe("SessionViewSwitcher", () => {
     fireEvent.click(screen.getByRole("button", { name: "Customer Call" }));
 
     expect(screen.getByPlaceholderText("Search templates...")).not.toBeNull();
+  });
+
+  it("copies the summary from the visible Copy notes button", async () => {
+    hoisted.enhancedContent = "Action items: ship the DMG";
+    const writeText = vi.fn(() => Promise.resolve());
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+
+    const { handleTabChange } = renderSwitcher({
+      currentTab: { type: "enhanced", id: "note-1" },
+    });
+
+    const copyButton = screen.getByRole("button", { name: "Copy notes" });
+    expect((copyButton as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(copyButton);
+
+    await waitFor(() =>
+      expect(writeText).toHaveBeenCalledWith("Action items: ship the DMG"),
+    );
+    expect(handleTabChange).not.toHaveBeenCalled();
+
+    const summaryMenu = [...hoisted.nativeContextMenus]
+      .reverse()
+      .find((items) =>
+        items.some(
+          (item) => "id" in item && item.id === "copy-enhanced-note-1",
+        ),
+      );
+    expect(summaryMenu).toBeTruthy();
+  });
+
+  it("disables Copy notes while the summary is empty", () => {
+    renderSwitcher({ currentTab: { type: "enhanced", id: "note-1" } });
+
+    const copyButton = screen.getByRole("button", { name: "Copy notes" });
+    expect((copyButton as HTMLButtonElement).disabled).toBe(true);
   });
 
   it("hides the view switcher when the memo is the only view", () => {

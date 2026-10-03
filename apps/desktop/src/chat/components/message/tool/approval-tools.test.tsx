@@ -6,7 +6,10 @@ import {
   ToolMoveMeetingsToFolder,
   ToolSessionCorrection,
 } from "./approval-tools";
-import { usePendingApprovalStore } from "./pending-approval-store";
+import {
+  usePendingApprovalStore,
+  waitForApproval,
+} from "./pending-approval-store";
 
 const correctionPart = {
   type: "tool-apply_session_correction",
@@ -40,7 +43,10 @@ function addPending(resolve: (approved: boolean) => void) {
 describe("approval tool cards", () => {
   beforeEach(() => {
     cleanup();
-    usePendingApprovalStore.setState({ approvals: new Map() });
+    usePendingApprovalStore.setState({
+      approvals: new Map(),
+      stopped: new Set(),
+    });
   });
 
   it("applies a correction only when Apply is pressed", () => {
@@ -92,5 +98,21 @@ describe("approval tool cards", () => {
 
     expect(screen.queryByRole("button", { name: "Apply" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Dismiss" })).toBeNull();
+  });
+
+  it("shows a card dismissed by Stop as declined instead of spinning", async () => {
+    const controller = new AbortController();
+    const approved = waitForApproval("tool-call-1", {
+      abortSignal: controller.signal,
+    });
+
+    render(<ToolMoveMeetingsToFolder part={folderPart} />);
+    expect(screen.getByText("Review folder move")).toBeTruthy();
+
+    controller.abort();
+
+    await expect(approved).resolves.toBe(false);
+    expect(await screen.findByText("Folder move dismissed")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Apply" })).toBeNull();
   });
 });

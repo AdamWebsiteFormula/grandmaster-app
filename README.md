@@ -14,12 +14,16 @@
 
 - Records your mic and your call audio. No bot joins your meeting.
 - Transcribes on your Mac with Apple Speech or Parakeet. No key, no account.
-- Enhances your notes with the AI provider you choose. Paste your own API key.
+- Enhances your notes with the AI provider you choose. A free Gemini key from Google AI Studio works (Google lists a free-of-charge tier on its Gemini API pricing page).
 - Shows this week's models in the model picker. A bundled list is the fallback.
+- Warns you live when it can't hear the other side, with You and Them sound meters.
+- Keeps your audio on your Mac. Click any word in the transcript to hear it.
+- Imports your Granola meetings without an account.
+- Answers questions about your meetings inside Glaido and other AI tools (built-in MCP server).
 
 ## Install
 
-Requirements: a Mac with Apple Silicon and macOS 15 or later. Apple Speech and Apple Intelligence need macOS 26.
+Requirements: a Mac with Apple Silicon and macOS 15 or later. Apple Speech needs macOS 26.
 
 1. Open the DMG.
 2. Drag Upshot to Applications.

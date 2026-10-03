@@ -11,4 +11,4 @@ grep -rnE '\b(Anarlog|Hyprnote|Fastrepl|ANARLOG)\b|anarlog\.so|hyprnote\.com|cha
 | grep -vE 'i18n/locales/([^e]|e[^n])' \
 | grep -vE 'plugins/(detect/src/policy|updater2/|store2/src/commands|deeplink2/src/(types|lib)|transcription/|db/src/runtime/tests)|apps/desktop/src/(changelog/|shared/utils\.ts|error-reporting)|@anlg/|anlg-|:[0-9]+:[[:space:]]*(//|\*|/\*|#)' \
 | grep -vE 'AnarlogMark|isAnarlog|AnarlogAdapter|AdapterKind|CaptureProviderKind|Self::Anarlog|ANARLOG_(CLOUDSYNC|DISABLE|ICON)' \
-| grep -vE 'src/env\.ts:.*static\.anarlog\.so|resource-list/hooks\.ts:.*anarlog\.so/api|settings/team/|session-sharing/urls\.ts|embedded_cli\.rs:.*(LEGACY_STABLE_BUNDLE_ID|Anarlog\.app)|tray_version\.rs|windows/src/events\.rs:.*://'
+| grep -vE 'src/env\.ts:.*static\.anarlog\.so|resource-list/hooks\.ts:.*anarlog\.so/api|settings/team/|session-sharing/urls\.ts|embedded_cli\.rs:.*(LEGACY_STABLE_BUNDLE_ID|Anarlog\.app)|tray_version\.rs|windows/src/events\.rs:.*://' || true

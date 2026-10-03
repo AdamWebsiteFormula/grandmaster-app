@@ -7,6 +7,7 @@ import type { NodeSpec } from "prosemirror-model";
 import { forwardRef, useCallback, useRef, useState } from "react";
 
 import { cn } from "@anlg/utils";
+import { isSafeImageSrc } from "@anlg/utils/safe-image";
 
 import {
   useAttachmentEditingEnabled,
@@ -58,6 +59,13 @@ function clampImageWidth(value: number) {
     MAX_IMAGE_WIDTH,
     Math.max(MIN_IMAGE_WIDTH, Math.round(value)),
   );
+}
+
+// Fork (red-team finding): notes can hold AI-written markdown, so a remote
+// image URL could carry meeting text to another server when the note opens.
+// Only images stored on this Mac load.
+export function getDisplayImageSrc(src: string | null | undefined) {
+  return isSafeImageSrc(src) ? (src ?? undefined) : undefined;
 }
 
 export function parseImageMetadata(title?: string) {
@@ -261,7 +269,7 @@ export const ResizableImageView = forwardRef<
       >
         <img
           ref={imageRef}
-          src={resolvedAttachment?.src ?? node.attrs.src}
+          src={getDisplayImageSrc(resolvedAttachment?.src ?? node.attrs.src)}
           alt={node.attrs.alt || ""}
           title={parseImageMetadata(node.attrs.title).title ?? undefined}
           className={cn([

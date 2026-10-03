@@ -1,5 +1,6 @@
 import { useLingui } from "@lingui/react";
 import { Trans } from "@lingui/react/macro";
+import { platform } from "@tauri-apps/plugin-os";
 import { useRef, useState } from "react";
 
 import { commands as analyticsCommands } from "@anlg/plugin-analytics";
@@ -14,7 +15,11 @@ import {
 } from "./welcome-note";
 
 import { createSession } from "~/session/queries";
+import { setSettingValues } from "~/settings/queries";
+import { SettingSwitchRow } from "~/settings/setting-row";
+import { useConfigValue } from "~/shared/config";
 import { flushAutomaticRelaunch } from "~/shared/relaunch";
+import { MEETING_DISCLOSURE_MESSAGE } from "~/stt/meeting-disclosure";
 import { commands } from "~/types/tauri.gen";
 
 // Fork: upstream's Discord and X channels are not ours; only the repo stays.
@@ -54,6 +59,44 @@ export function FinalDescription() {
   );
 }
 
+// Fork: a first-run recording notice. Granola calls telling participants
+// best practice (docs.granola.ai/help-center/consent-security-privacy/getting-consent)
+// and offers an automated chat message (.../transparency-solutions/introduction);
+// Fathom's setup confirms consent responsibilities and offers a Recording
+// Notice switch (help.fathom.video/en/articles/11577345, 6150977).
+export function RecordingNotice() {
+  const autoPost = useConfigValue("consent_auto_send_chat");
+  // Same platforms as the Settings switch: posting uses Accessibility.
+  const canAutoPost = platform() === "macos" || platform() === "linux";
+
+  return (
+    <div className="flex max-w-xl flex-col gap-3">
+      <p className="text-foreground text-sm">
+        <Trans>
+          Tell people when you record them. It's best practice, and the law in
+          some places.
+        </Trans>
+      </p>
+      {canAutoPost && (
+        <SettingSwitchRow
+        title={<Trans>Post a short notice in the meeting chat</Trans>}
+        description={
+          <Trans>
+            When Upshot starts, it sends: “{MEETING_DISCLOSURE_MESSAGE}”
+          </Trans>
+        }
+        checked={autoPost}
+        onChange={(checked) =>
+          void setSettingValues({ consent_auto_send_chat: checked }).catch(
+            (error) => console.error("Failed to save recording notice", error),
+          )
+        }
+      />
+      )}
+    </div>
+  );
+}
+
 export function FinalSection({
   onContinue,
 }: {
@@ -83,8 +126,9 @@ export function FinalSection({
 
   return (
     <div className="flex flex-col items-start gap-2">
+      <RecordingNotice />
       <OnboardingButton
-        className="px-6 py-2 text-sm disabled:cursor-wait disabled:opacity-70"
+        className="mt-4 px-6 py-2 text-sm disabled:cursor-wait disabled:opacity-70"
         disabled={status === "loading"}
         onClick={() => void handleContinue()}
       >

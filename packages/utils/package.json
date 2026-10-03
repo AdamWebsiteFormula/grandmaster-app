@@ -4,6 +4,7 @@
     ".": "./src/index.ts",
     "./session": "./src/session.ts",
     "./folders": "./src/folders.ts",
+    "./safe-image": "./src/safe-image.ts",
     "./summary-eligibility": "./src/summary-eligibility.ts"
   },
   "dependencies": {

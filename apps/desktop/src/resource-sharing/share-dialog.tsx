@@ -48,6 +48,8 @@ import {
 } from "~/shared/ui/glass-dialog";
 import { useTabs } from "~/store/zustand/tabs";
 
+const SHARING_AVAILABLE = false;
+
 export function ResourceShareButton(props: {
   resourceType: SharedResourceType;
   sourceId: string;
@@ -57,7 +59,8 @@ export function ResourceShareButton(props: {
     | Promise<Record<string, unknown>>;
 }) {
   const auth = useOptionalAuth();
-  if (!auth) return null;
+  // Fork: NN/g "error prevention" - sharing needs the upstream cloud, so never render the entry point.
+  if (!SHARING_AVAILABLE || !auth) return null;
   return <AuthenticatedResourceShareButton {...props} />;
 }
 

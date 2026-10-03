@@ -30,7 +30,7 @@ Upshot is a bot-free AI meeting notepad for Apple Silicon Macs. I built it in 3 
 - **Granola as the benchmark.** Every flow was checked against Granola's own help pages and then improved: zero-setup transcription, one "New note" button that starts recording, live "can't hear the other side" warning (Granola has none), audio you can replay (Granola deletes it).
 - **Parallel Claude Code sessions.** One session built and shipped, one owned the design, and subagents built features F1 to F6 in separate files at the same time.
 - **Research before building.** Each change names its source (Granola docs, Apple guidance, Nielsen Norman Group, ChatGPT's model picker). See `grandmaster/sops/night-log.md`.
-- **Tests on every change.** About 4,000 automated tests run on each change.
+- **Tests on every change.** About 4,100 automated tests run on each change; the final run had 0 failures.
 - **Red-team pass.** A security review of secrets, local servers, prompt injection, the MCP tools, dependencies and logging, plus secret scanners. See `grandmaster/sops/red-team.md`.
 
 ## What I added on top of Anarlog
@@ -42,7 +42,10 @@ Upshot is a bot-free AI meeting notepad for Apple Silicon Macs. I built it in 3 
 | F4 Glaido bridge | One click connects Glaido to your meetings |
 | F5 Home cards | Time saved, talk share, wrap-up streak, AI cost |
 | F6 Audio is safe | Shows where the audio is kept; click any word to hear it |
-| Onboarding | No account; transcription sets itself up |
+| Onboarding | No account; transcription sets itself up; Accessibility re-check with a restart button |
+| Granola import | Bring your Granola meetings over without an account |
+| Free to try | A free Gemini key from Google AI Studio (link built in) |
+| Safety | Chat changes wait for your Apply; AI output can't load remote images |
 
 ## Credits
 

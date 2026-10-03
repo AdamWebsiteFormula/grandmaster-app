@@ -283,7 +283,12 @@ export class CustomChatTransport implements ChatTransport<AnlgUIMessage> {
     }
 
     const result = await agent.stream({
-      messages: await convertToModelMessages(messagesWithContext, { tools }),
+      // Stop can leave an approval tool call without a result. Skip it so the
+      // next message does not fail with AI_MissingToolResultsError.
+      messages: await convertToModelMessages(messagesWithContext, {
+        tools,
+        ignoreIncompleteToolCalls: true,
+      }),
       abortSignal: options.abortSignal,
       // Word chunking emits tokens as they arrive. Line chunking holds the
       // whole reply until a newline, so short chat answers only appear at the end.

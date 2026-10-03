@@ -4,9 +4,11 @@ import { dataDir } from "@tauri-apps/api/path";
 
 import { commands as fs2Commands } from "@anlg/plugin-fs2";
 import { commands as openerCommands } from "@anlg/plugin-opener2";
-import { CircleNotch, FolderOpen } from "@anlg/ui/components/icons";
+import { CircleNotch, Copy, FolderOpen } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 import { toast } from "@anlg/ui/components/ui/toast";
+
+import { copyText } from "./clipboard";
 
 import { commands, type McpServerPaths } from "~/types/tauri.gen";
 
@@ -136,8 +138,19 @@ export function GlaidoSection() {
         <ol className="text-muted-foreground flex list-decimal flex-col gap-1 pl-5 text-sm">
           <li>{t`In Glaido, open Tools and click Import.`}</li>
           <li>
-            {t`Choose the glaido folder, then turn Upshot on.`}
+            {/* Apple Support, "Go to a folder by entering its pathname": Shift-Command-G. ~/Library is hidden in file pickers. */}
+            {t`In the file picker, press ⌘⇧G and paste the path, then turn Upshot on.`}
             <span className="mt-1 block text-xs break-all">{folder}</span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-2"
+              onClick={() => void copyText(folder, t`Path copied`)}
+            >
+              <Copy className="size-3.5" />
+              {t`Copy path`}
+            </Button>
           </li>
         </ol>
       )}

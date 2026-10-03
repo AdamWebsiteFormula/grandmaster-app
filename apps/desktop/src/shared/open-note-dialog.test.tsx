@@ -1,10 +1,17 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   openCurrent: vi.fn(),
   openNew: vi.fn(),
   onOpenChange: vi.fn(),
+  search: vi.fn(),
   notes: [] as Array<{
     shareId: string;
     sessionId: string;
@@ -31,6 +38,10 @@ vi.mock("~/settings/team/mirror", () => ({
   useMyWorkspacesWithMirror: () => ({ data: [], isLoading: false }),
 }));
 
+vi.mock("~/search/contexts/engine", () => ({
+  useSearchEngine: () => ({ search: mocks.search }),
+}));
+
 vi.mock("~/session/queries", () => ({
   useSessionSummaries: () => mocks.sessions,
 }));
@@ -54,13 +65,14 @@ vi.mock("~/store/zustand/tabs", () => ({
     }),
 }));
 
-import { OpenNoteDialog } from "./open-note-dialog";
+import { buildSnippet, OpenNoteDialog } from "./open-note-dialog";
 
 describe("OpenNoteDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.notes = [];
     mocks.sessions = [];
+    mocks.search.mockResolvedValue([]);
     globalThis.ResizeObserver = class {
       observe() {}
       unobserve() {}
@@ -184,5 +196,105 @@ describe("OpenNoteDialog", () => {
     });
 
     expect(screen.getByText("No results found.")).toBeTruthy();
+  });
+
+  it("finds notes by their content and keeps title matches first", async () => {
+    mocks.sessions = [
+      {
+        id: "title-match",
+        title: "Pricing review",
+        created_at: "2026-07-16T09:00:00.000Z",
+      },
+      {
+        id: "content-match",
+        title: "Weekly sync",
+        created_at: "2026-07-15T09:00:00.000Z",
+      },
+    ];
+    mocks.search.mockResolvedValue([
+      {
+        score: 2,
+        document: {
+          id: "title-match",
+          type: "session",
+          title: "Pricing review",
+          content: "Pricing notes",
+          created_at: 0,
+        },
+      },
+      {
+        score: 1,
+        document: {
+          id: "content-match",
+          type: "session",
+          title: "Weekly sync",
+          content: "We agreed the new pricing starts in November.",
+          created_at: 0,
+        },
+      },
+      {
+        score: 0.5,
+        document: {
+          id: "person-1",
+          type: "human",
+          title: "Pat",
+          content: "pricing",
+          created_at: 0,
+        },
+      },
+    ]);
+
+    render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
+
+    fireEvent.change(screen.getByPlaceholderText("Search notes and pages..."), {
+      target: { value: "pricing" },
+    });
+
+    await waitFor(() => expect(screen.getByText("In notes")).toBeTruthy());
+    expect(mocks.search).toHaveBeenCalledWith("pricing");
+
+    const options = screen.getAllByRole("option");
+    const titleIndex = options.findIndex((o) =>
+      o.textContent?.includes("Pricing review"),
+    );
+    const contentIndex = options.findIndex((o) =>
+      o.textContent?.includes("Weekly sync"),
+    );
+    expect(titleIndex).toBeGreaterThanOrEqual(0);
+    expect(contentIndex).toBeGreaterThan(titleIndex);
+    expect(
+      options.filter((o) => o.textContent?.includes("Pricing review")),
+    ).toHaveLength(1);
+    expect(screen.queryByText("Pat")).toBeNull();
+    expect(screen.getByTestId("content-snippet").textContent).toBe(
+      "We agreed the new pricing starts in November.",
+    );
+
+    fireEvent.click(options[contentIndex]!);
+    expect(mocks.openCurrent).toHaveBeenCalledWith({
+      type: "sessions",
+      id: "content-match",
+    });
+  });
+
+  it("does not run content search for short or empty queries", async () => {
+    render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
+
+    fireEvent.change(screen.getByPlaceholderText("Search notes and pages..."), {
+      target: { value: "p" },
+    });
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    expect(mocks.search).not.toHaveBeenCalled();
+  });
+
+  it("builds a short snippet around the first match", () => {
+    const long = `${"a ".repeat(100)}the budget is final ${"b ".repeat(100)}`;
+    const snippet = buildSnippet(long, "budget");
+
+    expect(snippet.startsWith("…")).toBe(true);
+    expect(snippet.endsWith("…")).toBe(true);
+    expect(snippet).toContain("the budget is final");
+    expect(snippet.length).toBeLessThanOrEqual(122);
   });
 });

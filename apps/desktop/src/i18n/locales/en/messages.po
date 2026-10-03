@@ -30,6 +30,11 @@ msgstr "(Unavailable — using current default)"
 msgid "{0} {noteLabel} deleted"
 msgstr "{0} {noteLabel} deleted"
 
+#. placeholder {0}: selected.name
+#: src/onboarding/ai-key.tsx
+msgid "{0} API key"
+msgstr "{0} API key"
+
 #. placeholder {0}: status.commandName
 #: src/settings/developers/cli.tsx
 msgid "{0} could not be installed"
@@ -388,13 +393,17 @@ msgstr "Add a trigger, then stack actions like Zapier."
 msgid "Add an action"
 msgstr "Add an action"
 
+#: src/settings/ai/llm/select.tsx
+msgid "Add an AI key to turn meetings into notes. No key? Get a free one from Google AI Studio."
+msgstr "Add an AI key to turn meetings into notes. No key? Get a free one from Google AI Studio."
+
 #: src/settings/automations/index.tsx
 msgid "Add and configure at least one action first."
 msgstr "Add and configure at least one action first."
 
 #: src/onboarding/calendar.tsx
-msgid "Add another account"
-msgstr "Add another account"
+#~ msgid "Add another account"
+#~ msgstr "Add another account"
 
 #: src/settings/sync/index.tsx
 msgid "Add another device"
@@ -523,9 +532,21 @@ msgstr "AI cost this month ≈ $0 extra, it uses your plan"
 msgid "AI cost this month $0, it runs on this Mac"
 msgstr "AI cost this month $0, it runs on this Mac"
 
+#: src/onboarding/ai-key.tsx
+msgid "AI provider"
+msgstr "AI provider"
+
 #: src/settings/automations/index.tsx
 msgid "AI step"
 msgstr "AI step"
+
+#: src/onboarding/index.tsx
+msgid "AI summaries ready"
+msgstr "AI summaries ready"
+
+#: src/onboarding/index.tsx
+msgid "AI summaries skipped"
+msgstr "AI summaries skipped"
 
 #: src/contacts/details.tsx
 msgid "AI-generated summary of all interactions and notes with this contact will appear here. This will synthesize key discussion points, action items, and relationship context across all meetings and notes."
@@ -719,10 +740,6 @@ msgstr "Auto summary format"
 msgid "Automate what happens before, during, or after meetings based on the conditions you choose."
 msgstr "Automate what happens before, during, or after meetings based on the conditions you choose."
 
-#: src/settings/general/app-settings.tsx
-msgid "Automatically install updates"
-msgstr "Automatically install updates"
-
 #: src/settings/automations/index.tsx
 msgid "Automation actions"
 msgstr "Automation actions"
@@ -841,6 +858,10 @@ msgstr "Calendar"
 #: src/onboarding/index.tsx
 msgid "Calendar connected"
 msgstr "Calendar connected"
+
+#: src/onboarding/index.tsx
+msgid "Calendar skipped"
+msgstr "Calendar skipped"
 
 #: src/settings/team/index.tsx
 msgid "Calendar-scheduled capture jobs. Canceling stops the bot from joining."
@@ -1001,6 +1022,10 @@ msgstr "Checking installed meeting assistants…"
 msgid "Checking migration..."
 msgstr "Checking migration..."
 
+#: src/onboarding/ai-key.tsx
+msgid "Checking the key…"
+msgstr "Checking the key…"
+
 #: src/onboarding/transcription.tsx
 msgid "Checking this Mac…"
 msgstr "Checking this Mac…"
@@ -1091,6 +1116,10 @@ msgstr "Choose an AI model"
 msgid "Choose an AI model before generating a format."
 msgstr "Choose an AI model before generating a format."
 
+#: src/onboarding/index.tsx
+msgid "Choose an AI provider and paste its key. Upshot uses it to turn meetings into notes."
+msgstr "Choose an AI provider and paste its key. Upshot uses it to turn meetings into notes."
+
 #: src/settings/automations/index.tsx
 msgid "Choose an export folder first."
 msgstr "Choose an export folder first."
@@ -1156,10 +1185,6 @@ msgstr "Choose how Upshot looks on this device."
 #: src/templates/template-icon-picker.tsx
 msgid "Choose template icon"
 msgstr "Choose template icon"
-
-#: src/settings/developers/glaido.tsx
-msgid "Choose the glaido folder, then turn Upshot on."
-msgstr "Choose the glaido folder, then turn Upshot on."
 
 #: src/settings/dictation.tsx
 #: src/settings/general/audio-settings.tsx
@@ -1415,6 +1440,7 @@ msgid "Confirm"
 msgstr "Confirm"
 
 #: src/imports/screen.tsx
+#: src/onboarding/ai-key.tsx
 #: src/settings/ai/llm/subscriptions/connect.tsx
 #: src/settings/crm/index.tsx
 msgid "Connect"
@@ -1458,8 +1484,8 @@ msgid "Connect GitHub for private repos."
 msgstr "Connect GitHub for private repos."
 
 #: src/onboarding/calendar.tsx
-msgid "Connect Google Calendar"
-msgstr "Connect Google Calendar"
+#~ msgid "Connect Google Calendar"
+#~ msgstr "Connect Google Calendar"
 
 #: src/settings/automations/google-drive-config.tsx
 msgid "Connect Google Drive"
@@ -1483,8 +1509,8 @@ msgid "Connect one in Settings"
 msgstr "Connect one in Settings"
 
 #: src/onboarding/calendar.tsx
-msgid "Connect Outlook"
-msgstr "Connect Outlook"
+#~ msgid "Connect Outlook"
+#~ msgstr "Connect Outlook"
 
 #: src/session-sharing/delivery-panel.tsx
 #: src/settings/automations/starter-config.tsx
@@ -1525,6 +1551,17 @@ msgstr "Connected with your {0} subscription."
 msgid "Connected with your existing subscription."
 msgstr "Connected with your existing subscription."
 
+#. placeholder {0}: phase.connection.providerName
+#: src/onboarding/ai-key.tsx
+msgid "Connected: {0}"
+msgstr "Connected: {0}"
+
+#. placeholder {0}: phase.connection.providerName
+#. placeholder {1}: phase.connection.modelName
+#: src/onboarding/ai-key.tsx
+msgid "Connected: {0} · {1}"
+msgstr "Connected: {0} · {1}"
+
 #: src/settings/sync/index.tsx
 msgid "Connecting"
 msgstr "Connecting"
@@ -1563,6 +1600,7 @@ msgid "Context"
 msgstr "Context"
 
 #: src/imports/screen.tsx
+#: src/onboarding/ai-key.tsx
 #: src/onboarding/calendar.tsx
 #: src/onboarding/transcription.tsx
 msgid "Continue"
@@ -1628,6 +1666,10 @@ msgstr "Copy link"
 #: src/chat/components/message/normal.tsx
 msgid "Copy message"
 msgstr "Copy message"
+
+#: src/settings/developers/glaido.tsx
+msgid "Copy path"
+msgstr "Copy path"
 
 #: src/settings/general/e2ee-setup.tsx
 msgid "Copy recovery key"
@@ -1901,10 +1943,6 @@ msgstr "Create new speaker"
 #: src/templates/details.tsx
 msgid "Create template"
 msgstr "Create template"
-
-#: src/settings/stats/badge-collection.tsx
-msgid "Create your account"
-msgstr "Create your account"
 
 #: src/settings/stats/badge-collection.tsx
 msgid "Create your Upshot account. A place for your conversations to call home."
@@ -2471,8 +2509,8 @@ msgid "Exporting..."
 msgstr "Exporting..."
 
 #: src/onboarding/calendar.tsx
-msgid "Failed to load Google Calendar"
-msgstr "Failed to load Google Calendar"
+#~ msgid "Failed to load Google Calendar"
+#~ msgstr "Failed to load Google Calendar"
 
 #: src/calendar/components/oauth/provider-content.tsx
 #: src/settings/todo/provider-content.tsx
@@ -2484,8 +2522,8 @@ msgid "Failed to load issue"
 msgstr "Failed to load issue"
 
 #: src/onboarding/calendar.tsx
-msgid "Failed to load Outlook Calendar"
-msgstr "Failed to load Outlook Calendar"
+#~ msgid "Failed to load Outlook Calendar"
+#~ msgstr "Failed to load Outlook Calendar"
 
 #: src/task/resource-view.tsx
 msgid "Failed to load pull request"
@@ -2669,6 +2707,19 @@ msgstr "Generating title..."
 msgid "Generating transcript..."
 msgstr "Generating transcript..."
 
+#: src/settings/ai/llm/select.tsx
+msgid "Get a free key"
+msgstr "Get a free key"
+
+#: src/onboarding/ai-key.tsx
+msgid "Get a free key from Google AI Studio"
+msgstr "Get a free key from Google AI Studio"
+
+#. placeholder {0}: selected.name
+#: src/onboarding/ai-key.tsx
+msgid "Get a key from {0}"
+msgstr "Get a key from {0}"
+
 #: src/settings/sync/index.tsx
 msgid "Get more slots"
 msgstr "Get more slots"
@@ -2735,6 +2786,10 @@ msgstr "Google Docs"
 #: src/settings/automations/google-drive-config.tsx
 msgid "Google Drive export did not finish."
 msgstr "Google Drive export did not finish."
+
+#: src/onboarding/calendar.tsx
+msgid "Google or Outlook calendars added in System Settings → Internet Accounts show up here too."
+msgstr "Google or Outlook calendars added in System Settings → Internet Accounts show up here too."
 
 #: src/billing/trial-started-dialog.tsx
 #: src/settings/ai/stt/select.tsx
@@ -2939,6 +2994,14 @@ msgstr "in {weeks} weeks"
 #: src/settings/developers/glaido.tsx
 msgid "In Glaido, open Tools and click Import."
 msgstr "In Glaido, open Tools and click Import."
+
+#: src/shared/open-note-dialog.tsx
+msgid "In notes"
+msgstr "In notes"
+
+#: src/settings/developers/glaido.tsx
+msgid "In the file picker, press ⌘⇧G and paste the path, then turn Upshot on."
+msgstr "In the file picker, press ⌘⇧G and paste the path, then turn Upshot on."
 
 #: src/session/components/outer-header/overflow/export-modal.tsx
 #: src/settings/automations/markdown-export-options.tsx
@@ -4207,6 +4270,15 @@ msgstr "Paste the browser URL here if the browser button did not reopen Upshot."
 msgid "Paste the localhost redirect URL"
 msgstr "Paste the localhost redirect URL"
 
+#. placeholder {0}: selected.name
+#: src/onboarding/ai-key.tsx
+msgid "Paste your {0} API key"
+msgstr "Paste your {0} API key"
+
+#: src/settings/developers/glaido.tsx
+msgid "Path copied"
+msgstr "Path copied"
+
 #: src/settings/developers/webhooks.tsx
 msgid "Pause"
 msgstr "Pause"
@@ -5134,6 +5206,10 @@ msgid "Set as default"
 msgstr "Set as default"
 
 #: src/onboarding/index.tsx
+msgid "Set up AI summaries"
+msgstr "Set up AI summaries"
+
+#: src/onboarding/index.tsx
 msgid "Set up transcription"
 msgstr "Set up transcription"
 
@@ -5152,6 +5228,7 @@ msgstr "Setting up encrypted cloud sync."
 #: src/main/empty.tsx
 #: src/main/windows-title-bar.tsx
 #: src/shared/open-note-dialog.tsx
+#: src/sidebar/index.tsx
 #: src/sidebar/toast/registry.tsx
 msgid "Settings"
 msgstr "Settings"
@@ -5375,7 +5452,6 @@ msgid "Sign in to add this folder"
 msgstr "Sign in to add this folder"
 
 #: src/imports/screen.tsx
-#: src/onboarding/calendar.tsx
 msgid "Sign in to connect"
 msgstr "Sign in to connect"
 
@@ -5495,6 +5571,7 @@ msgstr "Skill installed"
 msgid "Skip"
 msgstr "Skip"
 
+#: src/onboarding/ai-key.tsx
 #: src/onboarding/imports.tsx
 msgid "Skip for now"
 msgstr "Skip for now"
@@ -5632,10 +5709,6 @@ msgstr "Starting your trial..."
 #: src/chat/components/input/index.tsx
 msgid "Starting…"
 msgstr "Starting…"
-
-#: src/settings/general/app-settings.tsx
-msgid "Stay current with updates installed the next time Upshot opens."
-msgstr "Stay current with updates installed the next time Upshot opens."
 
 #: src/settings/automations/index.tsx
 msgid "Steps run from top to bottom."
@@ -5924,6 +5997,10 @@ msgstr "Test failed ({0})"
 msgid "Test runs are not available yet."
 msgstr "Test runs are not available yet."
 
+#: src/onboarding/ai-key.tsx
+msgid "That key didn't work. Check it and try again."
+msgstr "That key didn't work. Check it and try again."
+
 #: src/home/stat-cards.tsx
 msgid "That's a coffee break"
 msgstr "That's a coffee break"
@@ -6018,8 +6095,8 @@ msgid "This note was edited on another device at the same time. The later edit w
 msgstr "This note was edited on another device at the same time. The later edit was kept."
 
 #: src/chat/components/session-provider.tsx
-msgid "This recording is using batch transcription, so the transcript isn't available to chat yet. Ask again after transcription finishes, or switch to a Pro model for live transcription."
-msgstr "This recording is using batch transcription, so the transcript isn't available to chat yet. Ask again after transcription finishes, or switch to a Pro model for live transcription."
+msgid "This recording is using batch transcription, so the transcript isn't available to chat yet. Ask again after transcription finishes, or pick a Live model in Settings > Transcription."
+msgstr "This recording is using batch transcription, so the transcript isn't available to chat yet. Ask again after transcription finishes, or pick a Live model in Settings > Transcription."
 
 #: src/settings/plan-gate.tsx
 msgid "This requires Upshot Enterprise"
@@ -6424,6 +6501,10 @@ msgstr "Upshot needs access to your microphone and system audio to record and tr
 msgid "Upshot needs your microphone and your Mac's sound to transcribe meetings, and Accessibility to see which meeting app you're in and when the call ends."
 msgstr "Upshot needs your microphone and your Mac's sound to transcribe meetings, and Accessibility to see which meeting app you're in and when the call ends."
 
+#: src/onboarding/index.tsx
+msgid "Upshot reads Apple Calendar on this Mac to remind you before meetings and add titles and attendees to your notes."
+msgstr "Upshot reads Apple Calendar on this Mac to remind you before meetings and add titles and attendees to your notes."
+
 #. placeholder {0}: statuses[0].displayName
 #: src/settings/developers/skills.tsx
 msgid "Upshot skill added to {0}"
@@ -6455,8 +6536,8 @@ msgid "Upshot will retry automatically. This does not affect your notes."
 msgstr "Upshot will retry automatically. This does not affect your notes."
 
 #: src/onboarding/index.tsx
-msgid "Upshot will sync your calendar to get meeting reminders"
-msgstr "Upshot will sync your calendar to get meeting reminders"
+#~ msgid "Upshot will sync your calendar to get meeting reminders"
+#~ msgstr "Upshot will sync your calendar to get meeting reminders"
 
 #: src/settings/team/index.tsx
 msgid "Usage"

@@ -39,7 +39,6 @@ import type {
   WebSearchResponse,
   ToolDependencies,
 } from "./types";
-import { buildWebSearchTool } from "./web-search";
 
 import type { SearchFilters } from "~/search/contexts/engine/types";
 
@@ -117,7 +116,7 @@ export const buildChatTools = (deps: ToolDependencies) => ({
     "search_calendar_events",
     buildSearchCalendarEventsTool(deps),
   ),
-  web_search: withToolLogging("web_search", buildWebSearchTool(deps)),
+  // Fork (blueprint section 5): web search runs on the upstream cloud API.
   edit_memo: withToolLogging("edit_memo", buildEditMemoTool(deps)),
   edit_summary: withToolLogging("edit_summary", buildEditSummaryTool(deps)),
   apply_session_correction: withToolLogging(

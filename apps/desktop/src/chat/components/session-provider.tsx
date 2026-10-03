@@ -485,7 +485,7 @@ function ChatSessionLifecycle({
           parts: [
             {
               type: "text",
-              text: t`This recording is using batch transcription, so the transcript isn't available to chat yet. Ask again after transcription finishes, or switch to a Pro model for live transcription.`,
+              text: t`This recording is using batch transcription, so the transcript isn't available to chat yet. Ask again after transcription finishes, or pick a Live model in Settings > Transcription.`,
             },
           ],
           metadata: {
