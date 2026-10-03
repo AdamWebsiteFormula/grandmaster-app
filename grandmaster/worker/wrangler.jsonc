@@ -5,6 +5,8 @@
   "main": "src/index.js",
   "compatibility_date": "2026-10-01",
   "workers_dev": true,
+  // Keep variables added in the dashboard when deploying from this folder.
+  "keep_vars": true,
   // developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/
   // 30 requests a minute per IP: Enhance uses 1-2, a chat turn a few more.
   "ratelimits": [

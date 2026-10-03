@@ -7,6 +7,7 @@ import { useLanguageModel, useLLMConnectionStatus } from "./useLLMConnection";
 
 const plan = vi.hoisted(() => ({
   isPro: false,
+  signedIn: false,
   model: "Auto",
 }));
 
@@ -22,7 +23,32 @@ vi.mock("~/auth/billing-context", () => ({
   useBillingAccess: () => ({ isPaid: false }),
 }));
 vi.mock("~/settings/providers", () => ({ useAiProvider: () => undefined }));
-vi.mock("~/upshot-plan", () => ({ useUpshotPro: () => plan.isPro }));
+vi.mock("~/upshot-plan", async () => ({
+  useUpshotPro: () => plan.isPro,
+  upshotAuthFetch: (
+    await vi.importActual<typeof import("~/upshot-plan/session")>(
+      "~/upshot-plan/session",
+    )
+  ).upshotAuthFetch,
+}));
+// The saved Upshot account session (Keychain via plugin-store2).
+vi.mock("@anlg/plugin-store2", () => ({
+  commands: {
+    getSecret: vi.fn(async () => ({
+      status: "ok",
+      data: plan.signedIn
+        ? JSON.stringify({
+            access_token: "access-token-123",
+            refresh_token: "refresh",
+            expires_at: Date.now() / 1000 + 3600,
+            email: "judge@example.com",
+          })
+        : null,
+    })),
+    setSecret: vi.fn(async () => ({ status: "ok", data: null })),
+    deleteSecret: vi.fn(async () => ({ status: "ok", data: null })),
+  },
+}));
 vi.mock("~/shared/config", () => ({
   useConfigValues: () => ({
     current_llm_provider: "anarlog",
@@ -119,4 +145,42 @@ it.each([
   expect(sent).toBe(expected);
   plan.isPro = false;
   plan.model = "Auto";
+});
+
+// Fork: a picked model (Pro) sends the account access token so the Worker
+// can check the plan; Auto never sends it, even when signed in.
+it.each([
+  ["openai/gpt-6.1-sol", "Bearer access-token-123"],
+  ["Auto", null],
+])("signed in, model %s sends Authorization %s", async (model, expected) => {
+  const { resetUpshotAccountForTests } = await import("~/upshot-plan/session");
+  resetUpshotAccountForTests();
+  plan.isPro = true;
+  plan.signedIn = true;
+  plan.model = model;
+  let authorization: string | null = null;
+  vi.mocked(tauriFetch).mockImplementation(async (_input, init) => {
+    const header = new Headers(init?.headers).get("Authorization");
+    authorization = header && /Bearer \S/.test(header) ? header : null;
+    return Response.json({
+      id: "hosted",
+      model: "auto",
+      created: 0,
+      choices: [
+        {
+          index: 0,
+          message: { role: "assistant", content: "ok" },
+          finish_reason: "stop",
+        },
+      ],
+    });
+  });
+
+  const { result } = renderHook(() => useLanguageModel("chat"));
+  await generateText({ model: result.current!, prompt: "Hi", maxRetries: 0 });
+  expect(authorization).toBe(expected);
+  plan.isPro = false;
+  plan.signedIn = false;
+  plan.model = "Auto";
+  resetUpshotAccountForTests();
 });

@@ -1,0 +1,111 @@
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+const mocks = vi.hoisted(() => ({
+  fetch: vi.fn(),
+  openUrl: vi.fn(async () => ({ status: "ok", data: null })),
+}));
+
+vi.mock("~/env", () => ({
+  env: { VITE_AI_API_URL: "https://upshot-ai.example.workers.dev" },
+}));
+vi.mock("~/ai/provider-fetch", () => ({ providerFetch: mocks.fetch }));
+vi.mock("@anlg/plugin-opener2", () => ({
+  commands: { openUrl: mocks.openUrl },
+}));
+vi.mock("@anlg/plugin-store2", () => ({
+  commands: {
+    getSecret: vi.fn(async () => ({ status: "ok", data: null })),
+    setSecret: vi.fn(async () => ({ status: "ok", data: null })),
+    deleteSecret: vi.fn(async () => ({ status: "ok", data: null })),
+  },
+}));
+
+import { openUpgrade, useUpgradeDialog } from "./index";
+import { resetUpshotAccountForTests } from "./session";
+import { UpshotUpgradeDialog } from "./upgrade-dialog";
+
+describe("UpshotUpgradeDialog", () => {
+  afterEach(() => {
+    cleanup();
+    mocks.fetch.mockReset();
+    mocks.openUrl.mockClear();
+    resetUpshotAccountForTests();
+    useUpgradeDialog.setState({ open: false, error: null });
+  });
+
+  it("signs up, then opens checkout in the browser", async () => {
+    mocks.fetch.mockImplementation(async (url: string) =>
+      new URL(url).pathname === "/auth/signup"
+        ? Response.json({
+            access_token: "a",
+            refresh_token: "r",
+            expires_at: Date.now() / 1000 + 3600,
+            user: { id: "u", email: "judge@example.com" },
+          })
+        : Response.json({ url: "https://checkout.stripe.com/c/pay/cs_test" }),
+    );
+    render(<UpshotUpgradeDialog />);
+    await act(() => openUpgrade("month"));
+
+    expect(screen.getByText("Create your Upshot account")).not.toBeNull();
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "judge@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "password123" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Create account and continue" }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("Finish checkout in your browser"),
+      ).not.toBeNull(),
+    );
+    expect(mocks.openUrl).toHaveBeenCalledWith(
+      "https://checkout.stripe.com/c/pay/cs_test",
+      null,
+    );
+    expect(screen.getByText(/4242 4242 4242 4242/)).not.toBeNull();
+  });
+
+  it("shows a sign-in error and stays on the form", async () => {
+    mocks.fetch.mockResolvedValue(
+      Response.json(
+        { error: { message: "Invalid login credentials" } },
+        { status: 400 },
+      ),
+    );
+    render(<UpshotUpgradeDialog />);
+    await act(() => openUpgrade());
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Already have an account? Sign in" }),
+    );
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "judge@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "password123" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Sign in and continue" }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole("alert").textContent).toBe(
+        "Invalid login credentials",
+      ),
+    );
+    expect(mocks.openUrl).not.toHaveBeenCalled();
+  });
+});

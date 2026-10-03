@@ -39,7 +39,7 @@ import {
 } from "~/settings/ai/shared/eligibility";
 import { useAiProvider } from "~/settings/providers";
 import { useConfigValues } from "~/shared/config";
-import { useUpshotPro } from "~/upshot-plan";
+import { upshotAuthFetch, useUpshotPro } from "~/upshot-plan";
 
 type LanguageModelV3 = Parameters<typeof wrapLanguageModel>[0]["model"];
 
@@ -281,10 +281,12 @@ const createLanguageModel = (conn: LLMConnectionInfo): LanguageModelV3 => {
 const createProviderModel = (conn: LLMConnectionInfo): LanguageModelV3 => {
   switch (conn.providerId) {
     case "anarlog": {
-      // Fork: no auth token or device fingerprint goes to the Upshot AI
-      // Worker; it reads only the messages.
+      // Fork: Auto sends no token or device fingerprint; the Worker reads
+      // only the messages. A picked model (Pro only) sends the signed-in
+      // user's access token so the Worker can check the plan.
       const provider = createOpenRouter({
-        fetch: providerFetch,
+        fetch:
+          conn.modelId === UPSHOT_AUTO_MODEL ? providerFetch : upshotAuthFetch,
         baseURL: conn.baseUrl,
         apiKey: conn.apiKey,
       });

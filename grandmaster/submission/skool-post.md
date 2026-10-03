@@ -7,6 +7,7 @@ Post in the category Jack names for submissions (check the pinned post first). A
 - [ ] Glaido: import the folder from Settings › Developers, ask one question, and get an answer.
 - [ ] The chat box shows **Auto ⌄** with this week's models listed under Pro.
 - [ ] Clicking a transcript word plays the audio.
+- [ ] Pro: Settings › Plan › Upgrade to Pro, card 4242 4242 4242 4242, and the chat box lets you pick a model.
 
 ---
 
@@ -20,7 +21,8 @@ Upshot records any call without a bot and turns it into clear notes with the new
 - AI summaries and chat with no key: Upshot AI (Claude Sonnet 5.5) works from the first meeting. Prefer your own model? Add any key, including models released this week.
 - Imports your Granola meetings.
 - Plugs into Glaido: ask about your meetings from anywhere.
-- No account, no subscription, no telemetry.
+- Free with no account and no telemetry.
+- Try Pro free: Settings › Plan › Upgrade to Pro, pay with the Stripe test card 4242 4242 4242 4242 (any future date, any CVC). Then pick any model in the chat box. No real money is charged.
 
 **Install (2 minutes)**
 1. Open the attached DMG and drag Upshot to Applications.

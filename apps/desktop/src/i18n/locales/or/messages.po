@@ -182,6 +182,18 @@ msgstr ""
 msgid "${0} /month after trial"
 msgstr ""
 
+#: src/settings/plan.tsx
+msgid "${MONTHLY_PRICE} a month"
+msgstr ""
+
+#: src/settings/plan.tsx
+msgid "${YEARLY_PRICE} a year (save {YEARLY_SAVING}%)"
+msgstr ""
+
+#: src/settings/plan.tsx
+msgid "$0, no account"
+msgstr ""
+
 #: src/settings/general/audio-settings.tsx
 msgid "1 day"
 msgstr ""
@@ -322,8 +334,20 @@ msgstr ""
 msgid "Actions for {0}"
 msgstr ""
 
+#: src/settings/plan.tsx
+msgid "Active"
+msgstr ""
+
 #: src/settings/stats/index.tsx
 msgid "Active days"
+msgstr ""
+
+#: src/settings/plan.tsx
+msgid "Active, ends {date}"
+msgstr ""
+
+#: src/settings/plan.tsx
+msgid "Active, renews {date}"
 msgstr ""
 
 #: src/chat/components/message/normal.tsx
@@ -509,6 +533,10 @@ msgstr ""
 msgid "Agent skills"
 msgstr ""
 
+#: src/settings/plan.tsx
+msgid "AI notes and chat with Auto"
+msgstr ""
+
 #: src/settings/automations/index.tsx
 msgid "AI step"
 msgstr ""
@@ -539,6 +567,10 @@ msgstr ""
 
 #: src/settings/team/index.tsx
 msgid "Allow public indexing"
+msgstr ""
+
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "Already have an account? Sign in"
 msgstr ""
 
 #: src/settings/team/index.tsx
@@ -780,6 +812,7 @@ msgid "Billing"
 msgstr ""
 
 #: src/settings/general/billing.tsx
+#: src/settings/plan.tsx
 msgid "Billing period"
 msgstr ""
 
@@ -966,6 +999,10 @@ msgstr ""
 msgid "Chat history"
 msgstr ""
 
+#: src/settings/plan.tsx
+msgid "Check again"
+msgstr ""
+
 #: src/chat/components/input/use-dictation.ts
 msgid "Check microphone permission and the selected input device, then try again."
 msgstr ""
@@ -1001,6 +1038,10 @@ msgstr ""
 
 #: src/settings/developers/cli.tsx
 msgid "Checking…"
+msgstr ""
+
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "Checkout opens in your browser."
 msgstr ""
 
 #: src/settings/general/notification.tsx
@@ -1534,6 +1575,10 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "Continue to checkout"
+msgstr ""
+
 #: src/settings/team/index.tsx
 msgid "Continue to Team checkout"
 msgstr ""
@@ -1849,7 +1894,12 @@ msgid "Create a Team to share a library"
 msgstr ""
 
 #: src/onboarding/index.tsx
+#: src/upshot-plan/upgrade-dialog.tsx
 msgid "Create account"
+msgstr ""
+
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "Create account and continue"
 msgstr ""
 
 #: src/settings/developers/cloud-api.tsx
@@ -1870,6 +1920,10 @@ msgstr ""
 
 #: src/templates/details.tsx
 msgid "Create template"
+msgstr ""
+
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "Create your Upshot account"
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
@@ -1916,6 +1970,7 @@ msgid "Current domain"
 msgstr ""
 
 #: src/settings/general/billing.tsx
+#: src/settings/plan.tsx
 msgid "Current plan"
 msgstr ""
 
@@ -2136,6 +2191,7 @@ msgstr ""
 
 #: src/resource-sharing/share-dialog.tsx
 #: src/settings/sync/index.tsx
+#: src/upshot-plan/upgrade-dialog.tsx
 msgid "Done"
 msgstr ""
 
@@ -2229,6 +2285,7 @@ msgstr ""
 #: src/session-sharing/delivery-panel.tsx
 #: src/settings/general/account-profile.tsx
 #: src/settings/team/index.tsx
+#: src/upshot-plan/upgrade-dialog.tsx
 msgid "Email"
 msgstr ""
 
@@ -2378,6 +2435,10 @@ msgstr ""
 msgid "Everyone in the workspace"
 msgstr ""
 
+#: src/settings/plan.tsx
+msgid "Everything in Free"
+msgstr ""
+
 #: src/templates/auto-format-examples-dialog.tsx
 msgid "Example summary"
 msgstr ""
@@ -2481,6 +2542,10 @@ msgstr ""
 msgid "Finding Your Rhythm"
 msgstr ""
 
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "Finish checkout in your browser"
+msgstr ""
+
 #: src/instruction/index.tsx
 msgid "Finish checkout in your browser to unlock more, then return to Upshot."
 msgstr ""
@@ -2544,6 +2609,10 @@ msgstr ""
 msgid "Folders"
 msgstr ""
 
+#: src/settings/plan.tsx
+msgid "Folders, templates and search"
+msgstr ""
+
 #: src/home/home-view.tsx
 msgid "Follow-ups"
 msgstr ""
@@ -2581,6 +2650,7 @@ msgid "Forever"
 msgstr ""
 
 #: src/settings/general/billing.tsx
+#: src/settings/plan.tsx
 msgid "Free"
 msgstr ""
 
@@ -3329,6 +3399,10 @@ msgstr ""
 msgid "Manage sign-in methods"
 msgstr ""
 
+#: src/settings/plan.tsx
+msgid "Manage subscription"
+msgstr ""
+
 #: src/settings/team/index.tsx
 msgid "Manage Team billing"
 msgstr ""
@@ -3555,6 +3629,10 @@ msgstr ""
 msgid "Monday"
 msgstr ""
 
+#: src/settings/plan.tsx
+msgid "Monthly"
+msgstr ""
+
 #: src/settings/general/billing.tsx
 msgid "Monthly · ${monthlyPrice}/mo"
 msgstr ""
@@ -3645,6 +3723,10 @@ msgstr ""
 
 #: src/session/components/note-input/raw.tsx
 msgid "New template"
+msgstr ""
+
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "New to Upshot? Create an account"
 msgstr ""
 
 #: src/contacts/related-notes.tsx
@@ -4172,6 +4254,14 @@ msgstr ""
 msgid "Participants"
 msgstr ""
 
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "Password"
+msgstr ""
+
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "Password (8 or more characters)"
+msgstr ""
+
 #: src/main/windows-title-bar.tsx
 msgid "Paste"
 msgstr ""
@@ -4267,8 +4357,17 @@ msgstr ""
 msgid "Phone"
 msgstr ""
 
+#: src/settings/plan.tsx
+msgid "Pick the chat model: the newest from OpenAI, Anthropic and Google"
+msgstr ""
+
 #: src/contacts/contact-page-header.tsx
 msgid "Pin"
+msgstr ""
+
+#: src/settings/plan.tsx
+#: src/sidebar/settings-nav-groups.ts
+msgid "Plan"
 msgstr ""
 
 #: src/settings/general/billing.tsx
@@ -4363,6 +4462,7 @@ msgstr ""
 
 #: src/chat/components/input/model-menu.tsx
 #: src/settings/ai/stt/select.tsx
+#: src/settings/plan.tsx
 msgid "Pro"
 msgstr ""
 
@@ -4374,8 +4474,16 @@ msgstr ""
 msgid "Pro for every member, shared workspaces, roles, and centralized billing. $20 per person monthly or $200 yearly."
 msgstr ""
 
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "Pro needs an account so your plan follows you. Everything else stays free, with no account."
+msgstr ""
+
 #: src/settings/general/billing.tsx
 msgid "Pro trial"
+msgstr ""
+
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "Pro turns on here as soon as payment goes through."
 msgstr ""
 
 #: src/settings/appearance/app-icon.tsx
@@ -4480,6 +4588,10 @@ msgstr ""
 #: src/home/home-view.tsx
 #: src/session/components/outer-header/index.tsx
 msgid "Record"
+msgstr ""
+
+#: src/settings/plan.tsx
+msgid "Record and transcribe on your Mac"
 msgstr ""
 
 #: src/onboarding/index.tsx
@@ -5353,10 +5465,16 @@ msgstr ""
 #: src/resource-sharing/share-dialog.tsx
 #: src/session-sharing/index.tsx
 #: src/session/components/note-input/enhanced/enhance-error.tsx
+#: src/settings/plan.tsx
 #: src/settings/sync/index.tsx
 #: src/shared-notes/index.tsx
 #: src/sidebar/toast/registry.tsx
+#: src/upshot-plan/upgrade-dialog.tsx
 msgid "Sign in"
+msgstr ""
+
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "Sign in and continue"
 msgstr ""
 
 #: src/settings/sync/index.tsx
@@ -5422,6 +5540,7 @@ msgstr ""
 
 #: src/settings/general/account.tsx
 #: src/settings/general/billing.tsx
+#: src/upshot-plan/upgrade-dialog.tsx
 msgid "Sign in to Upshot"
 msgstr ""
 
@@ -5458,6 +5577,7 @@ msgid "Sign in with your Claude account. After you authorize, copy the code and 
 msgstr ""
 
 #: src/settings/general/account.tsx
+#: src/settings/plan.tsx
 msgid "Sign out"
 msgstr ""
 
@@ -5473,6 +5593,10 @@ msgstr ""
 #: src/onboarding/index.tsx
 #: src/settings/general/account.tsx
 msgid "Signed in"
+msgstr ""
+
+#: src/settings/plan.tsx
+msgid "Signed in as {email}"
 msgstr ""
 
 #: src/settings/general/account.tsx
@@ -5916,6 +6040,10 @@ msgstr ""
 msgid "Test failed ({0})"
 msgstr ""
 
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "Test mode: use card 4242 4242 4242 4242, any future date, any CVC. No real money is charged."
+msgstr ""
+
 #: src/settings/automations/index.tsx
 msgid "Test runs are not available yet."
 msgstr ""
@@ -6113,11 +6241,16 @@ msgid "Travel & Places"
 msgstr ""
 
 #: src/settings/general/billing.tsx
+#: src/settings/plan.tsx
 msgid "Trial"
 msgstr ""
 
 #: src/onboarding/account/after-login.tsx
 msgid "Trial activated - {trialDays} days of Pro"
+msgstr ""
+
+#: src/settings/plan.tsx
+msgid "Trial, ends {date}"
 msgstr ""
 
 #: src/settings/automations/index.tsx
@@ -6324,6 +6457,8 @@ msgstr ""
 #: src/instruction/index.tsx
 #: src/resource-sharing/share-dialog.tsx
 #: src/session-sharing/index.tsx
+#: src/settings/plan.tsx
+#: src/upshot-plan/upgrade-dialog.tsx
 msgid "Upgrade to Pro"
 msgstr ""
 
@@ -6597,6 +6732,10 @@ msgstr ""
 msgid "Waiting for authorization in your browser…"
 msgstr ""
 
+#: src/settings/plan.tsx
+msgid "Waiting for payment. Pro turns on here once it goes through."
+msgstr ""
+
 #: src/settings/appearance/app-icon.tsx
 msgid "Walnut"
 msgstr ""
@@ -6674,6 +6813,10 @@ msgstr ""
 msgid "Write to a folder"
 msgstr ""
 
+#: src/settings/plan.tsx
+msgid "Yearly"
+msgstr ""
+
 #: src/settings/general/billing.tsx
 msgid "Yearly · ${yearlyPrice}/yr"
 msgstr ""
@@ -6719,6 +6862,10 @@ msgstr ""
 
 #: src/onboarding/account/after-login.tsx
 msgid "You're on a Pro trial"
+msgstr ""
+
+#: src/settings/plan.tsx
+msgid "You're on Free. No account needed."
 msgstr ""
 
 #: src/settings/general/billing.tsx

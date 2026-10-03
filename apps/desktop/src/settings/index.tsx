@@ -18,6 +18,7 @@ import { SettingsDictionary } from "~/settings/dictionary";
 import { SettingsBilling } from "~/settings/general/billing";
 import { SettingsHydrationBoundary } from "~/settings/hydration-boundary";
 import { SettingsImports } from "~/settings/imports";
+import { SettingsPlan } from "~/settings/plan";
 import { SettingsPrivacy } from "~/settings/privacy";
 import { SettingsInsights } from "~/settings/stats";
 import { SettingsSync } from "~/settings/sync";
@@ -56,6 +57,9 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
         return <SettingsAccount />;
       case "billing":
         return <SettingsBilling />;
+      // Fork: Upshot's own plan page (Free and Pro).
+      case "plan":
+        return <SettingsPlan />;
       case "stats":
       case "insights":
         return <SettingsInsights />;

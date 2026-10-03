@@ -2,6 +2,9 @@
 // composer, as in Granola (docs.granola.ai/help-center/getting-more-from-your-notes/understanding-model-selection-in-granola-chat).
 // Kept apart from index.js so test.mjs can load it with plain Node.
 
+import { getUser } from "./auth.js";
+import { isProStatus, rowForUser } from "./billing.js";
+
 // The one model "Auto" uses. Change here; the app never chooses it.
 // Sonnet 5.5 at medium effort: same Artificial Analysis index as Gemini 3.8
 // Flash (41) with a 1.2 s first token instead of 19 s, and the fewest wrong
@@ -25,13 +28,19 @@ export function isProModelSlug(model) {
   );
 }
 
-// ============================================================
-// PRO CHECK GOES HERE (payments). Until a verified Pro user can be told
-// apart (for example an "Authorization: Bearer <token>" the payments
-// service signs), `isPro` is always false, so every request uses Auto.
-// ============================================================
-export function verifyPro(_request, _env) {
-  return false;
+// Pro check: the app sends "Authorization: Bearer <Supabase access token>"
+// only when a model is picked; the user must have an active or trialing
+// row in public.subscriptions (written by the Stripe webhook, billing.js).
+// Any failure means "not Pro", so the request still runs on Auto.
+export async function verifyPro(request, env) {
+  try {
+    const user = await getUser(request, env);
+    if (!user) return false;
+    const row = await rowForUser(env, user.id, user.token);
+    return isProStatus(row?.status);
+  } catch {
+    return false;
+  }
 }
 
 /** The model and reasoning to send upstream for a request body. */

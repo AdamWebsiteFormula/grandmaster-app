@@ -7,11 +7,15 @@
 // limit, a request size limit, a server-side model choice and an output cap.
 // The hard spend ceiling is the OpenRouter credit balance (HTTP 402 when empty).
 //
-// Secret (Cloudflare dashboard › Worker › Settings › Variables and Secrets):
-//   OPENROUTER_API_KEY
+// Secrets (Cloudflare dashboard › Worker › Settings › Variables and Secrets):
+//   OPENROUTER_API_KEY, and for accounts and Pro the ones listed in
+//   auth.js and billing.js.
 // Nothing in a request or response is logged.
 
-import { resolveModel, verifyPro } from "./model.js";
+import { handleAuth } from "./auth.js";
+import { handleBilling } from "./billing.js";
+import { json } from "./http.js";
+import { isProModelSlug, resolveModel, verifyPro } from "./model.js";
 
 const UPSTREAM = "https://openrouter.ai/api/v1/chat/completions";
 // Models: see model.js.
@@ -34,19 +38,21 @@ const ALLOWED_FIELDS = [
   "response_format",
 ];
 
-function json(status, message) {
-  return new Response(JSON.stringify({ error: { message } }), {
-    status,
-    headers: { "content-type": "application/json" },
-  });
-}
-
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
     if (request.method === "GET" && url.pathname === "/health") {
       return new Response("ok");
+    }
+    if (
+      request.method === "POST" &&
+      ["/auth/signup", "/auth/login", "/auth/refresh"].includes(url.pathname)
+    ) {
+      return handleAuth(request, env, url.pathname);
+    }
+    if (url.pathname.startsWith("/billing/")) {
+      return handleBilling(request, env, url.pathname);
     }
     if (request.method === "GET" && url.pathname.endsWith("/models")) {
       return Response.json({ data: [{ id: "auto", name: "Auto" }] });
@@ -83,7 +89,12 @@ export default {
       return json(400, "Invalid request");
     }
 
-    const forwarded = resolveModel(body.model, verifyPro(request, env));
+    // Only a picked model needs the Pro check (two Supabase reads).
+    const wantsPick = body.model !== "Auto" && isProModelSlug(body.model);
+    const forwarded = resolveModel(
+      body.model,
+      wantsPick && (await verifyPro(request, env)),
+    );
     for (const field of ALLOWED_FIELDS) {
       if (body[field] !== undefined) forwarded[field] = body[field];
     }

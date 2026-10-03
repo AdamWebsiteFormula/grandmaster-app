@@ -21,6 +21,15 @@
 - Imports your Granola meetings without an account.
 - Answers questions about your meetings inside Glaido and other AI tools (built-in MCP server).
 
+## Pro
+
+Everything above is free, with no account. Pro adds one thing: pick the chat model (this week's models from Anthropic, OpenAI and Google) instead of Auto.
+
+- Price: $14 a month, or $132 a year (save 21%). Settings › Plan › Upgrade to Pro.
+- Payments run in the Stripe sandbox for the contest: use card 4242 4242 4242 4242, any future date, any CVC. No real money is charged.
+- Accounts are email and password in Supabase Auth. Checkout and "Manage subscription" are Stripe Checkout and the Stripe customer portal, in your browser.
+- Keys stay on the server. The app talks only to the Upshot AI Worker, which holds the Stripe and Supabase keys as Cloudflare secrets and checks Pro on every picked-model request. Stripe webhooks (signature-checked) keep the plan current.
+
 ## Install
 
 Requirements: a Mac with Apple Silicon and macOS 15 or later. Apple Speech needs macOS 26.
@@ -50,6 +59,7 @@ Everything stays on your Mac until you press Enhance or use chat.
 | Notes, transcripts, summaries, settings | Local SQLite database in `~/Library/Application Support/anarlog/` (the folder keeps the upstream name on purpose; do not rename it) |
 | Meeting audio | The same folder, one `audio.mp3` per meeting. Kept until you change the retention setting (Settings › Meetings) |
 | AI keys | None on your Mac. The Upshot AI key lives only on the Cloudflare Worker. Never in the repo, the build or the app bundle |
+| Pro account (optional) | Your sign-in session in the macOS Keychain. Your email, plan status and Stripe customer ID in Supabase. Card details only at Stripe |
 | Transcription | On your Mac: Apple Speech (macOS 26+) or Parakeet. Apple Speech language files come from Apple |
 | Model list | Public catalogs (models.dev, OpenRouter), cached locally. No user data is sent |
 | Glaido connection (optional) | `~/Library/Application Support/Upshot/glaido/mcp.json`, pointing at the CLI inside the app |

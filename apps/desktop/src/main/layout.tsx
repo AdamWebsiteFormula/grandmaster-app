@@ -11,6 +11,7 @@ import { ToolRegistryProvider } from "~/contexts/tool";
 import { useStoreBackedTaskStorage } from "~/editor-bridge/task-storage";
 import { SearchEngineProvider } from "~/search/contexts/engine";
 import { OpenNoteDialogProvider } from "~/shared/open-note-dialog";
+import { UpshotUpgradeDialog } from "~/upshot-plan/upgrade-dialog";
 
 export function ClassicMainLayout({
   children,
@@ -38,6 +39,8 @@ export function ClassicMainLayout({
                 <NotificationProvider>
                   {includeServices ? <ClassicMainServices /> : null}
                   {children}
+                  {/* Fork: Upshot Pro sign-in and checkout. */}
+                  <UpshotUpgradeDialog />
                 </NotificationProvider>
               </AITaskProvider>
             </ToolRegistryProvider>

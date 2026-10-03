@@ -13,4 +13,6 @@ Record at 1440×900 or larger. Close other apps. Have a short Zoom or YouTube cl
 | 50–57 s | Home: the "Time saved" card | "It even shows the time it's saved you." |
 | 57–60 s | Home screen | "Upshot. Built with Claude Code in a weekend, open source, credit to Anarlog." |
 
+**Pro (optional cut):** Settings › Plan › Upgrade to Pro, pay with test card 4242 4242 4242 4242 in the Stripe sandbox (no real money), then pick a model in the chat box.
+
 **Before recording:** have one finished meeting with a summary, so the home cards show numbers. Connect Glaido first (Settings › Developers › Connect to Glaido).

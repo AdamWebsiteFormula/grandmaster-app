@@ -75,6 +75,9 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
       label: t`App`,
       items: [
         { id: "app", label: t`General`, icon: Gear },
+        // Fork: Upshot's plan page, where Granola keeps Settings › Billing
+        // (docs.granola.ai/help-center/managing-your-account/subscriptions-and-billing).
+        { id: "plan", label: t`Plan`, icon: CreditCard },
         { id: "account", label: t`Account`, icon: User },
         { id: "billing", label: t`Billing`, icon: CreditCard },
         { id: "insights", label: t`Insights`, icon: ChartLineUp },
