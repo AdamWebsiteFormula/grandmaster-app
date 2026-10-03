@@ -1061,6 +1061,10 @@ msgstr "Busiest day"
 msgid "Busy"
 msgstr "Busy"
 
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "By creating an account you agree to the"
+msgstr "By creating an account you agree to the"
+
 #: src/settings/calendar/index.tsx
 #: src/settings/general/permissions.tsx
 #: src/sidebar/settings-nav-groups.ts
@@ -5380,6 +5384,14 @@ msgstr "Primary owner"
 #: src/settings/general/app-settings.tsx
 msgid "Privacy"
 msgstr "Privacy"
+
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "privacy policy"
+msgstr "privacy policy"
+
+#: src/settings/plan.tsx
+msgid "Privacy policy"
+msgstr "Privacy policy"
 
 #: src/chat/components/input/model-menu.tsx
 #: src/settings/ai/stt/select.tsx

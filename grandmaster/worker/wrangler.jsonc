@@ -13,14 +13,16 @@
     {
       "name": "RATE_LIMITER",
       "namespace_id": "1001",
-      "simple": { "limit": 30, "period": 60 }
-    }
+      "simple": { "limit": 30, "period": 60 },
+    },
   ],
   // Brand images for Stripe Checkout and the billing pages, served at
   // /brand/*. developers.cloudflare.com/workers/static-assets/routing/worker-script/:
   // "If an appropriate static asset is not found, Cloudflare will invoke your
   // Worker script", so /llm, /auth and /billing still reach src/index.js
-  // (public/ holds only brand/).
+  // (public/ holds brand/ and privacy.html). Default html_handling
+  // "auto-trailing-slash" serves privacy.html at /privacy
+  // (developers.cloudflare.com/workers/static-assets/routing/advanced/html-handling/).
   "assets": { "directory": "./public", "binding": "ASSETS" },
-  "observability": { "enabled": false }
+  "observability": { "enabled": false },
 }

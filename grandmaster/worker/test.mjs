@@ -507,6 +507,7 @@ test("billing pages: white, logo, checkmark on success, a way back", async () =>
   );
   assert.match(html, /href="upshot:\/\/">Open Upshot</);
   assert.match(html, /class="note">Test mode/);
+  assert.match(html, /<a href="\/privacy">Privacy policy<\/a>/);
   assert.match(done.headers.get("content-security-policy"), /img-src 'self'/);
 
   const cancel = await (await get("/billing/cancel")).text();
@@ -514,6 +515,7 @@ test("billing pages: white, logo, checkmark on success, a way back", async () =>
   assert.match(cancel, /Nothing was charged./);
   assert.doesNotMatch(cancel, /class="check"/);
   assert.match(cancel, /upshot-logo-orange-on-light.png/);
+  assert.match(cancel, /href="\/privacy"/);
 
   const portal = await (await get("/billing/done-portal")).text();
   assert.match(portal, /Your plan is up to date/);
@@ -1063,4 +1065,45 @@ test("auth: login forwards to Supabase and validates input", async () => {
   } finally {
     mock.restore();
   }
+});
+
+// CalOPPA §22575(b): the privacy page lists what it must, and Workers
+// static assets serve public/privacy.html at /privacy (html_handling
+// "auto-trailing-slash"), so the Worker script never sees the path.
+test("privacy policy: served from public/ with the CalOPPA items", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const html = await readFile(
+    new URL("./public/privacy.html", import.meta.url),
+    "utf8",
+  );
+  assert.match(html, /<title>Upshot privacy policy<\/title>/);
+  assert.match(html, /src="\/brand\/upshot-logo-orange-on-light.png"/);
+  assert.match(html, /background:#fff/);
+  assert.match(html, /Effective October 3, 2026/);
+  for (const heading of [
+    "What leaves your Mac, and who gets it",
+    "Your choices and rights",
+    "Do Not Track",
+    "Changes to this policy",
+    "How long we keep it",
+    "Who we are",
+  ]) {
+    assert.match(html, new RegExp(`<h2>${heading}</h2>`));
+  }
+  for (const name of ["OpenRouter", "Supabase", "Stripe", "Cloudflare"]) {
+    assert.match(html, new RegExp(name));
+  }
+  assert.match(html, /Settings › Profile › Delete account/);
+  assert.match(html, /~\/Library\/Application Support\/anarlog\//);
+  // American spelling in the page text (the source comment cites ico.org.uk URLs).
+  assert.doesNotMatch(
+    html.split("</head>")[1],
+    /\b(colour|centre|behaviour|organis|analys|licence|cancelled|grey|favourite|catalogue)/i,
+  );
+  const config = await readFile(
+    new URL("./wrangler.jsonc", import.meta.url),
+    "utf8",
+  );
+  assert.match(config, /"directory": "\.\/public"/);
+  assert.doesNotMatch(config, /"html_handling"|"run_worker_first"/);
 });

@@ -1,0 +1,153 @@
+<!doctype html>
+<!--
+  Upshot privacy policy. Served by Workers static assets at /privacy
+  (html_handling defaults to "auto-trailing-slash": /privacy serves
+  privacy.html and /privacy.html redirects to /privacy;
+  developers.cloudflare.com/workers/static-assets/routing/advanced/html-handling/).
+
+  Why and what it must say:
+  - CalOPPA, Cal. Bus. & Prof. Code §22575-22579: an operator of an online
+    service that collects personally identifiable information (an email
+    address counts, §22577(a)(3)) from California residents must
+    conspicuously post a privacy policy (§22575(a)) that lists the
+    categories of PII collected and the third parties it is shared with
+    (b)(1), how users review and request changes (b)(2), how users are
+    told about changes (b)(3), the effective date (b)(4), how the service
+    responds to Do Not Track signals (b)(5), and whether third parties may
+    track users across sites (b)(6).
+    leginfo.legislature.ca.gov/faces/codes_displayText.xhtml?lawCode=BPC&division=8.&chapter=22.
+  - California AG, "Making Your Privacy Practices Public" (2014): plain
+    language, say how long data is kept, label the Do Not Track section.
+    oag.ca.gov/news/press-releases/attorney-general-kamala-d-harris-issues-guide-privacy-policies-and-do-not-track
+  - FTC: "If your company makes privacy promises ... the FTC Act requires
+    you to live up to those claims." Every line below is checked against
+    the code (grandmaster/worker/src, apps/desktop/src).
+    ftc.gov/business-guidance/privacy-security
+  - GDPR Art. 13 and the UK ICO list for small services: who the
+    controller is and how to reach them, purposes and lawful basis,
+    recipients, retention, rights (access, correction, deletion,
+    portability, objection), and the right to complain to a regulator.
+    gdpr-info.eu/art-13-gdpr/
+    ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/individual-rights/the-right-to-be-informed/what-privacy-information-should-we-provide/
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Upshot privacy policy</title>
+<meta name="description" content="What Upshot collects, where it goes, and how to delete it.">
+<style>
+:root{color-scheme:light}
+body{margin:0;background:#fff;color:#171717;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+main{max-width:680px;margin:0 auto;padding:40px 24px 64px}
+.logo{display:block;height:32px;width:auto;margin:0 0 32px}
+h1{font-size:28px;line-height:1.25;margin:0 0 8px;text-wrap:balance}
+h2{font-size:20px;line-height:1.3;margin:40px 0 8px;text-wrap:balance}
+p,ul{margin:0 0 12px}
+ul{padding-left:20px}
+li{margin:0 0 6px}
+.meta{color:#525252;margin-bottom:24px}
+.summary{background:#f5f5f5;border-radius:12px;padding:16px 20px;margin:0 0 8px}
+.summary p:last-child,.summary ul:last-child{margin-bottom:0}
+a{color:#C74200;text-underline-offset:2px}
+a:focus-visible{outline:2px solid #171717;outline-offset:2px;border-radius:2px}
+code{font:14px ui-monospace,SFMono-Regular,Menlo,monospace;background:#f5f5f5;padding:1px 4px;border-radius:4px}
+footer{margin-top:48px;color:#737373;font-size:14px}
+</style>
+</head>
+<body>
+<main>
+<img class="logo" src="/brand/upshot-logo-orange-on-light.png" alt="Upshot">
+<h1>Privacy policy</h1>
+<p class="meta">Effective October 3, 2026</p>
+
+<div class="summary">
+<p><strong>The short version</strong></p>
+<ul>
+<li>Your recordings, transcripts and notes stay on your Mac.</li>
+<li>When you make a summary or use chat, the text it needs goes to an AI model to write the answer. Audio never leaves your Mac.</li>
+<li>Upshot Free needs no account. Pro needs an email and password, and Stripe handles your card.</li>
+<li>No ads, no analytics, no tracking. We don't sell or share your personal information.</li>
+</ul>
+</div>
+
+<h2>Who we are</h2>
+<p>Upshot is a Mac app for meeting notes, published by Website Formula. Website Formula decides how the data on this page is used (the "data controller" in GDPR terms). Upshot is based on Anarlog, an open-source app.</p>
+<p>Contact: open a GitHub issue at <a href="https://github.com/AdamWebsiteFormula/grandmaster-app">github.com/AdamWebsiteFormula/grandmaster-app</a>, or use Help › Report a bug in Upshot.</p>
+
+<h2>What stays on your Mac</h2>
+<p>These never leave your Mac unless you send them somewhere yourself:</p>
+<ul>
+<li>Meeting audio, kept until the retention setting in Settings › Meetings removes it.</li>
+<li>Transcripts. Transcription runs on your Mac (Apple Speech or Parakeet). Apple Speech may download its language files from Apple.</li>
+<li>Notes, summaries, folders, templates, contacts and settings.</li>
+<li>Calendar events, which Upshot reads from Apple Calendar on your Mac.</li>
+</ul>
+<p>All of this lives in <code>~/Library/Application Support/anarlog/</code>. Upshot has no cloud sync.</p>
+
+<h2>What leaves your Mac, and who gets it</h2>
+<p><strong>AI summaries and chat.</strong> When you generate a summary or send a chat message, Upshot sends the text the AI needs:</p>
+<ul>
+<li>For a summary: the note, the transcript, the meeting title and time, and the names and job titles of the people in the meeting.</li>
+<li>For chat: your question, the conversation so far, and the notes, transcripts, calendar events (title, time, location) and contacts (name, email, phone, role, company) that chat looks up to answer it.</li>
+</ul>
+<p>This goes through the Upshot AI proxy, a Cloudflare Worker we run. The proxy passes your request on and doesn't store or log what you send; Its logging is turned off. It uses your IP address only to limit how many requests one address can make per minute. From the proxy, the text goes to <a href="https://openrouter.ai/privacy">OpenRouter</a>, which sends it to the company that runs the model: Anthropic for Auto, or Anthropic, OpenAI or Google (or a cloud provider that hosts their models) for a model a Pro user picks. They process it to write the answer, under their own privacy policies.</p>
+<p>A locked note is never sent to chat, connected tools or webhooks until you unlock it.</p>
+<p><strong>A Pro account.</strong> If you create an account:</p>
+<ul>
+<li><a href="https://supabase.com/privacy">Supabase</a> stores your email, a hashed password (never the password itself), and your plan: status, billing period, renewal date, and your Stripe customer and subscription IDs. The app keeps your sign-in session in the macOS Keychain.</li>
+<li><a href="https://stripe.com/privacy">Stripe</a> handles payment on Stripe Checkout. Your card and billing details go only to Stripe, never to Upshot. Stripe tells us whether your subscription is active.</li>
+<li>Supabase may email you about your account, such as to confirm your address.</li>
+</ul>
+<p><strong>What you set up yourself.</strong> A webhook (Settings › Connectors › Webhooks) sends finished notes to the address you choose. The Glaido and MCP connection runs only on your Mac.</p>
+<p><strong>Model list.</strong> Upshot downloads public model catalogs from models.dev and OpenRouter. It sends no data about you, just a normal web request.</p>
+<p><strong>Hosting.</strong> The proxy and this page run on <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a>, which handles the network traffic.</p>
+
+<h2>What we don't do</h2>
+<ul>
+<li>No analytics, telemetry or crash reports. The released app ships with none turned on.</li>
+<li>No ads, and we don't sell or share your personal information.</li>
+<li>No cookies on this page or the checkout pages we serve. Stripe Checkout sets its own cookies on stripe.com.</li>
+<li>We don't use your notes to train AI models.</li>
+</ul>
+
+<h2>Why we use your data</h2>
+<ul>
+<li>To write summaries and chat answers you ask for.</li>
+<li>To run your Pro account and billing, which is our contract with you.</li>
+<li>To stop abuse of the AI proxy with the per-minute limit, which is our legitimate interest in keeping it running.</li>
+</ul>
+
+<h2>How long we keep it</h2>
+<ul>
+<li>Notes, transcripts and audio: on your Mac until you delete them.</li>
+<li>AI requests: the proxy keeps nothing once the answer is sent.</li>
+<li>Pro account: until you delete it. Stripe may keep payment records it must keep by law.</li>
+</ul>
+
+<h2>Your choices and rights</h2>
+<ul>
+<li><strong>See and change your data.</strong> Your notes are in the app, where you can edit them. Your account email and plan show in Settings › Plan. To correct your email, contact us.</li>
+<li><strong>Delete your notes.</strong> Delete a note in the app, or quit Upshot and delete the folder above.</li>
+<li><strong>Delete your account.</strong> Go to Settings › Profile › Delete account. This cancels your subscription, deletes your Stripe customer record and deletes your Supabase account and plan.</li>
+<li><strong>Take your data with you.</strong> Export a note as PDF, text or Markdown from the note's Share menu (Export…).</li>
+<li><strong>Don't send anything.</strong> Recording and transcription work without an AI summary, and you can lock a note to keep it out of chat.</li>
+</ul>
+<p>Depending on where you live (for example California, the EU or the UK), you may have the right to access, correct, delete or port your data, and to object to how it is used. Contact us to use these rights. We don't treat you differently for using them. In the EU or UK you can also complain to your data protection authority.</p>
+
+<h2>Do Not Track</h2>
+<p>Upshot doesn't track you across websites or apps, and lets no third party do so. Because there is no tracking to turn off, it works the same whether or not your browser sends a Do Not Track signal.</p>
+
+<h2>Where your data is processed</h2>
+<p>Cloudflare, OpenRouter, the model companies, Supabase and Stripe may process data in the United States and other countries.</p>
+
+<h2>Children</h2>
+<p>Upshot is not meant for children under 13, and we don't knowingly collect their information.</p>
+
+<h2>Changes to this policy</h2>
+<p>We post every change on this page and update the effective date at the top. If a change affects how we use data we already have, we say so at the top of this page and in the release notes for that version of Upshot before it takes effect.</p>
+
+<footer>Upshot, by Website Formula.</footer>
+</main>
+</body>
+</html>

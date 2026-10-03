@@ -34,7 +34,7 @@ import {
   type UpshotPlanStatus,
   useUpshotPlan,
 } from "~/upshot-plan";
-import { TestCardNote } from "~/upshot-plan/upgrade-dialog";
+import { PrivacyPolicyLink, TestCardNote } from "~/upshot-plan/upgrade-dialog";
 
 const MONTHLY_PRICE = 14;
 const YEARLY_PRICE = 132;
@@ -229,40 +229,45 @@ export function SettingsPlan() {
         onUpgrade={() => void run("upgrade", () => openUpgrade(interval))}
       />
 
-      {!isPro ? (
-        <div className="-mt-4 flex flex-col gap-2 px-1">
-          {checkoutPending ? (
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p role="status" className="text-muted-foreground text-xs">
-                <Trans>
-                  Waiting for payment. Pro turns on here once it goes through.
-                </Trans>
-              </p>
-              <div className="flex shrink-0 gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs"
-                  onClick={() => void refreshUpshotPlan(true)}
-                >
-                  <Trans>Check again</Trans>
-                </Button>
-                {/* Fork: checkout canceled in the browser stops the wait
+      {/* Fork: footer with the test-card note and the privacy policy link
+          (CalOPPA §22575(a), posted where people pay). */}
+      <div className="-mt-4 flex flex-col gap-2 px-1">
+        {!isPro && checkoutPending ? (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p role="status" className="text-muted-foreground text-xs">
+              <Trans>
+                Waiting for payment. Pro turns on here once it goes through.
+              </Trans>
+            </p>
+            <div className="flex shrink-0 gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                onClick={() => void refreshUpshotPlan(true)}
+              >
+                <Trans>Check again</Trans>
+              </Button>
+              {/* Fork: checkout canceled in the browser stops the wait
                     (journey-account-settings P3; NN/g #1, #3). */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs"
-                  onClick={() => stopWaitingForCheckout()}
-                >
-                  <Trans>Stop waiting</Trans>
-                </Button>
-              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                onClick={() => stopWaitingForCheckout()}
+              >
+                <Trans>Stop waiting</Trans>
+              </Button>
             </div>
-          ) : null}
-          <TestCardNote />
-        </div>
-      ) : null}
+          </div>
+        ) : null}
+        {!isPro ? <TestCardNote /> : null}
+        <p className="text-muted-foreground text-xs">
+          <PrivacyPolicyLink>
+            <Trans>Privacy policy</Trans>
+          </PrivacyPolicyLink>
+        </p>
+      </div>
     </div>
   );
 }

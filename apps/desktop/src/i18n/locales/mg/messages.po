@@ -1061,6 +1061,10 @@ msgstr ""
 msgid "Busy"
 msgstr ""
 
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "By creating an account you agree to the"
+msgstr ""
+
 #: src/settings/calendar/index.tsx
 #: src/settings/general/permissions.tsx
 #: src/sidebar/settings-nav-groups.ts
@@ -5379,6 +5383,14 @@ msgstr ""
 
 #: src/settings/general/app-settings.tsx
 msgid "Privacy"
+msgstr ""
+
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "privacy policy"
+msgstr ""
+
+#: src/settings/plan.tsx
+msgid "Privacy policy"
 msgstr ""
 
 #: src/chat/components/input/model-menu.tsx

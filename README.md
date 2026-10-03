@@ -77,6 +77,8 @@ Everything stays on your Mac until you make a summary or use chat.
 
 **Delete your data:** delete a note in the app, or quit the app and delete the folder above.
 
+**Privacy policy:** [upshot-ai.adam-694.workers.dev/privacy](https://upshot-ai.adam-694.workers.dev/privacy) (source: `grandmaster/worker/public/privacy.html`).
+
 ## Import from Granola
 
 1. In Upshot, open **Settings › Connectors › Import notes**. Granola is at the top of the list.

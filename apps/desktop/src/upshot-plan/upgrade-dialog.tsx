@@ -10,7 +10,7 @@
 // visible Cancel, as HIG sheets have a dismiss button
 // (developer.apple.com/design/human-interface-guidelines/sheets).
 import { Trans } from "@lingui/react/macro";
-import { useId, useState } from "react";
+import { type ReactNode, useId, useState } from "react";
 
 import { Button } from "@anlg/ui/components/ui/button";
 import { Checkbox } from "@anlg/ui/components/ui/checkbox";
@@ -27,6 +27,7 @@ import {
   type AccountMode,
   closeUpgradeDialog,
   isAlreadyPro,
+  openPrivacyPolicy,
   refreshUpshotPlan,
   signInUpshot,
   startCheckout,
@@ -49,6 +50,20 @@ export function TestCardNote() {
         real money is charged.
       </Trans>
     </p>
+  );
+}
+
+// Fork: a text link to the privacy policy, opened in the browser
+// (CalOPPA §22577(b): a text link that includes the word "privacy").
+export function PrivacyPolicyLink({ children }: { children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      className="hover:text-foreground cursor-pointer underline underline-offset-2 transition-colors"
+      onClick={() => void openPrivacyPolicy()}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -183,6 +198,17 @@ export function UpshotUpgradeDialog() {
             {message ? (
               <p role="alert" className="text-destructive text-xs">
                 {message}
+              </p>
+            ) : null}
+
+            {!signedIn && mode === "signup" ? (
+              <p className="text-muted-foreground text-xs">
+                {/* Two messages: the test Trans mock drops nested elements. */}
+                <Trans>By creating an account you agree to the</Trans>{" "}
+                <PrivacyPolicyLink>
+                  <Trans>privacy policy</Trans>
+                </PrivacyPolicyLink>
+                .
               </p>
             ) : null}
 

@@ -18,6 +18,7 @@ import {
   ensureUpshotSessionLoaded,
   upshotAuthedRequest,
   UpshotRequestError,
+  upshotWorkerOrigin,
   useUpshotAccount,
 } from "./session";
 
@@ -262,6 +263,20 @@ async function openInBrowser(url: string): Promise<void> {
   if (result.status === "error") {
     throw new UpshotRequestError("Could not open your browser.", 0);
   }
+}
+
+// Fork: the privacy policy is a static page on the Worker
+// (grandmaster/worker/public/privacy.html). CalOPPA (Cal. Bus. & Prof. Code
+// §22575(a)) asks for it to be conspicuously posted where accounts are made.
+const DEFAULT_WORKER_ORIGIN = "https://upshot-ai.adam-694.workers.dev";
+
+export function privacyPolicyUrl(): string {
+  return `${upshotWorkerOrigin() ?? DEFAULT_WORKER_ORIGIN}/privacy`;
+}
+
+/** Open the privacy policy in the default browser. */
+export async function openPrivacyPolicy(): Promise<void> {
+  await openInBrowser(privacyPolicyUrl()).catch(() => {});
 }
 
 /** Create a Checkout Session on the Worker and open it in the browser. */

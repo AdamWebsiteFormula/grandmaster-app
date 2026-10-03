@@ -5,6 +5,7 @@ import {
   screen,
   within,
 } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { UpshotPlanStatus } from "~/upshot-plan";
@@ -25,6 +26,7 @@ const mocks = vi.hoisted(() => ({
   stopWaitingForCheckout: vi.fn(),
   openManageSubscription: vi.fn(async () => {}),
   openUpshotSignIn: vi.fn(),
+  openPrivacyPolicy: vi.fn(),
   signOutUpshot: vi.fn(async () => {}),
   activity: null as unknown[] | null,
 }));
@@ -39,6 +41,11 @@ vi.mock("~/upshot-plan", () => ({
   stopWaitingForCheckout: mocks.stopWaitingForCheckout,
 }));
 vi.mock("~/upshot-plan/upgrade-dialog", () => ({
+  PrivacyPolicyLink: ({ children }: { children: ReactNode }) => (
+    <button type="button" onClick={mocks.openPrivacyPolicy}>
+      {children}
+    </button>
+  ),
   TestCardNote: () => (
     <p>
       Test mode: use card 4242 4242 4242 4242, any future date, any CVC. No real
@@ -544,5 +551,11 @@ describe("Settings › Plan", () => {
     const usage = screen.getByTestId("plan-usage");
     expect(usage.className).toContain("grid-cols-1");
     expect(usage.className).toContain("min-[480px]:grid-cols-3");
+  });
+
+  it("footer links the privacy policy, free or Pro", () => {
+    render(<SettingsPlan />);
+    fireEvent.click(screen.getByRole("button", { name: "Privacy policy" }));
+    expect(mocks.openPrivacyPolicy).toHaveBeenCalledTimes(1);
   });
 });

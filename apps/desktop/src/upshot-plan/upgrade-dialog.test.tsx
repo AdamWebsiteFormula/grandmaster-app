@@ -308,4 +308,25 @@ describe("UpshotUpgradeDialog", () => {
       "An account with this email already exists. Sign in instead.",
     );
   });
+
+  it("sign-up links the privacy policy and opens it in the browser", async () => {
+    render(<UpshotUpgradeDialog />);
+    await act(() => openUpgrade("month"));
+
+    expect(
+      screen.getByText(/By creating an account you agree to the/),
+    ).not.toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "privacy policy" }));
+    await waitFor(() =>
+      expect(mocks.openUrl).toHaveBeenCalledWith(
+        "https://upshot-ai.example.workers.dev/privacy",
+        null,
+      ),
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Already have an account? Sign in" }),
+    );
+    expect(screen.queryByRole("button", { name: "privacy policy" })).toBeNull();
+  });
 });
