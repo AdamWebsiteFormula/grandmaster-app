@@ -46,7 +46,7 @@ Settings › Plan › Upgrade to Pro. Create an account, then pay with the Strip
 On your Mac, in `~/Library/Application Support/anarlog/`. When you make a summary or use chat, the note text goes through the Upshot AI proxy (stores nothing) to OpenRouter. Audio never leaves your Mac. Pro stores only your email and Stripe customer ID. Full table in the README.
 
 **How I built it**
-Claude Code with B.L.A.S.T.: a blueprint first, a gate test before any change, one SOP per workstream, a codified design system, parallel Claude Code sessions and subagents, Granola as the benchmark for every flow, about 4,300 automated tests, and a red-team security pass. Details: `grandmaster/HOW-I-BUILT-THIS.md` in the repo.
+Claude Code with B.L.A.S.T.: a blueprint first, a gate test before any change, one SOP per workstream, a codified design system, parallel Claude Code sessions and subagents, Granola as the benchmark for every flow, about 4,700 automated tests, and a red-team security pass. Details: `grandmaster/HOW-I-BUILT-THIS.md` in the repo.
 
 **Credits**
 Upshot is a fork of Anarlog by Fastrepl (MIT). It ships sqlite-sync unmodified (Elastic License 2.0). Fonts: Geist and Bricolage Grotesque (SIL Open Font License).

@@ -228,3 +228,4 @@ One line per change: what, why, source, test result. Nothing here is committed; 
 
 ## Done
 - Oct 3: removed "The upshot" Home card (owner review: a latest-meeting digest is not useful across many calls; Teams shows its recap per meeting, not on a home screen; Granola Home has none).
+- **Final build, Oct 3 evening.** Round 4 and 5 redline fixes, The upshot card tried and removed, dark-mode segment fix. Full vitest 4,711 passed / 11 skipped, tsc 0, rebrand-check 0. DMG SHA-256 `987502e2df67cddfd910f31fe15a7e6d169aadda261cda33c7887f60d1f89c14`, installed and copied to /Users/Shared; bundle scan found no keys.

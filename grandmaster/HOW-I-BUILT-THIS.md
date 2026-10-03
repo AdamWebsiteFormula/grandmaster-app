@@ -32,7 +32,7 @@ Upshot is a bot-free AI meeting notepad for Apple Silicon Macs. I built it in 3 
 - **Parallel Claude Code sessions.** One session built and shipped, one owned the design, and subagents built features F1 to F6 in separate files at the same time.
 - **Research before building.** Each change names its source (Granola docs, Apple guidance, Nielsen Norman Group, ChatGPT's model picker). See `grandmaster/sops/night-log.md`.
 - **Audits, then fixes.** A five-area UX audit, a WCAG 2.2 contrast audit in light and dark, three user journeys (first run, meeting, after the meeting) and two design redlines, each row fixed with its source named. See `grandmaster/sops/ux-audit-oct3.md`, `contrast-audit.md` and `journey-*.md`.
-- **Tests on every change.** About 4,300 automated tests run on each change, plus the Worker's own tests; the final run had 0 failures.
+- **Tests on every change.** About 4,700 automated tests run on each change, plus the Worker's own tests; the final run had 0 failures.
 - **Red-team pass.** A security review of secrets, local servers, prompt injection, the MCP tools, dependencies and logging, plus secret scanners. See `grandmaster/sops/red-team.md`.
 
 ## What I added on top of Anarlog
