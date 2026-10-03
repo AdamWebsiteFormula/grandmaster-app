@@ -320,20 +320,19 @@ describe("HomeView", () => {
     expect(screen.getByText("Standup").parentElement?.className).toContain(
       "text-foreground",
     );
-    // Second line on every row: attendees when present, else the length.
+    // Second line: attendees when present, else the length.
     expect(screen.getByText("32 min")).toBeTruthy();
     expect(screen.getByText("Bbaird & Jimharbaugh104")).toBeTruthy();
     expect(screen.getByText("Ana, Bo & 2 others")).toBeTruthy();
     expect(screen.queryByText(/1 hr 5 min/)).toBeNull();
-    // No filler label; a row without metadata keeps an empty second line,
-    // so every row has the same two-line shape and height.
+    // No filler and no empty line: a row without metadata centers its
+    // title in the same min-h-14 height.
     expect(screen.queryByText("No transcript")).toBeNull();
     expect(screen.queryByText("Note")).toBeNull();
     const ideas = screen.getByText("Ideas").closest("button")!;
     expect(ideas.className).toContain("min-h-14");
-    const blank = ideas.querySelector("span.text-xs")!;
-    expect(blank.textContent).toBe("\u00a0");
-    expect(blank.getAttribute("aria-hidden")).toBe("true");
+    expect(ideas.className).toContain("items-center");
+    expect(ideas.querySelector("span.text-xs")).toBeNull();
     // Attendee initials only when people were there; no glyph otherwise.
     expect(screen.getByText("B")).toBeTruthy();
     expect(screen.getByText("A")).toBeTruthy();

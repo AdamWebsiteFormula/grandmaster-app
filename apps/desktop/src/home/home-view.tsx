@@ -670,10 +670,10 @@ function RecentNoteRow({
   const people = peopleLine(note);
   const initial = Array.from(note.people[0]?.trim() ?? "")[0] ?? "";
   const duration = formatDuration(note.durationMs);
-  // Fork: every row has a second line, so titles share one baseline and rows
-  // one height (redline4-oct3). Attendees when present, as Granola's rows
-  // show them, else the recorded length; a row with neither keeps the line
-  // empty rather than a filler label (redline3-oct3 S2 dropped "No transcript").
+  // Fork: a second line only for real metadata: attendees, as Granola's rows
+  // show them, else the recorded length. min-h-14 and items-center keep every
+  // row one height with single-line titles centered, so no empty line pushes
+  // a title off center (redline3-oct3 S2; redline4-oct3).
   const details = people ?? duration;
 
   const open = () => {
@@ -725,12 +725,11 @@ function RecentNoteRow({
               </span>
             ) : null}
           </span>
-          <span
-            aria-hidden={details ? undefined : true}
-            className="text-muted-foreground truncate text-xs tabular-nums"
-          >
-            {details ?? "\u00a0"}
-          </span>
+          {details ? (
+            <span className="text-muted-foreground truncate text-xs tabular-nums">
+              {details}
+            </span>
+          ) : null}
         </span>
         {/* Fork: redline-oct3, row times at text-sm so they read at a
             glance (Granola's "3:00 PM" sits at body size). */}
