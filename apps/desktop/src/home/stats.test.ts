@@ -161,6 +161,7 @@ describe("AI cost estimate", () => {
     expect(priceFor("claude", "claude-sonnet-5-5")).toEqual({
       kind: "subscription",
     });
+    expect(priceFor("anarlog", "Auto")).toEqual({ kind: "included" });
     expect(priceFor(undefined, undefined)).toBeNull();
   });
 

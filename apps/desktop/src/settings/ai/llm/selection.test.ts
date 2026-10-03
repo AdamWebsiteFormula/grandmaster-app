@@ -1,5 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 
+import { getLlmProviderStatus } from "./select";
 import {
   getDefaultLlmSelection,
   getPreferredProviderModel,
@@ -7,6 +8,9 @@ import {
   ProviderStateSettlingError,
   shouldShowMissingModelWarning,
 } from "./selection";
+import { PROVIDERS } from "./shared";
+
+import { getConfiguredProviderIds } from "~/settings/ai/shared/selection";
 
 describe("isSameModelSelection", () => {
   test("matches only when both provider and model match", () => {
@@ -61,6 +65,29 @@ describe("getPreferredProviderModel", () => {
 });
 
 describe("getDefaultLlmSelection", () => {
+  test("picks Upshot AI Auto on a fresh install with no session or keys", async () => {
+    const statuses = Object.fromEntries(
+      PROVIDERS.map((provider) => [
+        provider.id,
+        getLlmProviderStatus({
+          provider,
+          isAuthenticated: false,
+          isPaid: false,
+        }),
+      ]),
+    );
+
+    const selection = await getDefaultLlmSelection(
+      getConfiguredProviderIds(PROVIDERS, statuses),
+      undefined,
+      undefined,
+      async (provider) =>
+        (await statuses[provider]?.listModels?.())?.models ?? [],
+    );
+
+    expect(selection).toEqual({ provider: "anarlog", model: "Auto" });
+  });
+
   test("keeps the active provider and repairs its missing model", async () => {
     const selection = await getDefaultLlmSelection(
       ["openai", "anthropic"],

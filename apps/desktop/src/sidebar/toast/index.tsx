@@ -94,7 +94,9 @@ export function ToastNotifications() {
     current_stt_provider,
     current_stt_model,
   );
-  const hasProLlmConfigured = current_llm_provider === "anarlog";
+  // Fork: Upshot AI ("anarlog") needs no sign-in, so it never counts as a
+  // Pro model that is unusable while signed out.
+  const hasProLlmConfigured = false;
 
   const currentTab = useTabs((state) => state.currentTab);
   const devtoolsPreview = useDevtoolsToastPreview((state) => state.preview);

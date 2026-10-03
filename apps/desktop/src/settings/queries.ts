@@ -164,6 +164,18 @@ export async function initializeApplicationSettings(): Promise<void> {
   applySettingSideEffects(current.values);
 }
 
+// Fork: nothing chosen means Upshot AI "Auto", so Enhance and chat work
+// right after install with no key, as in Granola
+// (docs.granola.ai/help-center/getting-more-from-your-notes/understanding-model-selection-in-granola-chat).
+export async function initializeDefaultLlmSelection(): Promise<void> {
+  const { values } = await getStoredSettingValues();
+  if (values.current_llm_provider) return;
+  await setSettingValues({
+    current_llm_provider: "anarlog",
+    current_llm_model: "Auto",
+  });
+}
+
 async function migrateLegacyAutoSummaryPrompt(
   stored: StoredSettingValues,
 ): Promise<string | null> {

@@ -7,6 +7,9 @@ export PATH="$HOME/.local/share/grandmaster-shims:$HOME/.cargo/bin:$HOME/.local/
 export CARGO_TARGET_DIR="$HOME/anarlog-target"
 export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
 export VITE_API_URL="http://localhost:3001"
+# Upshot AI Worker origin (grandmaster/worker); the app calls {origin}/llm/chat/completions.
+# Replace with the deployed workers.dev URL, or set VITE_AI_API_URL before running.
+export VITE_AI_API_URL="${VITE_AI_API_URL:-https://upshot-ai.adam-694.workers.dev}"
 export APP_VERSION="1.0.0"
 export VITE_APP_VERSION="$APP_VERSION"
 export CI=false

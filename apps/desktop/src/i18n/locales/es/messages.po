@@ -30,11 +30,6 @@ msgstr ""
 msgid "{0} {noteLabel} deleted"
 msgstr ""
 
-#. placeholder {0}: selected.name
-#: src/onboarding/ai-key.tsx
-msgid "{0} API key"
-msgstr ""
-
 #. placeholder {0}: status.commandName
 #: src/settings/developers/cli.tsx
 msgid "{0} could not be installed"
@@ -528,20 +523,12 @@ msgstr ""
 msgid "AI cost this month $0, it runs on this Mac"
 msgstr ""
 
-#: src/onboarding/ai-key.tsx
-msgid "AI provider"
+#: src/home/stat-cards.tsx
+msgid "AI cost this month $0, Upshot AI is included"
 msgstr ""
 
 #: src/settings/automations/index.tsx
 msgid "AI step"
-msgstr ""
-
-#: src/onboarding/index.tsx
-msgid "AI summaries ready"
-msgstr ""
-
-#: src/onboarding/index.tsx
-msgid "AI summaries skipped"
 msgstr ""
 
 #: src/contacts/details.tsx
@@ -1018,10 +1005,6 @@ msgstr ""
 msgid "Checking migration..."
 msgstr ""
 
-#: src/onboarding/ai-key.tsx
-msgid "Checking the key…"
-msgstr ""
-
 #: src/onboarding/transcription.tsx
 msgid "Checking this Mac…"
 msgstr ""
@@ -1110,10 +1093,6 @@ msgstr ""
 
 #: src/templates/auto-format-examples-dialog.tsx
 msgid "Choose an AI model before generating a format."
-msgstr ""
-
-#: src/onboarding/index.tsx
-msgid "Choose an AI provider and paste its key. Upshot uses it to turn meetings into notes."
 msgstr ""
 
 #: src/settings/automations/index.tsx
@@ -1436,7 +1415,6 @@ msgid "Confirm"
 msgstr ""
 
 #: src/imports/screen.tsx
-#: src/onboarding/ai-key.tsx
 #: src/settings/ai/llm/subscriptions/connect.tsx
 #: src/settings/crm/index.tsx
 msgid "Connect"
@@ -1539,17 +1517,6 @@ msgstr ""
 msgid "Connected with your existing subscription."
 msgstr ""
 
-#. placeholder {0}: phase.connection.providerName
-#: src/onboarding/ai-key.tsx
-msgid "Connected: {0}"
-msgstr ""
-
-#. placeholder {0}: phase.connection.providerName
-#. placeholder {1}: phase.connection.modelName
-#: src/onboarding/ai-key.tsx
-msgid "Connected: {0} · {1}"
-msgstr ""
-
 #: src/settings/sync/index.tsx
 msgid "Connecting"
 msgstr ""
@@ -1588,7 +1555,6 @@ msgid "Context"
 msgstr ""
 
 #: src/imports/screen.tsx
-#: src/onboarding/ai-key.tsx
 #: src/onboarding/calendar.tsx
 #: src/onboarding/transcription.tsx
 msgid "Continue"
@@ -2689,15 +2655,6 @@ msgstr ""
 
 #: src/settings/ai/llm/select.tsx
 msgid "Get a free key"
-msgstr ""
-
-#: src/onboarding/ai-key.tsx
-msgid "Get a free key from Google AI Studio"
-msgstr ""
-
-#. placeholder {0}: selected.name
-#: src/onboarding/ai-key.tsx
-msgid "Get a key from {0}"
 msgstr ""
 
 #: src/settings/sync/index.tsx
@@ -4250,11 +4207,6 @@ msgstr ""
 msgid "Paste the localhost redirect URL"
 msgstr ""
 
-#. placeholder {0}: selected.name
-#: src/onboarding/ai-key.tsx
-msgid "Paste your {0} API key"
-msgstr ""
-
 #: src/settings/developers/glaido.tsx
 msgid "Path copied"
 msgstr ""
@@ -5190,10 +5142,6 @@ msgid "Set as default"
 msgstr ""
 
 #: src/onboarding/index.tsx
-msgid "Set up AI summaries"
-msgstr ""
-
-#: src/onboarding/index.tsx
 msgid "Set up transcription"
 msgstr ""
 
@@ -5555,7 +5503,6 @@ msgstr ""
 msgid "Skip"
 msgstr ""
 
-#: src/onboarding/ai-key.tsx
 #: src/onboarding/imports.tsx
 msgid "Skip for now"
 msgstr ""
@@ -5983,10 +5930,6 @@ msgstr ""
 
 #: src/settings/automations/index.tsx
 msgid "Test runs are not available yet."
-msgstr ""
-
-#: src/onboarding/ai-key.tsx
-msgid "That key didn't work. Check it and try again."
 msgstr ""
 
 #: src/home/stat-cards.tsx

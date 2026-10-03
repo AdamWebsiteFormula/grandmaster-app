@@ -9,13 +9,12 @@ import {
   extractReasoningMiddleware,
   wrapLanguageModel,
 } from "ai";
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 
 import type { CharTask } from "@anlg/api-client";
 import type { AIProviderStorage } from "@anlg/store";
 
 import { createAppleFoundationModel } from "../apple-foundation-model";
-import { createAuthFetch } from "../auth-fetch";
 import { providerFetch } from "../provider-fetch";
 import {
   normalizeReasoningEffort,
@@ -23,7 +22,6 @@ import {
   reasoningProviderOptions,
 } from "../reasoning-effort";
 import { streamOnlyGenerationMiddleware } from "../stream-only-generation";
-import { createTracedFetch, tracedFetch } from "../traced-fetch";
 
 import { useAuth } from "~/auth";
 import { useBillingAccess } from "~/auth/billing-context";
@@ -73,31 +71,11 @@ type LLMConnectionResult = {
 export const normalizeLLMProviderId = (providerId: string): string =>
   providerId === "hyprnote" ? "anarlog" : providerId;
 
-export const useLanguageModel = (task?: CharTask): LanguageModelV3 | null => {
+// The task argument used to tag hosted requests; Upshot AI does not need it.
+export const useLanguageModel = (_task?: CharTask): LanguageModelV3 | null => {
   const { conn } = useLLMConnection();
-  const auth = useAuth();
 
-  // Auth is resolved at fetch time (not model construction) so token
-  // refreshes take effect without recreating the chat transport chain.
-  const getSessionForRequestRef = useRef(auth.getSessionForRequest);
-  getSessionForRequestRef.current = auth.getSessionForRequest;
-  const refreshSessionRef = useRef(auth.refreshSession);
-  refreshSessionRef.current = auth.refreshSession;
-
-  return useMemo(() => {
-    if (!conn) return null;
-
-    const hostedFetch =
-      conn.providerId === "anarlog"
-        ? createAuthFetch(
-            task ? createTracedFetch(task) : tracedFetch,
-            async () => (await getSessionForRequestRef.current())?.access_token,
-            async () => (await refreshSessionRef.current())?.access_token,
-          )
-        : undefined;
-
-    return createLanguageModel(conn, task, hostedFetch);
-  }, [conn, task]);
+  return useMemo(() => (conn ? createLanguageModel(conn) : null), [conn]);
 };
 
 export const useLLMConnection = (): LLMConnectionResult => {
@@ -236,15 +214,17 @@ const resolveLLMConnection = (params: {
     }
   }
 
-  if (providerId === "anarlog" && session) {
+  // Fork: Upshot AI needs no session or key; the Worker holds the model key
+  // (Granola hosts "Auto" the same way: docs.granola.ai/help-center/getting-more-from-your-notes/understanding-model-selection-in-granola-chat).
+  if (providerId === "anarlog") {
     return {
       conn: {
         providerId,
         modelId,
         baseUrl:
-          baseUrl ??
+          baseUrl ||
           new URL("/llm", env.VITE_AI_API_URL ?? env.VITE_API_URL).toString(),
-        apiKey: session.access_token,
+        apiKey: "",
         reasoningEffort,
       },
       status: { status: "success", providerId, isHosted: true },
@@ -269,12 +249,8 @@ const wrapWithThinkingMiddleware = (
   });
 };
 
-const createLanguageModel = (
-  conn: LLMConnectionInfo,
-  task?: CharTask,
-  hostedFetch?: typeof fetch,
-): LanguageModelV3 => {
-  const model = createProviderModel(conn, task, hostedFetch);
+const createLanguageModel = (conn: LLMConnectionInfo): LanguageModelV3 => {
+  const model = createProviderModel(conn);
   const providerOptions = reasoningProviderOptions(
     conn.providerId,
     conn.modelId,
@@ -290,15 +266,13 @@ const createLanguageModel = (
   });
 };
 
-const createProviderModel = (
-  conn: LLMConnectionInfo,
-  task?: CharTask,
-  hostedFetch?: typeof fetch,
-): LanguageModelV3 => {
+const createProviderModel = (conn: LLMConnectionInfo): LanguageModelV3 => {
   switch (conn.providerId) {
     case "anarlog": {
+      // Fork: no auth token or device fingerprint goes to the Upshot AI
+      // Worker; it reads only the messages.
       const provider = createOpenRouter({
-        fetch: hostedFetch ?? (task ? createTracedFetch(task) : tracedFetch),
+        fetch: providerFetch,
         baseURL: conn.baseUrl,
         apiKey: conn.apiKey,
       });

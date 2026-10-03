@@ -5,7 +5,6 @@ import type { SectionStatus } from "./shared";
 export type OnboardingStep =
   | "permissions"
   | "transcription"
-  | "ai-key"
   | "login"
   | "calendar"
   | "imports"
@@ -14,10 +13,11 @@ export type OnboardingStep =
 // Fork: no sign-in step (needs upstream services). The calendar step offers
 // only the local Apple Calendar; Granola connects the calendar during setup
 // (docs.granola.ai/help-center/getting-started/setting-up-granola-for-the-first-time).
+// No AI key step either: Granola hosts its models, and so does Upshot AI; an
+// own key is optional in Settings › Intelligence.
 const STEPS_MACOS: OnboardingStep[] = [
   "permissions",
   "transcription",
-  "ai-key",
   "calendar",
   "imports",
   "final",

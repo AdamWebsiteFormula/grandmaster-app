@@ -10,7 +10,6 @@ import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 import { cn } from "@anlg/utils";
 
 import { LoginSection } from "./account";
-import { AiKeySection } from "./ai-key";
 import { CalendarSection } from "./calendar";
 import {
   getInitialStep,
@@ -93,7 +92,6 @@ function OnboardingScreenContent({
   const [didSkipLogin, setDidSkipLogin] = useState(false);
   const [didSkipImports, setDidSkipImports] = useState(false);
   const [didSkipCalendar, setDidSkipCalendar] = useState(false);
-  const [aiKeyConnected, setAiKeyConnected] = useState(false);
   const currentPlatform = platform();
 
   const goNext = useCallback(() => {
@@ -121,19 +119,6 @@ function OnboardingScreenContent({
 
   const skipImports = useCallback(() => {
     setDidSkipImports(true);
-    skipCurrentStep();
-  }, [skipCurrentStep]);
-
-  const continueAiKey = useCallback(
-    (connected: boolean) => {
-      setAiKeyConnected(connected);
-      goNext();
-    },
-    [goNext],
-  );
-
-  const skipAiKey = useCallback(() => {
-    setAiKeyConnected(false);
     skipCurrentStep();
   }, [skipCurrentStep]);
 
@@ -283,29 +268,6 @@ function OnboardingScreenContent({
             onNext={goNext}
           >
             <TranscriptionSetupSection onContinue={goNext} />
-          </OnboardingSection>
-
-          <OnboardingSection
-            title={<Trans>Set up AI summaries</Trans>}
-            description={
-              <Trans>
-                Choose an AI provider and paste its key. Upshot uses it to turn
-                meetings into notes.
-              </Trans>
-            }
-            completedTitle={
-              aiKeyConnected ? (
-                <Trans>AI summaries ready</Trans>
-              ) : (
-                <Trans>AI summaries skipped</Trans>
-              )
-            }
-            status={getStepStatus("ai-key", currentStep)}
-            onBack={goBack}
-            onNext={() => continueAiKey(false)}
-            onSkip={skipAiKey}
-          >
-            <AiKeySection onContinue={continueAiKey} onSkip={skipAiKey} />
           </OnboardingSection>
 
           <OnboardingSection

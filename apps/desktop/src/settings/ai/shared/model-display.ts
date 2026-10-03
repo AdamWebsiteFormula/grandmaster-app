@@ -11,7 +11,8 @@ const MODEL_NAME_OVERRIDES: Record<string, string> = {
 
 export function displayLlmModelId(providerId: string, model: string): string {
   if (providerId === "anarlog" && model === "Auto") {
-    return "Pro (Cloud)";
+    // Fork: Granola names its hosted choice "Auto" (docs.granola.ai/help-center/getting-more-from-your-notes/understanding-model-selection-in-granola-chat).
+    return "Auto";
   }
 
   const normalized = stripReleaseDate(modelName(model));

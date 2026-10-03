@@ -24,6 +24,6 @@ Please include:
 
 ## Scope
 
-Upshot is a local-first Mac app. It has no server of its own. Your notes, transcripts and audio stay on your Mac, and your AI keys stay in the macOS Keychain. See "Where your data lives" in the [README](README.md).
+Upshot is a local-first Mac app. Its only server is the Upshot AI proxy, a Cloudflare Worker (`grandmaster/worker/`) that passes Enhance and chat requests to OpenRouter and stores or logs nothing. Your notes, transcripts and audio stay on your Mac, and any AI keys you add stay in the macOS Keychain. See "Where your data lives" in the [README](README.md).
 
 Upshot is a fork of [Anarlog](https://github.com/fastrepl/anarlog). If a problem is in code that Upshot did not change, please also report it to the Anarlog project.

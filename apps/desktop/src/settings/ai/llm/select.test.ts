@@ -12,6 +12,19 @@ function provider(id: string) {
 }
 
 describe("getLlmProviderStatus", () => {
+  test("configures Upshot AI with Auto and no sign-in, plan or key", async () => {
+    const definition = provider("anarlog");
+    expect(definition.displayName).toBe("Upshot AI");
+    const status = getLlmProviderStatus({
+      provider: definition,
+      isAuthenticated: false,
+      isPaid: false,
+    });
+
+    expect(status.configured).toBe(true);
+    expect((await status.listModels!()).models).toEqual(["Auto"]);
+  });
+
   test("does not configure API-key providers without a saved key", () => {
     const status = getLlmProviderStatus({
       provider: provider("openai"),

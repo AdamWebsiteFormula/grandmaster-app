@@ -136,6 +136,7 @@ export const PROMPT_OVERHEAD_TOKENS = 1_500;
 export type ModelPrice =
   | { kind: "local" }
   | { kind: "subscription" }
+  | { kind: "included" }
   | { kind: "api"; inputPerMillion: number; outputPerMillion: number };
 
 const LOCAL_PROVIDERS = new Set([
@@ -171,6 +172,8 @@ export function priceFor(
   if (!provider) return null;
   if (LOCAL_PROVIDERS.has(provider)) return { kind: "local" };
   if (SUBSCRIPTION_PROVIDERS.has(provider)) return { kind: "subscription" };
+  // Fork: Upshot AI is hosted at no charge to the user.
+  if (provider === "anarlog") return { kind: "included" };
   const id = (model ?? "").toLowerCase();
   if (id.includes("haiku")) {
     return { kind: "api", inputPerMillion: 1, outputPerMillion: 5 };

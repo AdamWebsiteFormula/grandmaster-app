@@ -40,12 +40,15 @@ export function useProviderSelectionPrompt({
       return;
     }
 
-    // Fork: a first key replaces "nothing chosen" or the on-device fallback
-    // right away, with Undo (NN/g: prefer undo over confirmation for
-    // reversible actions). A provider the user chose still gets the prompt.
+    // Fork: a first key replaces "nothing chosen", the on-device fallback or
+    // the Upshot AI default right away, with Undo (NN/g: prefer undo over
+    // confirmation for reversible actions). A provider the user chose still
+    // gets the prompt.
     if (
       !currentProvider ||
-      (providerType === "llm" && currentProvider === "apple_foundation")
+      (providerType === "llm" &&
+        (currentProvider === "apple_foundation" ||
+          currentProvider === "anarlog"))
     ) {
       // Pick the catalog's recommended model now, so the picker never sits
       // on an empty model that auto-resolution has to fill.
@@ -75,7 +78,8 @@ export function useProviderSelectionPrompt({
                   providerType === "llm"
                     ? {
                         current_llm_provider: currentProvider,
-                        current_llm_model: "",
+                        current_llm_model:
+                          currentProvider === "anarlog" ? "Auto" : "",
                       }
                     : {
                         current_stt_provider: currentProvider,

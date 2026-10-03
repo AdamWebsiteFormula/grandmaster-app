@@ -41,7 +41,10 @@ import { UpdaterMeetingSync } from "./services/updater-meeting";
 import { useRemoteSessionDeletionUndoListener } from "./session/hooks/useDeleteSession";
 import { refreshLegacySettingsSnapshots } from "./settings/legacy-snapshots";
 import { migratePlaintextAiProviderApiKeys } from "./settings/providers";
-import { initializeApplicationSettings } from "./settings/queries";
+import {
+  initializeApplicationSettings,
+  initializeDefaultLlmSelection,
+} from "./settings/queries";
 import { initializeAppExitFlush } from "./shared/app-exit";
 import { initializeAppStoreBuild, isAppStoreBuild } from "./shared/app-store";
 import { useConfigValue } from "./shared/config";
@@ -191,6 +194,7 @@ function runMainWindowStartupTasks() {
     "application_settings_initialize",
     initializeApplicationSettings,
   );
+  void runStartupTask("default_llm_select", initializeDefaultLlmSelection);
   void runStartupTask(
     "ai_credentials_migrate",
     migratePlaintextAiProviderApiKeys,

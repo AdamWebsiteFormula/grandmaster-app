@@ -68,7 +68,9 @@ export function HomeStatCards() {
       ? t`AI cost this month $0, it runs on this Mac`
       : price.kind === "subscription"
         ? t`AI cost this month ≈ $0 extra, it uses your plan`
-        : t`AI cost this month ≈ ${cost}`;
+        : price.kind === "included"
+          ? t`AI cost this month $0, Upshot AI is included`
+          : t`AI cost this month ≈ ${cost}`;
 
   return (
     <section

@@ -48,20 +48,6 @@ vi.mock("./transcription", () => ({
     <button onClick={onContinue}>Transcription done</button>
   ),
 }));
-vi.mock("./ai-key", () => ({
-  AiKeySection: ({
-    onContinue,
-    onSkip,
-  }: {
-    onContinue: (connected: boolean) => void;
-    onSkip: () => void;
-  }) => (
-    <>
-      <button onClick={() => onContinue(true)}>AI key connected</button>
-      <button onClick={onSkip}>AI key skip</button>
-    </>
-  ),
-}));
 vi.mock("./final", () => ({
   FinalDescription: () => null,
   FinalSection: () => null,
@@ -96,7 +82,7 @@ describe("StandaloneOnboardingScreen", () => {
     expect(value.previousElementSibling).toBe(title);
   });
 
-  function renderAtAiKey() {
+  function renderAtCalendar() {
     render(
       <QueryClientProvider client={new QueryClient()}>
         <StandaloneOnboardingScreen onFinish={vi.fn()} />
@@ -106,17 +92,12 @@ describe("StandaloneOnboardingScreen", () => {
     fireEvent.click(screen.getByText("Transcription done"));
   }
 
-  function renderAtCalendar() {
-    renderAtAiKey();
-    fireEvent.click(screen.getByText("AI key connected"));
-  }
-
   function renderAtImports() {
     renderAtCalendar();
     fireEvent.click(screen.getByText("Calendar done"));
   }
 
-  it("asks for Apple Calendar right after AI summaries, and it can be skipped", () => {
+  it("asks for Apple Calendar right after transcription, and it can be skipped", () => {
     renderAtCalendar();
 
     expect(screen.getByText("Connect calendar")).toBeTruthy();
@@ -132,25 +113,13 @@ describe("StandaloneOnboardingScreen", () => {
     expect(screen.getByText("Calendar connected")).toBeTruthy();
   });
 
-  it("asks for an AI key right after transcription", () => {
-    renderAtAiKey();
+  // Fork: no AI key step; Upshot AI works with no key, as Granola's models do.
+  it("goes from transcription straight to the calendar, with no AI key step", () => {
+    renderAtCalendar();
 
-    expect(screen.getByText("Set up AI summaries")).toBeTruthy();
     expect(screen.getByText("Transcription ready")).toBeTruthy();
-  });
-
-  it("says AI summaries were skipped when the key step is skipped", () => {
-    renderAtAiKey();
-    fireEvent.click(screen.getByText("AI key skip"));
-
-    expect(screen.getByText("AI summaries skipped")).toBeTruthy();
+    expect(screen.queryByText("Set up AI summaries")).toBeNull();
     expect(screen.getByText("Connect calendar")).toBeTruthy();
-  });
-
-  it("says AI summaries are ready after a key connects", () => {
-    renderAtImports();
-
-    expect(screen.getByText("AI summaries ready")).toBeTruthy();
   });
 
   it("says meeting history was skipped when the import step is skipped", () => {

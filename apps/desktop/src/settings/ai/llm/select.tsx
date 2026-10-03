@@ -310,11 +310,6 @@ export function SelectProviderAndModel() {
     configuredProviderIds.every((id) => MANUAL_ONLY_LLM_PROVIDERS.has(id));
 
   const handleProviderChange = (provider: string) => {
-    if (provider === "anarlog" && !billing.isPaid) {
-      billing.upgradeToPro();
-      return;
-    }
-
     const requestId = ++selectionRequestRef.current;
 
     const status = configuredProviders[provider];

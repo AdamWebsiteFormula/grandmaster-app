@@ -89,7 +89,7 @@ describe("useProviderSelectionPrompt", () => {
     });
   });
 
-  it.each([undefined, "apple_foundation"])(
+  it.each([undefined, "apple_foundation", "anarlog"])(
     "switches right away with Undo when the current LLM provider is %s",
     (currentProvider) => {
       const { result } = renderHook(() =>
@@ -120,9 +120,10 @@ describe("useProviderSelectionPrompt", () => {
       expect(options.action.label).toBe("Undo");
 
       act(() => options.action.onClick());
+      // Undo puts Upshot AI back on Auto, its only model.
       expect(mocks.setSettingValues).toHaveBeenLastCalledWith({
         current_llm_provider: currentProvider,
-        current_llm_model: "",
+        current_llm_model: currentProvider === "anarlog" ? "Auto" : "",
       });
     },
   );

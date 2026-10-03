@@ -66,17 +66,16 @@ export type Provider = {
 const _PROVIDERS = [
   {
     id: "anarlog",
-    displayName: "Upshot",
+    displayName: "Upshot AI",
     badge: "Recommended",
     icon: <AnarlogProviderIcon />,
     baseUrl: new URL(
       "/llm",
       env.VITE_AI_API_URL ?? env.VITE_API_URL,
     ).toString(),
-    requirements: [
-      { kind: "requires_auth" },
-      { kind: "requires_entitlement", entitlement: "pro" },
-    ],
+    // Fork: hosted models work with no sign-in and no plan, the way Granola
+    // hosts its own ("Auto"; docs.granola.ai/help-center/getting-more-from-your-notes/understanding-model-selection-in-granola-chat).
+    requirements: [],
   },
   {
     id: "claude",

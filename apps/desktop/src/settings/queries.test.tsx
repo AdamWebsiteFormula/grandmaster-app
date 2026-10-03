@@ -58,6 +58,7 @@ vi.mock("~/db/write-queue", () => ({
 
 import {
   initializeApplicationSettings,
+  initializeDefaultLlmSelection,
   parseSettingRows,
   setSettingValues,
   updateSettingValue,
@@ -278,6 +279,38 @@ describe("SQLite settings", () => {
         ],
       }),
     );
+  });
+
+  it("defaults a fresh install to Upshot AI Auto and keeps a chosen model", async () => {
+    mocks.execute.mockResolvedValue([]);
+    await initializeDefaultLlmSelection();
+    const statements = mocks.executeTransaction.mock.calls[0][0];
+    expect(statements).toContainEqual(
+      expect.objectContaining({
+        params: [
+          "current_llm_provider",
+          JSON.stringify("anarlog"),
+          expect.any(String),
+        ],
+      }),
+    );
+    expect(statements).toContainEqual(
+      expect.objectContaining({
+        params: [
+          "current_llm_model",
+          JSON.stringify("Auto"),
+          expect.any(String),
+        ],
+      }),
+    );
+
+    mocks.executeTransaction.mockClear();
+    mocks.execute.mockResolvedValue([
+      { id: "current_llm_provider", value_json: JSON.stringify("openai") },
+      { id: "current_llm_model", value_json: JSON.stringify("gpt-6") },
+    ]);
+    await initializeDefaultLlmSelection();
+    expect(mocks.executeTransaction).not.toHaveBeenCalled();
   });
 
   it("initializes languages from OS preferences", async () => {

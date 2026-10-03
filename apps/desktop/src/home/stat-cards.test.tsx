@@ -86,4 +86,16 @@ describe("HomeStatCards", () => {
       screen.getByText("AI cost this month ≈ $0.09 · Granola Business $14/mo"),
     ).toBeTruthy();
   });
+
+  it("says Upshot AI is included when it is the model", () => {
+    mocks.config.current_llm_provider = "anarlog";
+    mocks.config.current_llm_model = "Auto";
+    render(<HomeStatCards />);
+
+    expect(
+      screen.getByText(
+        "AI cost this month $0, Upshot AI is included · Granola Business $14/mo",
+      ),
+    ).toBeTruthy();
+  });
 });

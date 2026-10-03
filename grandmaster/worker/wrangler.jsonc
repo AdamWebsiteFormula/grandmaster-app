@@ -1,0 +1,18 @@
+{
+  // Upshot AI proxy. Deploy: npx wrangler@4 deploy (from this folder).
+  // Secret OPENROUTER_API_KEY is set in the Cloudflare dashboard, never here.
+  "name": "upshot-ai",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  // developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/
+  // 30 requests a minute per IP: Enhance uses 1-2, a chat turn a few more.
+  "ratelimits": [
+    {
+      "name": "RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 30, "period": 60 }
+    }
+  ],
+  "observability": { "enabled": false }
+}

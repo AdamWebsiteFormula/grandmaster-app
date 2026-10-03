@@ -76,14 +76,9 @@ function markSeen(key: string): void {
 export function BillingProvider({ children }: { children: ReactNode }) {
   const auth = useAuth();
   const {
-    current_llm_provider: currentLlmProvider,
     current_stt_provider: currentSttProvider,
     current_stt_model: currentSttModel,
-  } = useConfigValues([
-    "current_llm_provider",
-    "current_stt_provider",
-    "current_stt_model",
-  ] as const);
+  } = useConfigValues(["current_stt_provider", "current_stt_model"] as const);
 
   const claimsQuery = useQuery({
     queryKey: ["tokenInfo", auth?.session?.access_token ?? ""],
@@ -222,31 +217,8 @@ export function BillingProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  useEffect(() => {
-    if (
-      !auth?.session?.user.id ||
-      !isReady ||
-      !claimsAreCurrent ||
-      billing.isPaid
-    ) {
-      return;
-    }
-
-    if (currentLlmProvider !== "anarlog") {
-      return;
-    }
-
-    void setSettingValues({
-      current_llm_provider: "",
-      current_llm_model: "",
-    });
-  }, [
-    auth?.session?.user.id,
-    billing.isPaid,
-    claimsAreCurrent,
-    currentLlmProvider,
-    isReady,
-  ]);
+  // Fork: Upshot AI needs no plan, so an unpaid account keeps it (Granola
+  // hosts "Auto" for everyone: docs.granola.ai/help-center/getting-more-from-your-notes/understanding-model-selection-in-granola-chat).
 
   useEffect(() => {
     if (
