@@ -55,11 +55,13 @@ export function TestCardNote() {
 
 // Fork: a text link to the privacy policy, opened in the browser
 // (CalOPPA §22577(b): a text link that includes the word "privacy").
+// Its own muted color: 5.27:1 or more on the panel and cards in both
+// themes (grandmaster/sops/contrast-audit.md, redline5-oct3).
 export function PrivacyPolicyLink({ children }: { children: ReactNode }) {
   return (
     <button
       type="button"
-      className="hover:text-foreground cursor-pointer underline underline-offset-2 transition-colors"
+      className="text-muted-foreground hover:text-foreground cursor-pointer underline underline-offset-2 transition-colors"
       onClick={() => void openPrivacyPolicy()}
     >
       {children}

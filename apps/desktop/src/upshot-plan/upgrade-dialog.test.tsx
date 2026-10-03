@@ -316,7 +316,11 @@ describe("UpshotUpgradeDialog", () => {
     expect(
       screen.getByText(/By creating an account you agree to the/),
     ).not.toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "privacy policy" }));
+    const link = screen.getByRole("button", { name: "privacy policy" });
+    // Fork: muted, underlined, 4.5:1 or more (redline5-oct3).
+    expect(link.className).toContain("text-muted-foreground");
+    expect(link.className).toContain("underline");
+    fireEvent.click(link);
     await waitFor(() =>
       expect(mocks.openUrl).toHaveBeenCalledWith(
         "https://upshot-ai.example.workers.dev/privacy",

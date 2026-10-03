@@ -11,7 +11,9 @@ import {
   groupRecentNotes,
   groupComingUp,
   RECENT_SESSIONS_SQL,
+  summaryMarkdown,
   UPCOMING_EVENTS_SQL,
+  UPSHOT_SQL,
   type UpcomingEventRow,
 } from "./home-data";
 
@@ -406,5 +408,69 @@ describe("home SQL", () => {
     } finally {
       db.close();
     }
+  });
+});
+
+describe("The upshot", () => {
+  it("reads the newest unlocked note with an AI summary", () => {
+    const db = new DatabaseSync(":memory:");
+    try {
+      db.exec(`
+        CREATE TABLE sessions (id TEXT PRIMARY KEY, title TEXT, created_at TEXT, event_json TEXT, deleted_at TEXT, locked INTEGER DEFAULT 0);
+        CREATE TABLE session_documents (id TEXT PRIMARY KEY, session_id TEXT, deleted_at TEXT, kind TEXT, body TEXT, body_format TEXT, sort_order INTEGER DEFAULT 0);
+        INSERT INTO sessions (id, title, created_at, locked) VALUES
+          ('old', 'Old', '2026-10-01T10:00:00Z', 0),
+          ('mid', 'Mid', '2026-10-02T10:00:00Z', 0),
+          ('locked', 'Secret', '2026-10-03T08:00:00Z', 1),
+          ('plain', 'Plain', '2026-10-03T09:00:00Z', 0);
+        INSERT INTO session_documents (id, session_id, kind, body, body_format, sort_order) VALUES
+          ('d-old', 'old', 'summary', '# A\n- old', 'markdown', 0),
+          ('d-mid-2', 'mid', 'template_output', '# B\n- second', 'markdown', 1),
+          ('d-mid-1', 'mid', 'summary', '# B\n- first', 'markdown', 0),
+          ('d-locked', 'locked', 'summary', '# C\n- secret', 'markdown', 0),
+          ('d-plain', 'plain', 'note', 'my notes', 'markdown', 0);
+      `);
+      const rows = db.prepare(UPSHOT_SQL).all(5) as Array<{
+        id: string;
+        body: string;
+      }>;
+      expect(rows.map((row) => row.id)).toEqual(["mid", "old"]);
+      expect(rows[0].body).toContain("first");
+    } finally {
+      db.close();
+    }
+  });
+
+  it("turns a stored summary into markdown", () => {
+    const doc = {
+      type: "doc",
+      content: [
+        {
+          type: "heading",
+          attrs: { level: 1 },
+          content: [{ type: "text", text: "Next steps" }],
+        },
+        {
+          type: "bulletList",
+          content: [
+            {
+              type: "listItem",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Send the deck" }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const markdown = summaryMarkdown(JSON.stringify(doc), "prosemirror_json");
+    expect(markdown).toContain("# Next steps");
+    expect(markdown).toContain("- Send the deck");
+    expect(summaryMarkdown("# A", "markdown")).toBe("# A");
+    expect(summaryMarkdown("not json", "prosemirror_json")).toBe("");
+    expect(summaryMarkdown(null, null)).toBe("");
   });
 });

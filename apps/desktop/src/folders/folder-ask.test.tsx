@@ -34,8 +34,11 @@ describe("FolderAskComposer", () => {
     expect(field.getAttribute("placeholder")).toBe("Ask about notes in Acme…");
     const send = screen.getByRole("button", { name: "Send" });
     expect(send.hasAttribute("disabled")).toBe(true);
+    expect(send.className).toContain("bg-foreground");
 
     fireEvent.change(field, { target: { value: "  What did we decide?  " } });
+    // Fork: with text, Send takes the brand accent (redline5-oct3).
+    expect(send.className).toContain("bg-primary");
     fireEvent.submit(field.closest("form")!);
 
     expect(mocks.chat.startNewChat).toHaveBeenCalledOnce();

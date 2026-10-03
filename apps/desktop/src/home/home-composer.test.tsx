@@ -77,7 +77,10 @@ describe("HomeComposer", () => {
 
     const input = screen.getByRole("textbox", { name: "Ask anything" });
     fireEvent.change(input, { target: { value: "What's due Friday?" } });
-    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+    const send = screen.getByRole("button", { name: "Send" });
+    // Fork: Send uses the brand accent (redline5-oct3).
+    expect(send.className).toContain("bg-primary");
+    fireEvent.click(send);
     expect(mocks.queueChatPrompt).toHaveBeenCalledWith("What's due Friday?");
     expect(mocks.chat.sendEvent).toHaveBeenCalledWith({ type: "OPEN" });
   });

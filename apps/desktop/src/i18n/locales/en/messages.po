@@ -649,6 +649,10 @@ msgstr "AI notes and chat (best model picked for you)"
 msgid "AI step"
 msgstr "AI step"
 
+#: src/home/upshot-card.tsx
+msgid "AI summary, may contain mistakes"
+msgstr "AI summary, may contain mistakes"
+
 #: src/contacts/details.tsx
 msgid "AI-generated summary of all interactions and notes with this contact will appear here. This will synthesize key discussion points, action items, and relationship context across all meetings and notes."
 msgstr "AI-generated summary of all interactions and notes with this contact will appear here. This will synthesize key discussion points, action items, and relationship context across all meetings and notes."
@@ -3202,6 +3206,10 @@ msgstr "Frequently used"
 msgid "From {date}"
 msgstr "From {date}"
 
+#: src/home/upshot-card.tsx
+msgid "From {title}"
+msgstr "From {title}"
+
 #: src/session-sharing/draft-panel.tsx
 #: src/session-sharing/management-panel.tsx
 msgid "Full access"
@@ -4483,6 +4491,10 @@ msgstr "next month"
 #: src/calendar/components/calendar-view.tsx
 msgid "Next month"
 msgstr "Next month"
+
+#: src/home/upshot-card.tsx
+msgid "Next steps"
+msgstr "Next steps"
 
 #: src/sidebar/timeline/utils/index.ts
 msgid "next week"
@@ -7336,6 +7348,10 @@ msgstr "The transcript is still being processed, so chat can't read it yet. Ask 
 msgid "The update download failed"
 msgstr "The update download failed"
 
+#: src/home/upshot-card.tsx
+msgid "The upshot"
+msgstr "The upshot"
+
 #: src/session/components/floating/recording-bar.tsx
 msgid "Them"
 msgstr "Them"
@@ -7478,6 +7494,7 @@ msgstr "to turn it on, or"
 
 #: src/chat/components/message/tool/search-meetings.tsx
 #: src/home/home-view.tsx
+#: src/home/upshot-card.tsx
 #: src/sidebar/timeline/utils/index.ts
 msgid "Today"
 msgstr "Today"
@@ -7804,6 +7821,7 @@ msgid "Untitled event"
 msgstr "Untitled event"
 
 #: src/home/home-view.tsx
+#: src/home/upshot-card.tsx
 #: src/shared/open-note-dialog.tsx
 msgid "Untitled note"
 msgstr "Untitled note"
@@ -8376,6 +8394,7 @@ msgid "Yearly · ${yearlyPrice}/yr (save ${yearlySavings})"
 msgstr "Yearly · ${yearlyPrice}/yr (save ${yearlySavings})"
 
 #: src/home/home-view.tsx
+#: src/home/upshot-card.tsx
 #: src/sidebar/timeline/utils/index.ts
 msgid "Yesterday"
 msgstr "Yesterday"

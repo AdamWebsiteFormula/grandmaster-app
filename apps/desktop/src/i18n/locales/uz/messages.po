@@ -649,6 +649,10 @@ msgstr ""
 msgid "AI step"
 msgstr ""
 
+#: src/home/upshot-card.tsx
+msgid "AI summary, may contain mistakes"
+msgstr ""
+
 #: src/contacts/details.tsx
 msgid "AI-generated summary of all interactions and notes with this contact will appear here. This will synthesize key discussion points, action items, and relationship context across all meetings and notes."
 msgstr ""
@@ -3202,6 +3206,10 @@ msgstr ""
 msgid "From {date}"
 msgstr ""
 
+#: src/home/upshot-card.tsx
+msgid "From {title}"
+msgstr ""
+
 #: src/session-sharing/draft-panel.tsx
 #: src/session-sharing/management-panel.tsx
 msgid "Full access"
@@ -4482,6 +4490,10 @@ msgstr ""
 
 #: src/calendar/components/calendar-view.tsx
 msgid "Next month"
+msgstr ""
+
+#: src/home/upshot-card.tsx
+msgid "Next steps"
 msgstr ""
 
 #: src/sidebar/timeline/utils/index.ts
@@ -7336,6 +7348,10 @@ msgstr ""
 msgid "The update download failed"
 msgstr ""
 
+#: src/home/upshot-card.tsx
+msgid "The upshot"
+msgstr ""
+
 #: src/session/components/floating/recording-bar.tsx
 msgid "Them"
 msgstr ""
@@ -7478,6 +7494,7 @@ msgstr ""
 
 #: src/chat/components/message/tool/search-meetings.tsx
 #: src/home/home-view.tsx
+#: src/home/upshot-card.tsx
 #: src/sidebar/timeline/utils/index.ts
 msgid "Today"
 msgstr ""
@@ -7804,6 +7821,7 @@ msgid "Untitled event"
 msgstr ""
 
 #: src/home/home-view.tsx
+#: src/home/upshot-card.tsx
 #: src/shared/open-note-dialog.tsx
 msgid "Untitled note"
 msgstr ""
@@ -8376,6 +8394,7 @@ msgid "Yearly · ${yearlyPrice}/yr (save ${yearlySavings})"
 msgstr ""
 
 #: src/home/home-view.tsx
+#: src/home/upshot-card.tsx
 #: src/sidebar/timeline/utils/index.ts
 msgid "Yesterday"
 msgstr ""

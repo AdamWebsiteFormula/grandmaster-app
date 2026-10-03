@@ -130,7 +130,9 @@ export function HomeComposer() {
               <button
                 type="submit"
                 aria-label={t`Send`}
-                className="bg-foreground text-background inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-opacity hover:opacity-90"
+                // Fork: the brand accent marks Send (Claude.ai; Apple HIG,
+                // Color: the accent marks the primary action).
+                className="bg-primary text-primary-foreground inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition hover:brightness-90"
               >
                 <ArrowUp className="size-4" weight="bold" />
               </button>

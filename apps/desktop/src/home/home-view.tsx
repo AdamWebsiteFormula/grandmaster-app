@@ -1,6 +1,7 @@
-// Fork: home screen, top to bottom: Coming up, Follow-ups, notes by day,
-// with the Ask anything composer pinned below (home-composer.tsx, added by
-// main/empty.tsx). Layout and density follow Granola's Home (Granola 101,
+// Fork: home screen, top to bottom: The upshot (upshot-card.tsx), Coming
+// up, Follow-ups, notes by day, with the Ask anything composer pinned below
+// (home-composer.tsx, added by main/empty.tsx). Layout and density follow
+// Granola's Home (Granola 101,
 // docs.granola.ai/help-center/getting-started/granola-101, and Adam's
 // Granola screenshots, Oct 3) in Upshot's black, orange and Geist.
 // Sources:
@@ -45,6 +46,7 @@ import {
   useFollowUps,
   useRecentNotes,
 } from "./home-data";
+import { UpshotCard } from "./upshot-card";
 
 import { revealLockedNote } from "~/lock/notes";
 import { getOrCreateSessionForEventId } from "~/session/queries";
@@ -82,13 +84,17 @@ export function HomeView() {
       data-tauri-drag-region
       className="scrollbar-soft h-full overflow-y-auto"
     >
-      {/* Fork: 8 px rhythm, mt-8 between sections. */}
+      {/* Fork: 8 px rhythm, mt-8 between sections; the notes list gets
+          24 px more so past notes do not read as Coming up rows
+          (redline5-oct3, Gestalt proximity). */}
       <div
         className={cn([
           HOME_COLUMN_CLASS,
           "flex flex-col pt-14 pb-40 [&>section+section]:mt-8",
+          "[&>section[aria-labelledby=home-recent]]:mt-14",
         ])}
       >
+        <UpshotCard />
         <ComingUp days={comingUp.days} />
         <FollowUps />
         {recent.hasNotes ? (
@@ -708,33 +714,37 @@ function RecentNoteRow({
           <span aria-hidden="true" className="size-8 shrink-0" />
         ) : null}
         <span className="flex min-w-0 flex-1 flex-col">
-          {/* Fork: full title on hover and a lock mark on locked notes
-              (ux-audit-oct3 B, WCAG 1.3.1). */}
-          <span
-            title={title}
-            className="text-foreground flex min-w-0 items-center gap-1.5 text-sm font-medium"
-          >
-            <span className="min-w-0 truncate">{title}</span>
-            {note.locked ? (
-              <span
-                role="img"
-                aria-label={t`Locked`}
-                className="text-muted-foreground shrink-0"
-              >
-                <Lock className="size-3.5" aria-hidden="true" />
-              </span>
-            ) : null}
+          {/* Fork: the time sits on the title's line, baseline-aligned,
+              as Apple Mail and Granola list rows do (redline5-oct3, Home). */}
+          <span className="flex min-w-0 items-baseline gap-3">
+            {/* Fork: full title on hover and a lock mark on locked notes
+                (ux-audit-oct3 B, WCAG 1.3.1). */}
+            <span
+              title={title}
+              className="text-foreground flex min-w-0 flex-1 items-center gap-1.5 text-sm font-medium"
+            >
+              <span className="min-w-0 truncate">{title}</span>
+              {note.locked ? (
+                <span
+                  role="img"
+                  aria-label={t`Locked`}
+                  className="text-muted-foreground shrink-0"
+                >
+                  <Lock className="size-3.5" aria-hidden="true" />
+                </span>
+              ) : null}
+            </span>
+            {/* Fork: redline-oct3, row times at text-sm so they read at a
+                glance (Granola's "3:00 PM" sits at body size). */}
+            <span className={cn([TIME_CLASS, "text-sm"])}>
+              {formatTime(note.timeMs)}
+            </span>
           </span>
           {details ? (
             <span className="text-muted-foreground truncate text-xs tabular-nums">
               {details}
             </span>
           ) : null}
-        </span>
-        {/* Fork: redline-oct3, row times at text-sm so they read at a
-            glance (Granola's "3:00 PM" sits at body size). */}
-        <span className={cn([TIME_CLASS, "text-sm"])}>
-          {formatTime(note.timeMs)}
         </span>
       </InteractiveButton>
     </li>

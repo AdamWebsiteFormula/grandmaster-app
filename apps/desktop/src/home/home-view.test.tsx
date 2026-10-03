@@ -25,6 +25,7 @@ vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => "macos" }));
 
 vi.mock("./home-data", () => ({
   useComingUp: () => mocks.comingUp,
+  useUpshot: () => ({ isLoading: false, sources: [] }),
   useFollowUps: () => ({ isLoading: false, items: mocks.followUps }),
   useRecentNotes: (limit: number) => {
     mocks.recentLimits.push(limit);
@@ -343,6 +344,10 @@ describe("HomeView", () => {
     expect(plain.querySelector("span.size-8")?.textContent).toBe("");
     expect(screen.queryByText("S")).toBeNull();
     expect(screen.getByText("11:00 AM").className).toContain("text-sm");
+    // The time sits on the title's line, baseline-aligned (redline5-oct3).
+    const timeLine = screen.getAllByText("9:00 AM")[0].parentElement!;
+    expect(timeLine.className).toContain("items-baseline");
+    expect(timeLine.textContent).toContain("Standup");
     expect(screen.queryByRole("button", { name: /Blank note/ })).toBeNull();
     expect(screen.queryByRole("button", { name: "Show more" })).toBeNull();
 

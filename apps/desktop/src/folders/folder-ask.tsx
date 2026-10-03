@@ -54,7 +54,14 @@ export function FolderAskComposer({ folderPath }: { folderPath: string }) {
         type="submit"
         aria-label={t`Send`}
         disabled={!value.trim()}
-        className="bg-foreground text-background inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-opacity hover:opacity-90 disabled:cursor-default disabled:opacity-45"
+        // Fork: the brand accent marks Send once there is text (Claude.ai;
+        // Apple HIG, Color: the accent marks the primary action).
+        className={cn([
+          "inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition disabled:cursor-default disabled:opacity-45",
+          value.trim()
+            ? "bg-primary text-primary-foreground hover:brightness-90"
+            : "bg-foreground text-background",
+        ])}
       >
         <ArrowUp className="size-4" weight="bold" />
       </button>
