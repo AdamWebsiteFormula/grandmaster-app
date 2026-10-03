@@ -1,8 +1,13 @@
 import { Trans } from "@lingui/react/macro";
 
+import { commands as openerCommands } from "@anlg/plugin-opener2";
 import { Button } from "@anlg/ui/components/ui/button";
 
 import { useTabs } from "~/store/zustand/tabs";
+
+// Fork: judges never have to pay. Gemini API keys from Google AI Studio are
+// free of charge on the free tier (ai.google.dev/gemini-api/docs/pricing).
+const FREE_KEY_URL = "https://aistudio.google.com/apikey";
 
 export function ConfigError() {
   const openNew = useTabs((state) => state.openNew);
@@ -31,6 +36,13 @@ export function ConfigError() {
       >
         <Trans>Choose a model</Trans>
       </Button>
+      <button
+        type="button"
+        className="text-muted-foreground hover:text-foreground mt-4 text-sm underline underline-offset-4"
+        onClick={() => void openerCommands.openUrl(FREE_KEY_URL, null)}
+      >
+        <Trans>No key? Get a free one from Google AI Studio</Trans>
+      </button>
     </div>
   );
 }

@@ -22,6 +22,7 @@ pub fn list_installed_apps() -> Vec<InstalledApp> {
 }
 
 const SELF_BUNDLE_IDS: &[&str] = &[
+    "com.websiteformula.upshot",
     "com.anarlog.dev",
     "com.anarlog.stable",
     "com.anarlog.staging",
@@ -33,6 +34,7 @@ const SELF_BUNDLE_IDS: &[&str] = &[
 ];
 
 const SELF_APP_NAMES: &[&str] = &[
+    "upshot",
     "anarlog",
     "anarlog staging",
     "anarlog nightly",

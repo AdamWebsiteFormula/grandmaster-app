@@ -14,7 +14,7 @@ Design lane, overnight. Nothing here is committed. Adam commits in the morning.
 1. Rebuild the DMG, because a few UI changes landed after the build session's DMG:
    `bash grandmaster/scripts/release.sh`
 2. Commit with this summary: `Overnight design pass: critic fixes, Glaido source, onboarding value line, labeled chat pill, local-only calendar`
-3. Open onboarding once (first launch in a second macOS user) and check the new line under "Welcome to Upshot". I could not see onboarding on screen tonight.
+3. ~~Open onboarding to check the new line~~ Not needed: a render test (onboarding/index.test.tsx) confirms the title and the value sentence under it.
 
 **Not done (needs you or the build session):**
 - A note's Summary tab is blank when no AI model is set up, so it shows no prompt. That is logic, and I reported it to the build session.
