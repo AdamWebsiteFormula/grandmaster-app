@@ -12,7 +12,8 @@ import {
 // Fork: Resume sits where Stop was, and adds to the same transcript, as in
 // Granola (journey-meeting P1; Granola docs "How transcription works";
 // Granola screen 06; NN/g #3 user control). Same start path as ⋯ › Recording
-// › Resume recording; no engine change.
+// › Resume recording; no engine change. Redline3 S3: Resume lives in the note
+// bar beside the transcript toggle, not in a separate far-left pill.
 export function useCanResumeRecording(sessionId: string) {
   return useListener(
     (state) =>
@@ -23,7 +24,7 @@ export function useCanResumeRecording(sessionId: string) {
 
 type ResumeButtonProps = {
   sessionId: string;
-  variant: "pill" | "toolbar";
+  variant: "bar" | "toolbar";
 };
 
 export function ResumeRecordingButton(props: ResumeButtonProps) {
@@ -81,12 +82,10 @@ function ResumeButtonView({
       aria-label={t`Resume recording`}
       title={t`Resume recording`}
       onClick={onResume}
-      className="border-input bg-popover text-popover-foreground hover:bg-accent focus-visible:ring-ring pointer-events-auto absolute bottom-4 left-4 z-20 inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border px-3 text-sm font-medium shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none dark:shadow-none"
+      className="text-foreground hover:bg-accent focus-visible:ring-ring inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:outline-none"
     >
       <Microphone aria-hidden className="size-4" />
-      {/* In a very narrow pane only the icon shows, so the note bar fits
-          beside it (WCAG 2.2 SC 1.4.10 Reflow). */}
-      <span className="@max-[560px]:sr-only">{t`Resume recording`}</span>
+      <span>{t`Resume`}</span>
     </button>
   );
 }

@@ -232,7 +232,7 @@ msgid "{weeks} weeks ago"
 msgstr ""
 
 #: src/settings/plan.tsx
-msgid "<0.1"
+msgid "<1 min"
 msgstr ""
 
 #. placeholder {0}: proPrice.monthly
@@ -604,10 +604,6 @@ msgstr ""
 msgid "Add skill to…"
 msgstr ""
 
-#: src/settings/general/spoken-languages.tsx
-msgid "Add spoken language"
-msgstr "Ampio fiteny ampiasaina"
-
 #: src/settings/automations/workflow-builder.tsx
 msgid "Add step"
 msgstr ""
@@ -920,6 +916,10 @@ msgstr ""
 
 #: src/chat/components/input/model-menu.tsx
 msgid "Auto"
+msgstr ""
+
+#: src/settings/plan.tsx
+msgid "Auto only"
 msgstr ""
 
 #: src/templates/auto-form.tsx
@@ -3468,10 +3468,6 @@ msgstr ""
 msgid "Hours recorded"
 msgstr ""
 
-#: src/settings/plan.tsx
-msgid "Hours, last 30 days"
-msgstr ""
-
 #: src/settings/ai/llm/select.tsx
 msgid "How much the model thinks before answering. Default leaves it to the provider."
 msgstr ""
@@ -4736,10 +4732,6 @@ msgstr ""
 msgid "No templates yet"
 msgstr ""
 
-#: src/home/home-view.tsx
-msgid "No transcript"
-msgstr ""
-
 #: src/session/components/note-input/transcript/screens/empty.tsx
 msgid "No transcript available"
 msgstr ""
@@ -4789,10 +4781,6 @@ msgstr ""
 
 #: src/sidebar/toast/undo-delete-toast.tsx
 msgid "note"
-msgstr ""
-
-#: src/home/home-view.tsx
-msgid "Note"
 msgstr ""
 
 #: src/session/components/note-input/meta-chips.tsx
@@ -5522,6 +5510,10 @@ msgstr ""
 msgid "Recent"
 msgstr ""
 
+#: src/home/home-composer.tsx
+msgid "Recent chats"
+msgstr ""
+
 #: src/settings/sync/log.tsx
 msgid "Recent CloudSync entries from the app log."
 msgstr ""
@@ -5698,11 +5690,9 @@ msgid "Remove “{0}”?"
 msgstr ""
 
 #. placeholder {0}: bundleIdToName(bundleId)
-#. placeholder {0}: getBaseLanguageDisplayName(code, i18n.locale)
 #. placeholder {0}: material.filename
 #: src/folders/folder-editor.tsx
 #: src/settings/general/notification.tsx
-#: src/settings/general/spoken-languages.tsx
 #: src/sidebar/folder-materials.tsx
 msgid "Remove {0}"
 msgstr ""
@@ -5714,6 +5704,10 @@ msgstr ""
 
 #: src/session/components/outer-header/metadata/participants/chip.tsx
 msgid "Remove {displayName}"
+msgstr ""
+
+#: src/settings/general/spoken-languages.tsx
+msgid "Remove {name}"
 msgstr ""
 
 #: src/templates/template-form.tsx
@@ -6164,6 +6158,14 @@ msgstr ""
 
 #: src/settings/general/main-language.tsx
 msgid "Search language…"
+msgstr ""
+
+#: src/settings/general/spoken-languages.tsx
+msgid "Search languages"
+msgstr ""
+
+#: src/settings/general/spoken-languages.tsx
+msgid "Search languages…"
 msgstr ""
 
 #: src/shared/keyboard-shortcuts-dialog.tsx
@@ -7456,6 +7458,10 @@ msgstr ""
 
 #: src/settings/todo/index.tsx
 msgid "Ticket"
+msgstr ""
+
+#: src/settings/plan.tsx
+msgid "Time recorded, last 30 days"
 msgstr ""
 
 #: src/settings/general/timezone.tsx

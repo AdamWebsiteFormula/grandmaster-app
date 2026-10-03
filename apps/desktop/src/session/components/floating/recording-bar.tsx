@@ -11,7 +11,6 @@ import {
   useCaptureHealthNotice,
 } from "./capture-health";
 
-import { ResumeRecordingButton } from "~/session/components/resume-recording";
 import { usePermission } from "~/shared/hooks/usePermissions";
 import { useListener } from "~/stt/contexts";
 import {
@@ -26,13 +25,7 @@ import {
 const pillSurfaceClassName =
   "border-border bg-popover text-popover-foreground shadow-sm dark:shadow-none";
 
-export function RecordingBar({
-  sessionId,
-  showResume = false,
-}: {
-  sessionId: string;
-  showResume?: boolean;
-}) {
+export function RecordingBar({ sessionId }: { sessionId: string }) {
   const { t } = useLingui();
   const { mode, amplitude, mic, speaker, muted, seconds } = useListener(
     (state) => ({
@@ -75,11 +68,10 @@ export function RecordingBar({
     );
   }
 
+  // Fork: after Stop, Resume sits in the note bar beside the transcript
+  // toggle (redline3 S3), so nothing shows here.
   if (!active) {
-    // Fork: after Stop, Resume takes Stop's place (journey-meeting P1).
-    return showResume && mode === "inactive" ? (
-      <ResumeRecordingButton sessionId={sessionId} variant="pill" />
-    ) : null;
+    return null;
   }
 
   return (

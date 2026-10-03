@@ -8,11 +8,29 @@ import { SettingsSectionTitle } from "~/settings/page-title";
 
 export const SETTING_CONTROL_CLASS = "bg-card h-9 w-full shadow-none";
 
+// Fork: one segmented control look for Theme, Plan billing period and
+// Insights date range. Light: the selected segment is a white tile with a
+// border-input edge on the bg-accent track (3.05:1 to the track, 3.46:1 to
+// the tile: WCAG 2.2 SC 1.4.11), lighter than a black pill, as macOS
+// segmented controls (Apple HIG, Segmented controls; redline3-oct3 S1).
+// Dark keeps the solid pill (14.8:1). Every segment has a 1 px border so
+// the selection never shifts the text.
+export const SEGMENT_TRACK_CLASS = "bg-accent flex gap-1 rounded-lg p-1";
+export const SEGMENT_BASE_CLASS = "border border-transparent";
+export const SEGMENT_SELECTED_CLASS =
+  "bg-card text-foreground border-input hover:bg-card hover:text-foreground dark:bg-foreground dark:text-background dark:border-transparent dark:hover:bg-foreground dark:hover:text-background";
+export const SEGMENT_IDLE_CLASS = "text-muted-foreground hover:text-foreground";
+/** A note inside the selected segment, for example "save 21%". */
+export const SEGMENT_SELECTED_NOTE_CLASS =
+  "text-muted-foreground dark:text-background/70";
+
 // Fork: Settings rows sit in rounded cards with hairlines between them, as
 // macOS System Settings and Granola's Settings do (Apple HIG, "Settings";
 // granola-compare-oct3 section 8). The card is one surface step up from the
-// panel (design-system "Contrast": raised is lighter). Switches need no
-// override here: the shared off track meets 3:1 on the card.
+// panel (design-system "Contrast": raised is lighter): white on the warm
+// canvas in light, as Granola's Settings (redline3-oct3 S1), and the 10%
+// step on the 6% panel in dark. Switches need no override here: the shared
+// off track meets 3:1 on the card.
 export function SettingsCard({
   children,
   className,
@@ -24,7 +42,7 @@ export function SettingsCard({
     <div
       data-settings-card
       className={cn([
-        "border-border bg-muted divide-border flex min-w-0 flex-col divide-y rounded-xl border",
+        "border-border bg-card dark:bg-muted divide-border flex min-w-0 flex-col divide-y rounded-xl border",
         "[&>*]:px-4 [&>*]:py-3.5",
         className,
       ])}

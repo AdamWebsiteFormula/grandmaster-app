@@ -86,20 +86,13 @@ describe("TranscriptToolbar", () => {
   });
 
   // Fork tests: journey-meeting P1 (Resume) and P3 (language in place).
-  it("offers Resume before the language chip once recording stops", () => {
+  it("leaves Resume to the note's bottom bar once recording stops", () => {
     mocks.canResume = true;
     render(<TranscriptToolbar sessionId="session-1" editMode={false} />);
 
-    const toolbar = screen.getByRole("toolbar", { name: "Transcript" });
-    const labels = Array.from(toolbar.querySelectorAll("button")).map(
-      (button) => button.getAttribute("aria-label") ?? button.textContent,
-    );
-    expect(labels.slice(0, 2)).toEqual(["Resume recording", "English +1"]);
     expect(
-      screen
-        .getByRole("button", { name: "Resume recording" })
-        .getAttribute("data-variant"),
-    ).toBe("toolbar");
+      screen.queryByRole("button", { name: "Resume recording" }),
+    ).toBeNull();
   });
 
   it("offers no Resume while recording or when it can't start", () => {

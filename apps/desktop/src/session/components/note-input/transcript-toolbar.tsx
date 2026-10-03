@@ -17,10 +17,6 @@ import { cn } from "@anlg/utils";
 import { useCopyTranscript } from "./header-transcript";
 import { useSearch } from "./search/context";
 
-import {
-  ResumeRecordingButton,
-  useCanResumeRecording,
-} from "~/session/components/resume-recording";
 import { useHasTranscript } from "~/session/components/shared";
 import {
   CORE_TRANSCRIPTION_LANGUAGE_CODES,
@@ -73,7 +69,6 @@ export function TranscriptToolbar({
   const search = useSearch();
   const hasTranscript = useHasTranscript(sessionId);
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
-  const canResume = useCanResumeRecording(sessionId);
   const { canCopyTranscript, copyTranscript } = useCopyTranscript(sessionId);
   const canEdit =
     sessionMode === "inactive" && hasTranscript && Boolean(onEditModeChange);
@@ -122,11 +117,8 @@ export function TranscriptToolbar({
         </div>
       ) : null}
       <div className="flex-1" />
-      {/* Fork: Resume at the foot of the transcript, as in Granola screen 06
-          (journey-meeting P1). */}
-      {sessionMode === "inactive" && hasTranscript && canResume ? (
-        <ResumeRecordingButton sessionId={sessionId} variant="toolbar" />
-      ) : null}
+      {/* Fork: Resume lives in the note's bottom bar (redline3 S3), so the
+          toolbar no longer repeats it. */}
       <TranscriptLanguageChip />
       {search ? (
         <button

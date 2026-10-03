@@ -6,7 +6,13 @@ import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
 import { cn } from "@anlg/utils";
 
 import { useSetSettingValue } from "~/settings/queries";
-import { SettingRow } from "~/settings/setting-row";
+import {
+  SEGMENT_BASE_CLASS,
+  SEGMENT_IDLE_CLASS,
+  SEGMENT_SELECTED_CLASS,
+  SEGMENT_TRACK_CLASS,
+  SettingRow,
+} from "~/settings/setting-row";
 import { useConfigValue } from "~/shared/config";
 import { normalizeAppIconPreference } from "~/shared/theme/icon";
 import { applyThemePreference } from "~/shared/theme/provider";
@@ -74,7 +80,7 @@ export function ThemeSelector() {
           ref={trackRef}
           role="radiogroup"
           {...labelProps}
-          className="bg-accent flex gap-1 rounded-lg p-1"
+          className={SEGMENT_TRACK_CLASS}
         >
           {options.map((option, index) => {
             const selected = value === option.value;
@@ -93,9 +99,8 @@ export function ThemeSelector() {
                 className={cn([
                   "rounded-md px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors",
                   "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
-                  selected
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground hover:text-foreground",
+                  SEGMENT_BASE_CLASS,
+                  selected ? SEGMENT_SELECTED_CLASS : SEGMENT_IDLE_CLASS,
                 ])}
               >
                 {option.label}

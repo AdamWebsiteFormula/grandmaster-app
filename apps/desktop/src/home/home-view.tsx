@@ -203,7 +203,7 @@ export function ComingUp({ days }: { days: ComingUpDay[] }) {
         ) : null}
       </div>
       {hasEvents ? (
-        <ol className="bg-muted border-border divide-border flex flex-col divide-y rounded-xl border">
+        <ol className="bg-card dark:bg-muted border-border divide-border flex flex-col divide-y rounded-xl border">
           {visible.map((day) => (
             <ComingUpDayBlock key={day.dayMs} day={day} nextId={nextId} />
           ))}
@@ -214,7 +214,7 @@ export function ComingUp({ days }: { days: ComingUpDay[] }) {
         // recording lives in "New note" only (redline-oct3: no duplicate
         // action; NN/g empty states,
         // nngroup.com/articles/empty-state-interface-design).
-        <div className="bg-muted border-border flex min-h-14 items-center gap-4 rounded-xl border px-4 py-3">
+        <div className="bg-card dark:bg-muted border-border flex min-h-14 items-center gap-4 rounded-xl border px-4 py-3">
           <EmptyWeek />
         </div>
       )}
@@ -472,7 +472,7 @@ export function FollowUps() {
   return (
     <section
       aria-labelledby="home-follow-ups"
-      className="bg-muted mt-3! flex flex-col rounded-xl px-2 pt-2.5 pb-1.5"
+      className="bg-card dark:bg-muted border-border mt-3! flex flex-col rounded-xl border px-2 pt-2.5 pb-1.5"
     >
       <h2
         id="home-follow-ups"
@@ -670,11 +670,10 @@ function RecentNoteRow({
   const people = peopleLine(note);
   const initial = Array.from(note.people[0]?.trim() ?? "")[0] ?? "";
   const duration = formatDuration(note.durationMs);
-  // Fork: every row has a second line so rows share one height
-  // (redline2-oct3, Home).
-  const details =
-    [duration, people].filter(Boolean).join(" · ") ||
-    (note.hasTranscript ? t`Note` : t`No transcript`);
+  // Fork: a second line only for real metadata, as Granola's rows show
+  // attendees only when there are some; min-h-14 keeps every row one height
+  // (redline3-oct3 S2).
+  const details = [duration, people].filter(Boolean).join(" · ");
 
   const open = () => {
     if (!note.locked) {
@@ -712,10 +711,7 @@ function RecentNoteRow({
               (ux-audit-oct3 B, WCAG 1.3.1). */}
           <span
             title={title}
-            className={cn([
-              "flex min-w-0 items-center gap-1.5 text-sm font-medium",
-              note.title ? "text-foreground" : "text-muted-foreground",
-            ])}
+            className="text-foreground flex min-w-0 items-center gap-1.5 text-sm font-medium"
           >
             <span className="min-w-0 truncate">{title}</span>
             {note.locked ? (
@@ -728,9 +724,11 @@ function RecentNoteRow({
               </span>
             ) : null}
           </span>
-          <span className="text-muted-foreground truncate text-xs tabular-nums">
-            {details}
-          </span>
+          {details ? (
+            <span className="text-muted-foreground truncate text-xs tabular-nums">
+              {details}
+            </span>
+          ) : null}
         </span>
         {/* Fork: redline-oct3, row times at text-sm so they read at a
             glance (Granola's "3:00 PM" sits at body size). */}

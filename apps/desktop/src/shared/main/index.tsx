@@ -61,8 +61,11 @@ function MainPanel({
     >
       <div
         data-chat-floating-anchor
+        // Fork: the panel is a warm canvas in light, so white cards stand
+        // out on it (Granola light mode: white cards on an off-white canvas,
+        // a grayer sidebar); the 6% panel in dark (redline3-oct3 S1).
         className={cn([
-          "bg-card @container relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden",
+          "bg-panel @container relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden",
           isMacos && "rounded-xl",
           !noBorder && "border-border border",
         ])}

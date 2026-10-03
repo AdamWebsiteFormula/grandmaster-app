@@ -121,7 +121,7 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
   return (
     <div
       data-settings-content
-      className="bg-card flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden"
+      className="bg-panel flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden"
     >
       <div className="relative min-h-0 w-full min-w-0 flex-1 overflow-hidden">
         <div

@@ -9,6 +9,7 @@ Ratios are dark / light, after the fix unless marked "was".
 ## Totals
 
 - Token matrix: 8 foreground roles × 8 surfaces (background, card, popover, muted, accent, sidebar-accent, floating panel, dialog 16%) + 3 fill pairs = 67 pairs, 134 ratios. Before: 10 dark and 44 light failures. After: 0 light; 2 dark, both N/A (see table).
+- Round 3 (Oct 3, redline3-oct3 S1): new `--panel` and a softer light `--input` (`24 5% 54%`). Re-checked with a token parser (scratchpad `verify.mjs`): 100 pairs over background, panel, card, muted, accent and popover plus the segmented, chip, switch and Plan cells, both themes: 0 failures. Field borders on the selected-row fill (2.79 light) stay N/A, as in dark.
 - Class scan: 47 findings below (some group several files), each in both themes. 37 failed in at least one theme and are fixed; 10 pass or are exempt (disabled, decoration, hover, unreachable). What is left is under "Left as is".
 - Pixel check on the dev build (dark and light): home, ⌘K, a note, Settings › General, Settings › Plan. Sampled gray ratios matched the computed ones within 0.1; the orange button read 5.44 against a computed 5.61 (screenshot color profile).
 
@@ -23,8 +24,10 @@ Ratios are dark / light, after the fix unless marked "was".
 | Black text on orange | `--primary-foreground` on `--primary` | 7.31 | 5.61 | 1.4.3 | Unchanged; still black on the accent |
 | Error text (`text-destructive`, 108 uses) | destructive on background / card / dialog / sidebar-accent | 7.96 / 7.25 / 5.53 / 4.97 (was 4.38 / 3.99 / 3.04 / 2.73) | 5.58 / 5.81 / 5.81 / 4.68 (was 3.61 / 3.76 / 3.76 / 3.03) | 1.4.3 | New `--destructive-text` (dark `0 86% 72%`, light `0 72% 45%`) via `--text-color-destructive` |
 | Delete buttons, live row | white on `--destructive` | 4.59 | 5.56 (was 3.60) | 1.4.3 | Light `--destructive` `0 84.2% 60.2%` → `0 72% 45%` |
-| Field borders | `--input` on background / card / muted | 3.95 / 3.59 / 3.29 | 3.82 / 3.97 / 3.65 (was 1.20 / 1.25 / 1.15) | 1.4.11 | Light `--input` `24 6% 90%` → `24 5% 50%` (Material 3 "outline" role is a mid gray for the same reason) |
-| Field borders on sidebar-accent / dialog | `--input` | 2.46 / 2.74 | 3.20 / 3.97 | 1.4.11 | N/A in dark: no field sits on the selected-row fill; dialogs override fields to `hsl(0 0% 46%)` = 3.18 |
+| Field borders | `--input` on background / panel / card / muted / accent | 3.95 / 3.59 / 3.59 / 3.29 / 3.02 | 3.33 / 3.18 / 3.46 / 3.18 / 3.05 (was 1.20 / – / 1.25 / 1.15 / 1.10 at `24 6% 90%`) | 1.4.11 | Light `--input` `24 6% 90%` → `24 5% 50%` → `24 5% 54%` (Oct 3 round 3: softer, as the redline asked; its `24 5% 58%` would be 2.79 on the canvas, so 54% is the lightest that keeps 3:1 on every surface a field sits on). Material 3 "outline" role is a mid gray for the same reason |
+| Field borders on sidebar-accent / dialog | `--input` | 2.46 / 2.74 | 2.79 / 3.46 | 1.4.11 | N/A: no field sits on the selected-row fill (both themes); dialogs override fields to `hsl(0 0% 46%)` = 3.18 dark, 4.6 light |
+| Main panel (new `--panel`, round 3) | text and fields on the panel | muted 6.71, input 3.59 (= card, unchanged) | muted 5.27, foreground 16.07, primary-text 5.45, destructive-text 5.34, ring 4.58, input 3.18 | 1.4.3 / 1.4.11 | New token: light `60 5% 96%` canvas under white cards (Granola light mode), dark `0 0% 6%` (the old panel). Panel to sidebar 1.04 light, 1.10 dark, plus the panel's 1 px border: separation, not state |
+| Switch off track | thumb `--background` on `--input` | 3.95 | 3.33 (was 3.82) | 1.4.11 | Pass after the softer light `--input` |
 | Hairlines | `--border` on background / card | 1.94 / 1.77 | 1.20 / 1.25 | — | Exempt: decoration, never the only cue (fields use `--input`) |
 | Foreground, alert-foreground | on every surface | ≥ 12.0 / ≥ 4.97 | ≥ 14.1 / ≥ 5.21 | 1.4.3 | Pass |
 
@@ -73,6 +76,9 @@ Ratios are dark / light, after the fix unless marked "was".
 | Onboarding completed step titles (`onboarding/shared.tsx`) | muted/70 | 7.37 (was 3.95) | 5.50 (was 2.97) | 1.4.3 | `text-muted-foreground` |
 | Onboarding signed-in line (`account/after-login.tsx`) | emerald-600 | 19.2 | 16.8 (was 3.52) | 1.4.3 | `text-foreground` |
 | Plan: segmented control, "save 21%", features, test-mode note | measured | 5.65–8.26 | 5.05–8.73 | 1.4.3 | Pass (light muted fix) |
+| Segmented controls, light (Theme, Plan billing period, Insights range; `SEGMENT_*` in `setting-row.tsx`, round 3) | selected white tile with `border-input` on the `bg-accent` track; text on tile; idle text on track | pill 14.72 on track, text 19.23, note 8.19 (unchanged) | edge 3.05 to track, 3.46 to tile; text 17.49; note 5.73; idle 5.04 | 1.4.11 / 1.4.3 | Light selected `bg-foreground` pill → `bg-card border-input`; dark keeps the pill |
+| Plan "Auto only" cell, current-column tint (round 3) | muted text on card / on `bg-accent` tint | 6.14 / 5.64 | 5.73 / 5.04 | 1.4.3 | Pass. The current column lost its `border-input` outline; the "Current plan" tag's text carries the state |
+| Spoken languages chips and Add language button (round 3) | foreground on `bg-accent` chip; `border-input` button on the card | 14.72; 3.29 | 15.39; 3.46 | 1.4.3 / 1.4.11 | Pass |
 | Upgrade dialog labels and hints | muted on dialog | 5.12 | 5.73 | 1.4.3 | Pass |
 | Switch (off) track on its surface (`switch.tsx`) | `--input` track on card / muted / accent / popover; thumb `--background` on track | 3.59 / 3.29 / 3.02 / 3.45; thumb 3.95 (was 1.62–1.77, border on muted) | 3.97 / 3.65 / 3.50 / 3.97; thumb 3.82 | 1.4.11 | Off track `bg-input`, thumb `bg-background` in both states; dialogs get the 46% input (3.18) |
 | Recording bar meter | foreground fill on track | ~9 | ~12 | 1.4.11 | Pass |

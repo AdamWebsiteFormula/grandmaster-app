@@ -19,7 +19,10 @@ import { setSessionFabSelectionHost } from "./selection-slot";
 import { queueChatPrompt } from "~/chat/pending-prompt";
 import { useShell } from "~/contexts/shell";
 import { TranscriptAudioIcon } from "~/session/components/note-input/header-transcript-icon";
-import { useCanResumeRecording } from "~/session/components/resume-recording";
+import {
+  ResumeRecordingButton,
+  useCanResumeRecording,
+} from "~/session/components/resume-recording";
 import {
   hasStoredNoteContent,
   useHasTranscript,
@@ -31,7 +34,10 @@ import { useListener } from "~/stt/contexts";
 // Fork: Granola's note has one bottom bar: a round transcript toggle, a wide
 // chat field, and a "Write follow up email" chip at its end
 // (granola-compare-oct3 §1, P1). It replaces a 150 px slot that clipped
-// "Ask anything" to "Ask anythi…".
+// "Ask anything" to "Ask anythi…". Redline3 S3: one centered pill holds the
+// toggle, Resume (after Stop), the Ask field and the chip; the separate
+// far-left Resume pill is gone (Granola screen 04; Apple HIG Toolbars: group
+// related controls in one bar).
 export function FloatingActionButton(props: {
   allowListening?: boolean;
   audioExists?: boolean;
@@ -58,37 +64,50 @@ export function FloatingActionButton(props: {
   // (journey-meeting P3; NN/g #5 error prevention).
   const canDraftEmail = hasTranscript || hasStoredNoteContent(rawNote);
   const { chat } = useShell();
-  const isChatOpen = chat.mode !== "FloatingClosed";
-  // Fork: the floating chat covers the bottom of the note, so Resume hides
-  // with the note bar while it is open instead of showing clipped
-  // ("Resume reco…"); it returns when chat closes, and ⋯ › Recording keeps
+  // Fork: the floating chat covers the bottom of the note, so the bar hides
+  // while it is open and returns when chat closes; ⋯ › Recording keeps
   // Resume reachable (NN/g #4 consistency; Apple HIG: never truncate a
   // button label).
-  const resumeVisible = showResume && chat.mode !== "FloatingOpen";
-  const barBesidePill = recordingBarShown || resumeVisible;
+  const floatingChatOpen = chat.mode === "FloatingOpen";
+  // With the chat in the right panel the Ask field would repeat it, so the
+  // bar keeps only the transcript toggle and Resume.
+  const showAsk = chat.mode === "FloatingClosed";
+  const hasToggle = Boolean(
+    props.onSelectView &&
+    props.editorTabs?.some((view) => view.type === "transcript"),
+  );
+  const barEmpty = !showAsk && !hasToggle && !showResume;
 
   return (
     <>
-      <RecordingBar sessionId={sessionId} showResume={resumeVisible} />
+      <RecordingBar sessionId={sessionId} />
       <div
         data-note-bar-stack
         className={cn([
-          "pointer-events-none absolute bottom-3 left-1/2 z-30 flex w-[min(520px,calc(100%-2rem))] -translate-x-1/2 flex-col-reverse items-center",
-          // The recording bar (or Resume) sits bottom left, so while it
-          // shows the note bar moves to the bottom right and narrows beside it.
-          barBesidePill &&
+          "pointer-events-none absolute bottom-3 left-1/2 z-30 flex w-[min(480px,calc(100%-2rem))] -translate-x-1/2 flex-col-reverse items-center",
+          !showAsk && "w-auto",
+          // The recording bar sits bottom left, so while it shows the note
+          // bar moves to the bottom right and narrows beside it, leaving
+          // the timer, meters and Stop uncovered.
+          recordingBarShown &&
             "right-4 left-auto w-[min(360px,calc(100%-2rem))] translate-x-0",
           // Fork: in a narrow pane only the Ask field gives way, so the
           // transcript toggle stays beside the recording bar
           // (journey-meeting P2; WCAG 2.2 SC 1.4.10 Reflow).
           recordingBarShown && "@max-[760px]:w-auto",
+          recordingBarShown && !showAsk && "w-auto",
         ])}
       >
         <div
           data-note-bar
           className={cn([
-            "peer/session-fab pointer-events-auto relative flex h-11 w-full max-w-full items-center gap-2",
-            isChatOpen && "hidden",
+            "peer/session-fab pointer-events-auto relative flex h-10 w-full max-w-full items-center gap-1 rounded-full border px-1",
+            // Fork: opaque card pill with a field border (it holds a text
+            // field); soft shadow in light, none on black (design-system.md
+            // Contrast and Dialogs).
+            "border-input bg-card shadow-sm dark:shadow-none",
+            "ring-offset-background has-[input:focus]:ring-ring has-[input:focus]:ring-2 has-[input:focus]:ring-offset-2",
+            (floatingChatOpen || barEmpty) && "hidden",
           ])}
         >
           <AnimatePresence mode="wait" initial={false}>
@@ -98,7 +117,7 @@ export function FloatingActionButton(props: {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="flex h-full w-full min-w-0 items-center gap-2"
+              className="flex h-full w-full min-w-0 items-center gap-1"
             >
               <TranscriptToggle
                 currentView={props.currentView}
@@ -106,13 +125,23 @@ export function FloatingActionButton(props: {
                 onSelectView={props.onSelectView}
                 isTranscribing={props.isTranscribing ?? false}
               />
+              {/* Fork: after Stop, Resume sits beside the toggle in the same
+                  bar (redline3 S3; Granola docs "How transcription works":
+                  resume adds to the same transcript). It calls the existing
+                  start path; no engine change. */}
+              {showResume ? (
+                <ResumeRecordingButton sessionId={sessionId} variant="bar" />
+              ) : null}
               {/* Fork: the bar is the same on Summary and Transcript; the
                   language chip lives in the transcript toolbar
                   (redline2-oct3, R2). */}
-              <NoteAskField
-                hideWhenNarrow={recordingBarShown}
-                trailing={canDraftEmail ? <FollowUpEmailChip /> : null}
-              />
+              {showAsk ? (
+                <NoteAskField
+                  hideWhenNarrow={recordingBarShown}
+                  separated={hasToggle || showResume}
+                  trailing={canDraftEmail ? <FollowUpEmailChip /> : null}
+                />
+              ) : null}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -188,7 +217,9 @@ function TranscriptToggle({
             aria-pressed={showingTranscript}
             onClick={handleClick}
             className={cn([
-              "border-input bg-popover text-foreground hover:bg-accent inline-flex h-9 shrink-0 cursor-pointer items-center justify-center gap-0.5 rounded-full border px-2.5 shadow-sm transition-colors dark:shadow-none",
+              // Fork: a segment inside the one bar, not its own pill
+              // (redline3 S3).
+              "text-foreground hover:bg-accent inline-flex h-8 shrink-0 cursor-pointer items-center justify-center gap-0.5 rounded-full px-2.5 transition-colors",
               "focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
               showingTranscript && "bg-accent",
             ])}
@@ -217,9 +248,11 @@ function TranscriptToggle({
 
 function NoteAskField({
   hideWhenNarrow = false,
+  separated = false,
   trailing,
 }: {
   hideWhenNarrow?: boolean;
+  separated?: boolean;
   trailing?: React.ReactNode;
 }) {
   const { t } = useLingui();
@@ -246,18 +279,25 @@ function NoteAskField({
         submit();
       }}
       className={cn([
-        // Fork: soft shadow in light, none on black (journey-meeting P3;
-        // design-system.md Dialogs).
-        "border-input bg-popover flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full border pr-1.5 pl-4 shadow-sm dark:shadow-none",
-        // Fork: the field is its own container, so the chip drops to its
-        // icon when the field narrows (beside Resume, or a ~920 px window)
-        // and never clips (WCAG 2.2 SC 1.4.10 Reflow; Apple HIG Toolbars:
-        // icon-only items keep a help tag).
+        // Fork: the field fills the rest of the one bar (redline3 S3); the
+        // bar draws the border, shadow and focus ring.
+        "flex h-full min-w-0 flex-1 items-center gap-2",
+        !separated && "pl-3",
+        // Fork: the field is its own container, so ⌘ J hides first and the
+        // chip then drops to its icon as the field narrows (beside Resume,
+        // or a ~720 px window), never clipping (WCAG 2.2 SC 1.4.10 Reflow;
+        // Apple HIG Toolbars: icon-only items keep a help tag).
         "@container/ask",
-        "focus-within:ring-ring focus-within:ring-offset-background focus-within:ring-2 focus-within:ring-offset-2",
         hideWhenNarrow && "@max-[760px]:hidden",
       ])}
     >
+      {separated ? (
+        <span
+          aria-hidden
+          data-note-bar-divider
+          className="bg-border h-5 w-px shrink-0"
+        />
+      ) : null}
       <input
         type="text"
         value={value}
@@ -267,7 +307,7 @@ function NoteAskField({
         aria-keyshortcuts="Meta+J"
         className="placeholder:text-muted-foreground text-foreground h-full min-w-[6.5rem] flex-1 bg-transparent text-sm focus:outline-none"
       />
-      <Kbd className="shrink-0 @max-[15rem]/ask:hidden">⌘ J</Kbd>
+      <Kbd className="shrink-0 @max-[22rem]/ask:hidden">⌘ J</Kbd>
       {trailing}
     </form>
   );
@@ -279,25 +319,33 @@ const barChipClassName = cn([
 ]);
 
 // Same prompt as the chat's "Draft follow-up email" starter, so both read
-// the same in every language.
+// the same in every language. The label shows while the field has room and
+// drops to the icon only in a narrow field, where the tooltip names it
+// (redline3 S3; Apple HIG Toolbars).
 function FollowUpEmailChip() {
   const { t } = useLingui();
   const { chat } = useShell();
   const label = t`Draft follow-up email`;
 
   return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      onClick={() => {
-        queueChatPrompt(t`Draft a follow-up email to the participants`);
-        chat.sendEvent({ type: "OPEN" });
-      }}
-      className={barChipClassName}
-    >
-      <Envelope aria-hidden className="text-muted-foreground size-3.5" />
-      <span className="truncate @max-[22rem]/ask:sr-only">{label}</span>
-    </button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            aria-label={label}
+            onClick={() => {
+              queueChatPrompt(t`Draft a follow-up email to the participants`);
+              chat.sendEvent({ type: "OPEN" });
+            }}
+            className={barChipClassName}
+          >
+            <Envelope aria-hidden className="text-muted-foreground size-3.5" />
+            <span className="truncate @max-[19rem]/ask:sr-only">{label}</span>
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="top">{label}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

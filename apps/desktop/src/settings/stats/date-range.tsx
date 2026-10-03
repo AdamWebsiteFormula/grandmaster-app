@@ -4,6 +4,13 @@ import { Button } from "@anlg/ui/components/ui/button";
 import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
 import { cn } from "@anlg/utils";
 
+import {
+  SEGMENT_BASE_CLASS,
+  SEGMENT_IDLE_CLASS,
+  SEGMENT_SELECTED_CLASS,
+  SEGMENT_TRACK_CLASS,
+} from "~/settings/setting-row";
+
 export function DateRangeFilter({
   value,
   onChange,
@@ -22,7 +29,7 @@ export function DateRangeFilter({
   return (
     <div
       ref={ref}
-      className="bg-muted flex gap-1 rounded-lg p-1"
+      className={SEGMENT_TRACK_CLASS}
       role="group"
       aria-label={t`Date range`}
     >
@@ -36,9 +43,8 @@ export function DateRangeFilter({
           onClick={() => onChange(option.id)}
           className={cn([
             "px-3 py-1.5 text-xs",
-            value === option.id
-              ? "bg-foreground text-background hover:bg-foreground hover:text-background"
-              : "text-muted-foreground hover:text-foreground",
+            SEGMENT_BASE_CLASS,
+            value === option.id ? SEGMENT_SELECTED_CLASS : SEGMENT_IDLE_CLASS,
           ])}
         >
           {option.label}

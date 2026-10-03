@@ -1,9 +1,23 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useMemo, useState } from "react";
 
-import { MagnifyingGlass, Translate, X } from "@anlg/ui/components/icons";
+import { Plus, Translate, X } from "@anlg/ui/components/icons";
 import { Badge } from "@anlg/ui/components/ui/badge";
 import { Button } from "@anlg/ui/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@anlg/ui/components/ui/command";
+import {
+  AppFloatingPanel,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@anlg/ui/components/ui/popover";
 import { cn } from "@anlg/utils";
 
 import {
@@ -12,7 +26,7 @@ import {
   getBaseLanguageDisplayName,
 } from "./language";
 
-import { SettingIconTile } from "~/settings/setting-row";
+import { SettingRow } from "~/settings/setting-row";
 
 interface SpokenLanguagesViewProps {
   mainLanguage: string;
@@ -21,6 +35,14 @@ interface SpokenLanguagesViewProps {
   supportedLanguages: readonly string[];
 }
 
+const filterFunction = (value: string, search: string) =>
+  value.toLocaleLowerCase().includes(search.toLocaleLowerCase()) ? 1 : 0;
+
+// Fork: a settings row with a right-aligned "Add language" button that opens
+// the same searchable list as Main language, and the added languages as
+// removable chips under it. It replaces a full-width input, as macOS System
+// Settings › Language & Region adds a language from a button that opens a
+// searchable list (redline3-oct3 S1).
 export function SpokenLanguagesView({
   mainLanguage,
   value,
@@ -28,9 +50,8 @@ export function SpokenLanguagesView({
   supportedLanguages,
 }: SpokenLanguagesViewProps) {
   const { i18n, t } = useLingui();
-  const [languageSearchQuery, setLanguageSearchQuery] = useState("");
-  const [languageInputFocused, setLanguageInputFocused] = useState(false);
-  const [languageSelectedIndex, setLanguageSelectedIndex] = useState(-1);
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
 
   const supportedLanguageCodes = useMemo(() => {
     const seen = new Set<string>();
@@ -52,183 +73,137 @@ export function SpokenLanguagesView({
     [mainLanguage, value],
   );
 
-  const filteredLanguages = useMemo(() => {
-    if (!languageSearchQuery.trim()) {
-      return [];
-    }
-    const query = languageSearchQuery.toLowerCase();
-    return supportedLanguageCodes.filter((langCode) => {
-      if (langCode === mainLanguageCode) return false;
-      if (selectedLanguageCodes.includes(langCode)) return false;
-      const langName = getBaseLanguageDisplayName(langCode, i18n.locale);
-      return langName.toLowerCase().includes(query);
-    });
-  }, [
-    i18n.locale,
-    languageSearchQuery,
-    mainLanguageCode,
-    selectedLanguageCodes,
-    supportedLanguageCodes,
-  ]);
+  const availableLanguages = useMemo(
+    () =>
+      supportedLanguageCodes
+        .filter(
+          (code) =>
+            code !== mainLanguageCode && !selectedLanguageCodes.includes(code),
+        )
+        .map((code) => ({
+          code,
+          label: getBaseLanguageDisplayName(code, i18n.locale),
+        })),
+    [
+      i18n.locale,
+      mainLanguageCode,
+      selectedLanguageCodes,
+      supportedLanguageCodes,
+    ],
+  );
 
-  const handleLanguageKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (
-      e.key === "Backspace" &&
-      !languageSearchQuery &&
-      selectedLanguageCodes.length > 0
-    ) {
-      e.preventDefault();
-      onChange(selectedLanguageCodes.slice(0, -1));
-      return;
-    }
-
-    if (!languageSearchQuery.trim() || filteredLanguages.length === 0) {
-      return;
-    }
-
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setLanguageSelectedIndex((prev) =>
-        prev < filteredLanguages.length - 1 ? prev + 1 : prev,
-      );
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setLanguageSelectedIndex((prev) => (prev > 0 ? prev - 1 : 0));
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      if (
-        languageSelectedIndex >= 0 &&
-        languageSelectedIndex < filteredLanguages.length
-      ) {
-        const selectedCode = filteredLanguages[languageSelectedIndex];
-        onChange([...selectedLanguageCodes, selectedCode]);
-        setLanguageSearchQuery("");
-        setLanguageSelectedIndex(-1);
-      }
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      setLanguageInputFocused(false);
-      setLanguageSearchQuery("");
-    }
+  const add = (code: string) => {
+    onChange([...selectedLanguageCodes, code]);
+    setOpen(false);
+    setQuery("");
   };
 
   return (
-    <div>
-      <div className="mb-3 flex items-center gap-3">
-        <SettingIconTile icon={Translate} />
-        <div className="min-w-0">
-          <h3 className="text-sm font-medium">
-            <Trans>Additional spoken languages</Trans>
-          </h3>
-          <p className="text-muted-foreground mt-0.5 text-xs">
-            <Trans>Transcribe meetings that use more than one language.</Trans>
-          </p>
-        </div>
-      </div>
-      <div className="relative">
-        <div
-          className={cn([
-            "border-input bg-card focus-within:border-input flex min-h-[38px] w-full flex-wrap items-center gap-1.5 rounded-2xl border px-2 py-1.5",
-            languageInputFocused && "border-input",
-          ])}
-          onClick={() =>
-            document.getElementById("language-search-input")?.focus()
-          }
-        >
-          {selectedLanguageCodes.map((code) => (
-            <Badge
-              key={code}
-              variant="secondary"
-              className="bg-muted flex items-center gap-1 px-2 py-0.5 text-xs"
-            >
-              {getBaseLanguageDisplayName(code, i18n.locale)}
+    <div className="flex flex-col gap-3">
+      <SettingRow
+        icon={Translate}
+        title={<Trans>Additional spoken languages</Trans>}
+        description={
+          <Trans>Transcribe meetings that use more than one language.</Trans>
+        }
+        controlWidth="content"
+      >
+        {(labelProps) => (
+          <Popover
+            open={open}
+            onOpenChange={(next) => {
+              setOpen(next);
+              if (!next) setQuery("");
+            }}
+          >
+            <PopoverTrigger asChild>
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                aria-label={t`Remove ${getBaseLanguageDisplayName(code, i18n.locale)}`}
-                className="-my-1 -mr-1.5 size-6 p-0 hover:bg-transparent"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onChange(selectedLanguageCodes.filter((c) => c !== code));
-                }}
+                aria-describedby={labelProps["aria-describedby"]}
+                disabled={availableLanguages.length === 0}
+                className="bg-card gap-1 shadow-none"
               >
-                <X className="size-3" />
+                <Plus aria-hidden className="size-3.5" />
+                <Trans>Add language</Trans>
               </Button>
-            </Badge>
-          ))}
-          {selectedLanguageCodes.length === 0 && (
-            <MagnifyingGlass className="text-muted-foreground size-4 shrink-0" />
-          )}
-          <input
-            id="language-search-input"
-            type="text"
-            value={languageSearchQuery}
-            onChange={(e) => {
-              setLanguageSearchQuery(e.target.value);
-              setLanguageSelectedIndex(-1);
-            }}
-            onKeyDown={handleLanguageKeyDown}
-            onFocus={() => setLanguageInputFocused(true)}
-            onBlur={() => setLanguageInputFocused(false)}
-            role="combobox"
-            aria-haspopup="listbox"
-            aria-expanded={languageInputFocused && !!languageSearchQuery.trim()}
-            aria-controls="language-options"
-            aria-activedescendant={
-              languageSelectedIndex >= 0
-                ? `language-option-${languageSelectedIndex}`
-                : undefined
-            }
-            aria-label={t`Add spoken language`}
-            placeholder={
-              selectedLanguageCodes.length === 0 ? t`Add language` : ""
-            }
-            className="placeholder:text-muted-foreground min-w-[120px] flex-1 bg-transparent text-sm focus:outline-hidden"
-          />
-        </div>
-
-        {languageInputFocused && languageSearchQuery.trim() && (
-          <div
-            id="language-options"
-            role="listbox"
-            className="border-border bg-card absolute top-full right-0 left-0 mt-1 flex max-h-60 w-full flex-col overflow-hidden overflow-y-auto rounded-2xl border shadow-md"
-          >
-            {filteredLanguages.length > 0 ? (
-              filteredLanguages.map((langCode, index) => (
-                <button
-                  key={langCode}
-                  id={`language-option-${index}`}
-                  type="button"
-                  role="option"
-                  aria-selected={languageSelectedIndex === index}
-                  onClick={() => {
-                    onChange([...selectedLanguageCodes, langCode]);
-                    setLanguageSearchQuery("");
-                    setLanguageSelectedIndex(-1);
-                  }}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onMouseEnter={() => setLanguageSelectedIndex(index)}
-                  className={cn([
-                    "flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors",
-                    languageSelectedIndex === index
-                      ? "bg-accent"
-                      : "hover:bg-accent",
-                  ])}
+            </PopoverTrigger>
+            <PopoverContent variant="app" align="end" className="w-60">
+              <AppFloatingPanel className="overflow-hidden">
+                <Command
+                  filter={filterFunction}
+                  className="rounded-[inherit] border-0 bg-transparent"
                 >
-                  <span className="truncate font-medium">
-                    {getBaseLanguageDisplayName(langCode, i18n.locale)}
-                  </span>
-                </button>
-              ))
-            ) : (
-              <div className="text-muted-foreground px-3 py-2 text-center text-sm">
-                <Trans>No matching languages found</Trans>
-              </div>
-            )}
-          </div>
+                  <CommandInput
+                    aria-label={t`Search languages`}
+                    placeholder={t`Search languages…`}
+                    value={query}
+                    onValueChange={setQuery}
+                  />
+                  <CommandEmpty>
+                    <div className="text-muted-foreground px-2 py-1.5 text-sm">
+                      <Trans>No matching languages found</Trans>
+                    </div>
+                  </CommandEmpty>
+                  <CommandList>
+                    <CommandGroup className="max-h-[250px] overflow-y-auto">
+                      {availableLanguages.map((language) => (
+                        <CommandItem
+                          key={language.code}
+                          value={`${language.label} ${language.code}`}
+                          onSelect={() => add(language.code)}
+                          className={cn([
+                            "cursor-pointer",
+                            "hover:bg-accent! focus:bg-accent! aria-selected:bg-transparent",
+                          ])}
+                        >
+                          <span className="flex-1 truncate">
+                            {language.label}
+                          </span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </AppFloatingPanel>
+            </PopoverContent>
+          </Popover>
         )}
-      </div>
+      </SettingRow>
+
+      {selectedLanguageCodes.length > 0 ? (
+        <ul
+          aria-label={t`Additional spoken languages`}
+          className="flex flex-wrap gap-1.5 pl-11"
+        >
+          {selectedLanguageCodes.map((code) => {
+            const name = getBaseLanguageDisplayName(code, i18n.locale);
+            return (
+              <li key={code}>
+                <Badge
+                  variant="secondary"
+                  className="bg-accent text-foreground flex items-center gap-1 py-0.5 pr-0.5 pl-2 text-xs font-medium"
+                >
+                  {name}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    aria-label={t`Remove ${name}`}
+                    className="size-5 rounded-full p-0 hover:bg-transparent"
+                    onClick={() =>
+                      onChange(selectedLanguageCodes.filter((c) => c !== code))
+                    }
+                  >
+                    <X aria-hidden className="size-3" />
+                  </Button>
+                </Badge>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
     </div>
   );
 }

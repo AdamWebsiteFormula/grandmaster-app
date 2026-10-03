@@ -27,7 +27,9 @@ vi.mock("~/chat/components/input/model-menu", () => ({
   ChatModelMenu: () => <button type="button">Auto</button>,
 }));
 vi.mock("~/chat/components/toolbar-controls", () => ({
-  ChatGroups: () => <button type="button">Chat history</button>,
+  ChatGroups: ({ label }: { label?: string }) => (
+    <button type="button" aria-label={label ?? "Chat history"} />
+  ),
 }));
 vi.mock("./home-view", () => ({ HOME_COLUMN_CLASS: "" }));
 
@@ -54,7 +56,7 @@ describe("HomeComposer", () => {
     }
     expect(screen.getByRole("textbox", { name: "Ask anything" })).toBeTruthy();
     expect(screen.getByText("⌘ J")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Chat history" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Recent chats" })).toBeNull();
   });
 
   it("sends a chip's prompt in a new chat", () => {
@@ -83,7 +85,7 @@ describe("HomeComposer", () => {
   it("shows history when there are past chats and hides while chat is open", () => {
     mocks.groups = [{ id: "g1" }];
     const { rerender } = render(<HomeComposer />);
-    expect(screen.getByRole("button", { name: "Chat history" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Recent chats" })).toBeTruthy();
 
     mocks.chat.mode = "FloatingOpen";
     rerender(<HomeComposer />);

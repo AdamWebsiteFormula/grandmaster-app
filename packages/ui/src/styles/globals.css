@@ -49,6 +49,9 @@
 
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
+  /* The main panel: a warm canvas under white cards in light (Granola),
+   * the 6% panel in dark. */
+  --color-panel: hsl(var(--panel));
 
   --color-sidebar: hsl(var(--sidebar-background));
   --color-sidebar-foreground: hsl(var(--sidebar-foreground));

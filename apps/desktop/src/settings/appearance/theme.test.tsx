@@ -59,6 +59,18 @@ describe("ThemeSelector", () => {
     ).toEqual(["Light", "Dark", "Match my Mac"]);
   });
 
+  it("marks the choice with a light bordered tile in light and a pill in dark", () => {
+    mocks.theme = "dark";
+    render(<ThemeSelector />);
+    const selected = screen.getByRole("radio", { name: "Dark" });
+    expect(selected.className).toContain("bg-card");
+    expect(selected.className).toContain("border-input");
+    expect(selected.className).toContain("dark:bg-foreground");
+    const idle = screen.getByRole("radio", { name: "Light" });
+    expect(idle.className).toContain("border-transparent");
+    expect(idle.className).not.toContain("bg-card");
+  });
+
   it("moves and selects with the arrow keys", () => {
     render(<ThemeSelector />);
     const system = screen.getByRole("radio", { name: "Match my Mac" });

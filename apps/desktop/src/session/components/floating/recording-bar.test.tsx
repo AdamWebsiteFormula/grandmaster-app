@@ -99,27 +99,16 @@ describe("RecordingBar", () => {
   });
 
   // Fork tests: journey-meeting P1 (Resume), P2 (live region), P3 (shadow).
-  it("offers Resume recording where Stop was once recording stops", () => {
+  // redline3 S3: Resume moved into the note bar; no far-left pill.
+  it("shows no separate Resume pill once recording stops", () => {
     mocks.mode = "inactive";
-    render(<RecordingBar sessionId="session-1" showResume />);
+    const { container } = render(<RecordingBar sessionId="session-1" />);
 
-    const resume = screen.getByRole("button", { name: "Resume recording" });
-    expect(resume.className).toContain("h-8");
-    expect(resume.className).toContain("left-4");
-    fireEvent.click(resume);
-    expect(mocks.resume).toHaveBeenCalledTimes(1);
-  });
-
-  it("asks the main window to resume from a standalone window", () => {
-    mocks.mode = "inactive";
-    mocks.isMainWebviewWindow = false;
-    render(<RecordingBar sessionId="session-1" showResume />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Resume recording" }));
-    expect(mocks.requestMainListenerControl).toHaveBeenCalledWith(
-      "start",
-      "session-1",
-    );
+    expect(
+      screen.queryByRole("button", { name: "Resume recording" }),
+    ).toBeNull();
+    expect(container.querySelector("[data-resume-recording]")).toBeNull();
+    expect(mocks.resume).not.toHaveBeenCalled();
   });
 
   it("announces only the label, not the ticking timer and meters", () => {

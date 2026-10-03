@@ -9,6 +9,12 @@ import { type FormEvent, useState } from "react";
 
 import { ArrowUp } from "@anlg/ui/components/icons";
 import { Kbd } from "@anlg/ui/components/ui/kbd";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@anlg/ui/components/ui/tooltip";
 import { cn } from "@anlg/utils";
 
 import { HOME_COLUMN_CLASS } from "./home-view";
@@ -48,32 +54,47 @@ export function HomeComposer() {
     // design-system.md Shape and space).
     <div
       data-home-composer
-      className="from-card via-card pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t via-70% to-transparent pt-10 pb-3"
+      className="from-panel via-panel pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t via-70% to-transparent pt-10 pb-3"
     >
       <div className={HOME_COLUMN_CLASS}>
         {/* Fork: one border around chips and field (redline-oct3, Granola's
-            Home composer); the focus ring moves to this box. */}
+            Home composer); the focus ring moves to this box. Same surface
+            and field border as the Chat page composer: a white card in
+            light, border-input (design-system.md Contrast; redline3-oct3 S2). */}
         <div
           className={cn([
-            "bg-muted border-border pointer-events-auto flex flex-col rounded-2xl border p-1",
+            "bg-card dark:bg-muted border-input pointer-events-auto flex flex-col rounded-2xl border p-1",
             "has-[input:focus-visible]:ring-ring has-[input:focus-visible]:ring-2",
           ])}
         >
           {/* Fork: chips that do not fit wrap onto a hidden second line, so a
               narrow window shows only whole chips (no cut-off labels). */}
           <div className="flex h-9 min-w-0 flex-wrap items-center gap-1 overflow-hidden px-1 py-1">
+            {/* Fork: the icon-only history button says what it is, by name
+                and on hover (redline3-oct3 S2; Apple HIG "Offering help":
+                help tags for icon-only controls; WCAG 2.2 SC 4.1.2). */}
             {hasHistory ? (
-              <div className="ml-2 shrink-0">
-                <ChatGroups
-                  chatScope={chat.scope}
-                  currentChatGroupId={chat.groupId}
-                  layout="floating"
-                  onSelectChat={(groupId) => {
-                    chat.selectChat(groupId);
-                    chat.sendEvent({ type: "OPEN" });
-                  }}
-                />
-              </div>
+              <TooltipProvider>
+                <Tooltip delayDuration={400}>
+                  <TooltipTrigger asChild>
+                    <div className="ml-2 shrink-0">
+                      <ChatGroups
+                        label={t`Recent chats`}
+                        chatScope={chat.scope}
+                        currentChatGroupId={chat.groupId}
+                        layout="floating"
+                        onSelectChat={(groupId) => {
+                          chat.selectChat(groupId);
+                          chat.sendEvent({ type: "OPEN" });
+                        }}
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    {t`Recent chats`}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             ) : null}
             {homeChatSuggestions().map(({ label, icon: Icon, prompt }) => (
               <button

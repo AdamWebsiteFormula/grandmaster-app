@@ -147,6 +147,9 @@ html[data-rounded-window] #root {
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
+  /* The main panel: a warm canvas under white cards in light (Granola),
+   * the 6% panel in dark. */
+  --color-panel: hsl(var(--panel));
   --color-primary: hsl(var(--primary));
   /* Text-only shades (Tailwind reads --text-color-* before --color-* for
    * text-*): orange and red text meet 4.5:1 (WCAG 2.2 SC 1.4.3) in both

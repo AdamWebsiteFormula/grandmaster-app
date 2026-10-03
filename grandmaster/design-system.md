@@ -32,14 +32,15 @@ Bare HSL triples in `packages/design-system/src/tokens.css`, read as `hsl(var(--
 |---|---|---|---|
 | `--background` | `0 0% 0%` | `60 9% 98%` | Window, sidebar, note body |
 | `--foreground` | `0 0% 96%` | `24 10% 10%` | Body text |
-| `--card` | `0 0% 6%` | `0 0% 100%` | Raised panels, cards |
+| `--card` | `0 0% 6%` | `0 0% 100%` | Cards. Light: white cards on the `--panel` canvas. Dark settings and Home cards use `bg-card dark:bg-muted` (10% on the 6% panel) |
+| `--panel` | `0 0% 6%` | `60 5% 96%` | The main panel (`bg-panel`): a warm canvas under white cards in light, as Granola's light mode (white cards on an off-white canvas); the window and sidebar stay `--background` (98%), so the canvas step and the panel border separate them. Added Oct 3 (redline3-oct3 S1) |
 | `--popover` | `0 0% 8%` | `0 0% 100%` | Menus and popovers (dialogs: see Dialogs below) |
 | `--secondary`, `--muted` | `0 0% 10%` | `60 5% 96%` | Quiet fills, chips, inputs |
 | `--muted-foreground` | `0 0% 60%` | `25 5% 40%` | Metadata, hints, placeholders (4.6:1 or more on every surface, both themes) |
 | `--accent` | `0 0% 13%` | `60 5% 94%` | Hover fill; track of a segmented control on a `bg-muted` card (shadcn name, not the brand accent) |
 | `--sidebar-accent` | `0 0% 19%` | `60 5% 90%` | Active sidebar row (Home nav and Settings nav), above the 13% hover |
 | `--border` | `0 0% 24%` | `24 6% 90%` | Hairlines |
-| `--input` | `0 0% 42%` | `24 5% 50%` | Field borders (3:1 or more on every surface a field sits on, both themes) |
+| `--input` | `0 0% 42%` | `24 5% 54%` | Field borders (3:1 or more on every surface a field sits on, both themes: light 3.05 on accent to 3.46 on white; 58% would be 2.79 on the canvas) |
 | `--primary` | `20 100% 56%` | `20 100% 39%` | Accent fill (primary buttons, checks, gauges). Dark: the logo orange #FF6A1F with black text (WCAG 2.2 7.3:1; Apple HIG: accents get brighter in dark mode). Light: #C74200 with white text. WCAG 2.2 4.99:1 and APCA Lc 79, which black-on-orange can't reach (Oct 3 button research; Radix orange step 9 also takes white text). The logo and icon stay #FF6A1F. Hover is `hover:brightness-90` |
 | `--primary-text` | `20 100% 56%` | `20 100% 35%` | Orange text: `text-primary`, note links, hashtags (4.5:1 or more). Read through `--text-color-primary` |
 | `--primary-foreground` | `0 0% 0%` | `0 0% 100%` | Text on the accent: black in dark mode, white in light |
@@ -58,8 +59,8 @@ Dark keeps the pure-black base; only the steps above it moved. The full audit, w
 
 - State indicators need 3:1 against what is next to them (WCAG 2.2 SC 1.4.11 Non-text Contrast, w3.org/WAI/WCAG22/Understanding/non-text-contrast.html). Field borders (`--input`, 42%) meet it. Hairlines (`--border`, 24%) are decoration, not state, so they only need to be seen: 1.8:1 on the 6% panel, up from 1.4:1 at 16%.
 - Steps follow the Radix scale roles (radix-ui.com/colors/docs/palette-composition/understanding-the-scale): app background, then component fills (muted 10%, accent 13%, selected 19%), then borders (24%, field borders 42%).
-- Raised is lighter (Apple HIG, Dark Mode, developer.apple.com/design/human-interface-guidelines/dark-mode). Settings › Plan cards are `bg-muted` (10%) on the 6% panel. A switch's off track is `bg-input` with a `bg-background` thumb in both states (3.0:1 or more on every surface, both themes; Apple HIG Toggles: the track fills when on).
-- Segmented controls: the selected segment is `bg-foreground text-background` (a solid pill, 14.8:1 on its track in dark, 15.4:1 in light), never `bg-background` on `bg-muted`, which is black on near-black. A note inside the selected pill (for example "save 21%") is `text-background/70`. Used in Settings › Plan, Insights date range, Billing period and General › Appearance › Theme (text segments only, no icons: sops/settings-ia-oct3.md).
+- Raised is lighter (Apple HIG, Dark Mode, developer.apple.com/design/human-interface-guidelines/dark-mode). Cards are `bg-card dark:bg-muted`: white on the 96% canvas in light, 10% on the 6% panel in dark (Settings cards, Plan, Home cards). A switch's off track is `bg-input` with a `bg-background` thumb in both states (3.0:1 or more on every surface, both themes; Apple HIG Toggles: the track fills when on).
+- Segmented controls (`SEGMENT_*` classes in `apps/desktop/src/settings/setting-row.tsx`): the track is `bg-accent`. Dark: the selected segment is `bg-foreground text-background` (a solid pill, 14.7:1 on its track), never `bg-background` on `bg-muted`, which is black on near-black. Light (Oct 3 round 3): the selected segment is a white `bg-card` tile with a `border-input` edge (3.05:1 to the track, 3.46:1 to the tile), lighter than a black pill, as macOS segmented controls. A note inside the selected segment (for example "save 21%") is `text-muted-foreground dark:text-background/70`. Used in Settings › Plan, Insights date range and General › Appearance › Theme (text segments only, no icons: sops/settings-ia-oct3.md). Billing is hidden and still has the old pill.
 - The selected sidebar row has two cues: the `--sidebar-accent` fill and `font-medium text-foreground` (other rows are `text-muted-foreground`).
 
 ### The one accent

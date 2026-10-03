@@ -162,12 +162,15 @@ export function ChatGroups({
   layout,
   onSelectChat,
   surface = "light",
+  label,
 }: {
   chatScope: ChatScope;
   currentChatGroupId: string | undefined;
   layout: "floating" | "right-panel";
   onSelectChat: (chatGroupId: string) => void;
   surface?: "light" | "dark";
+  /** Accessible name of the trigger; "Chat history" by default. */
+  label?: string;
 }) {
   const { t } = useLingui();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -179,7 +182,7 @@ export function ChatGroups({
     <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
       <DropdownMenuTrigger asChild>
         <Button
-          aria-label={t`Chat history`}
+          aria-label={label ?? t`Chat history`}
           data-tauri-drag-region="false"
           variant="ghost"
           size="sm"

@@ -195,7 +195,7 @@ describe("Settings › Plan", () => {
     expect(within(usage).queryByText("0")).toBeNull();
   });
 
-  it("shows a short meeting as under 0.1 hours, not 0", () => {
+  it("shows time under an hour as minutes, not 0.1 hours", () => {
     mocks.activity = [
       {
         session_id: "a",
@@ -206,7 +206,7 @@ describe("Settings › Plan", () => {
     ];
     render(<SettingsPlan />);
     expect(
-      within(screen.getByTestId("plan-usage")).getByText("<0.1"),
+      within(screen.getByTestId("plan-usage")).getByText("2 min"),
     ).not.toBeNull();
   });
 
@@ -223,8 +223,10 @@ describe("Settings › Plan", () => {
     render(<SettingsPlan />);
     const usage = screen.getByTestId("plan-usage");
     expect(within(usage).getByText("Meetings, last 30 days")).not.toBeNull();
-    expect(within(usage).getByText("Hours, last 30 days")).not.toBeNull();
-    expect(within(usage).getByText("1.5")).not.toBeNull();
+    expect(
+      within(usage).getByText("Time recorded, last 30 days"),
+    ).not.toBeNull();
+    expect(within(usage).getByText("1.5 hr")).not.toBeNull();
     expect(within(usage).getByText("Meetings in total")).not.toBeNull();
     expect(within(usage).getByText("2")).not.toBeNull();
   });
@@ -249,9 +251,11 @@ describe("Settings › Plan", () => {
     const modelsRow = within(table).getByRole("row", {
       name: /Pick this week's models/,
     });
+    // Free gets Auto, so the cell says so instead of a dash.
+    expect(within(modelsRow).getByText("Auto only")).not.toBeNull();
     expect(
-      within(modelsRow).getByRole("img", { name: "Not included" }),
-    ).not.toBeNull();
+      within(modelsRow).queryByRole("img", { name: "Not included" }),
+    ).toBeNull();
     expect(
       within(modelsRow).getByRole("img", { name: "Included" }),
     ).not.toBeNull();
@@ -478,15 +482,40 @@ describe("Settings › Plan", () => {
     expect(screen.queryByText("Active")).toBeNull();
   });
 
-  it("P3 the current column has a border-input outline", () => {
+  it("tints the current column with no outline and keeps the tag", () => {
     render(<SettingsPlan />);
-    const header = within(screen.getByTestId("plan-comparison")).getByRole(
-      "columnheader",
-      { name: /Free.*Current plan/ },
-    );
-    expect(header.className).toContain("border-input");
-    expect(header.className).toContain("border-x");
-    expect(header.className).toContain("border-t");
+    const table = screen.getByTestId("plan-comparison");
+    const header = within(table).getByRole("columnheader", {
+      name: /Free.*Current plan/,
+    });
+    expect(header.className).toContain("bg-accent");
+    expect(header.className).not.toContain("border-input");
+    expect(header.className).not.toContain("border-x");
+    for (const cell of table.querySelectorAll("td, th")) {
+      expect(cell.className).not.toContain("border-input");
+    }
+  });
+
+  it("puts white cards on the canvas in light and keeps room under the footer", () => {
+    render(<SettingsPlan />);
+    const card = screen
+      .getByTestId("plan-comparison")
+      .closest("[data-settings-card]");
+    expect(card?.className).toContain("bg-card");
+    expect(card?.className).toContain("dark:bg-muted");
+    const privacy = screen.getByText("Privacy policy");
+    expect(privacy.closest(".pb-6")).not.toBeNull();
+  });
+
+  it("selects a billing period with a light tile in light and a pill in dark", () => {
+    render(<SettingsPlan />);
+    const group = screen.getByRole("group", { name: "Billing period" });
+    const pressed = within(group)
+      .getAllByRole("button")
+      .find((button) => button.getAttribute("aria-pressed") === "true");
+    expect(pressed?.className).toContain("bg-card");
+    expect(pressed?.className).toContain("border-input");
+    expect(pressed?.className).toContain("dark:bg-foreground");
   });
 
   it("P3 Pro shows the price and who is billed", () => {

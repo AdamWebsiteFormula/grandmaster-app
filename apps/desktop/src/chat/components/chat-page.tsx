@@ -6,7 +6,7 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { differenceInMinutes, format } from "date-fns";
 import { type FormEvent, type KeyboardEvent, useEffect, useState } from "react";
 
-import { ArrowUp, CaretRight, ChatCircle } from "@anlg/ui/components/icons";
+import { ArrowUp, CaretRight, Chat } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
 import { useOptionalAuth } from "~/auth";
@@ -269,12 +269,12 @@ function RecentChatRow({
         onClick={() => onOpen(group.id)}
         className="hover:bg-accent focus-visible:ring-ring flex h-9 w-full cursor-pointer items-center gap-3 rounded-lg px-2 text-left transition-colors focus-visible:ring-2 focus-visible:outline-hidden"
       >
-        <span
+        {/* Fork: a 14 px square chat bubble, no outlined circle, as
+            Granola's Chat page Recents (redline3-oct3 S2). */}
+        <Chat
           aria-hidden="true"
-          className="border-border text-muted-foreground flex size-6 shrink-0 items-center justify-center rounded-md border"
-        >
-          <ChatCircle className="size-3.5" />
-        </span>
+          className="text-muted-foreground size-3.5 shrink-0"
+        />
         <span
           title={title}
           className="text-foreground min-w-0 flex-1 truncate text-sm"

@@ -556,7 +556,7 @@ export function NonAnarlogProviderCard({
       disabled={config.disabled || locked}
       value={config.id}
       className={cn([
-        "bg-muted rounded-[22px] border-2",
+        "bg-card dark:bg-muted rounded-[22px] border-2",
         looksReady ? "border-border border-solid" : "border-dashed",
       ])}
     >

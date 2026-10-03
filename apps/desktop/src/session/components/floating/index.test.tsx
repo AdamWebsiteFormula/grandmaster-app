@@ -31,6 +31,16 @@ vi.mock("~/stt/contexts", () => ({
 
 vi.mock("~/session/components/resume-recording", () => ({
   useCanResumeRecording: () => hoisted.canResume,
+  ResumeRecordingButton: ({ variant }: { variant: string }) => (
+    <button
+      type="button"
+      aria-label="Resume recording"
+      data-resume-recording
+      data-variant={variant}
+    >
+      Resume
+    </button>
+  ),
 }));
 
 vi.mock("~/session/components/shared", () => ({
@@ -93,47 +103,74 @@ describe("FloatingActionButton (note bar)", () => {
 
   // Fork tests: journey-meeting P1 (Resume), P2 (narrow pane), P3 (chip,
   // shadow).
-  it("offers Resume after Stop when the note has a transcript or audio", () => {
+  // redline3 S3: Resume is in the one centered bar, beside the toggle.
+  it("offers Resume after Stop inside the centered bar, beside the toggle", () => {
+    hoisted.canResume = true;
+    hoisted.rawNote = "Launch review";
+    renderBar({ allowListening: true });
+
+    const bar = document.querySelector("[data-note-bar]")!;
+    const resume = screen.getByRole("button", { name: "Resume recording" });
+    expect(bar.contains(resume)).toBe(true);
+    expect(resume.getAttribute("data-variant")).toBe("bar");
+    const controls = Array.from(bar.querySelectorAll("button, input")).map(
+      (element) =>
+        element.getAttribute("aria-label") ?? element.textContent ?? "",
+    );
+    expect(controls).toEqual([
+      "Show transcript",
+      "Resume recording",
+      "Ask anything",
+      "Draft follow-up email",
+    ]);
+    const stack = document.querySelector("[data-note-bar-stack]")!;
+    expect(stack.className).toContain("left-1/2");
+    expect(stack.className).toContain("-translate-x-1/2");
+    expect(stack.className).not.toContain("right-4");
+    expect(document.querySelector("[data-note-bar-divider]")).not.toBeNull();
+  });
+
+  it("passes the recording bar no Resume, so no far-left pill shows", () => {
     hoisted.canResume = true;
     renderBar({ allowListening: true });
-    expect(hoisted.recordingBarProps).toHaveBeenLastCalledWith(
-      expect.objectContaining({ showResume: true }),
-    );
-    const stack = document.querySelector("[data-note-bar-stack]")!;
-    expect(stack.className).toContain("right-4");
+    expect(hoisted.recordingBarProps).toHaveBeenLastCalledWith({
+      sessionId: "session-1",
+    });
+    expect(
+      screen.getAllByRole("button", { name: "Resume recording" }),
+    ).toHaveLength(1);
   });
 
   it("offers no Resume on a blank note, while another note records, or in a standalone window", () => {
     hoisted.canResume = true;
     hoisted.hasTranscript = false;
+    const noResume = () =>
+      expect(
+        screen.queryByRole("button", { name: "Resume recording" }),
+      ).toBeNull();
     renderBar({ allowListening: true, audioExists: false });
-    expect(hoisted.recordingBarProps).toHaveBeenLastCalledWith(
-      expect.objectContaining({ showResume: false }),
-    );
+    noResume();
+    expect(document.querySelector("[data-note-bar-divider]")).not.toBeNull();
     cleanup();
 
     hoisted.hasTranscript = true;
     hoisted.canResume = false;
     renderBar({ allowListening: true });
-    expect(hoisted.recordingBarProps).toHaveBeenLastCalledWith(
-      expect.objectContaining({ showResume: false }),
-    );
+    noResume();
     cleanup();
 
     hoisted.canResume = true;
     renderBar({ allowListening: false });
-    expect(hoisted.recordingBarProps).toHaveBeenLastCalledWith(
-      expect.objectContaining({ showResume: false }),
-    );
+    noResume();
   });
 
   it("offers Resume from saved audio alone", () => {
     hoisted.canResume = true;
     hoisted.hasTranscript = false;
     renderBar({ allowListening: true, audioExists: true });
-    expect(hoisted.recordingBarProps).toHaveBeenLastCalledWith(
-      expect.objectContaining({ showResume: true }),
-    );
+    expect(
+      screen.getByRole("button", { name: "Resume recording" }),
+    ).toBeTruthy();
   });
 
   it("hides only the Ask field in a narrow pane while recording", () => {
@@ -175,11 +212,27 @@ describe("FloatingActionButton (note bar)", () => {
     ).toBeTruthy();
   });
 
-  it("gives the note bar pills a light-only shadow", () => {
+  it("is one card pill with a light-only shadow", () => {
     renderBar();
+    const bar = document.querySelector("[data-note-bar]")!;
+    for (const name of [
+      "h-10",
+      "rounded-full",
+      "border",
+      "border-input",
+      "bg-card",
+      "shadow-sm",
+      "dark:shadow-none",
+    ]) {
+      expect(bar.className).toContain(name);
+    }
+    // The toggle and the field are segments of the bar, not pills of
+    // their own.
     const ask = document.querySelector("[data-note-ask]")!;
-    expect(ask.className).toContain("shadow-sm");
-    expect(ask.className).toContain("dark:shadow-none");
+    expect(ask.className).not.toContain("border");
+    expect(ask.className).not.toContain("shadow-sm");
+    const toggle = screen.getByRole("button", { name: "Show transcript" });
+    expect(toggle.className).not.toContain("border");
   });
 
   afterEach(() => {
@@ -192,7 +245,7 @@ describe("FloatingActionButton (note bar)", () => {
     const stack = document.querySelector("[data-note-bar-stack]")!;
     // Was a 150 px slot around a 196 px pill ("Ask anythi…").
     expect(stack.className).not.toContain("w-[150px]");
-    expect(stack.className).toContain("w-[min(520px,calc(100%-2rem))]");
+    expect(stack.className).toContain("w-[min(480px,calc(100%-2rem))]");
     const input = screen.getByRole("textbox", { name: "Ask anything" });
     expect(input.getAttribute("placeholder")).toBe("Ask anything");
     expect(input.className).toContain("flex-1");
@@ -305,22 +358,52 @@ describe("FloatingActionButton (note bar)", () => {
     hoisted.canResume = true;
     hoisted.chatMode = "FloatingOpen";
     renderBar({ allowListening: true });
-    expect(hoisted.recordingBarProps).toHaveBeenLastCalledWith(
-      expect.objectContaining({ showResume: false }),
-    );
-    cleanup();
-
-    hoisted.chatMode = "RightPanelOpen";
-    renderBar({ allowListening: true });
-    expect(hoisted.recordingBarProps).toHaveBeenLastCalledWith(
-      expect.objectContaining({ showResume: true }),
+    expect(document.querySelector("[data-note-bar]")!.className).toContain(
+      "hidden",
     );
     cleanup();
 
     hoisted.chatMode = "FloatingClosed";
     renderBar({ allowListening: true });
-    expect(hoisted.recordingBarProps).toHaveBeenLastCalledWith(
-      expect.objectContaining({ showResume: true }),
+    expect(document.querySelector("[data-note-bar]")!.className).not.toContain(
+      "hidden",
+    );
+    expect(
+      screen.getByRole("button", { name: "Resume recording" }),
+    ).toBeTruthy();
+  });
+
+  // redline3 S3: with chat in the right panel the Ask field would repeat
+  // it, so the bar keeps the toggle and Resume only.
+  it("keeps the toggle and Resume, without the Ask field, beside a right-panel chat", () => {
+    hoisted.canResume = true;
+    hoisted.chatMode = "RightPanelOpen";
+    hoisted.rawNote = "Launch review";
+    renderBar({ allowListening: true });
+
+    const bar = document.querySelector("[data-note-bar]")!;
+    expect(bar.className).not.toContain("hidden");
+    expect(document.querySelector("[data-note-ask]")).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Draft follow-up email" }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Show transcript" }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Resume recording" }),
+    ).toBeTruthy();
+    expect(
+      document.querySelector("[data-note-bar-stack]")!.className,
+    ).toContain("w-auto");
+  });
+
+  it("hides an empty bar beside a right-panel chat", () => {
+    hoisted.chatMode = "RightPanelOpen";
+    renderBar({ editorTabs: [ENHANCED, RAW] });
+
+    expect(document.querySelector("[data-note-bar]")!.className).toContain(
+      "hidden",
     );
   });
 
@@ -340,24 +423,42 @@ describe("FloatingActionButton (note bar)", () => {
 
     const form = document.querySelector("[data-note-ask]")!;
     expect(form.className).toContain("@container/ask");
-    const chip = screen.getByRole("button", { name: "Draft follow-up email" });
-    expect(chip.getAttribute("title")).toBe("Draft follow-up email");
     const label = screen.getByText("Draft follow-up email", {
       selector: "span",
     });
-    expect(label.className).toContain("@max-[22rem]/ask:sr-only");
+    // ⌘ J gives way first, then the chip label (redline3 S3).
+    expect(label.className).toContain("@max-[19rem]/ask:sr-only");
     expect(screen.getByText("⌘ J").className).toContain(
-      "@max-[15rem]/ask:hidden",
+      "@max-[22rem]/ask:hidden",
     );
   });
 
-  it("moves beside the recording bar while recording", () => {
+  it("names the icon-only follow-up chip in a tooltip", async () => {
+    hoisted.rawNote = "Launch review";
+    renderBar();
+
+    fireEvent.focus(
+      screen.getByRole("button", { name: "Draft follow-up email" }),
+    );
+    await screen.findByRole("tooltip");
+    expect(screen.getByRole("tooltip").textContent).toBe(
+      "Draft follow-up email",
+    );
+  });
+
+  it("moves beside the recording bar while recording, leaving Stop uncovered", () => {
     hoisted.sessionMode = "active";
     renderBar();
 
     const stack = document.querySelector("[data-note-bar-stack]")!;
     expect(stack.className).toContain("right-4");
+    expect(stack.className).toContain("left-auto");
+    expect(stack.className).toContain("translate-x-0");
     expect(stack.className).toContain("w-[min(360px,calc(100%-2rem))]");
+    expect(stack.className).not.toContain("left-1/2");
+    expect(
+      screen.queryByRole("button", { name: "Resume recording" }),
+    ).toBeNull();
   });
 
   it("keeps a selection slot stacked above the bar", () => {

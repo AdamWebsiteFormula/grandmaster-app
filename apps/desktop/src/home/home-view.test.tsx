@@ -313,10 +313,10 @@ describe("HomeView", () => {
     expect(screen.getByText("Standup")).toBeTruthy();
     expect(screen.getAllByText("9:00 AM")).toHaveLength(2);
     expect(screen.getByText("11:00 AM")).toBeTruthy();
-    // Untitled notes with content read "Untitled note" in muted text.
+    // Untitled notes read "Untitled note" in the same text color as titles.
     expect(
       screen.getByText("Untitled note").parentElement?.className,
-    ).toContain("text-muted-foreground");
+    ).toContain("text-foreground");
     expect(screen.getByText("Standup").parentElement?.className).toContain(
       "text-foreground",
     );
@@ -325,9 +325,12 @@ describe("HomeView", () => {
     expect(screen.getByText("32 min")).toBeTruthy();
     expect(screen.getByText("Bbaird & Jimharbaugh104")).toBeTruthy();
     expect(screen.getByText("1 hr 5 min · Ana, Bo & 2 others")).toBeTruthy();
-    // Every row has a second line, even when nothing is known.
-    expect(screen.getByText("No transcript")).toBeTruthy();
-    expect(screen.getByText("Note")).toBeTruthy();
+    // No second line without real metadata; rows keep one height.
+    expect(screen.queryByText("No transcript")).toBeNull();
+    expect(screen.queryByText("Note")).toBeNull();
+    expect(screen.getByText("Ideas").closest("button")?.className).toContain(
+      "min-h-14",
+    );
     // Attendee initials only when people were there; no glyph otherwise.
     expect(screen.getByText("B")).toBeTruthy();
     expect(screen.getByText("A")).toBeTruthy();

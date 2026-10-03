@@ -232,8 +232,8 @@ msgid "{weeks} weeks ago"
 msgstr "{weeks} weeks ago"
 
 #: src/settings/plan.tsx
-msgid "<0.1"
-msgstr "<0.1"
+msgid "<1 min"
+msgstr "<1 min"
 
 #. placeholder {0}: proPrice.monthly
 #: src/settings/general/billing.tsx
@@ -604,10 +604,6 @@ msgstr "Add section"
 msgid "Add skill to…"
 msgstr "Add skill to…"
 
-#: src/settings/general/spoken-languages.tsx
-msgid "Add spoken language"
-msgstr "Add spoken language"
-
 #: src/settings/automations/workflow-builder.tsx
 msgid "Add step"
 msgstr "Add step"
@@ -921,6 +917,10 @@ msgstr "Authorize access in your browser, then return to Upshot."
 #: src/chat/components/input/model-menu.tsx
 msgid "Auto"
 msgstr "Auto"
+
+#: src/settings/plan.tsx
+msgid "Auto only"
+msgstr "Auto only"
 
 #: src/templates/auto-form.tsx
 msgid "Auto summary format"
@@ -3468,10 +3468,6 @@ msgstr "Home"
 msgid "Hours recorded"
 msgstr "Hours recorded"
 
-#: src/settings/plan.tsx
-msgid "Hours, last 30 days"
-msgstr "Hours, last 30 days"
-
 #: src/settings/ai/llm/select.tsx
 msgid "How much the model thinks before answering. Default leaves it to the provider."
 msgstr "How much the model thinks before answering. Default leaves it to the provider."
@@ -4736,10 +4732,6 @@ msgstr "No team selected yet."
 msgid "No templates yet"
 msgstr "No templates yet"
 
-#: src/home/home-view.tsx
-msgid "No transcript"
-msgstr "No transcript"
-
 #: src/session/components/note-input/transcript/screens/empty.tsx
 msgid "No transcript available"
 msgstr "No transcript available"
@@ -4790,10 +4782,6 @@ msgstr "Not signed in"
 #: src/sidebar/toast/undo-delete-toast.tsx
 msgid "note"
 msgstr "note"
-
-#: src/home/home-view.tsx
-msgid "Note"
-msgstr "Note"
 
 #: src/session/components/note-input/meta-chips.tsx
 msgid "Note details"
@@ -5522,6 +5510,10 @@ msgstr "received"
 msgid "Recent"
 msgstr "Recent"
 
+#: src/home/home-composer.tsx
+msgid "Recent chats"
+msgstr "Recent chats"
+
 #: src/settings/sync/log.tsx
 msgid "Recent CloudSync entries from the app log."
 msgstr "Recent CloudSync entries from the app log."
@@ -5698,11 +5690,9 @@ msgid "Remove “{0}”?"
 msgstr "Remove “{0}”?"
 
 #. placeholder {0}: bundleIdToName(bundleId)
-#. placeholder {0}: getBaseLanguageDisplayName(code, i18n.locale)
 #. placeholder {0}: material.filename
 #: src/folders/folder-editor.tsx
 #: src/settings/general/notification.tsx
-#: src/settings/general/spoken-languages.tsx
 #: src/sidebar/folder-materials.tsx
 msgid "Remove {0}"
 msgstr "Remove {0}"
@@ -5715,6 +5705,10 @@ msgstr "Remove {0} from {workspaceName}? They will lose access to this workspace
 #: src/session/components/outer-header/metadata/participants/chip.tsx
 msgid "Remove {displayName}"
 msgstr "Remove {displayName}"
+
+#: src/settings/general/spoken-languages.tsx
+msgid "Remove {name}"
+msgstr "Remove {name}"
 
 #: src/templates/template-form.tsx
 msgid "Remove {target}"
@@ -6165,6 +6159,14 @@ msgstr "Search installed apps…"
 #: src/settings/general/main-language.tsx
 msgid "Search language…"
 msgstr "Search language…"
+
+#: src/settings/general/spoken-languages.tsx
+msgid "Search languages"
+msgstr "Search languages"
+
+#: src/settings/general/spoken-languages.tsx
+msgid "Search languages…"
+msgstr "Search languages…"
 
 #: src/shared/keyboard-shortcuts-dialog.tsx
 msgid "Search notes"
@@ -7457,6 +7459,10 @@ msgstr "This will remove {0} legacy files and free {1}. Your app data will not b
 #: src/settings/todo/index.tsx
 msgid "Ticket"
 msgstr "Ticket"
+
+#: src/settings/plan.tsx
+msgid "Time recorded, last 30 days"
+msgstr "Time recorded, last 30 days"
 
 #: src/settings/general/timezone.tsx
 msgid "Time zone"

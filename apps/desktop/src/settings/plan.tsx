@@ -21,7 +21,14 @@ import { cn } from "@anlg/utils";
 
 import { useNow, useTimezone, useWeekStartsOn } from "~/calendar/hooks";
 import { SettingsPageTitle, SettingsSectionTitle } from "~/settings/page-title";
-import { SettingsGroup } from "~/settings/setting-row";
+import {
+  SEGMENT_BASE_CLASS,
+  SEGMENT_IDLE_CLASS,
+  SEGMENT_SELECTED_CLASS,
+  SEGMENT_SELECTED_NOTE_CLASS,
+  SEGMENT_TRACK_CLASS,
+  SettingsGroup,
+} from "~/settings/setting-row";
 import { summarizeActivity } from "~/settings/stats/activity";
 import { useActivity } from "~/settings/stats/queries";
 import {
@@ -98,8 +105,10 @@ export function SettingsPlan() {
     }
   };
 
+  // Fork: pb-6 keeps the Privacy policy link clear of the bottom scroll
+  // fade (redline3-oct3 S1).
   return (
-    <div className="flex w-full min-w-0 flex-col gap-8">
+    <div className="flex w-full min-w-0 flex-col gap-8 pb-6">
       <SettingsPageTitle
         title={<Trans>Plan</Trans>}
         description={<Trans>Your plan, your usage and what Pro adds.</Trans>}
@@ -290,14 +299,40 @@ function PlanUsage() {
   const number = new Intl.NumberFormat(i18n.locale, {
     maximumFractionDigits: 1,
   });
+  // Fork: time recorded reads "4 min" under an hour and "1.5 hr" above it,
+  // never "0.1" (redline3-oct3 S1). Units come from Intl (CLDR short units),
+  // as the platform formats durations.
+  const minutes = new Intl.NumberFormat(i18n.locale, {
+    style: "unit",
+    unit: "minute",
+    unitDisplay: "short",
+    maximumFractionDigits: 0,
+  });
+  const hours = new Intl.NumberFormat(i18n.locale, {
+    style: "unit",
+    unit: "hour",
+    unitDisplay: "short",
+    maximumFractionDigits: 1,
+  });
+  const formatDuration = (value: number) => {
+    if (value >= 1) return hours.format(value);
+    const rounded = Math.round(value * 60);
+    return value > 0 && rounded < 1 ? t`<1 min` : minutes.format(rounded);
+  };
   const metrics = [
-    { label: t`Meetings, last 30 days`, value: stats.conversations },
-    { label: t`Hours, last 30 days`, value: stats.hours },
-    { label: t`Meetings in total`, value: stats.totalConversations },
+    {
+      label: t`Meetings, last 30 days`,
+      value: number.format(stats.conversations),
+    },
+    {
+      label: t`Time recorded, last 30 days`,
+      value: formatDuration(stats.hours),
+    },
+    {
+      label: t`Meetings in total`,
+      value: number.format(stats.totalConversations),
+    },
   ];
-  // A few minutes of audio is not "0 hours".
-  const format = (value: number) =>
-    value > 0 && value < 0.05 ? t`<0.1` : number.format(value);
 
   return (
     <SettingsGroup title={<Trans>Usage</Trans>}>
@@ -320,7 +355,7 @@ function PlanUsage() {
             <div key={metric.label} className="flex min-w-0 flex-col gap-1">
               <dt className="text-muted-foreground text-xs">{metric.label}</dt>
               <dd className="text-2xl font-semibold tabular-nums">
-                {ready ? format(metric.value) : "—"}
+                {ready ? metric.value : "—"}
               </dd>
             </div>
           ))}
@@ -333,7 +368,8 @@ function PlanUsage() {
 type ComparisonRow = {
   label: string;
   note?: string;
-  free: boolean;
+  /** True for a check, false for a dash, or a short word for a partial. */
+  free: boolean | string;
   pro: boolean;
 };
 
@@ -372,25 +408,25 @@ function PlanComparison({
     {
       label: t`Pick this week's models`,
       note: t`The newest from OpenAI, Anthropic and Google`,
-      free: false,
+      // Fork: Free still gets a model (Auto), so say so, not "—"
+      // (redline3-oct3 S1; Granola's Compare all plans names the limit).
+      free: t`Auto only`,
       pro: true,
     },
   ];
-  // Fork: the table sits in the same card as the groups above, so the
-  // current column steps up one surface (bg-accent on the bg-muted card;
-  // design-system "Contrast": raised is lighter) and gets a 1 px
-  // border-input outline, since the tint alone is about 1.1:1
-  // (journey-account-settings P3; Granola screen 17; WCAG 2.2 SC 1.4.11).
-  // Header cells align to the top so "Free" and "Pro" share one baseline
-  // (redline-oct3 Settings).
+  // Fork: the current column gets a quiet tint (bg-accent) and the
+  // "Current plan" tag, no outline (redline3-oct3 S1; Granola screen 17).
+  // The tag's text carries the state, so SC 1.4.11 asks nothing of the
+  // tint. Header cells align to the top so "Free" and "Pro" share one
+  // baseline (redline-oct3 Settings).
   const cell = (current: boolean, position: CellPosition) =>
     cn([
       "px-3 py-3 text-center",
       position === "top" ? "align-top" : "align-middle",
       position !== "bottom" && "border-border border-b",
-      current && "bg-accent border-input border-x",
-      current && position === "top" && "rounded-t-xl border-t",
-      current && position === "bottom" && "rounded-b-xl border-b",
+      current && "bg-accent",
+      current && position === "top" && "rounded-t-xl",
+      current && position === "bottom" && "rounded-b-xl",
     ]);
   const rowHeader = (position: CellPosition) =>
     cn([
@@ -414,7 +450,7 @@ function PlanComparison({
       </div>
       <div
         data-settings-card
-        className="border-border bg-muted @container min-w-0 rounded-xl border px-4 pt-3 pb-1"
+        className="border-border bg-card dark:bg-muted @container min-w-0 rounded-xl border px-4 pt-3 pb-1"
       >
         <div className="overflow-x-auto">
           <table
@@ -539,8 +575,11 @@ function PlanComparison({
   );
 }
 
-function Included({ value }: { value: boolean }) {
+function Included({ value }: { value: boolean | string }) {
   const { t } = useLingui();
+  if (typeof value === "string") {
+    return <span className="text-muted-foreground text-xs">{value}</span>;
+  }
   return value ? (
     <span role="img" aria-label={t`Included`} className="inline-flex">
       <Check className="text-foreground size-4" weight="bold" aria-hidden />
@@ -663,7 +702,7 @@ function IntervalToggle({
   return (
     <div
       ref={ref}
-      className="bg-accent flex gap-1 rounded-lg p-1"
+      className={SEGMENT_TRACK_CLASS}
       role="group"
       aria-label={t`Billing period`}
     >
@@ -677,9 +716,8 @@ function IntervalToggle({
           onClick={() => onChange(option.id)}
           className={cn([
             "flex-1 gap-1.5 px-3 py-1.5 text-sm",
-            value === option.id
-              ? "bg-foreground text-background hover:bg-foreground hover:text-background"
-              : "text-muted-foreground hover:text-foreground",
+            SEGMENT_BASE_CLASS,
+            value === option.id ? SEGMENT_SELECTED_CLASS : SEGMENT_IDLE_CLASS,
           ])}
         >
           {option.label}
@@ -689,7 +727,7 @@ function IntervalToggle({
               <span
                 className={
                   value === option.id
-                    ? "text-background/70"
+                    ? SEGMENT_SELECTED_NOTE_CLASS
                     : "text-muted-foreground"
                 }
               >
