@@ -22,7 +22,7 @@ Blueprint: grandmaster/blueprint.md before code. Link: gate test green. Architec
 - Stack: Tauri 2, Rust, React 19, Tailwind 4, pnpm. No dependency upgrades.
 - Must not touch: audio capture, transcription, crates/cloudsync, LICENSE files, @anlg/* and anlg-* names.
 - No API keys in repo, build or bundle.
-- Never git commit or push. Say "ready to commit: <msg>".
+- Commit and push to the `grandmaster` branch of `AdamWebsiteFormula/grandmaster-app` yourself after each round, but only when vitest, tsc and rebrand-check pass (Adam, Oct 3). Never commit secrets or anything from `~/code/grandmaster-private/`.
 - Same error for 20 minutes: stop and ask me.
 - When a different model would suit the next task better (for example Sonnet for mechanical rebrand or release work), tell me at the start of that task.
 - Design: nothing touches edges; one type ratio; 3-second glanceability; sentence case, no eyebrow labels.
