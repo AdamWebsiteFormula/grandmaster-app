@@ -137,10 +137,8 @@ export function UpshotCard() {
           <span className="min-w-0 truncate">
             <Trans>From {title}</Trans>
           </span>
-          <span className="shrink-0 tabular-nums">
-            {" · "}
-            {day}
-          </span>
+          {/* A flex item drops its leading space, so the gap is padding. */}
+          <span className="shrink-0 pl-1 tabular-nums">· {day}</span>
         </button>
       </div>
       {upshot.lead ? (
