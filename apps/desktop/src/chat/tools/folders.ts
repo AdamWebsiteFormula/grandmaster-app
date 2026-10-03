@@ -1,6 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 
+import { waitForApproval } from "~/chat/components/message/tool/pending-approval-store";
 import { liveQueryClient } from "~/db";
 import { createNamedFolder } from "~/session/folder-catalog";
 import { normalizeFolderPath } from "~/session/folders";
@@ -67,17 +68,30 @@ async function loadMeetingFolder(meetingId: string) {
   return rows[0];
 }
 
+export function describeFolderMove(count: number, path: string): string {
+  const meetings = count === 1 ? "1 meeting" : `${count} meetings`;
+  if (!path) {
+    return count === 1
+      ? "Remove 1 meeting from its folder."
+      : `Remove ${meetings} from their folders.`;
+  }
+  return `Move ${meetings} to "${path}".`;
+}
+
 export const buildMoveMeetingsToFolderTool = () =>
   tool({
     description:
-      "Move up to 200 existing meetings into an existing folder, or use an empty folder_path to unfile them. This changes folder assignment only; it does not merge meetings or move contents between meetings. Resolve meeting IDs with list_meetings or get_recurring_meeting_history and use the exact destination from list_folders or create_folder. For all/every requests, follow meeting pagination and submit each batch. Results report moved, unchanged, and failed meetings separately; never claim failures succeeded.",
+      "Propose moving up to 200 existing meetings into an existing folder, or use an empty folder_path to unfile them. Nothing moves until the user presses Apply on the card; a declined status means the user dismissed it. This changes folder assignment only; it does not merge meetings or move contents between meetings. Resolve meeting IDs with list_meetings or get_recurring_meeting_history and use the exact destination from list_folders or create_folder. For all/every requests, follow meeting pagination and submit each batch. Results report moved, unchanged, and failed meetings separately; never claim failures succeeded.",
     inputSchema: z.object({
       meeting_ids: z.array(z.string().trim().min(1)).min(1).max(200),
       folder_path: folderPathSchema.describe(
         "Exact destination folder path, or an empty string to remove folder assignment",
       ),
     }),
-    execute: async ({ meeting_ids, folder_path }, { abortSignal }) => {
+    execute: async (
+      { meeting_ids, folder_path },
+      { abortSignal, toolCallId },
+    ) => {
       const path = normalizeFolderPath(folder_path);
       if (
         path === null ||
@@ -91,6 +105,23 @@ export const buildMoveMeetingsToFolderTool = () =>
         };
       }
 
+      const meetingIds = [...new Set(meeting_ids)];
+      const approved = await waitForApproval(toolCallId, {
+        details: describeFolderMove(meetingIds.length, path),
+        abortSignal,
+      });
+      if (!approved) {
+        return {
+          status: "declined" as const,
+          message: "The user dismissed the move. Nothing was changed.",
+          folder_path: path,
+          moved: 0,
+          unchanged: 0,
+          failed: 0,
+          results: [],
+        };
+      }
+
       const results: Array<{
         meeting_id: string;
         title?: string;
@@ -98,7 +129,7 @@ export const buildMoveMeetingsToFolderTool = () =>
         status: "moved" | "unchanged" | "error";
         message?: string;
       }> = [];
-      for (const meetingId of new Set(meeting_ids)) {
+      for (const meetingId of meetingIds) {
         try {
           abortSignal?.throwIfAborted();
           const meeting = await loadMeetingFolder(meetingId);

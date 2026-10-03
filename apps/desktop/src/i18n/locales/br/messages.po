@@ -950,10 +950,6 @@ msgstr ""
 msgid "Capture your first conversation. Every collection starts somewhere."
 msgstr ""
 
-#: src/session/components/outer-header/audio-saved.tsx
-msgid "Change how long recordings are kept"
-msgstr ""
-
 #: src/contacts/details.tsx
 #: src/contacts/organization-details.tsx
 #: src/contacts/profile-photo.tsx
@@ -3784,6 +3780,10 @@ msgstr ""
 msgid "No items today"
 msgstr ""
 
+#: src/session/components/note-input/enhanced/config-error.tsx
+msgid "No key? Get a free one from Google AI Studio"
+msgstr ""
+
 #: src/settings/dictionary/index.tsx
 msgid "No match"
 msgstr ""
@@ -4404,10 +4404,6 @@ msgstr ""
 msgid "Re-transcription failed"
 msgstr ""
 
-#: src/onboarding/permissions.tsx
-msgid "Read meeting controls and visible chat"
-msgstr ""
-
 #: src/settings/general/permissions.tsx
 msgid "Read meeting controls and visible chat."
 msgstr ""
@@ -5015,6 +5011,10 @@ msgstr ""
 
 #: src/session/components/note-input/template-picker.tsx
 msgid "See all templates"
+msgstr ""
+
+#: src/onboarding/permissions.tsx
+msgid "See which meeting app you're in and when the call ends"
 msgstr ""
 
 #: src/settings/ai/shared/model-combobox.tsx
@@ -6413,7 +6413,7 @@ msgid "Upshot needs access to your microphone and system audio to record and tra
 msgstr ""
 
 #: src/onboarding/index.tsx
-msgid "Upshot needs microphone and system audio to transcribe your meetings, plus Accessibility to read meeting controls, visible chat."
+msgid "Upshot needs your microphone and your Mac's sound to transcribe meetings, and Accessibility to see which meeting app you're in and when the call ends."
 msgstr ""
 
 #. placeholder {0}: statuses[0].displayName

@@ -950,10 +950,6 @@ msgstr "Capture meeting chat in Memos"
 msgid "Capture your first conversation. Every collection starts somewhere."
 msgstr "Capture your first conversation. Every collection starts somewhere."
 
-#: src/session/components/outer-header/audio-saved.tsx
-msgid "Change how long recordings are kept"
-msgstr "Change how long recordings are kept"
-
 #: src/contacts/details.tsx
 #: src/contacts/organization-details.tsx
 #: src/contacts/profile-photo.tsx
@@ -3784,6 +3780,10 @@ msgstr "No imports yet."
 msgid "No items today"
 msgstr "No items today"
 
+#: src/session/components/note-input/enhanced/config-error.tsx
+msgid "No key? Get a free one from Google AI Studio"
+msgstr "No key? Get a free one from Google AI Studio"
+
 #: src/settings/dictionary/index.tsx
 msgid "No match"
 msgstr "No match"
@@ -4404,10 +4404,6 @@ msgstr "Re-transcribe this audio, or upload a transcript file."
 msgid "Re-transcription failed"
 msgstr "Re-transcription failed"
 
-#: src/onboarding/permissions.tsx
-msgid "Read meeting controls and visible chat"
-msgstr "Read meeting controls and visible chat"
-
 #: src/settings/general/permissions.tsx
 msgid "Read meeting controls and visible chat."
 msgstr "Read meeting controls and visible chat."
@@ -5016,6 +5012,10 @@ msgstr "See all folders"
 #: src/session/components/note-input/template-picker.tsx
 msgid "See all templates"
 msgstr "See all templates"
+
+#: src/onboarding/permissions.tsx
+msgid "See which meeting app you're in and when the call ends"
+msgstr "See which meeting app you're in and when the call ends"
 
 #: src/settings/ai/shared/model-combobox.tsx
 #: src/settings/ai/stt/select.tsx
@@ -6413,8 +6413,8 @@ msgid "Upshot needs access to your microphone and system audio to record and tra
 msgstr "Upshot needs access to your microphone and system audio to record and transcribe your meetings"
 
 #: src/onboarding/index.tsx
-msgid "Upshot needs microphone and system audio to transcribe your meetings, plus Accessibility to read meeting controls, visible chat."
-msgstr "Upshot needs microphone and system audio to transcribe your meetings, plus Accessibility to read meeting controls, visible chat."
+msgid "Upshot needs your microphone and your Mac's sound to transcribe meetings, and Accessibility to see which meeting app you're in and when the call ends."
+msgstr "Upshot needs your microphone and your Mac's sound to transcribe meetings, and Accessibility to see which meeting app you're in and when the call ends."
 
 #. placeholder {0}: statuses[0].displayName
 #: src/settings/developers/skills.tsx

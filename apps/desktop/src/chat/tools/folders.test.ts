@@ -21,7 +21,10 @@ import {
   buildCreateFolderTool,
   buildListFoldersTool,
   buildMoveMeetingsToFolderTool,
+  describeFolderMove,
 } from "./folders";
+
+import { usePendingApprovalStore } from "~/chat/components/message/tool/pending-approval-store";
 
 const { DatabaseSync } = createRequire(import.meta.url)(
   "node:sqlite",
@@ -143,10 +146,98 @@ describe("folder discovery and creation", () => {
 });
 
 describe("bulk folder assignment", () => {
+  let autoApprove = true;
+  let unsubscribe = () => {};
+
   beforeEach(() => {
     database.exec(
       "INSERT INTO folders (id, path) VALUES ('defcons', 'defcons')",
     );
+    autoApprove = true;
+    usePendingApprovalStore.setState({ approvals: new Map() });
+    unsubscribe = usePendingApprovalStore.subscribe((state) => {
+      if (!autoApprove) return;
+      for (const requestId of state.approvals.keys()) {
+        queueMicrotask(() =>
+          usePendingApprovalStore.getState().resolveApproval(requestId, true),
+        );
+      }
+    });
+  });
+
+  afterEach(() => unsubscribe());
+
+  const pendingApproval = () =>
+    usePendingApprovalStore.getState().approvals.get("folder-test");
+
+  it("moves nothing until the user presses Apply", async () => {
+    autoApprove = false;
+    addMeeting("first", "Work");
+    addMeeting("second");
+
+    const pending = moveTool.execute!(
+      { meeting_ids: ["first", "second", "first"], folder_path: "defcons" },
+      options,
+    );
+    await vi.waitFor(() => expect(pendingApproval()).toBeDefined());
+
+    expect(pendingApproval()?.details).toBe('Move 2 meetings to "defcons".');
+    expect(folderFor("first")).toBe("Work");
+    expect(mocks.executeTransaction).not.toHaveBeenCalled();
+
+    usePendingApprovalStore.getState().resolveApproval("folder-test", true);
+    await expect(pending).resolves.toMatchObject({ status: "ok", moved: 2 });
+    expect(folderFor("first")).toBe("defcons");
+  });
+
+  it("moves nothing when the user dismisses the move", async () => {
+    autoApprove = false;
+    addMeeting("first", "Work");
+
+    const pending = moveTool.execute!(
+      { meeting_ids: ["first"], folder_path: "defcons" },
+      options,
+    );
+    await vi.waitFor(() => expect(pendingApproval()).toBeDefined());
+    usePendingApprovalStore.getState().resolveApproval("folder-test", false);
+
+    await expect(pending).resolves.toMatchObject({
+      status: "declined",
+      moved: 0,
+      results: [],
+    });
+    expect(folderFor("first")).toBe("Work");
+    expect(mocks.executeTransaction).not.toHaveBeenCalled();
+  });
+
+  it("moves nothing when the chat is stopped while waiting", async () => {
+    autoApprove = false;
+    addMeeting("first", "Work");
+    const controller = new AbortController();
+
+    const pending = moveTool.execute!(
+      { meeting_ids: ["first"], folder_path: "defcons" },
+      { ...options, abortSignal: controller.signal },
+    );
+    await vi.waitFor(() => expect(pendingApproval()).toBeDefined());
+    controller.abort();
+
+    await expect(pending).resolves.toMatchObject({ status: "declined" });
+    expect(folderFor("first")).toBe("Work");
+    expect(pendingApproval()).toBeUndefined();
+  });
+
+  it("describes the move on the approval card", () => {
+    expect(describeFolderMove(3, "Projects/Launch")).toBe(
+      'Move 3 meetings to "Projects/Launch".',
+    );
+    expect(describeFolderMove(1, "Projects")).toBe(
+      'Move 1 meeting to "Projects".',
+    );
+    expect(describeFolderMove(2, "")).toBe(
+      "Remove 2 meetings from their folders.",
+    );
+    expect(describeFolderMove(1, "")).toBe("Remove 1 meeting from its folder.");
   });
 
   it("moves meetings without changing their contents, deduplicates IDs, and skips already filed meetings", async () => {

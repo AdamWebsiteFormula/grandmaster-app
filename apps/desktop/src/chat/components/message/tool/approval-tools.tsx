@@ -1,4 +1,4 @@
-import { Pencil, Swap } from "@anlg/ui/components/icons";
+import { Folder, Pencil, Swap } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 
 import { defineTool } from "./define-tool";
@@ -12,6 +12,10 @@ type ApprovalToolOutput = {
   message?: string;
   sourceTitle?: string;
   targetTitle?: string;
+  folder_path?: string;
+  moved?: number;
+  unchanged?: number;
+  failed?: number;
 };
 
 function parseApprovalToolOutput(output: unknown): ApprovalToolOutput | null {
@@ -73,7 +77,14 @@ function ApprovalFooter({
     <>
       <ToolCardFooters failed={failed} errorText={errorText} rawText={null}>
         {showMessage ? (
-          <ToolCardFooterError text={parsed?.message ?? "Unknown error"} />
+          <ToolCardFooterError
+            text={
+              parsed?.message ??
+              (parsed?.failed
+                ? `${parsed.failed} ${parsed.failed === 1 ? "meeting" : "meetings"} could not be moved`
+                : "Unknown error")
+            }
+          />
         ) : null}
       </ToolCardFooters>
       <ApprovalActions toolCallId={toolCallId} />
@@ -123,6 +134,39 @@ export const ToolMoveMeetingContents = defineTool({
       <ToolCardBody>
         <p className="text-muted-foreground text-sm">
           From “{parsed.sourceTitle}” to “{parsed.targetTitle}”
+        </p>
+      </ToolCardBody>
+    ) : null,
+  renderFooter: (ctx) => <ApprovalFooter {...ctx} />,
+});
+
+function folderMoveCounts(parsed: ApprovalToolOutput): string {
+  return [
+    `${parsed.moved ?? 0} moved`,
+    parsed.unchanged ? `${parsed.unchanged} already there` : null,
+    parsed.failed ? `${parsed.failed} failed` : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
+
+export const ToolMoveMeetingsToFolder = defineTool({
+  icon: <Folder />,
+  parseFn: parseApprovalToolOutput,
+  isDone: (parsed) => parsed?.status === "ok" || parsed?.status === "partial",
+  label: ({ running, failed, parsed }) => {
+    if (running) return "Review folder move";
+    if (failed || parsed?.status === "error") return "Folder move failed";
+    if (parsed?.status === "ok") return "Meetings moved";
+    if (parsed?.status === "partial") return "Meetings partly moved";
+    if (parsed?.status === "declined") return "Folder move dismissed";
+    return "Move meetings to folder";
+  },
+  renderBody: (_input, parsed) =>
+    parsed?.status === "ok" || parsed?.status === "partial" ? (
+      <ToolCardBody>
+        <p className="text-muted-foreground text-sm">
+          {folderMoveCounts(parsed)}
         </p>
       </ToolCardBody>
     ) : null,

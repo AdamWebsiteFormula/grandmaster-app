@@ -1,5 +1,14 @@
 import { useLingui } from "@lingui/react/macro";
 
+import { HardDrive } from "@anlg/ui/components/icons";
+import { Button } from "@anlg/ui/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@anlg/ui/components/ui/tooltip";
+
 import {
   normalizeAudioRetention,
   type AudioRetentionPolicy,
@@ -8,6 +17,7 @@ import { useConfigValue } from "~/shared/config";
 import { useTabs } from "~/store/zustand/tabs";
 
 // Fork: Granola deletes audio after transcription; we keep it, so say so.
+// An icon with the sentence as its tooltip keeps the note header light.
 export function AudioSavedLine() {
   const { t } = useLingui();
   const openNew = useTabs((state) => state.openNew);
@@ -22,16 +32,30 @@ export function AudioSavedLine() {
   };
   const kept = keptFor[retention];
 
+  const label = t`Audio saved on this Mac · kept ${kept}`;
+
+  // Own provider so the header renders anywhere, including tests.
   return (
-    <button
-      type="button"
-      data-audio-saved-line
-      data-tauri-drag-region="false"
-      title={t`Change how long recordings are kept`}
-      onClick={() => openNew({ type: "settings", state: { tab: "meetings" } })}
-      className="text-muted-foreground hover:text-foreground min-w-0 truncate px-2 text-xs transition-colors"
-    >
-      {t`Audio saved on this Mac · kept ${kept}`}
-    </button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            data-audio-saved-line
+            data-tauri-drag-region="false"
+            aria-label={label}
+            onClick={() =>
+              openNew({ type: "settings", state: { tab: "meetings" } })
+            }
+            className="text-muted-foreground hover:bg-accent hover:text-foreground rounded-full [&_svg]:size-4"
+          >
+            <HardDrive className="size-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">{label}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

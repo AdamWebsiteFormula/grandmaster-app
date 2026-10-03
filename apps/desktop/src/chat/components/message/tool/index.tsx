@@ -1,5 +1,6 @@
 import {
   ToolMoveMeetingContents,
+  ToolMoveMeetingsToFolder,
   ToolSessionCorrection,
 } from "./approval-tools";
 import { ToolEditMemo, ToolEditSummary } from "./edit-summary";
@@ -20,6 +21,7 @@ const toolRegistry: Record<string, ToolComponent> = {
   "tool-update_prompt_template": ToolUpdatePromptTemplate as ToolComponent,
   "tool-apply_session_correction": ToolSessionCorrection as ToolComponent,
   "tool-move_meeting_contents": ToolMoveMeetingContents as ToolComponent,
+  "tool-move_meetings_to_folder": ToolMoveMeetingsToFolder as ToolComponent,
 };
 
 export function Tool({ part }: { part: Part }) {

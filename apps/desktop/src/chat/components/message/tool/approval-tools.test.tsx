@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   ToolMoveMeetingContents,
+  ToolMoveMeetingsToFolder,
   ToolSessionCorrection,
 } from "./approval-tools";
 import { usePendingApprovalStore } from "./pending-approval-store";
@@ -19,6 +20,13 @@ const movePart = {
   toolCallId: "tool-call-1",
   state: "input-available",
   input: { targetMeetingId: "target" },
+} as const;
+
+const folderPart = {
+  type: "tool-move_meetings_to_folder",
+  toolCallId: "tool-call-1",
+  state: "input-available",
+  input: { meeting_ids: ["a", "b", "c"], folder_path: "Projects/Launch" },
 } as const;
 
 function addPending(resolve: (approved: boolean) => void) {
@@ -58,6 +66,25 @@ describe("approval tool cards", () => {
 
     expect(resolve).toHaveBeenCalledWith(false);
     expect(screen.queryByRole("button", { name: "Apply" })).toBeNull();
+  });
+
+  it("applies a folder move only when Apply is pressed", () => {
+    const resolve = vi.fn();
+    usePendingApprovalStore.getState().addApproval({
+      requestId: "tool-call-1",
+      details: 'Move 3 meetings to "Projects/Launch".',
+      resolve,
+    });
+
+    render(<ToolMoveMeetingsToFolder part={folderPart} />);
+    expect(screen.getByText("Review folder move")).toBeTruthy();
+    expect(
+      screen.getByText('Move 3 meetings to "Projects/Launch".'),
+    ).toBeTruthy();
+    expect(resolve).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+    expect(resolve).toHaveBeenCalledWith(true);
   });
 
   it("hides the actions when nothing is waiting for approval", () => {

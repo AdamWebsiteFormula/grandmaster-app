@@ -17,6 +17,8 @@ vi.mock("~/store/zustand/tabs", () => ({
 
 import { AudioSavedLine } from "./audio-saved";
 
+const renderLine = () => render(<AudioSavedLine />);
+
 describe("AudioSavedLine", () => {
   afterEach(() => {
     cleanup();
@@ -34,14 +36,23 @@ describe("AudioSavedLine", () => {
     ["bogus", "Audio saved on this Mac · kept forever"],
   ])("describes retention %s in plain words", (retention, text) => {
     mocks.retention = retention;
-    render(<AudioSavedLine />);
+    renderLine();
 
     expect(screen.getByRole("button", { name: text })).toBeTruthy();
   });
 
+  it("is an icon button, not a line of text", () => {
+    mocks.retention = "forever";
+    renderLine();
+
+    const button = screen.getByRole("button");
+    expect(button.textContent).toBe("");
+    expect(button.querySelector("svg")).toBeTruthy();
+  });
+
   it("opens the retention setting", () => {
     mocks.retention = "oneWeek";
-    render(<AudioSavedLine />);
+    renderLine();
 
     fireEvent.click(screen.getByRole("button"));
 

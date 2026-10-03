@@ -37,6 +37,7 @@ function PermissionBlock({
   actionLabel,
   assisted = false,
   opensSettingsWhenDenied = true,
+  isNext = false,
 }: {
   enabledLabel: string;
   enableLabel: string;
@@ -50,6 +51,7 @@ function PermissionBlock({
   actionLabel?: string;
   assisted?: boolean;
   opensSettingsWhenDenied?: boolean;
+  isNext?: boolean;
 }) {
   const { t } = useLingui();
   const isAuthorized = status === "authorized";
@@ -70,7 +72,7 @@ function PermissionBlock({
         "group flex w-full min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all",
         isAuthorized
           ? "border-border bg-card border"
-          : "border-primary bg-primary text-primary-foreground hover:bg-primary/90 border shadow-[0_4px_14px_rgba(0,0,0,0.18)] active:scale-[0.98]",
+          : "border-border bg-card hover:bg-accent border active:scale-[0.98]",
         (isPending || isAuthorized) && "cursor-default",
         isPending && "opacity-50",
       ])}
@@ -84,8 +86,10 @@ function PermissionBlock({
         className={cn([
           "flex size-6 shrink-0 items-center justify-center rounded-md",
           isAuthorized
-            ? "text-primary"
-            : "bg-primary-foreground/10 text-primary-foreground",
+            ? "text-muted-foreground"
+            : isNext
+              ? "bg-primary text-primary-foreground"
+              : "bg-secondary text-muted-foreground",
         ])}
       >
         {isAuthorized ? (
@@ -97,14 +101,17 @@ function PermissionBlock({
       <span
         className={cn([
           "min-w-0 flex-1 truncate text-sm font-medium",
-          isAuthorized ? "text-foreground" : "text-primary-foreground",
+          isAuthorized ? "text-muted-foreground" : "text-foreground",
         ])}
       >
         {title}
       </span>
       {!isAuthorized && (
         <ArrowRight
-          className="text-primary-foreground/70 size-4 shrink-0 transition-transform group-hover:translate-x-0.5"
+          className={cn([
+            "size-4 shrink-0 transition-transform group-hover:translate-x-0.5",
+            isNext ? "text-primary" : "text-muted-foreground",
+          ])}
           data-testid="permission-action-arrow"
         />
       )}
@@ -162,6 +169,13 @@ function PermissionsSectionContent({
     systemAudio.confirmedStatus === "authorized" &&
     (!accessibility || accessibility.confirmedStatus === "authorized");
 
+  // Design: one accent per screen, so only the next pending row is orange.
+  const nextPending = [
+    ["microphone", mic.status],
+    ["system_audio", systemAudio.status],
+    ["accessibility", accessibility ? accessibility.status : "authorized"],
+  ].find(([, status]) => status !== "authorized")?.[0];
+
   const handleAction = (
     permission: string,
     perm: ReturnType<typeof usePermission>,
@@ -215,6 +229,7 @@ function PermissionsSectionContent({
               : undefined
           }
           opensSettingsWhenDenied={!runtimeCapabilities}
+          isNext={nextPending === "microphone"}
         />
 
         <PermissionBlock
@@ -237,6 +252,7 @@ function PermissionsSectionContent({
               : undefined
           }
           opensSettingsWhenDenied={!runtimeCapabilities}
+          isNext={nextPending === "system_audio"}
         />
 
         {accessibility && (
@@ -247,7 +263,7 @@ function PermissionsSectionContent({
             enableBody={
               accessibilityGuidance
                 ? t`Opens System Settings and guides you to add Upshot to the ${accessibilityGuidance.paneTitle ?? "Privacy"} list`
-                : t`Read meeting controls and visible chat`
+                : t`See which meeting app you're in and when the call ends`
             }
             Icon={Cursor}
             permissionName={t`Accessibility`}
@@ -263,6 +279,7 @@ function PermissionsSectionContent({
             }
             assisted={Boolean(accessibilityGuidance)}
             opensSettingsWhenDenied={false}
+            isNext={nextPending === "accessibility"}
           />
         )}
       </div>

@@ -242,9 +242,9 @@ function OnboardingScreenContent({
             description={
               currentPlatform === "macos" ? (
                 <Trans>
-                  Upshot needs microphone and system audio to transcribe your
-                  meetings, plus Accessibility to read meeting controls, visible
-                  chat.
+                  Upshot needs your microphone and your Mac's sound to
+                  transcribe meetings, and Accessibility to see which meeting
+                  app you're in and when the call ends.
                 </Trans>
               ) : (
                 <Trans>
