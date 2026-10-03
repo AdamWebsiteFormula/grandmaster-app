@@ -1,0 +1,226 @@
+# Upshot Windows and Linux installers, built the way desktop_cd.yaml builds
+# Anarlog's (build-windows, build-linux), with the Mac release's overrides from
+# grandmaster/scripts/release.sh. No secrets: no Sentry, PostHog, CrabNebula,
+# Infisical, code signing or updater feed. Installers are unsigned.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upshot-release-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_VERSION: "1.0.0"
+  VITE_APP_VERSION: "1.0.0"
+  VITE_API_URL: "http://localhost:3001"
+  # Upshot AI Worker origin (grandmaster/worker), same as release.sh.
+  VITE_AI_API_URL: "https://upshot-ai.adam-694.workers.dev"
+  TAURI_CONF_PATH: ./src-tauri/tauri.conf.upshot-ci.json
+  NODE_OPTIONS: "--max-old-space-size=4096"
+  CMAKE_POLICY_VERSION_MINIMUM: "3.5"
+  # Keep the Rust cache even when a build fails, so the next run is faster.
+  CACHE_ON_FAILURE: "true"
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    env:
+      TARGET: x86_64-unknown-linux-gnu
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: recursive
+      - uses: ./.github/actions/install_desktop_deps
+        with:
+          target: linux
+      - uses: ./.github/actions/rust_install
+        with:
+          platform: linux-x86_64
+      - uses: ./.github/actions/pnpm_install
+      - run: pnpm -F ui build
+      - name: Sidecars and config overlay
+        run: |
+          echo "{\"version\":\"$APP_VERSION\",\"bundle\":{\"externalBin\":[]}}" > "apps/desktop/$TAURI_CONF_PATH"
+          TAURI_ENV_TARGET_TRIPLE=$TARGET cargo xtask prepare-binaries
+          ./scripts/sidecar.sh "./apps/desktop/$TAURI_CONF_PATH" "binaries/char-chrome-native-host"
+          ./scripts/sidecar.sh "./apps/desktop/$TAURI_CONF_PATH" "resources/cli/anarlog-cli"
+          cat "apps/desktop/$TAURI_CONF_PATH"
+      - name: Build Linux app
+        run: |
+          pnpm -F desktop tauri build \
+            --ci \
+            --bundles appimage,deb \
+            --target "$TARGET" \
+            --config "$TAURI_CONF_PATH" \
+            --verbose
+        env:
+          CARGO_PROFILE_RELEASE_DEBUG: line-tables-only
+      - name: Repack AppImage (host Wayland and PipeWire libraries)
+        run: |
+          # The repack script re-signs the AppImage for the updater. Upshot ships
+          # no updater feed, so sign with a throwaway key and drop the .sig.
+          key_dir="$RUNNER_TEMP/throwaway-key"
+          mkdir -p "$key_dir"
+          # A per-run key and password, generated here and thrown away.
+          export TAURI_SIGNING_PRIVATE_KEY_PASSWORD="$(openssl rand -hex 16)"
+          pnpm -F desktop exec tauri signer generate --ci -p "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" -w "$key_dir/key" -f
+          export TAURI_SIGNING_PRIVATE_KEY="$(cat "$key_dir/key")"
+          node scripts/repack-linux-appimage.mjs "apps/desktop/src-tauri/target/$TARGET/release/bundle/appimage"
+          rm -rf "$key_dir" "apps/desktop/src-tauri/target/$TARGET/release/bundle/appimage/"*.sig
+        env:
+          ARCH: x86_64
+      - name: Collect installers
+        run: |
+          shopt -s nullglob
+          out="$RUNNER_TEMP/upshot-linux"
+          mkdir -p "$out"
+          bundle="apps/desktop/src-tauri/target/$TARGET/release/bundle"
+          cp "$bundle"/appimage/*.AppImage "$bundle"/deb/*.deb "$out/"
+          (cd "$out" && sha256sum * | tee SHA256SUMS.txt)
+          ls -la "$out"
+          dpkg-deb --field "$out"/*.deb Package Version Architecture
+          echo "OUT_DIR=$out" >> "$GITHUB_ENV"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: upshot-linux-x64
+          path: ${{ env.OUT_DIR }}/*
+          if-no-files-found: error
+          retention-days: 30
+      - name: Smoke test .deb (clean Ubuntu 24.04, Xvfb, 20 s)
+        run: |
+          deb=$(ls "$OUT_DIR"/*.deb)
+          docker run --rm \
+            --volume "$OUT_DIR:/pkg:ro" \
+            --env DEB_PATH="/pkg/$(basename "$deb")" \
+            --env ANARLOG_DISABLE_SENTRY=1 \
+            --env RUST_BACKTRACE=1 \
+            ubuntu:24.04 \
+            bash -euxo pipefail -c '
+              export DEBIAN_FRONTEND=noninteractive
+              apt-get update
+              apt-get install -y "$DEB_PATH"
+              apt-get install -y dbus-x11 xvfb
+              set +e
+              timeout --signal=TERM 20s xvfb-run -a dbus-run-session -- /usr/bin/upshot >/tmp/upshot.log 2>&1
+              status=$?
+              set -e
+              cat /tmp/upshot.log
+              if [[ $status -ne 124 ]]; then
+                echo "Upshot exited before the smoke timeout with status $status"
+                exit 1
+              fi
+              echo "Upshot (.deb) was still running after 20 s"
+            '
+      - name: Smoke test AppImage (runner, Xvfb, 20 s)
+        run: |
+          sudo apt-get -o Acquire::Retries=5 install -y xvfb dbus-x11
+          appimage=$(ls "$OUT_DIR"/*.AppImage)
+          chmod +x "$appimage"
+          set +e
+          ANARLOG_DISABLE_SENTRY=1 APPIMAGE_EXTRACT_AND_RUN=1 \
+            timeout --signal=TERM 20s xvfb-run -a dbus-run-session -- "$appimage" >"$RUNNER_TEMP/appimage.log" 2>&1
+          status=$?
+          set -e
+          tail -n 200 "$RUNNER_TEMP/appimage.log"
+          if [[ $status -ne 124 ]]; then
+            echo "Upshot AppImage exited before the smoke timeout with status $status"
+            exit 1
+          fi
+          echo "Upshot (AppImage) was still running after 20 s"
+
+  build-windows:
+    runs-on: windows-latest
+    timeout-minutes: 150
+    env:
+      TARGET: x86_64-pc-windows-msvc
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: recursive
+      - uses: ./.github/actions/rust_install
+        with:
+          platform: windows
+      - uses: ./.github/actions/pnpm_install
+      - run: pnpm -F ui build
+      - name: CLI sidecar and config overlay
+        shell: bash
+        run: |
+          echo "{\"version\":\"$APP_VERSION\",\"bundle\":{\"externalBin\":[]}}" > "apps/desktop/$TAURI_CONF_PATH"
+          cargo build --locked --release -p anarlog-cli --target $TARGET
+          cp \
+            target/$TARGET/release/anarlog.exe \
+            apps/desktop/src-tauri/resources/cli/anarlog-cli-$TARGET.exe
+          ./scripts/sidecar.sh \
+            "./apps/desktop/$TAURI_CONF_PATH" \
+            resources/cli/anarlog-cli
+          cat "apps/desktop/$TAURI_CONF_PATH"
+      - name: Build Windows app (NSIS, unsigned)
+        shell: bash
+        run: |
+          pnpm -F desktop tauri build \
+            --ci \
+            --bundles nsis \
+            --target $TARGET \
+            --config "$TAURI_CONF_PATH" \
+            --verbose \
+            --no-sign
+        env:
+          CARGO_PROFILE_RELEASE_DEBUG: line-tables-only
+      - name: Collect installer
+        shell: bash
+        run: |
+          out="$RUNNER_TEMP/upshot-windows"
+          mkdir -p "$out"
+          cp apps/desktop/src-tauri/target/$TARGET/release/bundle/nsis/*.exe "$out/"
+          (cd "$out" && sha256sum * | tee SHA256SUMS.txt)
+          ls -la "$out"
+          echo "OUT_DIR=$out" >> "$GITHUB_ENV"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: upshot-windows-x64
+          path: ${{ env.OUT_DIR }}/*
+          if-no-files-found: error
+          retention-days: 30
+      - name: Smoke test (silent install, run 20 s)
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem "$env:OUT_DIR" -Filter "*-setup.exe" | Select-Object -First 1
+          Write-Host "Installing $($installer.Name) silently"
+          $p = Start-Process -FilePath $installer.FullName -ArgumentList "/S" -Wait -PassThru
+          Write-Host "Installer exit code: $($p.ExitCode)"
+          if ($p.ExitCode -ne 0) { throw "Installer failed" }
+          $candidates = @(
+            "$env:LOCALAPPDATA\Upshot\upshot.exe",
+            "$env:LOCALAPPDATA\Programs\Upshot\upshot.exe",
+            "$env:ProgramFiles\Upshot\upshot.exe"
+          )
+          $exe = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $exe) {
+            $exe = Get-ChildItem "$env:LOCALAPPDATA", "$env:ProgramFiles" -Recurse -Filter "upshot.exe" -ErrorAction SilentlyContinue |
+              Select-Object -First 1 -ExpandProperty FullName
+          }
+          if (-not $exe) { throw "upshot.exe not found after install" }
+          Write-Host "Launching $exe"
+          $env:ANARLOG_DISABLE_SENTRY = "1"
+          $env:RUST_BACKTRACE = "1"
+          $log = "$env:RUNNER_TEMP\upshot-out.log"
+          $err = "$env:RUNNER_TEMP\upshot-err.log"
+          $app = Start-Process -FilePath $exe -PassThru -RedirectStandardOutput $log -RedirectStandardError $err
+          Start-Sleep -Seconds 20
+          $app.Refresh()
+          $alive = -not $app.HasExited
+          Write-Host "--- stdout"; Get-Content $log -ErrorAction SilentlyContinue | Select-Object -Last 100
+          Write-Host "--- stderr"; Get-Content $err -ErrorAction SilentlyContinue | Select-Object -Last 100
+          Get-Process -Name upshot -ErrorAction SilentlyContinue | Format-Table Id, ProcessName, WorkingSet64, MainWindowTitle
+          if (-not $alive) { throw "Upshot exited before 20 s with code $($app.ExitCode)" }
+          Write-Host "Upshot (Windows) was still running after 20 s"
+          Stop-Process -Name upshot -Force -ErrorAction SilentlyContinue
