@@ -39,3 +39,12 @@ Night sweep (4 audits + fixes), Worker hardening, dark-mode segment fix, Home ro
 - Mac DMGs from 5bcb8152c4: aarch64 9aaef872789f299fcd4ea0f0427433e0f0211ec397b21866107445fa7368c1fd, x64 445a8e33a6ea2db2594d23a4fdebbcd9a204fa116dd513485c21a71428503d5b; aarch64 installed; both in /Users/Shared. Adam recorded on it and the transcript appeared. His own profile is on Upshot transcription (a backup of his app.db is in this session's scratchpad).
 - Windows/Linux runs in progress: 37170630021 (cc10ca71a5, with first-run screenshots, the one to ship), 37170559204 (5bcb8152c4, backup), 37169430267 (6308ed2791, superseded). When green: download upshot-windows-x64 and upshot-linux-x64 to ~/grandmaster-release/, write SHA256SUMS-win-linux.txt, review the screenshot artifacts, record checksums in night-log.
 - If app code changes again before 6:00 AM: rerun the workflow (about 75 min) and both release.sh builds.
+
+## Update, third session (Oct 4, ~3:25 AM)
+- Final app code: 15e8082acd (UX/UI round 7). Seven review rounds tonight: rounds 1-5 graded from code and captures, rounds 6-7 from real screenshots of all 16 main screens in light and dark. Every fix and every rejected finding is in grandmaster/sops/night-log.md with its source.
+- Final Mac DMGs (15e8082acd): aarch64 c4f3e9382ae4a072a177546b6407182529b078d86218bda392ec7113e2625f66, x64 19399a4e3048d8916baf1728a8981b0786aa93cfd686be41dc06ef78aeaae217. aarch64 installed in /Applications (codesign ok, no key-shaped strings); both in /Users/Shared with matching .sha256 files. The x64 build was launched under Rosetta on a new profile: setup opens correctly.
+- Windows/Linux: run 37185016324 on 15e8082acd is the one to ship. Backups: 37184086211 (f43d607b1e), 37181916640 (15ef8543ff), 37180157974 (bb72df5e4f, green). The final checksums go in the last night-log entry.
+- Captures while the Mac is locked: keep the display awake with `caffeinate -d -u -t <seconds>`; the screen stays locked. Transitions pause while locked, so a half-drawn color means recapture after the page settles.
+- Test profiles keep synced settings (theme) in synced_preferences, which overrides app_settings.
+- Deferred to after submission (larger restyles): My notes/Summary as a segmented control, a persistent sidebar in Folders and Templates, Templates list group labels, page-action insets, one control height (32 pt), monochrome provider logos.
+- Adam's Upshot is closed; no test copies are running.
