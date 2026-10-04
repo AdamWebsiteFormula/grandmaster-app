@@ -36,7 +36,10 @@ import {
   stopActiveWelcomeDemo,
   takePendingWelcomeSession,
 } from "./welcome-note";
-import { buildWelcomeNoteDemoUrl } from "./welcome-note.constants";
+import {
+  buildWelcomeNoteDemoUrl,
+  isWelcomeNoteEvent,
+} from "./welcome-note.constants";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -195,4 +198,19 @@ it("starts the body after the title instead of repeating it", () => {
   const note = welcomeNoteMarkdown("macos");
   expect(note.startsWith("Upshot takes notes for your meetings.")).toBe(true);
   expect(note).not.toContain("Welcome to Upshot");
+});
+
+// Fork: meeting actions stay off the welcome note, a how-to (NN/g #8).
+it("recognizes the welcome note by its event, and nothing else", () => {
+  expect(
+    isWelcomeNoteEvent(
+      JSON.stringify({ tracking_id: "anarlog-onboarding-demo-v1" }),
+    ),
+  ).toBe(true);
+  expect(isWelcomeNoteEvent(JSON.stringify({ tracking_id: "other" }))).toBe(
+    false,
+  );
+  expect(isWelcomeNoteEvent("")).toBe(false);
+  expect(isWelcomeNoteEvent("not json")).toBe(false);
+  expect(isWelcomeNoteEvent(null)).toBe(false);
 });

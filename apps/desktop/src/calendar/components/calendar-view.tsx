@@ -54,7 +54,8 @@ const WEEKDAY_HEADERS_SUN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const WEEKDAY_HEADERS_MON = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const VIEW_BREAKPOINTS = [
-  { minWidth: 700, cols: 7 },
+  // Fork: 640, so the default 910 pt window shows all seven days.
+  { minWidth: 640, cols: 7 },
   { minWidth: 400, cols: 4 },
   { minWidth: 200, cols: 2 },
   { minWidth: 0, cols: 1 },

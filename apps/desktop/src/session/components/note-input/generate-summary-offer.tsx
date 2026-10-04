@@ -8,6 +8,7 @@ import { hasSummaryContent } from "@anlg/utils/session";
 
 import { showModelNotReadyToast } from "./enhanced/model-not-ready";
 
+import { isWelcomeNoteEvent } from "~/onboarding/welcome-note.constants";
 import { getEnhancerService } from "~/services/enhancer";
 import {
   hasStoredNoteContent,
@@ -77,8 +78,10 @@ export function useGenerateSummaryOffer(sessionId: string) {
   const hasSummary = notes.some((note) =>
     hasSummaryContent(note.content, session?.title),
   );
+  // Fork: no summary offer on the welcome note, a how-to (NN/g #8).
   const visible =
     session !== null &&
+    !isWelcomeNoteEvent(session.event_json) &&
     shouldOfferGenerateSummary({
       sessionMode,
       hasTranscript,

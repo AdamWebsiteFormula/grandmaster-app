@@ -1114,6 +1114,10 @@ msgstr "Calendar accounts"
 msgid "Calendar connected"
 msgstr "Calendar connected"
 
+#: src/sidebar/settings-nav-groups.ts
+msgid "Calendar month view"
+msgstr "Calendar month view"
+
 #: src/onboarding/index.tsx
 msgid "Calendar skipped"
 msgstr "Calendar skipped"

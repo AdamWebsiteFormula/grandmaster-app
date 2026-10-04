@@ -18,6 +18,7 @@ import { setSessionFabSelectionHost } from "./selection-slot";
 
 import { queueChatPrompt } from "~/chat/pending-prompt";
 import { useShell } from "~/contexts/shell";
+import { isWelcomeNoteEvent } from "~/onboarding/welcome-note.constants";
 import { TranscriptAudioIcon } from "~/session/components/note-input/header-transcript-icon";
 import {
   ResumeRecordingButton,
@@ -53,7 +54,8 @@ export function FloatingActionButton(props: {
     (state) => state.getSessionMode(sessionId) !== "inactive",
   );
   const hasTranscript = useHasTranscript(sessionId);
-  const rawNote = useSession(sessionId)?.raw_md;
+  const sessionRecord = useSession(sessionId);
+  const rawNote = sessionRecord?.raw_md;
   const canResume = useCanResumeRecording(sessionId);
   // Fork: Resume shows after Stop when there is something to add to
   // (journey-meeting P1).
@@ -63,7 +65,10 @@ export function FloatingActionButton(props: {
     (hasTranscript || Boolean(props.audioExists));
   // Fork: the follow-up email chip needs something to draft from
   // (journey-meeting P3; NN/g #5 error prevention).
-  const canDraftEmail = hasTranscript || hasStoredNoteContent(rawNote);
+  // Fork: and not on the welcome note, a how-to (NN/g #8).
+  const canDraftEmail =
+    !isWelcomeNoteEvent(sessionRecord?.event_json) &&
+    (hasTranscript || hasStoredNoteContent(rawNote));
   const { chat } = useShell();
   // Fork: the floating chat covers the bottom of the note, so the bar hides
   // while it is open and returns when chat closes; ⋯ › Recording keeps

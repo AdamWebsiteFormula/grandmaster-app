@@ -15,7 +15,6 @@ import { commands as miscCommands } from "@anlg/plugin-misc";
 import { commands as openerCommands } from "@anlg/plugin-opener2";
 import type { AIProviderStorage } from "@anlg/store";
 import {
-  Check,
   CircleNotch,
   FolderOpen,
   Trash,
@@ -384,12 +383,10 @@ export function SelectProviderAndModel() {
                     <ModelSelectedValue model={selectedModel} />
                   ) : undefined}
                 </SelectValue>
+                {/* Fork: no unlabeled check here; the spinner and the
+                    alert toast report checking and failure (NN/g Icon
+                    Usability; WCAG 2.2 SC 1.1.1). */}
                 {isConfigured && <HealthStatusIndicator />}
-                {/* Fork: a neutral check, no fixed green (Apple HIG Dark
-                    Mode; design-system "The one accent"). */}
-                {isConfigured && health.status === "success" && (
-                  <Check className="text-muted-foreground h-4 w-4 shrink-0" />
-                )}
               </SelectTrigger>
               <SelectContent align="end">
                 {selectedModels.map((model, i) => {

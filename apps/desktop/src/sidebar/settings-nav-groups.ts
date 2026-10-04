@@ -270,10 +270,11 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
       label: t`Workspace`,
       items: [
         // The month view keeps its ⌘K entry; the Calendar row above opens
-        // the settings page.
+        // the settings page. Fork: its own name, so ⌘K never shows two
+        // identical "Calendar" rows (WCAG 2.2 SC 2.4.6).
         {
           id: "calendar",
-          label: t`Calendar`,
+          label: t`Calendar month view`,
           icon: CalendarDots,
           destination: { type: "calendar" },
           keywords: t`events, schedule, month`,

@@ -179,8 +179,9 @@ function SettingsCalendarContent() {
               className="h-8 px-3 text-sm"
               onClick={() => openNew({ type: "calendar" })}
             >
+              {/* Fork: no ↗, which marks leaving the app; the month view
+                  opens in Upshot (NN/g #4). */}
               <Trans>Open calendar</Trans>
-              <ArrowUpRight className="size-3.5" aria-hidden />
             </Button>
           )}
         </SettingRow>
