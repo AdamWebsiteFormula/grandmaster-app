@@ -20,7 +20,7 @@ Only the steps a person must do. Everything else is done and logged in grandmast
 
 What changed overnight, in one line each:
 - Cloud transcription is the default on every computer; Windows and Linux got their fixes (Ctrl keys, no Mac-only rows, window buttons in setup).
-- Seven rounds of fresh-eyes UX reviews in light and dark (Apple HIG, NN/g, WCAG 2.2, Granola). The last two graded real screenshots of all 16 main screens. The strictest reviewer gives B+ overall (most screens A- or A). Nothing is broken. What is left is bigger restyles for after submission, listed in the night log.
+- Seven rounds of fresh-eyes UX reviews in light and dark (Apple HIG, NN/g, WCAG 2.2, Granola). The last two graded real screenshots of all 16 main screens. The strictest reviewer gives B+ overall (most screens A- or A). Nothing is broken. What is left is bigger restyles for after submission: grandmaster/sops/ux-backlog-after-submission.md.
 - The Windows app needs no extra Microsoft runtime (checked on GitHub's Windows 11 machine).
 
 Pictures of the checks (light and dark, Intel, Windows, Linux): /Users/Shared/upshot-night-checks/
