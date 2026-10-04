@@ -104,10 +104,11 @@ export function ExportLocationRow() {
             {shownPath}
           </button>
         ) : null}
+        {/* Fork: the Settings row-button size, as Plan's (NN/g #4). */}
         <Button
           type="button"
           variant="outline"
-          className="h-9 justify-center"
+          className="h-8 justify-center px-3"
           disabled={disabled}
           onClick={() => changeMutation.mutate("choose")}
         >

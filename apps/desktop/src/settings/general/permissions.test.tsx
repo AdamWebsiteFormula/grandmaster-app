@@ -102,6 +102,28 @@ describe("Permissions", () => {
     expect(accessibility.open).not.toHaveBeenCalled();
   });
 
+  // Fork: red is for errors (design-system), so only a denied permission is
+  // red with a warning icon; one never asked for is a normal row.
+  it("marks only a denied permission in red", () => {
+    renderPermissions("neverRequested");
+    const notAsked = screen.getByRole("heading", {
+      name: "Accessibility",
+    }).parentElement!;
+    expect(notAsked.className).not.toContain("text-destructive");
+    expect(notAsked.querySelector("svg")).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Allow Accessibility" }).className,
+    ).toContain("h-8");
+
+    cleanup();
+    renderPermissions("denied");
+    const denied = screen.getByRole("heading", {
+      name: "Accessibility",
+    }).parentElement!;
+    expect(denied.className).toContain("text-destructive");
+    expect(denied.querySelector("svg")).not.toBeNull();
+  });
+
   it("routes an assisted pane to the guided flow before any decision", () => {
     mocks.guidance = { assisted: true, paneTitle: "Accessibility" };
     const accessibility = renderPermissions("neverRequested");

@@ -11,7 +11,6 @@ import { Button } from "@anlg/ui/components/ui/button";
 
 import { AvatarUploadButton, ContactImage } from "./contact-avatar";
 import { updateContactAvatar, usePersonalContact } from "./queries";
-import { ContactFacehash } from "./shared";
 
 import { useAuth } from "~/auth";
 
@@ -132,22 +131,36 @@ export function ProfilePhoto({
         : ((!cloud && save.isSuccess ? save.data : localPhoto) ??
           (cloud ? getProviderProfileImageUrl(profile.data) : null));
 
+  const initial = (name.trim()[0] ?? "U").toUpperCase();
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-4">
-        <AvatarUploadButton
-          label={t`Change photo`}
-          onUpload={(value) => {
-            migrated.current = true;
-            save.mutate(value);
-          }}
-        >
-          {photo ? (
-            <ContactImage src={photo} size={64} />
-          ) : (
-            <ContactFacehash name={name} size={64} />
-          )}
-        </AvatarUploadButton>
+        {/* Fork: one avatar for one person: the photo or a gray circle with
+            the initial, as the Settings sidebar header, not a gradient
+            squircle (NN/g #4; design-system "The one accent"). The button
+            clips its hover overlay to the same circle; `!` because
+            .rounded-full is unlayered in globals.css. */}
+        <div className="[&>button]:rounded-pill! flex shrink-0 [&>button]:overflow-hidden [&>button]:[corner-shape:round]">
+          <AvatarUploadButton
+            label={t`Change photo`}
+            onUpload={(value) => {
+              migrated.current = true;
+              save.mutate(value);
+            }}
+          >
+            {photo ? (
+              <ContactImage src={photo} size={64} className="rounded-pill" />
+            ) : (
+              <span
+                aria-hidden
+                className="bg-sidebar-accent text-foreground rounded-pill flex size-16 items-center justify-center text-xl font-medium"
+              >
+                {initial}
+              </span>
+            )}
+          </AvatarUploadButton>
+        </div>
         {photo && (
           <Button
             variant="outline"

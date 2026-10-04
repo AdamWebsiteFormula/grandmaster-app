@@ -52,11 +52,6 @@ vi.mock("~/contacts/queries", () => ({
   useOrganizations: () => [{ id: "company-1", name: "Acme" }],
   savePersonalContact: mocks.save,
 }));
-vi.mock("~/contacts/shared", () => ({
-  ContactFacehash: ({ name }: { name: string }) => (
-    <span data-testid="avatar-name">{name}</span>
-  ),
-}));
 vi.mock("~/contacts/contact-avatar", () => ({
   ContactImage: () => <img alt="Profile" />,
   AvatarUploadButton: ({
@@ -158,17 +153,19 @@ it("says Add company and shows no sample phone number", () => {
   expect(screen.getByLabelText("Phone").getAttribute("placeholder")).toBeNull();
 });
 
+// Fork: without a photo the avatar is the sidebar header's initial in a gray
+// circle (NN/g #4), so each step of the shared name chain shows its letter.
 it("names the avatar as the Settings sidebar does", () => {
   render(view());
-  expect(screen.getByTestId("avatar-name").textContent).toBe("Upshot");
+  expect(screen.getByText("U").getAttribute("aria-hidden")).toBe("true");
   cleanup();
   mocks.upshotEmail = "judge@example.com";
   render(view());
-  expect(screen.getByTestId("avatar-name").textContent).toBe("judge");
+  expect(screen.getByText("J")).toBeTruthy();
   cleanup();
   mocks.contact.data = { name: "Saved name" };
   render(view());
-  expect(screen.getByTestId("avatar-name").textContent).toBe("Saved name");
+  expect(screen.getByText("S")).toBeTruthy();
 });
 
 it("falls back to the upstream email when signed out of Upshot", () => {

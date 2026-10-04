@@ -29,7 +29,6 @@ vi.mock("./queries", () => ({
   }),
   updateContactAvatar: mocks.mirror,
 }));
-vi.mock("./shared", () => ({ ContactFacehash: () => <span>No photo</span> }));
 vi.mock("./contact-avatar", () => ({
   ContactImage: ({ src }: { src: string }) => <img src={src} alt="Profile" />,
   AvatarUploadButton: ({
@@ -146,6 +145,19 @@ it("uses a newer remote photo without uploading stale local data and mirrors rem
   await waitFor(() =>
     expect(mocks.mirror).toHaveBeenCalledWith("human", "account-1", null),
   );
+});
+
+// Fork: one avatar for one person: without a photo, the gray circle with the
+// initial that the Settings sidebar header shows (NN/g #4).
+it("shows the initial in a gray circle when there is no photo", () => {
+  mocks.signedIn = false;
+  view(null);
+  expect(screen.queryByRole("img")).toBeNull();
+  const initial = screen.getByText("A");
+  expect(initial.getAttribute("aria-hidden")).toBe("true");
+  expect(initial.className).toContain("bg-sidebar-accent");
+  expect(initial.className).toContain("rounded-pill");
+  expect(screen.getByRole("button", { name: "Change photo" })).toBeTruthy();
 });
 
 it("keeps a failed upload available to retry", async () => {

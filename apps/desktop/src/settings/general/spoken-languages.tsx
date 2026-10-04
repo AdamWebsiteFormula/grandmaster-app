@@ -123,7 +123,8 @@ export function SpokenLanguagesView({
                 size="sm"
                 aria-describedby={labelProps["aria-describedby"]}
                 disabled={availableLanguages.length === 0}
-                className="bg-card gap-1 shadow-none"
+                // Fork: the Settings row-button size, as Plan's (NN/g #4).
+                className="bg-card h-8 gap-1 px-3 text-sm shadow-none"
               >
                 <Plus aria-hidden className="size-3.5" />
                 <Trans>Add language</Trans>

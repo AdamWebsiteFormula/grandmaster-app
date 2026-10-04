@@ -81,6 +81,17 @@ export function FloatingActionButton(props: {
 
   return (
     <>
+      {/* Fork: note text fades out under the floating bar instead of
+          showing through and below it, as on Home (Apple HIG, Scroll views:
+          a scroll edge effect behind floating elements). */}
+      <div
+        aria-hidden
+        data-note-bar-fade
+        className={cn([
+          "from-panel via-panel pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t via-50% to-transparent",
+          (floatingChatOpen || barEmpty) && "hidden",
+        ])}
+      />
       <RecordingBar sessionId={sessionId} />
       <div
         data-note-bar-stack

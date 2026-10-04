@@ -193,7 +193,10 @@ export function ChatPage() {
             aria-labelledby="chat-recents"
             className="flex flex-col gap-1"
           >
-            <div className="flex items-center justify-between px-2">
+            {/* Fork: labels, recent rows and recipe chips share the
+                composer's left edge; the rows keep px-2 for their hover
+                fill (Apple HIG, Layout: align elements to scan them). */}
+            <div className="flex items-center justify-between">
               <h2
                 id="chat-recents"
                 className="text-muted-foreground text-sm font-medium"
@@ -212,7 +215,7 @@ export function ChatPage() {
                 </button>
               ) : null}
             </div>
-            <ul id="chat-recents-list" className="flex flex-col">
+            <ul id="chat-recents-list" className="-mx-2 flex flex-col">
               {recents.map((group) => (
                 <RecentChatRow key={group.id} group={group} onOpen={openChat} />
               ))}
@@ -223,7 +226,7 @@ export function ChatPage() {
         <section aria-labelledby="chat-recipes" className="flex flex-col gap-2">
           <h2
             id="chat-recipes"
-            className="text-muted-foreground px-2 text-sm font-medium"
+            className="text-muted-foreground text-sm font-medium"
           >
             <Trans>Recipes</Trans>
           </h2>
@@ -236,7 +239,6 @@ export function ChatPage() {
             }
             onSelect={ask}
             wrap
-            className="px-2"
           >
             {recipes.length > CHAT_RECIPES_LIMIT ? (
               <button

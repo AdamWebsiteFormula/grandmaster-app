@@ -23,7 +23,9 @@ describe("SpokenLanguagesView", () => {
       />,
     );
     const button = screen.getByRole("button", { name: "Add language" });
-    expect(button.className).toContain("h-7");
+    // Fork: the Settings row-button size, as Plan's (NN/g #4).
+    expect(button.className).toContain("h-8");
+    expect(button.className).toContain("text-sm");
     expect(screen.queryByRole("combobox")).toBeNull();
     expect(screen.queryByRole("list")).toBeNull();
   });

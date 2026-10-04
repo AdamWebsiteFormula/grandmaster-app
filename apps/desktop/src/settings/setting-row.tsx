@@ -6,7 +6,12 @@ import { cn } from "@anlg/utils";
 
 import { SettingsSectionTitle } from "~/settings/page-title";
 
-export const SETTING_CONTROL_CLASS = "bg-card h-9 w-full shadow-none";
+// Fork: in dark, text fields and dropdowns take the outline button's light
+// tint, so every Settings control has one fill and sits raised on the card
+// (Apple HIG, Dark Mode: raised is lighter; shadcn/ui's input uses
+// dark:bg-input/30; NN/g #4). Light keeps bg-card.
+export const SETTING_CONTROL_CLASS =
+  "bg-card dark:bg-input/30 h-9 w-full shadow-none";
 
 // Fork: one segmented control look for Theme, Plan billing period and
 // Insights date range. Light: the selected segment is a white tile with a
@@ -117,12 +122,15 @@ export function SettingRow({
   description,
   icon,
   controlWidth = "fixed",
+  disabled = false,
   children,
 }: {
   title: ReactNode;
   description?: ReactNode;
   icon?: Icon;
   controlWidth?: "fixed" | "content";
+  /** The row's control is unavailable: the title dims to muted text. */
+  disabled?: boolean;
   children: (labelProps: {
     "aria-labelledby": string;
     "aria-describedby": string | undefined;
@@ -136,7 +144,16 @@ export function SettingRow({
       <div className="flex min-w-0 flex-1 items-center gap-3">
         {icon ? <SettingIconTile icon={icon} /> : null}
         <div className="min-w-0 flex-1">
-          <h3 id={titleId} className="text-sm font-medium">
+          {/* Fork: a disabled row's title uses the muted text color, as
+              macOS dims an unavailable control's label (Apple HIG, Color);
+              muted text still meets 4.5:1. The description says why. */}
+          <h3
+            id={titleId}
+            className={cn([
+              "text-sm font-medium",
+              disabled && "text-muted-foreground",
+            ])}
+          >
             {title}
           </h3>
           {description && (
@@ -186,6 +203,7 @@ export function SettingSwitchRow({
       description={description}
       icon={icon}
       controlWidth="content"
+      disabled={disabled}
     >
       {(labelProps) => (
         <Switch

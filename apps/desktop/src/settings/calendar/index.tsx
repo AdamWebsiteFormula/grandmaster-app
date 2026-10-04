@@ -117,11 +117,13 @@ function SettingsCalendarContent() {
                 <Trans>Allowed</Trans>
               </span>
             ) : (
+              // Fork: the Settings row-button size, as Plan's: h-8, text-sm
+              // (NN/g #4).
               <Button
                 aria-describedby={labelProps["aria-describedby"]}
                 variant="default"
                 size="sm"
-                className="h-8 px-3"
+                className="h-8 px-3 text-sm"
                 disabled={calendar.isPending}
                 onClick={allowAccess}
               >
@@ -154,7 +156,7 @@ function SettingsCalendarContent() {
               aria-describedby={labelProps["aria-describedby"]}
               variant="outline"
               size="sm"
-              className="h-8 px-3"
+              className="h-8 px-3 text-sm"
               onClick={() => void openInternetAccounts()}
             >
               <Trans>Add account</Trans>
@@ -174,7 +176,7 @@ function SettingsCalendarContent() {
             <Button
               variant="outline"
               size="sm"
-              className="h-8 px-3"
+              className="h-8 px-3 text-sm"
               onClick={() => openNew({ type: "calendar" })}
             >
               <Trans>Open calendar</Trans>

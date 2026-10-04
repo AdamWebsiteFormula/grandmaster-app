@@ -55,6 +55,7 @@ import {
 
 import { useSetSettingValues } from "~/settings/queries";
 import {
+  SETTING_CONTROL_CLASS,
   SettingRow,
   SettingsGroup,
   SettingSwitchRow,
@@ -334,7 +335,12 @@ export function NotificationSettingsView() {
                                     >
                                       <SelectTrigger
                                         {...labelProps}
-                                        className="w-[120px]"
+                                        // Fork: the Settings dropdown look,
+                                        // one fill with the rest (NN/g #4).
+                                        className={cn([
+                                          SETTING_CONTROL_CLASS,
+                                          "w-[120px]",
+                                        ])}
                                       >
                                         <SelectValue />
                                       </SelectTrigger>

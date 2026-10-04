@@ -260,7 +260,9 @@ export function SelectProviderAndModel() {
     });
   };
   return (
-    <div className="flex flex-col gap-4">
+    // Fork: the title sits as close to its dropdowns as Dictionary's to its
+    // card: gap-2 and a 24 px title row (Apple HIG, Layout).
+    <div className="flex flex-col gap-2">
       {defaultSelection && !pendingProvider ? (
         <PersistAiSelection
           key={`stt:${defaultSelection.provider}:${defaultSelection.model}`}
@@ -281,7 +283,7 @@ export function SelectProviderAndModel() {
           and both dropdowns use the Settings select look: the default
           squircle and a chevron at all times (NN/g #4; NN/g "Beyond Blue
           Links"). */}
-      <SettingsSectionTitle className="px-1">
+      <SettingsSectionTitle className="flex min-h-6 items-center px-1">
         <Trans>Model being used</Trans>
       </SettingsSectionTitle>
       <div className="flex flex-row items-center gap-4">

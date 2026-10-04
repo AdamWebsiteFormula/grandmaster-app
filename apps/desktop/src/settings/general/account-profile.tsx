@@ -157,7 +157,10 @@ function ProfileForm({
                         name === "linkedinUsername" ? `${id}-prefix` : undefined
                       }
                       value={field.state.value}
-                      className="bg-card h-8 w-full min-w-0"
+                      // Fork: one field fill with the Settings dropdowns:
+                      // the light tint in dark (Apple HIG, Dark Mode;
+                      // shadcn/ui input; NN/g #4).
+                      className="bg-card dark:bg-input/30 h-8 w-full min-w-0"
                       onChange={(event) =>
                         field.handleChange(event.target.value)
                       }
@@ -234,7 +237,8 @@ function ProfileForm({
                 id={memoId}
                 aria-describedby={`${memoId}-hint`}
                 value={field.state.value}
-                className="bg-card"
+                // Fork: the same fill as the fields above (NN/g #4).
+                className="bg-card dark:bg-input/30"
                 onChange={(event) => field.handleChange(event.target.value)}
                 onBlur={field.handleBlur}
                 rows={3}

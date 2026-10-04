@@ -3185,6 +3185,7 @@ msgstr "Folder name"
 msgid "Folder: {currentPath}"
 msgstr "Folder: {currentPath}"
 
+#: src/folders/index.tsx
 #: src/sidebar/home-nav.tsx
 #: src/sidebar/settings-nav-groups.ts
 msgid "Folders"

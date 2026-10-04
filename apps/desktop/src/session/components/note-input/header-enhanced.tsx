@@ -289,7 +289,9 @@ function HeaderViewEnhancedActive({
         onContextMenu={showContextMenu}
         title={templateTooltip}
         className={noteChipClassName(
-          false,
+          // Fork: this chip renders only for the summary on screen, so it
+          // takes the selected look (WCAG 2.2 SC 1.4.1).
+          true,
           cn([
             "text-foreground",
             isGenerating && "cursor-not-allowed opacity-70",

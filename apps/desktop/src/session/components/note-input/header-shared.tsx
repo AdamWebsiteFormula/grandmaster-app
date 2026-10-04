@@ -128,7 +128,12 @@ export function noteChipClassName(active = false, className?: string) {
     "border-border inline-flex h-6 max-w-56 min-w-0 shrink-0 cursor-pointer items-center gap-1 rounded-md border px-2 text-xs whitespace-nowrap transition-colors select-none",
     "hover:bg-accent hover:text-foreground [&_svg]:size-3.5 [&_svg]:shrink-0",
     "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
-    active ? "bg-accent text-foreground" : "text-muted-foreground",
+    // Fork: the current view (My notes or the summary) shows as a raised
+    // tile with a stronger edge, not by text shade alone (WCAG 2.2 SC 1.4.1;
+    // the selected-segment look in design-system.md).
+    active
+      ? "border-input bg-card text-foreground dark:bg-muted"
+      : "text-muted-foreground",
     className,
   ]);
 }

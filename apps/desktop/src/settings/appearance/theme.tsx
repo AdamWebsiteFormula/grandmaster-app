@@ -106,8 +106,10 @@ export function ThemeSelector() {
                 tabIndex={selected ? 0 : -1}
                 onClick={() => choose(option.value)}
                 onKeyDown={(event) => onKeyDown(event, index)}
+                // Fork: text-sm like the other Settings row controls; py-1
+                // keeps the segment 30 px tall (NN/g #4).
                 className={cn([
-                  "rounded-md px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors",
+                  "rounded-md px-3 py-1 text-sm font-medium whitespace-nowrap transition-colors",
                   "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
                   SEGMENT_BASE_CLASS,
                   selected ? SEGMENT_SELECTED_CLASS : SEGMENT_IDLE_CLASS,

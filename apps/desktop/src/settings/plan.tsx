@@ -142,7 +142,7 @@ export function SettingsPlan() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 shrink-0 text-sm"
+                className="h-8 shrink-0 px-3 text-sm"
                 onClick={() => void refreshUpshotPlan(true)}
               >
                 <Trans>Try again</Trans>
@@ -184,7 +184,7 @@ export function SettingsPlan() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 text-sm"
+                  className="h-8 px-3 text-sm"
                   disabled={busy !== null}
                   onClick={() => void run("manage", openManageSubscription)}
                 >
@@ -205,7 +205,7 @@ export function SettingsPlan() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 text-sm"
+                  className="h-8 px-3 text-sm"
                   onClick={() => openUpshotSignIn()}
                 >
                   {sessionEnded ? (
@@ -453,8 +453,9 @@ function PlanComparison({
       {/* Fork: the Monthly/Yearly toggle sits in the title row, not in the
           table, so it never overlaps the Free column in a narrow window
           (journey-account-settings P2; WCAG 2.2 SC 1.4.10; Apple HIG
-          Layout). */}
-      <div className="flex min-h-6 flex-wrap items-center justify-between gap-x-3 gap-y-2 px-1">
+          Layout). Only the title is inset (pl-1), so the toggle ends flush
+          with the card's right edge. */}
+      <div className="flex min-h-6 flex-wrap items-center justify-between gap-x-3 gap-y-2 pl-1">
         <SettingsSectionTitle id={titleId}>
           <Trans>Compare plans</Trans>
         </SettingsSectionTitle>

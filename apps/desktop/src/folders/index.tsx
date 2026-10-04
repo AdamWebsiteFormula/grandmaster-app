@@ -40,6 +40,12 @@ function NoFolders() {
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 px-6">
+      {/* Fork: the page says where you are, as the Chat page does (NN/g,
+          "Navigation: You Are Here"); the sidebar shows only the folder list
+          here. */}
+      <h1 className="text-foreground font-display text-2xl font-semibold tracking-[-0.01em]">
+        <Trans>Folders</Trans>
+      </h1>
       <p className="text-muted-foreground text-center text-sm">
         <Trans>No folders yet. Create one to group notes and materials.</Trans>
       </p>

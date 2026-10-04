@@ -244,6 +244,8 @@ describe("Folders workspace", () => {
       2,
     );
     expect(screen.queryByPlaceholderText("Search folders…")).toBeNull();
+    // NN/g "Navigation: You Are Here": the empty page names itself.
+    expect(screen.getByRole("heading", { name: "Folders" })).toBeTruthy();
     fireEvent.click(screen.getAllByRole("button", { name: "New folder" })[1]);
     fireEvent.change(screen.getByLabelText("Folder name"), {
       target: { value: "CS 101" },

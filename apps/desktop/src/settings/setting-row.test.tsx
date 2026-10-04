@@ -50,6 +50,45 @@ describe("Settings card groups", () => {
     expect(container.querySelector("[data-settings-card]")).not.toBeNull();
   });
 
+  // Fork: a disabled row dims its title, as macOS dims an unavailable
+  // control's label (Apple HIG, Color); the description stays.
+  it("dims the title of a row whose switch is disabled", () => {
+    render(
+      <SettingsGroup title="Meetings">
+        <SettingSwitchRow
+          title="Join scheduled meetings"
+          description="Turn on Start when meeting begins first."
+          checked={false}
+          onChange={() => {}}
+          disabled
+        />
+        <SettingSwitchRow
+          title="Stop when meeting ends"
+          checked
+          onChange={() => {}}
+        />
+      </SettingsGroup>,
+    );
+
+    const disabledTitle = screen.getByRole("heading", {
+      name: "Join scheduled meetings",
+    });
+    expect(disabledTitle.className).toContain("text-muted-foreground");
+    expect(
+      (
+        screen.getByRole("switch", {
+          name: "Join scheduled meetings",
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+    expect(
+      screen.getByText("Turn on Start when meeting begins first."),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { name: "Stop when meeting ends" }).className,
+    ).not.toContain("text-muted-foreground");
+  });
+
   it("link rows open their page", () => {
     const onClick = vi.fn();
     render(

@@ -125,6 +125,8 @@ describe("Settings › Calendar", () => {
       const button = screen.getByRole("button", { name });
       expect(button.className).toContain("h-8");
       expect(button.className).toContain("px-3");
+      expect(button.className).toContain("text-sm");
+      expect(button.className).not.toContain("text-xs");
     }
   });
 
