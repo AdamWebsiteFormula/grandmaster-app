@@ -48,10 +48,6 @@ vi.mock("~/sidebar/settings", () => ({
   SettingsNav: () => <div data-testid="settings-nav" />,
 }));
 
-vi.mock("~/sidebar/templates", () => ({
-  TemplatesNav: () => <div data-testid="templates-nav" />,
-}));
-
 vi.mock("~/sidebar/home-nav", () => ({
   SidebarHomeNav: () => <nav data-testid="home-nav" />,
 }));
@@ -118,7 +114,6 @@ describe("LeftSidebar", () => {
     ["settings", "settings-nav"],
     ["calendar", "calendar-nav"],
     ["contacts", "contacts-nav"],
-    ["templates", "templates-nav"],
     ["automations", "automations-nav"],
   ])("shows the %s nav instead of the timeline", (type, testId) => {
     mocks.currentTab = { type };
@@ -133,8 +128,10 @@ describe("LeftSidebar", () => {
   // Owner test, Oct 4: an open folder keeps the main sidebar, with its
   // folders listed, as Granola's one sidebar does (Granola Help Center,
   // "Spaces & Folders").
-  it("keeps the main sidebar while a folder is open", () => {
-    mocks.currentTab = { type: "folders" };
+  // Backlog item 2: Templates keeps it too and lists its templates in the
+  // page, as Granola's Note templates does.
+  it.each(["folders", "templates"])("keeps the main sidebar on %s", (type) => {
+    mocks.currentTab = { type };
 
     render(<LeftSidebar />);
 

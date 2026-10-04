@@ -40,7 +40,6 @@ import {
 } from "~/resource-sharing";
 import { useConfigValue } from "~/shared/config";
 import { useNativeContextMenu } from "~/shared/hooks/useNativeContextMenu";
-import { CustomSidebarHeader } from "~/sidebar/custom-sidebar-header";
 import { type Tab } from "~/store/zustand/tabs";
 
 type SortOption = "alphabetical" | "reverse-alphabetical";
@@ -368,7 +367,13 @@ export function TemplatesSidebarContent({
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
       <div>
-        <CustomSidebarHeader>
+        {/* Fork: the list's own header row, level with the editor's title
+            row, as Granola's Note templates heads its list with New template
+            (Granola Help Center, "Customize notes with templates"). */}
+        <div className="flex h-12 items-center gap-1 pl-3">
+          <h1 className="min-w-0 flex-1 truncate text-sm font-semibold">
+            <Trans>Templates</Trans>
+          </h1>
           {userTemplates.length > 1 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -378,7 +383,7 @@ export function TemplatesSidebarContent({
                   variant="ghost"
                   aria-label={t`Sort templates`}
                   title={t`Sort templates`}
-                  className="text-muted-foreground hover:text-foreground relative z-[60]"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <ArrowsDownUp size={16} />
                 </Button>
@@ -405,12 +410,12 @@ export function TemplatesSidebarContent({
             variant="ghost"
             aria-label={t`New template`}
             title={t`New template`}
-            className="text-muted-foreground hover:text-foreground relative z-[60]"
+            className="text-muted-foreground hover:text-foreground"
             onClick={createDefaultTemplate}
           >
             <Plus size={16} />
           </Button>
-        </CustomSidebarHeader>
+        </div>
 
         <div className="pb-2">
           <div

@@ -2,13 +2,13 @@ import { useEffect, useRef } from "react";
 
 import type { Tab } from "~/store/zustand/tabs";
 
-// Fork: Folders keeps the main sidebar and its window chrome row, as Home
-// and Chat do (owner test, Oct 4: Home slid under the window buttons).
+// Fork: Folders and Templates keep the main sidebar and its window chrome
+// row, as Home and Chat do (owner test, Oct 4: Home slid under the window
+// buttons; Granola's Note templates keeps its own list beside the editor).
 const CUSTOM_SIDEBAR_TYPES: Tab["type"][] = [
   "calendar",
   "settings",
   "contacts",
-  "templates",
   "automations",
 ];
 
@@ -16,7 +16,6 @@ const LEFT_SURFACE_CUSTOM_SIDEBAR_TYPES: Tab["type"][] = [
   "calendar",
   "settings",
   "contacts",
-  "templates",
   "automations",
 ];
 
@@ -25,7 +24,6 @@ const OWN_SIDEBAR_HEADER_TYPES: Tab["type"][] = [
   "calendar",
   "settings",
   "contacts",
-  "templates",
   "automations",
 ];
 

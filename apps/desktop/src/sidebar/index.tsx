@@ -13,7 +13,6 @@ import type { SidebarNoteFilter } from "./note-filter";
 import { SettingsNav } from "./settings";
 import { SharedNotesNav } from "./shared-notes";
 import { ShortcutTooltip } from "./shortcut-tooltip";
-import { TemplatesNav } from "./templates";
 import { TimelineView } from "./timeline";
 import { hasOwnSidebarHeaderTab } from "./use-custom-sidebar";
 
@@ -46,16 +45,17 @@ export function LeftSidebar({
   const isSettingsMode = currentTab?.type === "settings";
   const isCalendarMode = currentTab?.type === "calendar";
   const isContactsMode = currentTab?.type === "contacts";
-  const isTemplatesMode = currentTab?.type === "templates";
   const isAutomationsMode = currentTab?.type === "automations";
   const isSpecialMode =
     isSettingsMode ||
     isCalendarMode ||
     isContactsMode ||
-    isTemplatesMode ||
     // Fork: Folders keeps the main sidebar, with the open folder selected in
     // its list, as Granola's one sidebar holds its folders (Granola Help
-    // Center, "Spaces & Folders"; owner test, Oct 4).
+    // Center, "Spaces & Folders"; owner test, Oct 4). Templates keeps it too
+    // and lists its templates in the page, as Granola's Note templates does
+    // (Granola Help Center, "Customize notes with templates"; Apple HIG,
+    // Sidebars: the sidebar is the app's top-level navigation).
     isAutomationsMode;
   const isTimelineSidebarLayout = !isSpecialMode;
   // Navs with their own CustomSidebarHeader fill the chrome row themselves; a
@@ -80,8 +80,6 @@ export function LeftSidebar({
             <CalendarNav />
           ) : isContactsMode ? (
             <ContactsNav />
-          ) : isTemplatesMode ? (
-            <TemplatesNav />
           ) : isAutomationsMode ? (
             <AutomationsNav />
           ) : !SHOW_SIDEBAR_TIMELINE ? (

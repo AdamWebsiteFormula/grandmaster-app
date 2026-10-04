@@ -1,5 +1,4 @@
 import { cleanup, render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -35,12 +34,6 @@ vi.mock("~/shared/config", () => ({
 
 vi.mock("~/shared/hooks/useNativeContextMenu", () => ({
   useNativeContextMenu: () => vi.fn(),
-}));
-
-vi.mock("~/sidebar/custom-sidebar-header", () => ({
-  CustomSidebarHeader: ({ children }: { children: ReactNode }) => (
-    <div>{children}</div>
-  ),
 }));
 
 import type { UserTemplate } from "./queries";
