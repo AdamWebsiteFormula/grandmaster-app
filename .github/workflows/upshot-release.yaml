@@ -8,10 +8,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: upshot-release-${{ github.ref }}
-  cancel-in-progress: true
-
 env:
   APP_VERSION: "1.0.0"
   VITE_APP_VERSION: "1.0.0"
@@ -21,8 +17,9 @@ env:
   TAURI_CONF_PATH: ./src-tauri/tauri.conf.upshot-ci.json
   NODE_OPTIONS: "--max-old-space-size=4096"
   CMAKE_POLICY_VERSION_MINIMUM: "3.5"
-  # Keep the Rust cache even when a build fails, so the next run is faster.
-  CACHE_ON_FAILURE: "true"
+  # codeberg.org (whisper-rs) and other git sources sometimes return 503.
+  CARGO_NET_RETRY: "10"
+  CARGO_NET_GIT_FETCH_WITH_CLI: "true"
 
 jobs:
   build-linux:
@@ -45,6 +42,15 @@ jobs:
         with:
           platform: linux-x86_64
       - uses: ./.github/actions/pnpm_install
+      - name: Fetch Rust dependencies (with retries)
+        shell: bash
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            cargo fetch --locked && exit 0
+            echo "cargo fetch failed (attempt $attempt); retrying in 60 s"
+            sleep 60
+          done
+          exit 1
       - run: pnpm -F ui build
       - name: Sidecars and config overlay
         run: |
@@ -150,6 +156,15 @@ jobs:
         with:
           platform: windows
       - uses: ./.github/actions/pnpm_install
+      - name: Fetch Rust dependencies (with retries)
+        shell: bash
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            cargo fetch --locked && exit 0
+            echo "cargo fetch failed (attempt $attempt); retrying in 60 s"
+            sleep 60
+          done
+          exit 1
       - run: pnpm -F ui build
       - name: CLI sidecar and config overlay
         shell: bash
