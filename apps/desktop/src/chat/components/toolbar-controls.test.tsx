@@ -107,6 +107,29 @@ describe("ChatToolbarControls", () => {
     ).toBeNull();
   });
 
+  // Owner test, Oct 4: on the Chat page the conversation fills the page, so
+  // the toolbar offers a way back instead of Float and Close.
+  it("leads with All chats on the Chat page and drops Float and Close", () => {
+    const onBack = vi.fn();
+    render(
+      <ChatToolbarControls
+        chatScope="general"
+        currentChatGroupId={undefined}
+        layout="right-panel"
+        onBack={onBack}
+        onNewChat={vi.fn()}
+        onSelectChat={vi.fn()}
+        surface="light"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "All chats" }));
+    expect(onBack).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "New chat" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Float chat" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Close chat" })).toBeNull();
+  });
+
   it("loads history for the active chat scope", () => {
     render(
       <ChatToolbarControls

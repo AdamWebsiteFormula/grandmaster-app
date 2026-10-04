@@ -2,6 +2,7 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
 
 import {
+  ArrowLeft,
   CaretDown,
   ChatCircle,
   ClockCounterClockwise,
@@ -31,6 +32,7 @@ export function ChatToolbarControls({
   chatScope,
   currentChatGroupId,
   layout = "floating",
+  onBack,
   onClose,
   onNewChat,
   onOpenFloating,
@@ -41,6 +43,9 @@ export function ChatToolbarControls({
   chatScope: ChatScope;
   currentChatGroupId: string | undefined;
   layout?: "floating" | "right-panel";
+  // Fork: on the Chat page the conversation fills the page, so the toolbar
+  // leads with a way back to the page and drops Float and Close.
+  onBack?: () => void;
   onClose?: () => void;
   onNewChat: () => void;
   onOpenFloating?: () => void;
@@ -68,6 +73,17 @@ export function ChatToolbarControls({
         data-tauri-drag-region={isRightPanel || undefined}
         className="flex min-w-0 flex-1 items-center gap-1"
       >
+        {onBack ? (
+          <button
+            type="button"
+            data-chat-back
+            onClick={onBack}
+            className="text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-ring flex h-7 shrink-0 items-center gap-1 rounded-full pr-2.5 pl-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-hidden"
+          >
+            <ArrowLeft size={16} />
+            <span>{t`All chats`}</span>
+          </button>
+        ) : null}
         <ChatGroups
           chatScope={chatScope}
           currentChatGroupId={currentChatGroupId}
@@ -87,7 +103,7 @@ export function ChatToolbarControls({
           onClick={onNewChat}
           className={actionButtonClassName}
         />
-        {isRightPanel ? (
+        {onBack ? null : isRightPanel ? (
           <>
             <ChatActionButton
               icon={<PictureInPicture size={16} />}

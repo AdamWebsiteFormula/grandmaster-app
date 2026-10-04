@@ -78,13 +78,17 @@ export function ChatSessionHost({
 }
 
 export function ChatPanelFrame({
-  layout = "floating",
+  layout: frameLayout = "floating",
+  onBack,
   onDraftContentChange,
   onOpenFloating,
   onOpenRightPanel,
   sessionProps,
 }: {
-  layout?: "floating" | "right-panel";
+  // Fork: "page" is the Chat page, where the conversation stays in the
+  // column you typed in (owner test, Oct 4). It draws like the right panel.
+  layout?: "floating" | "right-panel" | "page";
+  onBack?: () => void;
   onDraftContentChange?: (hasDraftContent: boolean) => void;
   onOpenFloating?: () => void;
   onOpenRightPanel?: () => void;
@@ -93,6 +97,8 @@ export function ChatPanelFrame({
   const { chat } = useShell();
   const { groupId, setGroupId, rollbackFailedGroup } = chat;
   const { panelClassName, toolbarSurface } = useChatAppearance();
+  const isPage = frameLayout === "page";
+  const layout = isPage ? "right-panel" : frameLayout;
   const isFloating = layout === "floating";
   const model = useLanguageModel("chat");
 
@@ -122,7 +128,11 @@ export function ChatPanelFrame({
       className={cn([
         "flex min-h-0 flex-col overflow-hidden",
         isFloating ? "max-h-full" : "h-full",
-        isFloating ? chatFloatingPanelClassNames() : panelClassName,
+        isPage
+          ? "bg-background text-foreground"
+          : isFloating
+            ? chatFloatingPanelClassNames()
+            : panelClassName,
       ])}
     >
       {chat.scope === "automations" ? null : (
@@ -130,13 +140,18 @@ export function ChatPanelFrame({
           data-tauri-drag-region={!isFloating || undefined}
           className={cn([
             "flex shrink-0 pr-0 pl-0",
-            isFloating ? "h-11 items-center" : "h-9 items-start pt-[9px]",
+            isPage
+              ? "h-12 items-center"
+              : isFloating
+                ? "h-11 items-center"
+                : "h-9 items-start pt-[9px]",
           ])}
         >
           <ChatToolbarControls
             chatScope={chat.scope}
             currentChatGroupId={groupId}
             layout={layout}
+            onBack={isPage ? onBack : undefined}
             onClose={() => chat.sendEvent({ type: "CLOSE" })}
             onNewChat={chat.startNewChat}
             onOpenFloating={onOpenFloating}

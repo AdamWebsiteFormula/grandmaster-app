@@ -103,10 +103,12 @@ vi.mock("~/store/zustand/tabs", () => ({
 vi.mock("~/chat/components/chat-panel", () => ({
   ChatPanelFrame: ({
     layout,
+    onBack,
     onOpenFloating,
     sessionProps,
   }: {
-    layout?: "floating" | "right-panel";
+    layout?: "floating" | "right-panel" | "page";
+    onBack?: () => void;
     onOpenFloating?: () => void;
     sessionProps: unknown;
   }) => (
@@ -115,7 +117,7 @@ vi.mock("~/chat/components/chat-panel", () => ({
       data-layout={layout}
       data-testid="chat-view"
       type="button"
-      onClick={onOpenFloating}
+      onClick={onBack ?? onOpenFloating}
     >
       Chat
     </button>
@@ -195,6 +197,42 @@ describe("MainChatPanels", () => {
     expect(screen.getByTestId("resize-handle")).toBeTruthy();
     expect(screen.getByTestId("chat-view").dataset.layout).toBe("right-panel");
     expect(screen.getByTestId("chat-view").dataset.hasSession).toBe("true");
+  });
+
+  // Owner test, Oct 4: sending on the Chat page moved the conversation to
+  // the right panel ("jarring").
+  it("keeps an open chat in the Chat page's column, with no right panel", () => {
+    mocks.chatMode = "RightPanelOpen";
+    mocks.currentTab = { type: "chat" };
+
+    render(
+      <MainChatPanels>
+        <div data-testid="main-content" />
+      </MainChatPanels>,
+    );
+
+    expect(screen.queryByTestId("main-content")).toBeNull();
+    expect(screen.getAllByTestId("panel")).toHaveLength(1);
+    expect(screen.queryByTestId("resize-handle")).toBeNull();
+    const view = screen.getByTestId("chat-view");
+    expect(view.dataset.layout).toBe("page");
+    expect(view.closest("[data-chat-page-conversation]")).not.toBeNull();
+
+    fireEvent.click(view);
+    expect(mocks.sendEvent).toHaveBeenCalledWith({ type: "CLOSE" });
+  });
+
+  it("shows the Chat page itself while no chat is open", () => {
+    mocks.currentTab = { type: "chat" };
+
+    render(
+      <MainChatPanels>
+        <div data-testid="main-content" />
+      </MainChatPanels>,
+    );
+
+    expect(screen.getByTestId("main-content")).toBeTruthy();
+    expect(screen.queryByTestId("chat-view")).toBeNull();
   });
 
   it("keeps Automations chat docked without a floating chat host", () => {

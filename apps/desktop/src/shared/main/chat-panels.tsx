@@ -40,7 +40,14 @@ export function MainChatPanels({
   const currentTab = useTabs((state) => state.currentTab);
   const bodyPanelContainerRef = useRef<HTMLDivElement>(null);
   const isAutomationsTab = currentTab?.type === "automations";
-  const isRightPanelOpen = isAutomationsTab || chat.mode === "RightPanelOpen";
+  const isChatDocked = isAutomationsTab || chat.mode === "RightPanelOpen";
+  // Fork: on the Chat page an open chat fills the page's own column instead
+  // of jumping to the right panel, as ChatGPT and Claude keep a conversation
+  // where you typed it (owner test, Oct 4: "jarring"; NN/g #4). Other pages
+  // keep the right panel.
+  const chatOnPage =
+    currentTab?.type === "chat" && chat.mode === "RightPanelOpen";
+  const isRightPanelOpen = isChatDocked && !chatOnPage;
   const leftSidebarExpanded = leftSidebarAvailable && leftsidebar.expanded;
   const reserveNoteSurfaceMinWidth = usesNoteSurfaceMinWidth(currentTab);
   const collapseLeftSidebar = useCallback(() => {
@@ -84,7 +91,20 @@ export function MainChatPanels({
                 data-main-body-panel-container
                 className="h-full min-h-0 min-w-0 flex-1 overflow-hidden"
               >
-                {children}
+                {chatOnPage ? (
+                  <div
+                    data-chat-page-conversation
+                    className="mx-auto flex h-full min-h-0 w-full max-w-[760px] flex-col px-4"
+                  >
+                    <ChatPanelFrame
+                      layout="page"
+                      onBack={() => chat.sendEvent({ type: "CLOSE" })}
+                      sessionProps={sessionProps}
+                    />
+                  </div>
+                ) : (
+                  children
+                )}
               </div>
             </ResizablePanel>
             {isRightPanelOpen ? (

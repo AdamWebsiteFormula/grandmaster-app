@@ -686,6 +686,10 @@ msgstr ""
 msgid "alerts, reminders, Do Not Disturb, meeting detected, bounce"
 msgstr ""
 
+#: src/chat/components/toolbar-controls.tsx
+msgid "All chats"
+msgstr ""
+
 #: src/settings/developers/webhooks.tsx
 msgid "All events"
 msgstr ""
