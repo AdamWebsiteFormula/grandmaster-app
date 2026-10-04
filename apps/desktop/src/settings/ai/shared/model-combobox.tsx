@@ -242,7 +242,7 @@ export function ModelCombobox({
             {suffix}
           </span>
           {isConfigured ? (
-            <Check className="-mr-1 h-4 w-4 shrink-0 text-green-600" />
+            <Check className="text-muted-foreground -mr-1 h-4 w-4 shrink-0" />
           ) : (
             <CaretDown className="-mr-1 h-4 w-4 shrink-0 opacity-50" />
           )}

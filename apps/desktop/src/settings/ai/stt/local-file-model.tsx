@@ -125,7 +125,7 @@ export function LocalFileModel({
         <CircleNotch className="text-muted-foreground size-4 shrink-0 animate-spin" />
       ) : null}
       {modelPath && healthStatus === "success" ? (
-        <Check className="size-4 shrink-0 text-green-600" />
+        <Check className="text-muted-foreground size-4 shrink-0" />
       ) : null}
     </div>
   );
