@@ -42,6 +42,18 @@ describe("AppSettingsView", () => {
     mocks.platform.mockReturnValue("macos");
   });
 
+  // Fork: "your computer" off a Mac (NN/g #2).
+  it.each([
+    ["macos", "Have Upshot ready when you log in to your Mac."],
+    ["windows", "Have Upshot ready when you log in to your computer."],
+    ["linux", "Have Upshot ready when you log in to your computer."],
+  ])("says where login starts Upshot on %s", (os, text) => {
+    mocks.platform.mockReturnValue(os);
+    renderAppSettings();
+
+    expect(screen.getByText(text)).toBeTruthy();
+  });
+
   it("does not offer automatic updates (the updater is off in this fork)", () => {
     renderAppSettings();
 

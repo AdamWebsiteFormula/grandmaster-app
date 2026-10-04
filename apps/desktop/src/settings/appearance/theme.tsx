@@ -14,6 +14,7 @@ import {
   SettingRow,
 } from "~/settings/setting-row";
 import { useConfigValue } from "~/shared/config";
+import { isMac } from "~/shared/shortcut-label";
 import { normalizeAppIconPreference } from "~/shared/theme/icon";
 import { applyThemePreference } from "~/shared/theme/provider";
 import type { ThemePreference } from "~/shared/theme/resolve";
@@ -38,10 +39,13 @@ export function ThemeSelector() {
   const setTheme = useSetSettingValue("theme");
   const trackRef = useSquircleRef<HTMLDivElement>();
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  // Fork: off a Mac the theme that follows the OS reads "Use system
+  // setting", as Windows 11 Notepad words it (Settings › App theme).
+  const mac = isMac();
   const options = [
     { value: "light", label: t`Light` },
     { value: "dark", label: t`Dark` },
-    { value: "system", label: t`Match my Mac` },
+    { value: "system", label: mac ? t`Match my Mac` : t`Use system setting` },
   ] as const satisfies readonly { value: ThemePreference; label: string }[];
 
   const choose = (next: ThemePreference) => {
@@ -72,7 +76,13 @@ export function ThemeSelector() {
     <SettingRow
       icon={Palette}
       title={<Trans>Theme</Trans>}
-      description={<Trans>Light, dark, or the same as your Mac.</Trans>}
+      description={
+        mac ? (
+          <Trans>Light, dark, or the same as your Mac.</Trans>
+        ) : (
+          <Trans>Light, dark, or the same as your computer.</Trans>
+        )
+      }
       controlWidth="content"
     >
       {(labelProps) => (

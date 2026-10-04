@@ -1,7 +1,11 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { formatElapsed, RecordingBar } from "./recording-bar";
+import {
+  CaptureHealthBanner,
+  formatElapsed,
+  RecordingBar,
+} from "./recording-bar";
 
 const mocks = vi.hoisted(() => ({
   isMainWebviewWindow: true,
@@ -11,7 +15,10 @@ const mocks = vi.hoisted(() => ({
   requestMainListenerControl: vi.fn(),
   stop: vi.fn(),
   resume: vi.fn(),
+  platform: "macos",
 }));
+
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
 
 vi.mock("~/stt/useStartListeningWithBatchOverride", () => ({
   useStartListeningWithBatchOverride: () => mocks.resume,
@@ -140,6 +147,40 @@ describe("RecordingBar", () => {
       expect(screen.queryByRole("button", { name: "Stop" })).toBeNull();
     },
   );
+});
+
+// Fork: only a Mac has a system audio permission and a System Settings
+// pane to open (NN/g heuristic #5: no control that cannot work).
+describe("CaptureHealthBanner off a Mac", () => {
+  afterEach(() => {
+    cleanup();
+    mocks.platform = "macos";
+  });
+
+  it.each(["windows", "linux"])(
+    "points at the sound output and offers no System Settings on %s",
+    (os) => {
+      mocks.platform = os;
+      render(
+        <CaptureHealthBanner notice="permission" onOpenSettings={vi.fn()} />,
+      );
+
+      expect(screen.getByRole("alert").textContent).toBe(
+        "Can't hear the other side. Check your computer's sound output.",
+      );
+      expect(screen.queryByRole("button")).toBeNull();
+    },
+  );
+
+  it("keeps Open System Settings on a Mac", () => {
+    render(
+      <CaptureHealthBanner notice="permission" onOpenSettings={vi.fn()} />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Open System Settings" }),
+    ).toBeTruthy();
+  });
 });
 
 describe("formatElapsed", () => {

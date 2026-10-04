@@ -75,7 +75,10 @@ describe("SearchBar", () => {
     expect(hoisted.setSearch).toHaveBeenCalledWith("", false);
   });
 
-  it("shows the Windows shortcut modifier", () => {
+  // Fork: the hints name the keys that really work, ⌥⌘F for replace
+  // (context.tsx), written Ctrl+Alt+F off a Mac (Microsoft Writing Style
+  // Guide, Keys and keyboard shortcuts).
+  it("shows the Windows keys, never ⌘ or ⇧", () => {
     hoisted.platform.mockReturnValue("windows");
     const editorRef = {
       current: {
@@ -87,13 +90,25 @@ describe("SearchBar", () => {
 
     const { container } = render(<SearchBar editorRef={editorRef} />);
 
-    expect(container.textContent).toContain("Ctrl H");
+    expect(container.textContent).toContain("ReplaceCtrl+Alt+F");
+    expect(container.textContent).toContain("Previous matchShift+Enter");
+    expect(container.textContent).toContain("Next matchEnter");
+    expect(container.textContent).not.toMatch(/[⌘⇧⌥↵]/);
+    expect(container.textContent).not.toContain("Ctrl H");
+  });
+
+  it("shows the Mac replace key, ⌥⌘F, not ⌘H", () => {
+    const { container } = render(<SearchBar />);
+
+    expect(container.textContent).toContain("Replace⌥ ⌘ F");
+    expect(container.textContent).toContain("Previous match⇧ ↵");
+    expect(container.textContent).not.toContain("⌘ H");
   });
 
   it("hides replace controls for find-only surfaces", () => {
     const { container } = render(<SearchBar allowReplace={false} />);
 
     expect(container.textContent).not.toContain("Replace");
-    expect(container.textContent).not.toContain("⌘ H");
+    expect(container.textContent).not.toContain("⌥ ⌘ F");
   });
 });

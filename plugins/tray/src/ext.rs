@@ -26,11 +26,11 @@ use crate::{
 #[cfg(target_os = "macos")]
 use crate::menu_items::{
     AppBlankNote, AppInfo, AppNew, EditFind, HelpAppHelp, HelpKeyboardShortcuts, HelpReportBug,
-    HelpSuggestFeature, TrayQuit, ViewSidebar,
+    HelpSuggestFeature, TrayQuit, TrayShowEvents, ViewSidebar,
 };
 use crate::menu_items::{
     MenuItemHandler, TrayCheckUpdate, TrayHide, TrayOpen, TrayQuitCompletely, TraySettings,
-    TrayShowEvents, TrayStart, TrayStopRecording, TrayVersion, build_agenda_item,
+    TrayStart, TrayStopRecording, TrayVersion, build_agenda_item,
 };
 use tauri_plugin_store2::Store2PluginExt;
 
@@ -422,6 +422,9 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
             }
         }
 
+        // Fork: events come from the Mac's Calendar and only the macOS menu
+        // bar shows them, so this item is Mac only (NN/g heuristic #5).
+        #[cfg(target_os = "macos")]
         menu.append(&TrayShowEvents::build(app)?)?;
         menu.append(&PredefinedMenuItem::separator(app)?)?;
 

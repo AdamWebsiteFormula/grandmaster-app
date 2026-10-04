@@ -7,7 +7,10 @@ const mocks = vi.hoisted(() => ({
     | "FloatingOpen"
     | "RightPanelOpen",
   sendEvent: vi.fn(),
+  platform: "macos",
 }));
+
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
 
 vi.mock("~/contexts/shell", () => ({
   useShell: () => ({
@@ -25,6 +28,18 @@ describe("ChatCTA", () => {
     cleanup();
     mocks.chatMode = "FloatingClosed";
     mocks.sendEvent.mockClear();
+    mocks.platform = "macos";
+  });
+
+  // Microsoft Writing Style Guide, Keys and keyboard shortcuts.
+  it("names Ctrl+J off a Mac", () => {
+    mocks.platform = "linux";
+    render(<ChatCTA />);
+
+    const button = screen.getByRole("button", { name: "Ask anything" });
+    expect(button.getAttribute("aria-keyshortcuts")).toBe("Control+J");
+    expect(button.textContent).toContain("Ctrl+J");
+    expect(button.textContent).not.toContain("⌘");
   });
 
   it("opens the floating chat", () => {

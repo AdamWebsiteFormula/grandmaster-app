@@ -11,7 +11,7 @@ export async function configurePaidSettings(): Promise<void> {
   const { values } = await getStoredSettingValues();
   const updates: SettingValues = {};
 
-  // Fork: Upshot transcription only off Apple Silicon (audio stays on the Mac).
+  // Fork: Upshot transcription is the default on every computer.
   if (
     !values.current_stt_provider &&
     isUpshotCloudSttAvailable(platform(), arch())

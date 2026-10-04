@@ -18,16 +18,22 @@ import { setSettingValues } from "~/settings/queries";
 import { SettingSwitchRow } from "~/settings/setting-row";
 import { useConfigValue } from "~/shared/config";
 import { flushAutomaticRelaunch } from "~/shared/relaunch";
+import { shortcutLabel } from "~/shared/shortcut-label";
 import { MEETING_DISCLOSURE_MESSAGE } from "~/stt/meeting-disclosure";
 import { commands } from "~/types/tauri.gen";
 
 // Fork: no community links (none exists, and the repo has Issues off); the
 // last step says how to record instead (UX audit Oct 3, A: NN/g #2, WCAG 2.5.8).
+// It names this step's real button, Open Upshot, and the New note button on
+// Home, with ⌘N or Ctrl+N (Microsoft Writing Style Guide, Keys and keyboard
+// shortcuts).
 export function FinalDescription() {
+  const newNoteShortcut = shortcutLabel(["mod", "N"]);
+
   return (
     <Trans>
-      Click New note at the top right, or press ⌘N, to record your first
-      meeting.
+      After you open Upshot, click New note or press {newNoteShortcut} to record
+      your first meeting.
     </Trans>
   );
 }
@@ -67,7 +73,10 @@ export function RecordingNotice() {
           }
         />
       )}
-      <AutoStartSwitch />
+      {/* Fork: auto start needs calendar meetings, which Upshot reads from
+          the Mac's Calendar only, so it shows on a Mac only (NN/g heuristic
+          #5, error prevention). */}
+      {platform() === "macos" && <AutoStartSwitch />}
     </div>
   );
 }

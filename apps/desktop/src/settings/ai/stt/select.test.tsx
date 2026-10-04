@@ -65,9 +65,9 @@ test.each([
   ["windows", "x86_64", true],
   ["linux", "x86_64", true],
   ["macos", "x86_64", true],
-  ["macos", "aarch64", false],
+  ["macos", "aarch64", true],
 ])(
-  "offers Upshot transcription only without an on-device engine (%s/%s)",
+  "offers Upshot transcription on every computer (%s/%s)",
   (platform, arch, offered) => {
     const client = new QueryClient({
       defaultOptions: { queries: { retry: false } },
@@ -92,3 +92,42 @@ test.each([
     );
   },
 );
+
+// Fork: Apple Speech is listed only where Upshot runs on-device engines
+// (Apple Silicon), so an Intel Mac never offers a pick that the next launch
+// would swap for Upshot transcription.
+test.each([
+  ["aarch64", true],
+  ["x86_64", false],
+])("lists Apple Speech on a %s Mac: %s", (arch, listed) => {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  client.setQueryData(["device-info"], {
+    platform: "macos",
+    arch,
+    totalMemoryBytes: 16e9,
+  });
+  client.setQueryData(
+    ["list-supported-models"],
+    [
+      {
+        key: "apple-speech",
+        display_name: "Apple Speech",
+        model_type: "appleSpeech",
+        size_bytes: null,
+        supports_realtime: true,
+        recommended_memory_bytes: 0,
+      },
+    ],
+  );
+  useProviderAvailabilityMock.mockReturnValue({ deepgram: true });
+
+  const { result } = renderHook(useConfiguredMapping, {
+    wrapper: ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    ),
+  });
+
+  expect(result.current.providers.apple_speech.configured).toBe(listed);
+});

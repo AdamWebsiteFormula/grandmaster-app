@@ -134,19 +134,84 @@ describe("Settings › Calendar", () => {
     render(<SettingsCalendar />);
     expect(
       screen.getByText(
-        "Upshot needs calendar access to show your upcoming meetings and name your notes.",
+        "Upshot needs calendar access to show meetings from your Google, Outlook and iCloud calendars and name your notes.",
       ),
     ).toBeTruthy();
     expect(screen.queryByText(/No calendars yet/)).toBeNull();
   });
 
-  it("offers Add an account when access is on but no calendars came back", () => {
+  // Owner feedback, Oct 3: "Apple Calendar" made people think only Apple
+  // calendars work. Every account on this Mac does.
+  it("names Google, Outlook and iCloud under a neutral title, not Apple Calendar", () => {
+    render(<SettingsCalendar />);
+    expect(
+      screen.getByRole("region", { name: "Calendar accounts" }),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Upshot reads your Google, Outlook, iCloud and other calendars on this Mac.",
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByText(/Apple Calendar/)).toBeNull();
+    cleanup();
+
+    for (const status of ["notDetermined", "denied"]) {
+      mocks.status = status;
+      render(<SettingsCalendar />);
+      expect(
+        screen.getByRole("region", { name: "Calendar accounts" }),
+      ).toBeTruthy();
+      expect(screen.queryByText(/Apple Calendar/)).toBeNull();
+      cleanup();
+    }
+  });
+
+  it("always offers Add account, one click to Internet Accounts", () => {
+    for (const status of ["notDetermined", "denied", "authorized"]) {
+      mocks.status = status;
+      mocks.openUrl.mockClear();
+      render(<SettingsCalendar />);
+      expect(
+        screen.getByRole("heading", { name: "Add Google or Outlook" }),
+      ).toBeTruthy();
+      const add = screen.getByRole("button", { name: "Add account" });
+      const describedBy = add.getAttribute("aria-describedby");
+      expect(
+        describedBy && document.getElementById(describedBy)?.textContent,
+      ).toBe(
+        "Add the account in System Settings › Internet Accounts. Its calendars show up here.",
+      );
+      // An outline button: Allow access stays the page's one orange button.
+      expect(add.className).toContain("border-input");
+      expect(add.className).not.toContain("bg-primary");
+      fireEvent.click(add);
+      expect(mocks.openUrl).toHaveBeenCalledWith(
+        "x-apple.systempreferences:com.apple.Internet-Accounts-Settings.extension",
+        null,
+      );
+      cleanup();
+    }
+
+    mocks.status = "notDetermined";
+    render(<SettingsCalendar />);
+    const orange = screen
+      .getAllByRole("button")
+      .filter((button) => button.className.includes("bg-primary"));
+    expect(orange).toEqual([
+      screen.getByRole("button", { name: "Allow access" }),
+    ]);
+  });
+
+  it("shows one Add account when access is on but no calendars came back", () => {
     mocks.groups = [];
     render(<SettingsCalendar />);
     expect(screen.getByText(/^No calendars yet\./)).toBeTruthy();
     expect(screen.queryByText(/Calendar access is off/)).toBeNull();
     expect(screen.queryByRole("button", { name: "Allow access" })).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Add an account" }));
+    // The empty list doesn't repeat the Add account row above it.
+    const add = screen.getAllByRole("button", { name: "Add account" });
+    expect(add).toHaveLength(1);
+    fireEvent.click(add[0]!);
     expect(mocks.openUrl).toHaveBeenCalledWith(
       "x-apple.systempreferences:com.apple.Internet-Accounts-Settings.extension",
       null,

@@ -6,7 +6,10 @@ import { NewNoteButton } from "./new-note-button";
 const mocks = vi.hoisted(() => ({
   newNoteAndListen: vi.fn(),
   status: "inactive",
+  platform: "macos",
 }));
+
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
 
 vi.mock("~/shared/useNewNote", () => ({
   useNewNoteAndListen: () => mocks.newNoteAndListen,
@@ -20,6 +23,7 @@ describe("NewNoteButton", () => {
   afterEach(() => {
     cleanup();
     mocks.status = "inactive";
+    mocks.platform = "macos";
     mocks.newNoteAndListen.mockClear();
   });
 
@@ -62,6 +66,16 @@ describe("NewNoteButton", () => {
 
     expect(screen.getByRole("button").getAttribute("title")).toBe(
       "New note and start recording (⌘N)",
+    );
+  });
+
+  // Microsoft Writing Style Guide, Keys and keyboard shortcuts.
+  it("names Ctrl+N off a Mac", () => {
+    mocks.platform = "windows";
+    render(<NewNoteButton />);
+
+    expect(screen.getByRole("button").getAttribute("title")).toBe(
+      "New note and start recording (Ctrl+N)",
     );
   });
 });

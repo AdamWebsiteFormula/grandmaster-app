@@ -18,7 +18,9 @@ const mocks = vi.hoisted(() => ({
   },
   query: vi.fn(),
   upshotEmail: null as string | null,
+  platform: "macos",
 }));
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
 vi.mock("~/upshot-plan", () => ({
   useUpshotAccount: (
     selector: (state: { session: { email: string } | null }) => unknown,
@@ -97,6 +99,15 @@ beforeEach(() => {
   mocks.contact = { data: null, isLoading: false, error: null };
   mocks.save.mockResolvedValue(undefined);
   mocks.upshotEmail = null;
+  mocks.platform = "macos";
+});
+
+// Fork: "this computer" off a Mac (NN/g #2).
+it("says the About you note stays on this computer off a Mac", () => {
+  mocks.platform = "linux";
+  render(view());
+  expect(screen.getByText("Only on this computer.")).toBeTruthy();
+  expect(screen.queryByText("Only on this Mac.")).toBeNull();
 });
 
 // journey-account-settings P3 "Settings › Profile".

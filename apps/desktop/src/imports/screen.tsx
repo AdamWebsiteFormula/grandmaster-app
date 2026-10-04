@@ -67,6 +67,7 @@ import {
 import { useAuth } from "~/auth";
 import { useConnections } from "~/auth/useConnections";
 import { ConnectButtonGroup } from "~/shared/connect-button-group";
+import { isMac } from "~/shared/shortcut-label";
 
 // Fork: Granola leads the list; its import is the strongest local demo.
 function compareProviders(
@@ -381,10 +382,19 @@ export function MeetingImportScreen({
           >
             {noAppsFound ? (
               <p className="text-muted-foreground px-4 py-3 text-sm">
-                <Trans>
-                  No meeting apps found on this Mac. You can still import a file
-                  exported from one of these apps.
-                </Trans>
+                {/* Fork: "this computer" off a Mac (NN/g heuristic #2, the
+                    user's words). */}
+                {isMac() ? (
+                  <Trans>
+                    No meeting apps found on this Mac. You can still import a
+                    file exported from one of these apps.
+                  </Trans>
+                ) : (
+                  <Trans>
+                    No meeting apps found on this computer. You can still import
+                    a file exported from one of these apps.
+                  </Trans>
+                )}
               </p>
             ) : null}
             {providersToShow.length === 0

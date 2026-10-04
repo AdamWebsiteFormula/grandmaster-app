@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
   setSettingValues: vi.fn(),
   autoPost: false,
   autoStart: false,
+  platform: "macos",
   seedExample: vi.fn(),
 }));
 
@@ -25,7 +26,7 @@ vi.mock("./example-note", () => ({
   seedExampleSessionOnce: mocks.seedExample,
 }));
 
-vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => "macos" }));
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
 
 vi.mock("~/settings/queries", () => ({
   setSettingValues: mocks.setSettingValues,
@@ -72,6 +73,7 @@ beforeEach(() => {
   mocks.setSettingValues.mockResolvedValue(undefined);
   mocks.autoPost = false;
   mocks.autoStart = false;
+  mocks.platform = "macos";
   mocks.seedExample.mockResolvedValue("example-session");
 });
 
@@ -171,10 +173,35 @@ it("says how to record the first meeting, with no community links", () => {
   render(<FinalDescription />);
 
   expect(screen.queryByRole("button")).toBeNull();
+  // Fork: it names this step's real button, Open Upshot (NN/g #2).
   expect(
-    screen.getByText(/press ⌘N, to record your first meeting/),
+    screen.getByText(
+      "After you open Upshot, click New note or press ⌘N to record your first meeting.",
+    ),
   ).toBeTruthy();
 });
+
+// Microsoft Writing Style Guide, Keys and keyboard shortcuts; NN/g #5.
+it.each(["windows", "linux"])(
+  "names Ctrl+N and leaves out calendar auto start on %s",
+  (os) => {
+    mocks.platform = os;
+    render(<FinalDescription />);
+    expect(
+      screen.getByText(/click New note or press Ctrl\+N to record/),
+    ).toBeTruthy();
+    expect(screen.queryByText(/⌘/)).toBeNull();
+    cleanup();
+
+    render(<FinalSection onContinue={vi.fn()} />);
+    expect(
+      screen.queryByRole("switch", {
+        name: "Start recording when a scheduled meeting begins",
+      }),
+    ).toBeNull();
+    expect(screen.getByRole("button", { name: "Open Upshot" })).toBeTruthy();
+  },
+);
 
 it("reminds you to tell people and shows the chat notice switch, off by default", () => {
   render(<FinalSection onContinue={vi.fn()} />);

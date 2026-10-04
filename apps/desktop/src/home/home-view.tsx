@@ -50,6 +50,7 @@ import { revealLockedNote } from "~/lock/notes";
 import { getOrCreateSessionForEventId } from "~/session/queries";
 import { usePermission } from "~/shared/hooks/usePermissions";
 import { useTimeFormat } from "~/shared/hooks/useTimeFormat";
+import { isMac, kbdLabel } from "~/shared/shortcut-label";
 import { InteractiveButton } from "~/shared/ui/interactive-button";
 import {
   openNewNoteAndListen,
@@ -89,10 +90,13 @@ export function HomeView() {
         className={cn([
           HOME_COLUMN_CLASS,
           "flex flex-col pt-14 pb-40 [&>section+section]:mt-8",
-          "[&>section[aria-labelledby=home-recent]]:mt-14",
+          "[&>section+section[aria-labelledby=home-recent]]:mt-14",
         ])}
       >
-        <ComingUp days={comingUp.days} />
+        {/* Fork: Coming up reads the Mac's Calendar, so it shows on a Mac
+            only; elsewhere it could only say the week is empty (NN/g
+            heuristic #5, error prevention). The notes then start the page. */}
+        {isMac() ? <ComingUp days={comingUp.days} /> : null}
         <FollowUps />
         {recent.hasNotes ? (
           <RecentNotes
@@ -755,7 +759,6 @@ function RecentNoteRow({
 function Shortcuts() {
   const newNote = useNewNote({ behavior: "current" });
   const openCurrent = useTabs((state) => state.openCurrent);
-  const primaryModifier = platform() === "macos" ? "⌘" : "Ctrl";
 
   return (
     <section aria-labelledby="home-start" className="flex flex-col">
@@ -763,21 +766,24 @@ function Shortcuts() {
         <Trans>Your notes show up here</Trans>
       </SectionTitle>
       {/* Fork: ⌘N records and ⇧⌘N makes a blank note (ux-audit-oct3 A/B,
-          Granola 101: New note starts transcribing; NN/g #4). */}
+          Granola 101: New note starts transcribing; NN/g #4). Off a Mac
+          they read Ctrl+N and Ctrl+Shift+N (Microsoft Writing Style Guide,
+          Keys and keyboard shortcuts). ⌘, is the Mac menu's Settings key;
+          Windows and Linux have no such key, so no hint there (NN/g #5). */}
       <div className="flex flex-col">
         <ShortcutItem
           label={<Trans>Start recording</Trans>}
-          shortcut={[primaryModifier, "N"]}
+          shortcut={kbdLabel(["mod", "N"])}
           onClick={() => openNewNoteAndListen({ behavior: "current" })}
         />
         <ShortcutItem
           label={<Trans>Blank note</Trans>}
-          shortcut={["⇧", primaryModifier, "N"]}
+          shortcut={kbdLabel(["shift", "mod", "N"])}
           onClick={newNote}
         />
         <ShortcutItem
           label={<Trans>Settings</Trans>}
-          shortcut={[primaryModifier, ","]}
+          shortcut={isMac() ? kbdLabel(["mod", ","]) : null}
           onClick={() => openCurrent({ type: "settings" })}
         />
       </div>
@@ -791,7 +797,7 @@ function ShortcutItem({
   onClick,
 }: {
   label: ReactNode;
-  shortcut: string[];
+  shortcut: string | null;
   onClick: () => void;
 }) {
   return (
@@ -801,7 +807,7 @@ function ShortcutItem({
       className="group text-foreground hover:bg-accent -mx-3 flex cursor-pointer items-center justify-between gap-8 rounded-lg px-3 py-2 text-sm transition-colors"
     >
       <span>{label}</span>
-      <Kbd>{shortcut.join(" ")}</Kbd>
+      {shortcut ? <Kbd>{shortcut}</Kbd> : null}
     </button>
   );
 }

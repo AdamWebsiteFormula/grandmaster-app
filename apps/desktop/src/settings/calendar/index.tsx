@@ -1,7 +1,7 @@
 // Fork: Settings › Calendar, inside Settings as in Granola (Display,
 // Permissions, Visible calendars with a color dot and a switch per calendar;
-// granola-compare-oct3 section 8). It reuses the Apple Calendar rows the
-// month view already reads; the month view stays one click away.
+// granola-compare-oct3 section 8). It reuses the calendar rows from this Mac
+// that the month view already reads; the month view stays one click away.
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useEffect, useId, useRef, useState } from "react";
 
@@ -10,13 +10,17 @@ import {
   CalendarDots,
   Check,
   Key,
+  UserPlus,
 } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 import { Switch } from "@anlg/ui/components/ui/switch";
 import { toast } from "@anlg/ui/components/ui/toast";
 
 import { useAppleCalendarSelection } from "~/calendar/components/apple/calendar-selection";
-import { NoCalendarsYet } from "~/calendar/components/apple/permission";
+import {
+  NoCalendarsYet,
+  openInternetAccounts,
+} from "~/calendar/components/apple/permission";
 import type { CalendarItem } from "~/calendar/components/calendar-selection";
 import { SyncProvider } from "~/calendar/components/context";
 import { useTurnOnCalendarsByDefault } from "~/calendar/default-calendars";
@@ -74,26 +78,33 @@ function SettingsCalendarContent() {
         }
       />
 
-      <SettingsGroup title={<Trans>Apple Calendar</Trans>}>
-        {/* Fork: one glyph per row (access, month grid, week start), and
-            Allow access is the page's one orange button (redline-oct3
-            Settings; design-system "The one accent"). */}
+      {/* Fork: a neutral title. Upshot reads every calendar account on this
+          Mac, not only Apple's: Google, Exchange/Outlook, iCloud, Yahoo and
+          CalDAV (owner, Oct 3; support.apple.com/guide/calendar/icl4308d6701). */}
+      <SettingsGroup title={<Trans>Calendar accounts</Trans>}>
+        {/* Fork: one glyph per row (access, add account, month grid, week
+            start), and Allow access is the page's one orange button
+            (redline-oct3 Settings; design-system "The one accent"). */}
         <SettingRow
           icon={Key}
           title={<Trans>Calendar access</Trans>}
           description={
             authorized ? (
-              <Trans>Upshot reads events from Apple Calendar.</Trans>
+              <Trans>
+                Upshot reads your Google, Outlook, iCloud and other calendars on
+                this Mac.
+              </Trans>
             ) : denied ? (
               <Trans>
                 Turn on Upshot in System Settings › Privacy &amp; Security ›
                 Calendars.
               </Trans>
             ) : (
-              // Fork: say why before asking (Apple HIG, Privacy).
+              // Fork: say why before asking (Apple HIG, Privacy), and name
+              // the accounts it covers (Granola names Google and Outlook).
               <Trans>
-                Upshot needs calendar access to show your upcoming meetings and
-                name your notes.
+                Upshot needs calendar access to show meetings from your Google,
+                Outlook and iCloud calendars and name your notes.
               </Trans>
             )
           }
@@ -122,6 +133,32 @@ function SettingsCalendarContent() {
               </Button>
             )
           }
+        </SettingRow>
+        {/* Fork: adding Google or Outlook is always one click away, not only
+            from an empty list (owner, Oct 3). macOS adds calendar accounts in
+            Internet Accounts (Apple support icl4308d6701). */}
+        <SettingRow
+          icon={UserPlus}
+          title={<Trans>Add Google or Outlook</Trans>}
+          description={
+            <Trans>
+              Add the account in System Settings › Internet Accounts. Its
+              calendars show up here.
+            </Trans>
+          }
+          controlWidth="content"
+        >
+          {(labelProps) => (
+            <Button
+              aria-describedby={labelProps["aria-describedby"]}
+              variant="outline"
+              size="sm"
+              onClick={() => void openInternetAccounts()}
+            >
+              <Trans>Add account</Trans>
+              <ArrowUpRight className="size-3.5" aria-hidden />
+            </Button>
+          )}
         </SettingRow>
         {/* Fork: a calendar glyph for the month view, not Kanban
             (journey-account-settings P3; Granola screen 16). */}
@@ -170,9 +207,10 @@ function SettingsCalendarContent() {
               <Trans>Loading calendars…</Trans>
             </p>
           ) : !hasCalendars ? (
-            // Fork: access is on but nothing came back; the header already
-            // has Refresh, so only the way to add an account shows here.
-            <NoCalendarsYet />
+            // Fork: access is on but nothing came back; Add account above and
+            // Refresh in the header are the next steps, so only the message
+            // shows here (as onboarding does).
+            <NoCalendarsYet showAddAccount={false} />
           ) : (
             groups.flatMap((group) => [
               ...(groups.length > 1

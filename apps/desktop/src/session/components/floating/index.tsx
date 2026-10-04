@@ -28,6 +28,7 @@ import {
   useHasTranscript,
 } from "~/session/components/shared";
 import { useSession } from "~/session/queries";
+import { ariaKeyShortcut, kbdLabel } from "~/shared/shortcut-label";
 import type { EditorView, Tab } from "~/store/zustand/tabs/schema";
 import { useListener } from "~/stt/contexts";
 
@@ -315,10 +316,14 @@ function NoteAskField({
         onChange={(event) => setValue(event.target.value)}
         placeholder={placeholder}
         aria-label={placeholder}
-        aria-keyshortcuts="Meta+J"
+        // Fork: ⌘ J on a Mac, Ctrl+J elsewhere (Apple HIG, Keyboards;
+        // Microsoft Writing Style Guide, Keys and keyboard shortcuts).
+        aria-keyshortcuts={ariaKeyShortcut(["mod", "J"])}
         className="placeholder:text-muted-foreground text-foreground h-full min-w-[6.5rem] flex-1 bg-transparent text-sm focus:outline-none"
       />
-      <Kbd className="shrink-0 @max-[22rem]/ask:hidden">⌘ J</Kbd>
+      <Kbd className="shrink-0 @max-[22rem]/ask:hidden">
+        {kbdLabel(["mod", "J"])}
+      </Kbd>
       {trailing}
     </form>
   );

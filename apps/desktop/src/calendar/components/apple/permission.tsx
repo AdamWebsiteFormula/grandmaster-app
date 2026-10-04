@@ -69,13 +69,15 @@ export function NoCalendarsYet({
         </p>
       </div>
       <div className="flex flex-wrap gap-2">
+        {/* Fork: Apple's own label, Calendar › Add Account (support
+            icl4308d6701), the same on every calendar surface. */}
         {showAddAccount ? (
           <Button
             size="sm"
             className="h-8 px-3"
             onClick={() => void openInternetAccounts()}
           >
-            <Trans>Add an account</Trans>
+            <Trans>Add account</Trans>
           </Button>
         ) : null}
         {onRefresh ? (
@@ -105,10 +107,13 @@ export function CalendarAccessNeeded({
 }) {
   return (
     <div className={cn(["flex flex-col items-start gap-3", className])}>
+      {/* Fork: name the accounts, so no one reads "Apple only" (owner,
+          Oct 3; Granola names Google and Outlook, docs.granola.ai
+          syncing-your-calendars). */}
       <p className="text-muted-foreground text-sm">
         <Trans>
-          Upshot needs calendar access to show your upcoming meetings and name
-          your notes.
+          Upshot needs calendar access to show meetings from your Google,
+          Outlook and iCloud calendars and name your notes.
         </Trans>
       </p>
       <Button
@@ -136,12 +141,14 @@ export function AppleCalendarPermissionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <GlassDialogContent>
         <DialogHeader className="items-center gap-2 text-center sm:text-center">
+          {/* Fork: one access covers every calendar on this Mac, not only
+              Apple's; › as the other System Settings paths (owner, Oct 3). */}
           <DialogTitle className="text-foreground text-sm leading-5 font-semibold tracking-normal">
-            <Trans>Apple Calendar access is off</Trans>
+            <Trans>Calendar access is off</Trans>
           </DialogTitle>
           <DialogDescription className="text-foreground w-full text-center text-sm leading-[1.36]">
             <Trans>
-              Turn on Upshot in System Settings → Privacy &amp; Security →
+              Turn on Upshot in System Settings › Privacy &amp; Security ›
               Calendars, then return here.
             </Trans>
           </DialogDescription>

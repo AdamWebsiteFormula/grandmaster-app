@@ -22,9 +22,9 @@ import { useEnabledCalendars } from "~/calendar/hooks";
 import { useCalendarRows } from "~/calendar/queries";
 import { usePermission } from "~/shared/hooks/usePermissions";
 
-// Fork: Apple Calendar only. Google and Outlook need the upstream cloud
-// sign-in; their calendars still show up here once added to macOS
-// (support.apple.com/guide/mac-help/mh35565).
+// Fork: calendars from this Mac only, no upstream cloud sign-in. Google,
+// Outlook, iCloud and any other account added to macOS all show up here
+// (support.apple.com/guide/calendar/icl4308d6701; owner, Oct 3).
 
 function getCalendarSelectionKey(groups: CalendarGroup[]) {
   return groups.length === 0
@@ -70,7 +70,7 @@ function AppleCalendarList() {
         disableHoverTone
         className="border-border bg-card rounded-xl border p-4"
         emptyState={
-          // The main button below is Add an account, so it isn't repeated here.
+          // The main button below is Add account, so it isn't repeated here.
           <NoCalendarsYet
             onRefresh={handleRefresh}
             isLoading={isLoading}
@@ -125,7 +125,7 @@ function AppleCalendarProvider({
               or Outlook account (Apple support icl4308d6701; journey-first-run
               P2). The Privacy pane would show Upshot already on. */}
           {isAuthorized ? (
-            <Trans>Add an account</Trans>
+            <Trans>Add account</Trans>
           ) : (
             <Trans>Connect calendar</Trans>
           )}
@@ -146,7 +146,8 @@ function CalendarSectionContent({
   const enabledCalendars = useEnabledCalendars();
   const hasConnectedCalendar = enabledCalendars.length > 0;
   // Fork: when access is on and the list is empty, the empty state already
-  // explains Internet Accounts and has Add an account, so skip the repeat.
+  // explains Internet Accounts and the main button says Add account, so
+  // skip the repeat.
   const appleCalendarCount = useCalendarRows("apple").length;
   const showAccountsHint = !isAuthorized || appleCalendarCount > 0;
 
@@ -163,15 +164,18 @@ function CalendarSectionContent({
 
       {showAccountsHint && (
         <div className="flex flex-col items-start gap-2">
+          {/* Fork: say up front that Google, Outlook and iCloud all work, so
+              no one reads "Apple only" (owner, Oct 3; Granola names Google
+              and Outlook, docs.granola.ai syncing-your-calendars). */}
           <p className="text-muted-foreground text-sm">
             <Trans>
-              Google or Outlook calendars added in System Settings › Internet
-              Accounts show up here too.
+              Works with Google, Outlook and iCloud calendars. Add an account in
+              System Settings › Internet Accounts.
             </Trans>
           </p>
           {/* Fork: Apple's way to add Google or Outlook to Calendar
               (support.apple.com/guide/calendar/icl4308d6701). With access on,
-              the main button already says Add an account. */}
+              the main button already says Add account. */}
           {!isAuthorized && (
             <Button
               variant="outline"
@@ -179,7 +183,7 @@ function CalendarSectionContent({
               className="h-8 px-3"
               onClick={() => void openInternetAccounts()}
             >
-              <Trans>Add an account</Trans>
+              <Trans>Add account</Trans>
             </Button>
           )}
         </div>

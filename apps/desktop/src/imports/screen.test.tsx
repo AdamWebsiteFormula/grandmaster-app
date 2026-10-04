@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   detectImportSources: vi.fn(),
+  platform: "macos",
   cancelConnectedImport: vi.fn(),
   connectConnectedImport: vi.fn(),
   connectNangoImport: vi.fn(),
@@ -51,6 +52,7 @@ vi.mock("~/auth/useConnections", async () => {
 });
 
 vi.mock("@tauri-apps/plugin-dialog", () => ({ open: mocks.selectFiles }));
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
 vi.mock("@anlg/plugin-importer", () => ({
   commands: { readTextFiles: mocks.readTextFiles },
 }));
@@ -167,6 +169,7 @@ describe("MeetingImportScreen", () => {
     mocks.readTextFiles.mockResolvedValue({ status: "ok", data: [] });
     mocks.signedIn = true;
     mocks.connections = [];
+    mocks.platform = "macos";
     mocks.sync.mockResolvedValue({
       result: {
         discovered: 0,
@@ -318,6 +321,19 @@ describe("MeetingImportScreen", () => {
     expect(await screen.findByText(/No meeting apps found/i)).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Connect" })).toBeNull();
     expect(mocks.connectNangoImport).not.toHaveBeenCalled();
+  });
+
+  // Fork: "this computer" off a Mac (NN/g #2).
+  it.each([
+    ["macos", /No meeting apps found on this Mac\./],
+    ["windows", /No meeting apps found on this computer\./],
+  ])("names the computer when no app is found (%s)", async (os, text) => {
+    mocks.platform = os;
+    mockDetected(["zoom"]);
+
+    renderImports();
+
+    expect(await screen.findByText(text)).toBeTruthy();
   });
 
   it("shows a completed file import even when all counts are zero", async () => {

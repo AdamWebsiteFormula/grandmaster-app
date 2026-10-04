@@ -11,7 +11,10 @@ const mocks = vi.hoisted(() => ({
   openDialog: vi.fn(),
   setSelectedPath: vi.fn(),
   selectedPath: null as string | null,
+  platform: "macos",
 }));
+
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
 
 vi.mock("~/store/zustand/tabs", () => {
   const state = () => ({
@@ -67,6 +70,7 @@ describe("SidebarHomeNav", () => {
     mocks.tabs = [];
     mocks.folders = [];
     mocks.selectedPath = null;
+    mocks.platform = "macos";
     vi.clearAllMocks();
   });
   afterEach(cleanup);
@@ -133,6 +137,18 @@ describe("SidebarHomeNav", () => {
     expect(search.textContent).toBe("Search");
     expect(search.getAttribute("aria-keyshortcuts")).toBe("Meta+K");
     expect(screen.queryByText("⌘ K")).toBeNull();
+  });
+
+  // Microsoft Writing Style Guide, Keys and keyboard shortcuts: Ctrl+K.
+  it.each(["windows", "linux"])("announces Control+K on %s", (os) => {
+    mocks.platform = os;
+    render(<SidebarHomeNav />);
+
+    expect(
+      screen
+        .getByRole("button", { name: "Search" })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Control+K");
   });
 
   it("goes back to the existing home tab, or opens one", () => {

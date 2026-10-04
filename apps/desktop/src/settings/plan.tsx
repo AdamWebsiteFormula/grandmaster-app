@@ -405,7 +405,9 @@ function PlanComparison({
   const titleId = useId();
   const freeCurrent = !isPro && planKnown;
   const rows: ComparisonRow[] = [
-    { label: t`Record and transcribe on your Mac`, free: true, pro: true },
+    // Fork: no "on your Mac"; Upshot records on every computer and
+    // transcribes in the cloud by default (NN/g heuristic #2).
+    { label: t`Record and transcribe your meetings`, free: true, pro: true },
     // Fork: plain words, not the "Auto" model name (redline4-oct3).
     {
       label: t`AI notes and chat (best model picked for you)`,

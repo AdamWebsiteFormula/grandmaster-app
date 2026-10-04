@@ -29,7 +29,10 @@ const mocks = vi.hoisted(() => ({
     isUpgradingToPro: false,
     upgradeToPro: vi.fn(),
   },
+  platform: "macos",
 }));
+
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
 
 vi.mock("~/auth/billing-context", () => ({
   useBillingAccess: () => mocks.billing,
@@ -176,10 +179,43 @@ describe("SettingsDevelopers", () => {
     mocks.billing.isReady = true;
     mocks.billing.isUpgradingToPro = false;
     mocks.billing.upgradeToPro.mockReset();
+    mocks.platform = "macos";
+    mocks.checkEmbeddedCli.mockResolvedValue({
+      status: "ok",
+      data: {
+        supported: false,
+        commandName: "anarlog",
+        installPath: "/Users/test/.local/bin/anarlog",
+        state: "unsupported",
+        details: "Unavailable.",
+      },
+    });
   });
 
   afterEach(() => {
     cleanup();
+  });
+
+  // Fork: Glaido is a Mac app, so off a Mac its section and name go
+  // (NN/g heuristic #5); the CLI and webhooks stay.
+  it.each([
+    ["macos", "Connect Upshot to Glaido, the CLI and webhooks.", true],
+    ["windows", "Connect Upshot to the CLI and webhooks.", false],
+    ["linux", "Connect Upshot to the CLI and webhooks.", false],
+  ])("shows Glaido only on a Mac (%s)", (os, description, glaido) => {
+    mocks.platform = os;
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <SettingsDevelopers />
+      </QueryClientProvider>,
+    );
+
+    expect(screen.getByText(description)).toBeTruthy();
+    expect(screen.queryByText("Glaido folder") !== null).toBe(glaido);
+    expect(screen.getByLabelText("Webhook URL")).toBeTruthy();
   });
 
   it("uses the installed CLI path when copying the MCP configuration", async () => {

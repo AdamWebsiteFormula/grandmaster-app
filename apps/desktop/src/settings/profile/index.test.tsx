@@ -13,7 +13,10 @@ const mocks = vi.hoisted(() => ({
   openUpshotSignIn: vi.fn(),
   signOutUpshot: vi.fn(async () => {}),
   deleteUpshotAccount: vi.fn(async () => {}),
+  platform: "macos",
 }));
+
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
 
 vi.mock("~/upshot-plan", () => ({
   useUpshotPlan: () => mocks.state,
@@ -37,6 +40,29 @@ describe("Settings › Profile account", () => {
     cleanup();
     vi.clearAllMocks();
     mocks.state = { email: null, isSignedIn: false };
+    mocks.platform = "macos";
+  });
+
+  // Fork: "this computer" off a Mac (NN/g #2).
+  it("says this computer off a Mac", async () => {
+    mocks.platform = "windows";
+    mocks.state = { email: "judge@example.com", isSignedIn: true };
+    render(<SettingsProfile />);
+
+    expect(
+      screen.getByText(
+        "Your contact card in Upshot. It stays on this computer.",
+      ),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Ends Pro and deletes your account. Notes stay on this computer.",
+      ),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Delete account…" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog.textContent).toContain("Your notes stay on this computer.");
+    expect(document.body.textContent).not.toContain("this Mac");
   });
 
   it("signed in: shows the email and signs out", () => {

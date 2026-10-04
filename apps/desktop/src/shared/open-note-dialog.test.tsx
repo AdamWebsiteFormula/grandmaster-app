@@ -29,7 +29,10 @@ const mocks = vi.hoisted(() => ({
   newNoteAndListen: vi.fn(),
   select: vi.fn(),
   tabs: [] as Array<{ type: string }>,
+  platform: "macos",
 }));
+
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
 
 vi.mock("~/shared/empty-note-ids", () => ({
   useEmptyNoteIds: () => mocks.emptyIds,
@@ -87,6 +90,7 @@ describe("OpenNoteDialog", () => {
     mocks.sessions = [];
     mocks.emptyIds = new Set();
     mocks.tabs = [];
+    mocks.platform = "macos";
     mocks.search.mockResolvedValue([]);
     globalThis.ResizeObserver = class {
       observe() {}
@@ -217,6 +221,27 @@ describe("OpenNoteDialog", () => {
     ).toContain("⇧⌘N");
     expect(mocks.newNote).toHaveBeenCalledOnce();
     expect(mocks.openNew).not.toHaveBeenCalled();
+  });
+
+  // Fork: Ctrl+N and Ctrl+Shift+N off a Mac (Microsoft Writing Style Guide,
+  // Keys and keyboard shortcuts), and no Calendar page, which reads the
+  // Mac's Calendar (NN/g #5).
+  it("names Ctrl keys and lists no Calendar off a Mac", () => {
+    mocks.platform = "windows";
+    render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
+
+    expect(
+      screen.getByRole("option", { name: /New note/ }).textContent,
+    ).toContain("Ctrl+N");
+    expect(
+      screen.getByRole("option", { name: /Blank note/ }).textContent,
+    ).toContain("Ctrl+Shift+N");
+    expect(screen.queryByText(/⌘/)).toBeNull();
+
+    fireEvent.change(screen.getByPlaceholderText("Search notes and pages…"), {
+      target: { value: "calendar" },
+    });
+    expect(screen.queryByRole("option", { name: /Calendar/ })).toBeNull();
   });
 
   // Fork: WCAG 2.2 SC 2.4.7, the selected row is easy to see.

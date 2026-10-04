@@ -5,6 +5,7 @@ import { Kbd } from "@anlg/ui/components/ui/kbd";
 import { cn } from "@anlg/utils";
 
 import { useShell } from "~/contexts/shell";
+import { ariaKeyShortcut, kbdLabel } from "~/shared/shortcut-label";
 
 export function ChatCTA({
   label,
@@ -31,9 +32,11 @@ export function ChatCTA({
       type="button"
       data-chat-cta-trigger
       // Fork: the accessible name is the visible label ("Ask anything") and the
-      // ⌘J shortcut is announced (ux-audit-oct3 D, WCAG 2.5.3; NN/g #6).
+      // ⌘J shortcut is announced (ux-audit-oct3 D, WCAG 2.5.3; NN/g #6),
+      // as Ctrl+J off a Mac (Microsoft Writing Style Guide, Keys and
+      // keyboard shortcuts).
       aria-label={ariaLabel}
-      aria-keyshortcuts="Meta+J"
+      aria-keyshortcuts={ariaKeyShortcut(["mod", "J"])}
       onClick={handleClick}
       className="group/anarlog-chat-cta relative h-10 w-[196px] max-w-full cursor-text focus-visible:outline-none"
     >
@@ -59,7 +62,7 @@ export function ChatCTA({
         >
           {resolvedLabel}
         </span>
-        <Kbd className="ml-2 shrink-0">⌘ J</Kbd>
+        <Kbd className="ml-2 shrink-0">{kbdLabel(["mod", "J"])}</Kbd>
       </span>
       <span className="sr-only">{resolvedLabel}</span>
     </button>

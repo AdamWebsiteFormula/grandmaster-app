@@ -133,10 +133,10 @@ describe("CalendarSidebarContent", () => {
     render(<CalendarSidebarContent />);
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Connect Apple Calendar" }),
+      screen.getByRole("button", { name: "Connect Mac calendars" }),
     );
 
-    expect(screen.getByText("Apple Calendar access is off")).toBeTruthy();
+    expect(screen.getByText("Calendar access is off")).toBeTruthy();
     expect(mocks.calendar.open).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole("button", { name: "Open settings" }));
@@ -151,11 +151,11 @@ describe("CalendarSidebarContent", () => {
     render(<CalendarSidebarContent />);
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Connect Apple Calendar" }),
+      screen.getByRole("button", { name: "Connect Mac calendars" }),
     );
 
     expect(mocks.calendar.request).toHaveBeenCalledOnce();
-    expect(screen.queryByText("Apple Calendar access is off")).toBeNull();
+    expect(screen.queryByText("Calendar access is off")).toBeNull();
   });
 
   it("says why it needs access and offers Allow access", () => {
@@ -166,7 +166,7 @@ describe("CalendarSidebarContent", () => {
 
     expect(
       screen.getByText(
-        "Upshot needs calendar access to show your upcoming meetings and name your notes.",
+        "Upshot needs calendar access to show meetings from your Google, Outlook and iCloud calendars and name your notes.",
       ),
     ).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Allow access" }));

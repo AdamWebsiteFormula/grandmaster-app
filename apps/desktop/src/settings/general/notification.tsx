@@ -66,6 +66,9 @@ export function NotificationSettingsView() {
   const currentPlatform = platform();
   const supportsMicDetection = currentPlatform !== "windows";
   const supportsDoNotDisturb = currentPlatform === "macos";
+  // Fork: event reminders come from the Mac's Calendar, so they show on a
+  // Mac only (NN/g heuristic #5, error prevention).
+  const supportsEventReminders = currentPlatform === "macos";
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -206,11 +209,13 @@ export function NotificationSettingsView() {
               description={
                 field.state.value ? (
                   <Trans>Turn on Allow notifications to change these.</Trans>
+                ) : currentPlatform === "macos" ? (
+                  // Fork: Upshot makes no sounds (owner decision, Oct 3), and
+                  // only a Mac has a Dock (NN/g heuristic #2, the user's
+                  // words).
+                  <Trans>Show notification panels and Dock alerts.</Trans>
                 ) : (
-                  <Trans>
-                    Show notification panels, Dock alerts, and completion
-                    sounds.
-                  </Trans>
+                  <Trans>Show notification panels.</Trans>
                 )
               }
               checked={!field.state.value}
@@ -260,22 +265,24 @@ export function NotificationSettingsView() {
                 meeting alerts apart from the rest (granola-compare-oct3
                 section 8). */}
             <SettingsGroup title={<Trans>Meetings</Trans>}>
-              <form.Field name="notification_event">
-                {(field) => (
-                  <SettingSwitchRow
-                    icon={CalendarDots}
-                    title={<Trans>Event notifications</Trans>}
-                    description={
-                      <Trans>
-                        Prepare for events with a 5-minute reminder.
-                      </Trans>
-                    }
-                    checked={field.state.value}
-                    onChange={field.handleChange}
-                    disabled={notificationsDisabled}
-                  />
-                )}
-              </form.Field>
+              {supportsEventReminders && (
+                <form.Field name="notification_event">
+                  {(field) => (
+                    <SettingSwitchRow
+                      icon={CalendarDots}
+                      title={<Trans>Event notifications</Trans>}
+                      description={
+                        <Trans>
+                          Prepare for events with a 5-minute reminder.
+                        </Trans>
+                      }
+                      checked={field.state.value}
+                      onChange={field.handleChange}
+                      disabled={notificationsDisabled}
+                    />
+                  )}
+                </form.Field>
+              )}
               {supportsMicDetection && (
                 <form.Field name="notification_detect">
                   {(field) => (
@@ -580,7 +587,16 @@ export function NotificationSettingsView() {
                   {(field) => (
                     <SettingSwitchRow
                       icon={AppWindow}
-                      title={<Trans>Bounce app icon</Trans>}
+                      // Fork: off a Mac the taskbar button flashes instead
+                      // of a Dock bounce (Windows 11 Settings, "Show
+                      // flashing on taskbar apps").
+                      title={
+                        currentPlatform === "macos" ? (
+                          <Trans>Bounce app icon</Trans>
+                        ) : (
+                          <Trans>Flash taskbar button</Trans>
+                        )
+                      }
                       description={
                         <Trans>
                           Get your attention when Upshot finishes work in the

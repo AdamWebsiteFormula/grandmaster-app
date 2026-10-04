@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   close: vi.fn().mockResolvedValue(undefined),
   createNewNote: vi.fn(),
+  newNoteAndListen: vi.fn(),
   isFullscreen: vi.fn().mockResolvedValue(false),
   isMaximized: vi.fn().mockResolvedValue(false),
   minimize: vi.fn().mockResolvedValue(undefined),
@@ -54,6 +55,7 @@ vi.mock("~/contexts/shell", () => ({
 
 vi.mock("~/shared/useNewNote", () => ({
   useNewNote: () => mocks.createNewNote,
+  useNewNoteAndListen: () => mocks.newNoteAndListen,
 }));
 
 vi.mock("~/shared/open-note-dialog", () => ({
@@ -89,6 +91,7 @@ describe("WindowsTitleBar", () => {
   beforeEach(() => {
     mocks.close.mockClear();
     mocks.createNewNote.mockClear();
+    mocks.newNoteAndListen.mockClear();
     mocks.isFullscreen.mockClear();
     mocks.isMaximized.mockClear();
     mocks.isMaximized.mockResolvedValue(false);
@@ -173,5 +176,53 @@ describe("WindowsTitleBar", () => {
     for (const name of ["Search", "New note", "Sort notes"]) {
       expect(screen.queryByRole("button", { name })).toBeNull();
     }
+  });
+
+  // Fork: each menu item names the key that really does it (Microsoft
+  // Writing Style Guide, Keys and keyboard shortcuts; NN/g #4, #5).
+  it("names the keys the File menu items really use", () => {
+    render(<WindowsTitleBar showSidebarTimelineChrome />);
+
+    fireEvent.keyDown(screen.getByRole("menuitem", { name: "File" }), {
+      key: "Enter",
+    });
+
+    const newNote = screen.getByRole("menuitem", { name: /^New note/ });
+    expect(newNote.textContent).toBe("New noteCtrl+N");
+    expect(
+      screen.getByRole("menuitem", { name: /^Blank note/ }).textContent,
+    ).toBe("Blank noteCtrl+Shift+N");
+    // No Ctrl+, handler exists off a Mac, so Settings names no key.
+    expect(
+      screen.getByRole("menuitem", { name: /^Settings/ }).textContent,
+    ).toBe("Settings");
+
+    fireEvent.click(newNote);
+    expect(mocks.newNoteAndListen).toHaveBeenCalledOnce();
+    expect(mocks.createNewNote).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["windows", "Ctrl+Y"],
+    ["linux", "Ctrl+Shift+Z"],
+  ])("shows the %s redo key and no F11", (os, redo) => {
+    mocks.platform = os;
+    render(<WindowsTitleBar showSidebarTimelineChrome />);
+
+    fireEvent.keyDown(screen.getByRole("menuitem", { name: "Edit" }), {
+      key: "Enter",
+    });
+    expect(screen.getByRole("menuitem", { name: /^Redo/ }).textContent).toBe(
+      `Redo${redo}`,
+    );
+    cleanup();
+
+    render(<WindowsTitleBar showSidebarTimelineChrome />);
+    fireEvent.keyDown(screen.getByRole("menuitem", { name: "View" }), {
+      key: "Enter",
+    });
+    expect(
+      screen.getByRole("menuitem", { name: /^Full screen/ }).textContent,
+    ).toBe("Full screen");
   });
 });

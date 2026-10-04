@@ -19,9 +19,10 @@ const mocks = vi.hoisted(() => ({
   openNewNoteAndListen: vi.fn(),
   openCurrent: vi.fn(),
   setFollowUpDone: vi.fn(async () => {}),
+  platform: "macos",
 }));
 
-vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => "macos" }));
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
 
 vi.mock("./home-data", () => ({
   useComingUp: () => mocks.comingUp,
@@ -119,6 +120,7 @@ describe("HomeView", () => {
     };
     mocks.recentLimits = [];
     mocks.calendarStatus = "authorized";
+    mocks.platform = "macos";
     vi.clearAllMocks();
   });
   afterEach(cleanup);
@@ -449,6 +451,70 @@ describe("HomeView", () => {
     expect(screen.queryByRole("button", { name: /New note/ })).toBeNull();
     expect(screen.queryByRole("heading", { name: "Notes" })).toBeNull();
   });
+
+  // Fork: Ctrl+N and Ctrl+Shift+N off a Mac (Microsoft Writing Style Guide,
+  // Keys and keyboard shortcuts); Ctrl+, does nothing there, so Settings
+  // names no key (NN/g #5).
+  it("names the Ctrl keys off a Mac, and no Settings key", () => {
+    mocks.platform = "windows";
+    mocks.recent = {
+      isLoading: false,
+      hasNotes: false,
+      groups: [],
+      hasMore: false,
+    };
+    render(<HomeView />);
+
+    expect(
+      screen.getByRole("button", { name: /^Start recording\s*Ctrl\+N$/ }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /^Blank note\s*Ctrl\+Shift\+N$/ }),
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Settings" })).toBeTruthy();
+    expect(screen.queryByText(/⌘|⇧/)).toBeNull();
+  });
+
+  // Fork: Coming up reads the Mac's Calendar, so off a Mac it would only
+  // ever say the week is empty (NN/g #5). The notes start the page, with no
+  // extra gap above them.
+  it.each(["windows", "linux"])(
+    "leaves out Coming up on %s and starts with the notes",
+    (os) => {
+      mocks.platform = os;
+      mocks.recent.groups = [
+        {
+          key: "today",
+          kind: "today",
+          dayMs: time(0),
+          notes: [
+            {
+              id: "a",
+              title: "Standup",
+              timeMs: time(9),
+              attendees: 1,
+              people: [],
+              durationMs: 0,
+              locked: false,
+              trackingId: null,
+            },
+          ],
+        },
+      ];
+      const { container } = render(<HomeView />);
+
+      expect(screen.queryByRole("heading", { name: "Coming up" })).toBeNull();
+      expect(screen.queryByText("No meetings in the next 7 days")).toBeNull();
+      expect(screen.getByText("Standup")).toBeTruthy();
+      const column = container.querySelector(".max-w-\\[640px\\]")!;
+      expect(column.firstElementChild?.getAttribute("aria-labelledby")).toBe(
+        "home-recent",
+      );
+      expect(column.className).toContain(
+        "[&>section+section[aria-labelledby=home-recent]]:mt-14",
+      );
+    },
+  );
 
   it("marks locked notes and titles truncated rows", () => {
     mocks.recent.groups = [

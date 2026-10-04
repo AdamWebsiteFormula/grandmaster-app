@@ -31,7 +31,7 @@ describe("configurePaidSettings", () => {
     mocks.os.arch = "x86_64";
   });
 
-  it("keeps Apple Silicon transcription on the Mac", async () => {
+  it("uses Upshot transcription on Apple Silicon too", async () => {
     mocks.os.platform = "macos";
     mocks.os.arch = "aarch64";
     mocks.getStoredSettingValues.mockResolvedValue({
@@ -42,6 +42,8 @@ describe("configurePaidSettings", () => {
     await configurePaidSettings();
 
     expect(mocks.setSettingValues).toHaveBeenCalledWith({
+      current_stt_provider: "anarlog",
+      current_stt_model: "cloud",
       current_llm_provider: "anarlog",
       current_llm_model: "Auto",
     });

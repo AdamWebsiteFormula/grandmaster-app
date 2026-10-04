@@ -30,6 +30,7 @@ import {
 
 import { privacyMessages } from "~/settings/general/app-settings";
 import { useMyWorkspacesWithMirror } from "~/settings/team/mirror";
+import { isMac } from "~/shared/shortcut-label";
 import { type SettingsTab, type TabInput } from "~/store/zustand/tabs";
 
 type SettingsNavItem =
@@ -89,10 +90,18 @@ const HIDDEN_SETTINGS = new Set<string>([
   "intelligence",
 ]);
 
+// Fork: Upshot reads calendars from the Mac's Calendar only, so off a Mac the
+// Calendar page and the month view are hidden (NN/g heuristic #5, error
+// prevention).
+const MAC_ONLY_SETTINGS = new Set<string>(["calendars", "calendar"]);
+
 export function useSettingsNavGroups(): SettingsNavGroup[] {
   const { i18n, t } = useLingui();
   const workspaces = useMyWorkspacesWithMirror();
   const hasExistingWorkspace = (workspaces.data?.length ?? 0) > 0;
+  // Fork: off a Mac, no search word leads to a Mac-only row or names the
+  // Mac (NN/g heuristic #5, error prevention).
+  const mac = isMac();
 
   // Fork: eight sidebar pages instead of fifteen (grandmaster/sops/
   // settings-ia-oct3.md Q3): Granola's Settings lists Preferences, Profile,
@@ -107,13 +116,17 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           id: "app",
           label: t`General`,
           icon: Gear,
-          keywords: t`preferences, language, region, time zone, timezone, spoken languages, login, startup, Dock, menu bar, storage, export location`,
+          keywords: mac
+            ? t`preferences, language, region, time zone, timezone, spoken languages, login, startup, Dock, menu bar, storage, export location`
+            : t`preferences, language, region, time zone, timezone, spoken languages, login, startup, tray icon, storage, export location`,
         },
         {
           id: "appearance",
           label: t`Appearance`,
           icon: Sun,
-          keywords: t`theme, dark, light, mode, Match my Mac, 24-hour, time format, clock`,
+          keywords: mac
+            ? t`theme, dark, light, mode, Match my Mac, 24-hour, time format, clock`
+            : t`theme, dark, light, mode, Use system setting, 24-hour, time format, clock`,
           parent: "app",
         },
         {
@@ -204,24 +217,32 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
         { id: "intelligence", label: t`Intelligence`, icon: Sparkle },
         // Fork: Calendar settings stay inside Settings, as in Granola; the
         // page links to the month view (granola-compare-oct3 section 8).
+        // It reads every account in the Mac's Calendar, so people find it
+        // by those names too.
         {
           id: "calendars",
           label: t`Calendar`,
           icon: CalendarDots,
-          keywords: t`events, schedule, Apple Calendar, visible calendars, week start`,
+          keywords: t`events, schedule, Google, Outlook, iCloud, Apple Calendar, visible calendars, week start`,
         },
         {
           id: "notifications",
           label: t`Notifications`,
           icon: Bell,
-          // Fork: no "sound" keyword; Upshot has no sound settings.
-          keywords: t`alerts, reminders, Do Not Disturb, meeting detected, bounce`,
+          // Fork: no "sound" keyword; Upshot has no sound settings. Off a Mac
+          // there is no Do Not Disturb row, no event reminder, and the
+          // taskbar button flashes instead of a Dock bounce.
+          keywords: mac
+            ? t`alerts, reminders, Do Not Disturb, meeting detected, bounce`
+            : t`alerts, meeting detected, taskbar, flash`,
         },
         {
           id: "connectors",
           label: t`Connectors`,
           icon: PlugsConnected,
-          keywords: t`integrations, Glaido, MCP, CLI, webhooks, export, import`,
+          keywords: mac
+            ? t`integrations, Glaido, MCP, CLI, webhooks, export, import`
+            : t`integrations, MCP, CLI, webhooks, export, import`,
         },
         {
           id: "imports",
@@ -234,7 +255,9 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           id: "developers",
           label: t`Developers`,
           icon: Code,
-          keywords: t`CLI, MCP, API, webhooks, Glaido, skills`,
+          keywords: mac
+            ? t`CLI, MCP, API, webhooks, Glaido, skills`
+            : t`CLI, MCP, API, webhooks, skills`,
           parent: "connectors",
         },
         { id: "crm", label: t`CRM`, icon: Buildings },
@@ -292,7 +315,11 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
   return groups
     .map((group) => ({
       ...group,
-      items: group.items.filter((item) => !HIDDEN_SETTINGS.has(item.id)),
+      items: group.items.filter(
+        (item) =>
+          !HIDDEN_SETTINGS.has(item.id) &&
+          (mac || !MAC_ONLY_SETTINGS.has(item.id)),
+      ),
     }))
     .filter((group) => group.items.length > 0);
 }

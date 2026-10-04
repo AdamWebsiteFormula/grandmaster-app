@@ -8,6 +8,7 @@ import {
   type AudioRetentionPolicy,
 } from "~/services/audio-retention-policy";
 import { useConfigValue } from "~/shared/config";
+import { isMac } from "~/shared/shortcut-label";
 import { useTabs } from "~/store/zustand/tabs";
 
 // Fork: Granola deletes audio after transcription; we keep it, so say so.
@@ -26,7 +27,10 @@ export function useAudioSavedLabel() {
   };
   const kept = keptFor[retention];
 
-  return t`Audio saved on this Mac · kept ${kept}`;
+  // Fork: "this computer" off a Mac (NN/g heuristic #2, the user's words).
+  return isMac()
+    ? t`Audio saved on this Mac · kept ${kept}`
+    : t`Audio saved on this computer · kept ${kept}`;
 }
 
 export function AudioSavedMenuItem({ onSelect }: { onSelect?: () => void }) {

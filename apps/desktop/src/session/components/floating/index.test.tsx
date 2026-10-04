@@ -15,7 +15,10 @@ const hoisted = vi.hoisted(() => ({
   rawNote: "",
   canResume: true,
   recordingBarProps: vi.fn(),
+  platform: "macos",
 }));
+
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => hoisted.platform }));
 
 vi.mock("./recording-bar", () => ({
   RecordingBar: (props: unknown) => {
@@ -99,6 +102,7 @@ describe("FloatingActionButton (note bar)", () => {
     hoisted.rawNote = "";
     hoisted.canResume = false;
     hoisted.recordingBarProps.mockClear();
+    hoisted.platform = "macos";
   });
 
   // Fork tests: journey-meeting P1 (Resume), P2 (narrow pane), P3 (chip,
@@ -250,6 +254,20 @@ describe("FloatingActionButton (note bar)", () => {
     expect(input.className).toContain("min-w-[6.5rem]");
     expect(input.closest("form")?.className).toContain("flex-1");
     expect(screen.getByText("⌘ J")).not.toBeNull();
+  });
+
+  // Microsoft Writing Style Guide, Keys and keyboard shortcuts.
+  it("names Ctrl+J off a Mac", () => {
+    hoisted.platform = "windows";
+    renderBar();
+
+    expect(screen.getByText("Ctrl+J")).not.toBeNull();
+    expect(screen.queryByText("⌘ J")).toBeNull();
+    expect(
+      screen
+        .getByRole("textbox", { name: "Ask anything" })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Control+J");
   });
 
   it("orders the bar: transcript toggle, Ask field, follow-up chip", () => {

@@ -10,6 +10,7 @@ import { Button } from "@anlg/ui/components/ui/button";
 import { AccountProfile } from "~/settings/general/account-profile";
 import { SettingsPageTitle } from "~/settings/page-title";
 import { SettingLinkRow, SettingsGroup } from "~/settings/setting-row";
+import { isMac } from "~/shared/shortcut-label";
 import { DestructiveConfirmationDialog } from "~/shared/ui/destructive-confirmation-dialog";
 import { useTabs } from "~/store/zustand/tabs";
 import {
@@ -30,7 +31,15 @@ export function SettingsProfile() {
       <SettingsPageTitle
         title={<Trans>Profile</Trans>}
         description={
-          <Trans>Your contact card in Upshot. It stays on this Mac.</Trans>
+          // Fork: "this computer" off a Mac (NN/g heuristic #2, the user's
+          // words).
+          isMac() ? (
+            <Trans>Your contact card in Upshot. It stays on this Mac.</Trans>
+          ) : (
+            <Trans>
+              Your contact card in Upshot. It stays on this computer.
+            </Trans>
+          )
         }
       />
       <AccountProfile />
@@ -130,9 +139,15 @@ function DeleteAccountRow() {
             <Trans>Delete account</Trans>
           </p>
           <p className="text-muted-foreground mt-0.5 text-xs">
-            <Trans>
-              Ends Pro and deletes your account. Notes stay on this Mac.
-            </Trans>
+            {isMac() ? (
+              <Trans>
+                Ends Pro and deletes your account. Notes stay on this Mac.
+              </Trans>
+            ) : (
+              <Trans>
+                Ends Pro and deletes your account. Notes stay on this computer.
+              </Trans>
+            )}
           </p>
         </div>
         <Button
@@ -156,10 +171,17 @@ function DeleteAccountRow() {
         }}
         title={<Trans>Delete your Upshot account?</Trans>}
         description={
-          <Trans>
-            Pro ends right away with no refund, and your account and plan are
-            deleted. Your notes stay on this Mac. This can't be undone.
-          </Trans>
+          isMac() ? (
+            <Trans>
+              Pro ends right away with no refund, and your account and plan are
+              deleted. Your notes stay on this Mac. This can't be undone.
+            </Trans>
+          ) : (
+            <Trans>
+              Pro ends right away with no refund, and your account and plan are
+              deleted. Your notes stay on this computer. This can't be undone.
+            </Trans>
+          )
         }
         confirmLabel={<Trans>Delete account</Trans>}
         pendingLabel={<Trans>Deleting…</Trans>}

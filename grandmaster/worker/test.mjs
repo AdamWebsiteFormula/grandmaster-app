@@ -1097,9 +1097,9 @@ test("privacy policy: served from public/ with the CalOPPA items", async () => {
   assert.match(html, /<title>Upshot privacy policy<\/title>/);
   assert.match(html, /src="\/brand\/upshot-logo-orange-on-light.png"/);
   assert.match(html, /background:#fff/);
-  assert.match(html, /Effective October 3, 2026/);
+  assert.match(html, /Effective October 4, 2026/);
   for (const heading of [
-    "What leaves your Mac, and who gets it",
+    "What leaves your computer, and who gets it",
     "Your choices and rights",
     "Do Not Track",
     "Changes to this policy",
@@ -1108,11 +1108,20 @@ test("privacy policy: served from public/ with the CalOPPA items", async () => {
   ]) {
     assert.match(html, new RegExp(`<h2>${heading}</h2>`));
   }
-  for (const name of ["OpenRouter", "Supabase", "Stripe", "Cloudflare", "Deepgram"]) {
+  for (const name of [
+    "OpenRouter",
+    "Supabase",
+    "Stripe",
+    "Cloudflare",
+    "Deepgram",
+  ]) {
     assert.match(html, new RegExp(name));
   }
   assert.match(html, /Settings › Profile › Delete account/);
   assert.match(html, /~\/Library\/Application Support\/anarlog\//);
+  // Upshot ships for Mac, Windows and Linux (owner, Oct 3): every data path is listed.
+  assert.match(html, /%APPDATA%\\anarlog\\/);
+  assert.match(html, /~\/.local\/share\/anarlog\//);
   // American spelling in the page text (the source comment cites ico.org.uk URLs).
   assert.doesNotMatch(
     html.split("</head>")[1],
@@ -1526,7 +1535,10 @@ test("stt live: WebSocket goes to Deepgram with the server key and allowlisted p
       );
       assert.equal(response, socket);
       const sent = new URL(calls[0].url);
-      assert.equal(sent.origin + sent.pathname, "https://api.deepgram.com/v1/listen");
+      assert.equal(
+        sent.origin + sent.pathname,
+        "https://api.deepgram.com/v1/listen",
+      );
       assert.equal(calls[0].init.headers.authorization, "Token dg-test");
       assert.equal(calls[0].init.headers.upgrade, "websocket");
       assert.equal(sent.searchParams.get("model"), "nova-3");
@@ -1644,7 +1656,10 @@ test("stt: browsers, other paths, methods and body types are refused", async () 
         new Request("https://w/stt/listen", {
           headers: { upgrade: "websocket" },
         }),
-        { ...sttEnv, RATE_LIMITER: { limit: async () => ({ success: false }) } },
+        {
+          ...sttEnv,
+          RATE_LIMITER: { limit: async () => ({ success: false }) },
+        },
       );
       assert.equal(limited.status, 429);
     },

@@ -233,7 +233,7 @@ function MacOSPermissions() {
         permission="calendar"
         icon={CalendarDots}
         title={t`Calendar`}
-        description={t`Show Apple Calendar events in Upshot.`}
+        description={t`Show your Google, Outlook and iCloud events in Upshot.`}
         status={calendar.status}
         isPending={calendar.isPending}
         onRequest={calendar.request}

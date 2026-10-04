@@ -150,8 +150,8 @@ export const useSTTConnection = () => {
 
     if (isCloudModel) {
       // Fork: Upshot transcription needs no sign-in or plan: the Upshot
-      // Worker holds the Deepgram key, so the app sends none. Never on Apple
-      // Silicon, where audio stays on the Mac.
+      // Worker holds the Deepgram key, so the app sends none. It runs on
+      // every computer (stt/capabilities.ts).
       if (!isUpshotCloudSttAvailable(platform(), arch())) {
         return null;
       }
@@ -207,9 +207,7 @@ export const useSTTConnection = () => {
     isReady:
       settingsReady &&
       connection !== null &&
-      (isLocalModel
-        ? !local.isPending
-        : isCloudModel || providerConfigReady),
+      (isLocalModel ? !local.isPending : isCloudModel || providerConfigReady),
     local,
     localBatchDiarizationAvailable: localBatchModel.data === true,
     isLocalModel,

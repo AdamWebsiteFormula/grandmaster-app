@@ -173,7 +173,9 @@ function ComposerInput({
     onSendMessage,
   });
   const mentionConfig = useMentionConfig();
-  const primaryModifier = platform() === "macos" ? "⌘" : "Ctrl";
+  // Fork: "⌘ ↩" on a Mac, "Ctrl+Enter" elsewhere (Microsoft Writing Style
+  // Guide, Keys and keyboard shortcuts).
+  const sendShortcut = platform() === "macos" ? "⌘ ↩" : "Ctrl+Enter";
 
   useAutoFocusEditor({
     editorRef,
@@ -247,7 +249,7 @@ function ComposerInput({
             {t`Esc to dismiss`}
           </span>
           <span className="bg-popover-foreground/8 rounded-full px-2 py-1">
-            {t`${primaryModifier} ↩ to send`}
+            {t`${sendShortcut} to send`}
           </span>
         </div>
 

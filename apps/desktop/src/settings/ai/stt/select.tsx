@@ -775,8 +775,8 @@ export function useConfiguredMapping(): {
       }
 
       // Fork: Upshot transcription (the Upshot Worker's keyless Deepgram
-      // proxy) is offered only where there is no on-device engine: Windows,
-      // Linux and Intel Macs. Apple Silicon keeps audio on the Mac.
+      // proxy) is offered on every computer and is the default; Apple
+      // Silicon also lists its on-device engines (stt/capabilities.ts).
       if (provider.id === "anarlog") {
         const available =
           !!deviceInfo.data?.platform &&
@@ -805,11 +805,19 @@ export function useConfiguredMapping(): {
       }
 
       if (provider.id === "apple_speech") {
-        const models = buildOnDeviceModelEntries(
-          appleSpeechModels,
-          appleSpeechDownloaded,
-          deviceInfo.data?.totalMemoryBytes,
-        );
+        // Fork: on-device engines only where Upshot runs them (Apple
+        // Silicon); elsewhere a pick would be swapped for Upshot
+        // transcription at the next launch (auth/billing.tsx repair).
+        const models = isDesktopLocalSttAvailable(
+          deviceInfo.data?.platform ?? "",
+          deviceInfo.data?.arch ?? "",
+        )
+          ? buildOnDeviceModelEntries(
+              appleSpeechModels,
+              appleSpeechDownloaded,
+              deviceInfo.data?.totalMemoryBytes,
+            )
+          : [];
         return [provider.id, { configured: models.length > 0, models }];
       }
 

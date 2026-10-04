@@ -89,7 +89,7 @@ afterEach(() => {
   cleanup();
 });
 
-it("offers only the local Apple Calendar, no cloud sign-in", () => {
+it("offers the calendars on this Mac, with no cloud sign-in", () => {
   render(<CalendarSection onContinue={vi.fn()} />);
 
   expect(screen.getByRole("button", { name: "Connect calendar" })).toBeTruthy();
@@ -97,7 +97,13 @@ it("offers only the local Apple Calendar, no cloud sign-in", () => {
   expect(screen.queryByText(/Google Calendar/)).toBeNull();
   expect(screen.queryByText(/Connect Outlook/)).toBeNull();
   expect(screen.queryByText(/Sign in/)).toBeNull();
-  expect(screen.getByText(/Internet Accounts show up here too/)).toBeTruthy();
+  // Owner feedback, Oct 3: say Google, Outlook and iCloud work, not Apple only.
+  expect(
+    screen.getByText(
+      "Works with Google, Outlook and iCloud calendars. Add an account in System Settings › Internet Accounts.",
+    ),
+  ).toBeTruthy();
+  expect(screen.queryByText(/Apple Calendar/)).toBeNull();
 });
 
 it("asks macOS for calendar permission when clicked", () => {
@@ -118,13 +124,13 @@ it("shows the calendar list and Continue once a calendar is on", () => {
   expect(onContinue).toHaveBeenCalledTimes(1);
 });
 
-it("says Add an account once access is on, and opens Internet Accounts", () => {
+it("says Add account once access is on, and opens Internet Accounts", () => {
   mocks.permission.status = "authorized";
   render(<CalendarSection onContinue={vi.fn()} />);
 
   expect(screen.queryByRole("button", { name: "Connect calendar" })).toBeNull();
   expect(screen.queryByText("Open Calendar settings")).toBeNull();
-  const buttons = screen.getAllByRole("button", { name: "Add an account" });
+  const buttons = screen.getAllByRole("button", { name: "Add account" });
   expect(buttons).toHaveLength(1);
   fireEvent.click(buttons[0]!);
   expect(mocks.openInternetAccounts).toHaveBeenCalledTimes(1);
@@ -145,7 +151,7 @@ it("has no Continue before access is allowed", () => {
   expect(screen.queryByRole("button", { name: "Continue" })).toBeNull();
 });
 
-it("uses the shared empty state without a second Add an account", () => {
+it("uses the shared empty state without a second Add account", () => {
   mocks.permission.status = "authorized";
   render(<CalendarSection onContinue={vi.fn()} />);
 
@@ -201,16 +207,34 @@ it("re-syncs calendars when the window gets focus back", () => {
 
 it("opens Internet Accounts from under the accounts line", () => {
   render(<CalendarSection onContinue={vi.fn()} />);
-  fireEvent.click(screen.getByRole("button", { name: "Add an account" }));
+  const add = screen.getByRole("button", { name: "Add account" });
+  expect(add.className).toContain("border-input");
+  fireEvent.click(add);
+  expect(mocks.openInternetAccounts).toHaveBeenCalledTimes(1);
+});
+
+it("keeps the accounts line and one Add account once calendars are listed", () => {
+  mocks.permission.status = "authorized";
+  mocks.rows = [{ id: "work", name: "Work", source: "Google", enabled: true }];
+  render(<CalendarSection onContinue={vi.fn()} />);
+
+  expect(
+    screen.getByText(/^Works with Google, Outlook and iCloud calendars\./),
+  ).toBeTruthy();
+  const buttons = screen.getAllByRole("button", { name: "Add account" });
+  expect(buttons).toHaveLength(1);
+  fireEvent.click(buttons[0]!);
   expect(mocks.openInternetAccounts).toHaveBeenCalledTimes(1);
 });
 
 it("hides the accounts line when access is on and no calendars came back", () => {
   mocks.permission.status = "authorized";
   render(<CalendarSection onContinue={vi.fn()} />);
-  expect(screen.queryByText(/Internet Accounts show up here too/)).toBeNull();
-  // Only the main button offers it; the empty state doesn't repeat it.
   expect(
-    screen.getAllByRole("button", { name: "Add an account" }),
-  ).toHaveLength(1);
+    screen.queryByText(/^Works with Google, Outlook and iCloud/),
+  ).toBeNull();
+  // Only the main button offers it; the empty state doesn't repeat it.
+  expect(screen.getAllByRole("button", { name: "Add account" })).toHaveLength(
+    1,
+  );
 });

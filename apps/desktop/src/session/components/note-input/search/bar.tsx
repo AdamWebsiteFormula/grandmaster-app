@@ -1,5 +1,4 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { platform } from "@tauri-apps/plugin-os";
 import { useEffect, useRef } from "react";
 
 import type { NoteEditorRef } from "@anlg/editor/note";
@@ -22,6 +21,8 @@ import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 import { cn } from "@anlg/utils";
 
 import { useSearch } from "./context";
+
+import { kbdLabel } from "~/shared/shortcut-label";
 
 function ToggleButton({
   active,
@@ -103,7 +104,6 @@ export function SearchBar({
 }) {
   const { t } = useLingui();
   const search = useSearch();
-  const primaryModifier = platform() === "macos" ? "⌘" : "Ctrl";
   const searchInputRef = useRef<HTMLInputElement>(null);
   const replaceInputRef = useRef<HTMLInputElement>(null);
 
@@ -241,7 +241,12 @@ export function SearchBar({
                   <span>
                     <Trans>Replace</Trans>
                   </span>
-                  <Kbd className="animate-kbd-press">{primaryModifier} H</Kbd>
+                  {/* Fork: the key replace really uses, ⌥⌘F (context.tsx),
+                      written Ctrl+Alt+F off a Mac (Microsoft Writing Style
+                      Guide, Keys and keyboard shortcuts; NN/g #4). */}
+                  <Kbd className="animate-kbd-press">
+                    {kbdLabel(["alt", "mod", "F"])}
+                  </Kbd>
                 </>
               }
             >
@@ -261,7 +266,9 @@ export function SearchBar({
                 <span>
                   <Trans>Previous match</Trans>
                 </span>
-                <Kbd className="animate-kbd-press">⇧ ↵</Kbd>
+                <Kbd className="animate-kbd-press">
+                  {kbdLabel(["shift", "enter"])}
+                </Kbd>
               </>
             }
           >
@@ -275,7 +282,7 @@ export function SearchBar({
                 <span>
                   <Trans>Next match</Trans>
                 </span>
-                <Kbd className="animate-kbd-press">↵</Kbd>
+                <Kbd className="animate-kbd-press">{kbdLabel(["enter"])}</Kbd>
               </>
             }
           >
@@ -316,7 +323,7 @@ export function SearchBar({
                   <span>
                     <Trans>Replace</Trans>
                   </span>
-                  <Kbd className="animate-kbd-press">↵</Kbd>
+                  <Kbd className="animate-kbd-press">{kbdLabel(["enter"])}</Kbd>
                 </>
               }
             >
@@ -329,7 +336,9 @@ export function SearchBar({
                   <span>
                     <Trans>Replace all</Trans>
                   </span>
-                  <Kbd className="animate-kbd-press">{primaryModifier} ↵</Kbd>
+                  <Kbd className="animate-kbd-press">
+                    {kbdLabel(["mod", "enter"])}
+                  </Kbd>
                 </>
               }
             >

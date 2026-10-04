@@ -286,8 +286,9 @@ function OnboardingScreenContent({
           <OnboardingSection
             title={<Trans>Set up transcription</Trans>}
             description={
+              // Fork: cloud by default on every computer (owner, Oct 3).
               <Trans>
-                Upshot transcribes on your Mac. No account and no API key.
+                Upshot transcribes your meetings. No account and no API key.
               </Trans>
             }
             completedTitle={
@@ -346,9 +347,12 @@ function OnboardingScreenContent({
           <OnboardingSection
             title={<Trans>Connect calendar</Trans>}
             description={
+              // Fork: every calendar account on the Mac counts, not only
+              // Apple's (support.apple.com/guide/calendar/icl4308d6701/mac).
               <Trans>
-                Upshot reads Apple Calendar on this Mac to remind you before
-                meetings and add titles and attendees to your notes.
+                Upshot reads the Google, Outlook and iCloud calendars on this
+                Mac to remind you before meetings and add titles and attendees
+                to your notes.
               </Trans>
             }
             completedTitle={

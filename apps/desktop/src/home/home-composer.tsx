@@ -25,6 +25,7 @@ import { ChatGroups } from "~/chat/components/toolbar-controls";
 import { queueChatPrompt } from "~/chat/pending-prompt";
 import { useRecentChatGroups } from "~/chat/store/queries";
 import { useShell } from "~/contexts/shell";
+import { ariaKeyShortcut, kbdLabel } from "~/shared/shortcut-label";
 
 export function HomeComposer() {
   const { t } = useLingui();
@@ -121,10 +122,14 @@ export function HomeComposer() {
               }}
               placeholder={t`Ask anything`}
               aria-label={t`Ask anything`}
-              aria-keyshortcuts="Meta+J"
+              // Fork: ⌘ J on a Mac, Ctrl+J elsewhere (Apple HIG, Keyboards;
+              // Microsoft Writing Style Guide, Keys and keyboard shortcuts).
+              aria-keyshortcuts={ariaKeyShortcut(["mod", "J"])}
               className="text-foreground placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm outline-none"
             />
-            {value.trim() ? null : <Kbd className="shrink-0">⌘ J</Kbd>}
+            {value.trim() ? null : (
+              <Kbd className="shrink-0">{kbdLabel(["mod", "J"])}</Kbd>
+            )}
             <ChatModelMenu />
             {value.trim() ? (
               <button

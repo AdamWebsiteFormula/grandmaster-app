@@ -13,7 +13,10 @@ const mocks = vi.hoisted(() => ({
   selectFolder: vi.fn(),
   setSettingValue: vi.fn(),
   settings: vi.fn(),
+  platform: "macos",
 }));
+
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
 
 vi.mock("@tauri-apps/api/path", () => ({
   downloadDir: mocks.downloadDir,
@@ -45,8 +48,20 @@ describe("ExportLocationRow", () => {
     mocks.selectFolder.mockResolvedValue(null);
     mocks.setSettingValue.mockResolvedValue(undefined);
     mocks.settings.mockReturnValue({ data: { values: {} }, isLoading: false });
+    mocks.platform = "macos";
   });
   afterEach(cleanup);
+
+  // Fork: Finder is the Mac's; elsewhere the label names the folder (NN/g #2).
+  it.each([
+    ["macos", "Open ~/Downloads in Finder"],
+    ["windows", "Open the ~/Downloads folder"],
+  ])("labels the folder button on %s", async (os, label) => {
+    mocks.platform = os;
+    renderRow();
+
+    expect(await screen.findByRole("button", { name: label })).toBeTruthy();
+  });
 
   it("defaults to Downloads and saves the chosen folder", async () => {
     mocks.selectFolder.mockResolvedValue("/Volumes/Work/Meeting exports");

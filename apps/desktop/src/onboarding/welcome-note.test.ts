@@ -13,6 +13,8 @@ const mocks = vi.hoisted(() => ({
   },
 }));
 
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => "macos" }));
+
 vi.mock("~/db", () => ({
   liveQueryClient: { execute: mocks.execute },
 }));
@@ -28,7 +30,7 @@ vi.mock("~/store/zustand/listener/instance", () => ({
 }));
 
 import {
-  WELCOME_NOTE,
+  welcomeNoteMarkdown,
   getOrCreateWelcomeSession,
   setPendingWelcomeSession,
   stopActiveWelcomeDemo,
@@ -165,12 +167,25 @@ it("auto-joins the hosted demo and optionally attaches a completion callback", (
   );
 });
 
-it("points to New note on Home and says what leaves the Mac", () => {
-  expect(WELCOME_NOTE).toContain(
-    "on Home, click **New note** at the top right",
+it("points to New note on Home and says what leaves the computer", () => {
+  const mac = welcomeNoteMarkdown("macos");
+  expect(mac).toContain("on Home, click **New note** at the top right");
+  expect(mac).toContain("press **⌘N**");
+  expect(mac).toContain(
+    "Recordings, notes and transcripts are stored on this Mac.",
   );
-  expect(WELCOME_NOTE).not.toContain("stay on this Mac");
-  expect(WELCOME_NOTE).toContain(
+  expect(mac).toContain(
+    "While you record, audio streams to Upshot transcription (Deepgram), which keeps nothing.",
+  );
+  expect(mac).toContain(
     "When Upshot writes a summary, the note and transcript go to Upshot AI, which keeps nothing.",
   );
+});
+
+it.each(["windows", "linux"])("uses Ctrl+N and no Mac words on %s", (os) => {
+  const note = welcomeNoteMarkdown(os);
+  expect(note).toContain("press **Ctrl+N**");
+  expect(note).toContain("your computer's sound");
+  expect(note).toContain("stored on this computer");
+  expect(note).not.toMatch(/Mac|⌘/);
 });

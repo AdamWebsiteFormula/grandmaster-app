@@ -8,7 +8,10 @@ const mocks = vi.hoisted(() => ({
   setSettingValues: vi.fn(),
   canResume: false,
   sessionMode: "inactive",
+  platform: "macos",
 }));
+
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
 
 vi.mock("~/settings/queries", () => ({
   useSetSettingValues: () => mocks.setSettingValues,
@@ -81,6 +84,7 @@ describe("TranscriptToolbar", () => {
     cleanup();
     mocks.canResume = false;
     mocks.sessionMode = "inactive";
+    mocks.platform = "macos";
     mocks.setSettingValues.mockClear();
     mocks.openNew.mockClear();
   });
@@ -137,6 +141,19 @@ describe("TranscriptToolbar", () => {
       "Edit transcript",
       "Copy transcript",
     ]);
+  });
+
+  // Microsoft Writing Style Guide, Keys and keyboard shortcuts.
+  it.each([
+    ["macos", "Search transcript (⌘F)", "Meta+F"],
+    ["windows", "Search transcript (Ctrl+F)", "Control+F"],
+  ])("names the find key on %s", (os, title, aria) => {
+    mocks.platform = os;
+    render(<TranscriptToolbar sessionId="session-1" editMode={false} />);
+
+    const search = screen.getByRole("button", { name: "Search transcript" });
+    expect(search.getAttribute("title")).toBe(title);
+    expect(search.getAttribute("aria-keyshortcuts")).toBe(aria);
   });
 
   it("goes back to the summary", () => {

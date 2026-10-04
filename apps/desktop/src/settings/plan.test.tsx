@@ -265,6 +265,15 @@ describe("Settings › Plan", () => {
       within(table).getByRole("columnheader", { name: /Pro.*Upgrade to Pro/ }),
     ).not.toBeNull();
 
+    // Fork: no "on your Mac"; every computer records and transcribes.
+    const recordRow = within(table).getByRole("row", {
+      name: /^Record and transcribe your meetings/,
+    });
+    expect(
+      within(recordRow).getAllByRole("img", { name: "Included" }),
+    ).toHaveLength(2);
+    expect(within(table).queryByText(/on your Mac/)).toBeNull();
+
     const autoRow = within(table).getByRole("row", {
       name: /AI notes and chat \(best model picked for you\)/,
     });

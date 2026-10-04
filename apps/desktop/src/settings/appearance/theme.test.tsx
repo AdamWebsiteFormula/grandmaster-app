@@ -6,7 +6,10 @@ const mocks = vi.hoisted(() => ({
   applyThemePreference: vi.fn(),
   theme: "system",
   appIcon: "default",
+  platform: "macos",
 }));
+
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
 
 vi.mock("~/settings/queries", () => ({
   useSetSettingValue: () => mocks.setTheme,
@@ -29,7 +32,27 @@ describe("ThemeSelector", () => {
     vi.clearAllMocks();
     mocks.theme = "system";
     mocks.appIcon = "default";
+    mocks.platform = "macos";
   });
+
+  // Fork: Windows 11 Notepad's App theme says "Use system setting".
+  it.each(["windows", "linux"])(
+    "says Use system setting and your computer on %s",
+    (os) => {
+      mocks.platform = os;
+      render(<ThemeSelector />);
+
+      expect(
+        screen
+          .getByRole("radio", { name: "Use system setting" })
+          .getAttribute("aria-checked"),
+      ).toBe("true");
+      expect(
+        screen.getByText("Light, dark, or the same as your computer."),
+      ).toBeTruthy();
+      expect(screen.queryByText(/Mac/)).toBeNull();
+    },
+  );
 
   it("applies the selected theme with the current app icon", () => {
     mocks.appIcon = "anagram";

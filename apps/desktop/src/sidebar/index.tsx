@@ -19,6 +19,7 @@ import { TimelineView } from "./timeline";
 import { hasOwnSidebarHeaderTab } from "./use-custom-sidebar";
 
 import { usesTitleBarSidebarActions } from "~/shared/hooks/useWindowControlsGutter";
+import { ariaKeyShortcut, isMac, kbdLabel } from "~/shared/shortcut-label";
 import { useTabs } from "~/store/zustand/tabs";
 
 // Fork (Granola 101, docs.granola.ai/help-center/getting-started/granola-101):
@@ -125,10 +126,12 @@ export function LeftSidebar({
         // Fork: same 12 px left inset as the note list; the shortcut is in
         // the tooltip, not a chip (redline-oct3).
         <div className="shrink-0 pb-2">
-          <ShortcutTooltip label={t`Settings`} keys="⌘ ,">
+          <SettingsShortcutTooltip label={t`Settings`}>
             <button
               type="button"
-              aria-keyshortcuts="Meta+,"
+              aria-keyshortcuts={
+                isMac() ? ariaKeyShortcut(["mod", ","]) : undefined
+              }
               onClick={() =>
                 openNew({ type: "settings", state: { tab: "app" } })
               }
@@ -139,9 +142,27 @@ export function LeftSidebar({
                 <Trans>Settings</Trans>
               </span>
             </button>
-          </ShortcutTooltip>
+          </SettingsShortcutTooltip>
         </div>
       ) : null}
     </div>
+  );
+}
+
+// Fork: ⌘, is the Mac menu's Settings… key. Windows and Linux have no such
+// key, so the button names no shortcut there (NN/g heuristic #5).
+function SettingsShortcutTooltip({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  if (!isMac()) return children;
+
+  return (
+    <ShortcutTooltip label={label} keys={kbdLabel(["mod", ","])}>
+      {children}
+    </ShortcutTooltip>
   );
 }

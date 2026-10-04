@@ -13,6 +13,14 @@ const mocks = vi.hoisted(() => ({
     (_statements: Array<{ sql: string; params: unknown[] }>) =>
       Promise.resolve([1]),
   ),
+  // Not a desktop platform by default, so only the tests below that set one
+  // get the Upshot transcription default.
+  platform: vi.fn(() => "ios"),
+}));
+
+vi.mock("@tauri-apps/plugin-os", () => ({
+  platform: () => mocks.platform(),
+  arch: () => "aarch64",
 }));
 
 vi.mock("@anlg/plugin-analytics", () => ({
@@ -405,6 +413,46 @@ describe("SQLite settings", () => {
     await initializeApplicationSettings();
 
     expect(mocks.executeTransaction).not.toHaveBeenCalled();
+  });
+
+  it.each(["macos", "windows", "linux"])(
+    "starts a new profile on Upshot transcription on %s",
+    async (os) => {
+      mocks.platform.mockReturnValue(os);
+      mocks.execute.mockResolvedValue([]);
+
+      await initializeApplicationSettings();
+
+      const statements = mocks.executeTransaction.mock.calls[0][0];
+      expect(
+        statements.map((statement) => statement.params.slice(0, 2)),
+      ).toEqual(
+        expect.arrayContaining([
+          ["current_stt_provider", JSON.stringify("anarlog")],
+          ["current_stt_model", JSON.stringify("cloud")],
+        ]),
+      );
+      mocks.platform.mockReturnValue("ios");
+    },
+  );
+
+  it("keeps a transcription engine the user already picked", async () => {
+    mocks.platform.mockReturnValue("macos");
+    mocks.execute.mockResolvedValue([
+      {
+        id: "current_stt_provider",
+        value_json: JSON.stringify("apple_speech"),
+      },
+      {
+        id: "current_stt_model",
+        value_json: JSON.stringify("apple-speech"),
+      },
+    ]);
+
+    await initializeApplicationSettings();
+
+    expect(mocks.executeTransaction).not.toHaveBeenCalled();
+    mocks.platform.mockReturnValue("ios");
   });
 
   it("repairs a selected external transcription provider with no model", async () => {

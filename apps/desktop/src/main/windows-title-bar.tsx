@@ -23,7 +23,8 @@ import { WindowsWindowControls } from "./windows-window-controls";
 import { useShell } from "~/contexts/shell";
 import { usesTitleBarSidebarActions } from "~/shared/hooks/useWindowControlsGutter";
 import { useOpenNoteDialog } from "~/shared/open-note-dialog";
-import { useNewNote } from "~/shared/useNewNote";
+import { runtimePlatform } from "~/shared/shortcut-label";
+import { useNewNote, useNewNoteAndListen } from "~/shared/useNewNote";
 import {
   TITLE_BAR_SIDEBAR_ACTIONS_SLOT_ID,
   useCustomSidebarBack,
@@ -43,6 +44,7 @@ export function WindowsTitleBar({
   const currentTab = useTabs((state) => state.currentTab);
   const openNew = useTabs((state) => state.openNew);
   const createNewNote = useNewNote();
+  const newNoteAndListen = useNewNoteAndListen();
   const openNoteDialog = useOpenNoteDialog();
   const upcomingMeetingStatus = useSidebarUpcomingMeetingStatus();
   const goBack = useCustomSidebarBack();
@@ -121,10 +123,20 @@ export function WindowsTitleBar({
           className="ml-2 flex h-full items-center"
           role="menubar"
         >
+          {/* Fork: each item names the key that really does it (Microsoft
+              Writing Style Guide, Keys and keyboard shortcuts): Ctrl+N
+              records and Ctrl+Shift+N makes a blank note, as in the Mac's
+              File menu (useMainShortcuts; NN/g #4). Settings and Full screen
+              have no key here, so they show none (NN/g #5). Sentence case,
+              as Windows 11 Notepad's menus. */}
           <TitleBarMenu label={t`File`} onPointerDown={rememberEditTarget}>
-            <DropdownMenuItem onSelect={createNewNote}>
-              {t`New Note`}
+            <DropdownMenuItem onSelect={newNoteAndListen}>
+              {t`New note`}
               <DropdownMenuShortcut>Ctrl+N</DropdownMenuShortcut>
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={createNewNote}>
+              {t`Blank note`}
+              <DropdownMenuShortcut>Ctrl+Shift+N</DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuItem
               onSelect={() =>
@@ -132,7 +144,6 @@ export function WindowsTitleBar({
               }
             >
               {t`Settings`}
-              <DropdownMenuShortcut>Ctrl+,</DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => void appWindow.close()}>
@@ -147,7 +158,11 @@ export function WindowsTitleBar({
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => runEditCommand("redo")}>
               {t`Redo`}
-              <DropdownMenuShortcut>Ctrl+Y</DropdownMenuShortcut>
+              {/* Fork: Linux redoes with Ctrl+Shift+Z (GNOME HIG, Keyboard
+                  shortcuts); Ctrl+Y is the Windows key. */}
+              <DropdownMenuShortcut>
+                {runtimePlatform() === "linux" ? "Ctrl+Shift+Z" : "Ctrl+Y"}
+              </DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => runEditCommand("cut")}>
@@ -163,18 +178,17 @@ export function WindowsTitleBar({
               <DropdownMenuShortcut>Ctrl+V</DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => runEditCommand("selectAll")}>
-              {t`Select All`}
+              {t`Select all`}
               <DropdownMenuShortcut>Ctrl+A</DropdownMenuShortcut>
             </DropdownMenuItem>
           </TitleBarMenu>
           <TitleBarMenu label={t`View`} onPointerDown={rememberEditTarget}>
             <DropdownMenuItem onSelect={leftsidebar.toggleExpanded}>
-              {leftsidebar.expanded ? t`Hide Sidebar` : t`Show Sidebar`}
+              {leftsidebar.expanded ? t`Hide sidebar` : t`Show sidebar`}
               <DropdownMenuShortcut>Ctrl+\</DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => void toggleFullscreen()}>
-              {t`Full Screen`}
-              <DropdownMenuShortcut>F11</DropdownMenuShortcut>
+              {t`Full screen`}
             </DropdownMenuItem>
           </TitleBarMenu>
           <TitleBarMenu label={t`Help`} onPointerDown={rememberEditTarget}>
@@ -197,7 +211,7 @@ export function WindowsTitleBar({
                 )
               }
             >
-              {t`Report a Bug`}
+              {t`Report a bug`}
             </DropdownMenuItem>
             <DropdownMenuItem
               onSelect={() =>
@@ -207,7 +221,7 @@ export function WindowsTitleBar({
                 )
               }
             >
-              {t`Suggest a Feature`}
+              {t`Suggest a feature`}
             </DropdownMenuItem>
           </TitleBarMenu>
         </nav>

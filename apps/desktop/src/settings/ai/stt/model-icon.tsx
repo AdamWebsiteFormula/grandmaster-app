@@ -24,7 +24,8 @@ function getLocalModelIcon(model: string): ModelIconSpec | null {
   if (value === "cloud") {
     return {
       label: "A",
-      title: "Upshot Pro",
+      // Fork: the free cloud model is Upshot transcription, not a Pro perk.
+      title: "Upshot transcription",
       imageSrc: ANARLOG_ICON_SRC,
     };
   }

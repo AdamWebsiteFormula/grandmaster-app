@@ -1,3 +1,5 @@
+import { platform } from "@tauri-apps/plugin-os";
+
 import { md2json } from "@anlg/editor/markdown";
 import type { SessionEvent } from "@anlg/store";
 
@@ -13,15 +15,23 @@ import { listenerStore } from "~/store/zustand/listener/instance";
 const PENDING_WELCOME_SESSION_KEY = "anarlog.pending-welcome-session";
 
 // Fork: New note lives on Home, so the note says where it is (journey-first-run
-// P1). The privacy line matches README "Privacy" (journey-first-run P2: FTC
-// "clear and conspicuous" disclosures).
-export const WELCOME_NOTE = `Welcome to Upshot 👋
+// P1). The privacy lines match README "Privacy" (journey-first-run P2: FTC
+// "clear and conspicuous" disclosures): recordings stay on this computer,
+// audio streams to Upshot transcription (Deepgram, mip_opt_out: kept "only
+// for the duration necessary to process the request", developers.deepgram.com
+// Model Improvement Partnership Program) and summaries go to Upshot AI. Keys
+// and device words follow the platform (Microsoft Writing Style Guide: Ctrl+N).
+export function welcomeNoteMarkdown(currentPlatform: string = platform()) {
+  const mac = currentPlatform === "macos";
+  const newNoteKey = mac ? "⌘N" : "Ctrl+N";
+  const device = mac ? "Mac" : "computer";
+  return `Welcome to Upshot 👋
 
 
 Upshot takes notes for your meetings. No bot joins your call.
 
 
-**Record:** on Home, click **New note** at the top right, or press **⌘N**. Upshot starts listening right away. It hears you through your microphone and the other people through your Mac's sound.
+**Record:** on Home, click **New note** at the top right, or press **${newNoteKey}**. Upshot starts listening right away. It hears you through your microphone and the other people through your ${device}'s sound.
 
 
 **Take notes:** jot a few words while you talk, or nothing at all.
@@ -33,7 +43,8 @@ Upshot takes notes for your meetings. No bot joins your call.
 **See an example:** open **Example: Product sync** on Home for a finished summary and transcript.
 
 
-Audio, notes and transcripts are stored on this Mac. When Upshot writes a summary, the note and transcript go to Upshot AI, which keeps nothing.`;
+Recordings, notes and transcripts are stored on this ${device}. While you record, audio streams to Upshot transcription (Deepgram), which keeps nothing. When Upshot writes a summary, the note and transcript go to Upshot AI, which keeps nothing.`;
+}
 
 let pendingWelcomeSession: Promise<string> | null = null;
 
@@ -130,6 +141,6 @@ async function findOrCreateWelcomeSession(): Promise<string> {
 
   return createSession("Welcome to Upshot", DEFAULT_USER_ID, {
     event_json: JSON.stringify(event),
-    raw_md: JSON.stringify(md2json(WELCOME_NOTE)),
+    raw_md: JSON.stringify(md2json(welcomeNoteMarkdown())),
   });
 }

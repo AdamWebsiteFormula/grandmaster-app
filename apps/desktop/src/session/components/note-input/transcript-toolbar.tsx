@@ -26,6 +26,7 @@ import {
 import { MainLanguageView } from "~/settings/general/main-language";
 import { useSetSettingValues } from "~/settings/queries";
 import { useConfigValue } from "~/shared/config";
+import { ariaKeyShortcut, shortcutLabel } from "~/shared/shortcut-label";
 import type { EditorView } from "~/store/zustand/tabs/schema";
 import { useListener } from "~/stt/contexts";
 
@@ -124,8 +125,10 @@ export function TranscriptToolbar({
         <button
           type="button"
           aria-label={searchLabel}
-          title={`${searchLabel} (⌘F)`}
-          aria-keyshortcuts="Meta+F"
+          // Fork: ⌘F on a Mac, Ctrl+F elsewhere (Microsoft Writing Style
+          // Guide, Keys and keyboard shortcuts).
+          title={`${searchLabel} (${shortcutLabel(["mod", "F"])})`}
+          aria-keyshortcuts={ariaKeyShortcut(["mod", "F"])}
           onClick={() => search.open()}
           className={toolbarButtonClassName}
         >

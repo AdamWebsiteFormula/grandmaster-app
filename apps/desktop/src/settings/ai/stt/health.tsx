@@ -126,7 +126,7 @@ export function useConnectionHealth(): HealthStatus {
   if (!conn) {
     return {
       status: "error",
-      message: t`This provider isn’t available in Upshot. Pick Soniqo or Apple Speech above.`,
+      message: t`This provider isn’t available in Upshot. Pick Upshot transcription above.`,
     };
   }
 
@@ -137,7 +137,7 @@ export function useConnectionHealth(): HealthStatus {
     if (deepgramHealth.isError) {
       return {
         status: "error",
-        message: t`This provider isn’t available in Upshot. Pick Soniqo or Apple Speech above.`,
+        message: t`This provider isn’t available in Upshot. Pick Upshot transcription above.`,
       };
     }
     if (deepgramHealth.isSuccess) {

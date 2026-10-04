@@ -885,9 +885,7 @@ function PlanTierList({
           const details =
             highlightPro && tier.id === "free" ? (
               <p className="text-muted-foreground text-xs">
-                <Trans>
-                  On-device transcription, recordings, and Upshot AI on Auto.
-                </Trans>
+                <Trans>Transcription, recordings, and Upshot AI on Auto.</Trans>
               </p>
             ) : (
               <div className="flex flex-col gap-3">

@@ -51,6 +51,23 @@ describe("MeetingSettingsView", () => {
     mocks.platform.mockReturnValue("macos");
   });
 
+  // Fork: scheduled meetings come from the Mac's Calendar only (NN/g #5).
+  it.each(["windows", "linux"])("leaves out the calendar rows on %s", (os) => {
+    mocks.platform.mockReturnValue(os);
+    renderMeetingSettings();
+
+    expect(screen.queryByText("Start when meeting begins")).toBeNull();
+    expect(screen.queryByText("Join scheduled meetings")).toBeNull();
+    expect(screen.getByText("Show floating bar")).toBeTruthy();
+  });
+
+  it("shows the calendar rows on a Mac", () => {
+    renderMeetingSettings();
+
+    expect(screen.getByText("Start when meeting begins")).toBeTruthy();
+    expect(screen.getByText("Join scheduled meetings")).toBeTruthy();
+  });
+
   it("hides meeting AX controls on Windows until UI Automation lands", () => {
     mocks.platform.mockReturnValue("windows");
     renderMeetingSettings();

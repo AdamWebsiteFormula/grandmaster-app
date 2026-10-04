@@ -12,7 +12,10 @@ const mocks = vi.hoisted(() => ({
   },
   groups: [] as unknown[],
   queueChatPrompt: vi.fn(),
+  platform: "macos",
 }));
+
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
 
 vi.mock("~/contexts/shell", () => ({
   useShell: () => ({ chat: mocks.chat }),
@@ -40,8 +43,24 @@ describe("HomeComposer", () => {
     vi.clearAllMocks();
     mocks.chat.mode = "FloatingClosed";
     mocks.groups = [];
+    mocks.platform = "macos";
   });
   afterEach(cleanup);
+
+  // Microsoft Writing Style Guide, Keys and keyboard shortcuts: never ⌘
+  // off a Mac.
+  it("shows Ctrl+J off a Mac", () => {
+    mocks.platform = "windows";
+    render(<HomeComposer />);
+
+    expect(screen.getByText("Ctrl+J")).toBeTruthy();
+    expect(screen.queryByText("⌘ J")).toBeNull();
+    expect(
+      screen
+        .getByRole("textbox", { name: "Ask anything" })
+        .getAttribute("aria-keyshortcuts"),
+    ).toBe("Control+J");
+  });
 
   it("shows starter chips, Ask anything and the model menu", () => {
     render(<HomeComposer />);

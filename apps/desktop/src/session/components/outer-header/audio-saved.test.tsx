@@ -10,7 +10,10 @@ import {
 const mocks = vi.hoisted(() => ({
   retention: undefined as unknown,
   openNew: vi.fn(),
+  platform: "macos",
 }));
+
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
 
 vi.mock("~/shared/config", () => ({
   useConfigValue: () => mocks.retention,
@@ -39,6 +42,20 @@ describe("AudioSavedMenuItem", () => {
     cleanup();
     mocks.openNew.mockClear();
     onSelect.mockClear();
+    mocks.platform = "macos";
+  });
+
+  // Fork: "this computer" off a Mac (NN/g #2).
+  it("says this computer off a Mac", () => {
+    mocks.platform = "windows";
+    mocks.retention = "oneWeek";
+    renderItem();
+
+    expect(
+      screen.getByRole("menuitem", {
+        name: "Audio saved on this computer · kept for 1 week",
+      }),
+    ).toBeTruthy();
   });
 
   it.each([

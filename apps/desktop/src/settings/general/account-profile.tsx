@@ -20,6 +20,7 @@ import {
 } from "~/contacts/queries";
 import { SettingsGroup } from "~/settings/setting-row";
 import { useOwnerUserId } from "~/shared/owner-user";
+import { isMac } from "~/shared/shortcut-label";
 import { useUpshotAccount } from "~/upshot-plan";
 
 export function AccountProfile() {
@@ -210,7 +211,13 @@ function ProfileForm({
                   id={`${memoId}-hint`}
                   className="text-muted-foreground text-xs"
                 >
-                  <Trans>Only on this Mac.</Trans>
+                  {/* Fork: "this computer" off a Mac (NN/g heuristic #2,
+                      the user's words). */}
+                  {isMac() ? (
+                    <Trans>Only on this Mac.</Trans>
+                  ) : (
+                    <Trans>Only on this computer.</Trans>
+                  )}
                 </p>
               </div>
               <Textarea

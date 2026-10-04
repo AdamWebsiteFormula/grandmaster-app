@@ -186,10 +186,6 @@ msgstr "{price} a year"
 msgid "{price} a year · billed to {email}"
 msgstr "{price} a year · billed to {email}"
 
-#: src/composer/index.tsx
-msgid "{primaryModifier} ↩ to send"
-msgstr "{primaryModifier} ↩ to send"
-
 #: src/settings/general/billing.tsx
 msgid "{remaining} days left"
 msgstr "{remaining} days left"
@@ -201,6 +197,10 @@ msgstr "{rest} others"
 #: src/stt/useRunBatch.ts
 msgid "{selectedLabel} can't transcribe after you stop, so Upshot uses {fallbackLabel}."
 msgstr "{selectedLabel} can't transcribe after you stop, so Upshot uses {fallbackLabel}."
+
+#: src/composer/index.tsx
+msgid "{sendShortcut} to send"
+msgstr "{sendShortcut} to send"
 
 #: src/sidebar/toast/undo-delete-toast.tsx
 msgid "{title} deleted"
@@ -512,8 +512,9 @@ msgstr "Add a trigger, then stack actions like Zapier."
 
 #: src/calendar/components/apple/permission.tsx
 #: src/onboarding/calendar.tsx
-msgid "Add an account"
-msgstr "Add an account"
+#: src/settings/calendar/index.tsx
+msgid "Add account"
+msgstr "Add account"
 
 #: src/settings/automations/workflow-builder.tsx
 msgid "Add an action"
@@ -554,6 +555,10 @@ msgstr "Add example"
 #: src/folders/folder-editor.tsx
 msgid "Add file"
 msgstr "Add file"
+
+#: src/settings/calendar/index.tsx
+msgid "Add Google or Outlook"
+msgstr "Add Google or Outlook"
 
 #: src/settings/general/spoken-languages.tsx
 msgid "Add language"
@@ -604,6 +609,10 @@ msgstr "Add skill to…"
 msgid "Add step"
 msgstr "Add step"
 
+#: src/settings/calendar/index.tsx
+msgid "Add the account in System Settings › Internet Accounts. Its calendars show up here."
+msgstr "Add the account in System Settings › Internet Accounts. Its calendars show up here."
+
 #: src/session/components/folder-picker.tsx
 msgid "Add to folder"
 msgstr "Add to folder"
@@ -637,6 +646,10 @@ msgstr "After the meeting ends"
 msgid "After the meeting summary is ready"
 msgstr "After the meeting summary is ready"
 
+#: src/onboarding/final.tsx
+msgid "After you open Upshot, click New note or press {newNoteShortcut} to record your first meeting."
+msgstr "After you open Upshot, click New note or press {newNoteShortcut} to record your first meeting."
+
 #: src/settings/developers/skills.tsx
 msgid "Agent skills"
 msgstr "Agent skills"
@@ -652,6 +665,10 @@ msgstr "AI step"
 #: src/contacts/details.tsx
 msgid "AI-generated summary of all interactions and notes with this contact will appear here. This will synthesize key discussion points, action items, and relationship context across all meetings and notes."
 msgstr "AI-generated summary of all interactions and notes with this contact will appear here. This will synthesize key discussion points, action items, and relationship context across all meetings and notes."
+
+#: src/sidebar/settings-nav-groups.ts
+msgid "alerts, meeting detected, taskbar, flash"
+msgstr "alerts, meeting detected, taskbar, flash"
 
 #: src/sidebar/settings-nav-groups.ts
 msgid "alerts, reminders, Do Not Disturb, meeting detected, bounce"
@@ -776,15 +793,6 @@ msgstr "Append an update to Notion"
 msgid "Append the meeting update"
 msgstr "Append the meeting update"
 
-#: src/settings/calendar/index.tsx
-#: src/settings/connectors/index.tsx
-msgid "Apple Calendar"
-msgstr "Apple Calendar"
-
-#: src/calendar/components/apple/permission.tsx
-msgid "Apple Calendar access is off"
-msgstr "Apple Calendar access is off"
-
 #: src/main/windows-title-bar.tsx
 msgid "Application menu"
 msgstr "Application menu"
@@ -902,6 +910,10 @@ msgstr "Audio file retention"
 #: src/session-sharing/attachment-controls.tsx
 msgid "Audio is not available on this device."
 msgstr "Audio is not available on this device."
+
+#: src/session/components/outer-header/audio-saved.tsx
+msgid "Audio saved on this computer · kept {kept}"
+msgstr "Audio saved on this computer · kept {kept}"
 
 #: src/session/components/outer-header/audio-saved.tsx
 msgid "Audio saved on this Mac · kept {kept}"
@@ -1028,6 +1040,7 @@ msgid "Billing period"
 msgstr "Billing period"
 
 #: src/home/home-view.tsx
+#: src/main/windows-title-bar.tsx
 #: src/shared/keyboard-shortcuts-dialog.tsx
 #: src/shared/open-note-dialog.tsx
 msgid "Blank note"
@@ -1071,6 +1084,7 @@ msgid "By creating an account you agree to the"
 msgstr "By creating an account you agree to the"
 
 #: src/settings/calendar/index.tsx
+#: src/settings/connectors/index.tsx
 #: src/settings/general/permissions.tsx
 #: src/sidebar/settings-nav-groups.ts
 msgid "Calendar"
@@ -1081,8 +1095,16 @@ msgid "Calendar access"
 msgstr "Calendar access"
 
 #: src/calendar/components/apple/permission.tsx
+msgid "Calendar access is off"
+msgstr "Calendar access is off"
+
+#: src/calendar/components/apple/permission.tsx
 msgid "Calendar access is off."
 msgstr "Calendar access is off."
+
+#: src/settings/calendar/index.tsx
+msgid "Calendar accounts"
+msgstr "Calendar accounts"
 
 #: src/onboarding/index.tsx
 msgid "Calendar connected"
@@ -1115,6 +1137,10 @@ msgstr "Can view"
 #: src/session/components/floating/recording-bar.tsx
 msgid "Can't hear the other side. Check the system audio permission."
 msgstr "Can't hear the other side. Check the system audio permission."
+
+#: src/session/components/floating/recording-bar.tsx
+msgid "Can't hear the other side. Check your computer's sound output."
+msgstr "Can't hear the other side. Check your computer's sound output."
 
 #: src/calendar/components/apple/permission.tsx
 #: src/folders/folder-editor.tsx
@@ -1500,6 +1526,10 @@ msgstr "CLI & MCP"
 msgid "CLI, MCP, API, webhooks, Glaido, skills"
 msgstr "CLI, MCP, API, webhooks, Glaido, skills"
 
+#: src/sidebar/settings-nav-groups.ts
+msgid "CLI, MCP, API, webhooks, skills"
+msgstr "CLI, MCP, API, webhooks, skills"
+
 #: src/session/components/note-input/transcript/renderer/word-span.tsx
 msgid "Click any word to hear it"
 msgstr "Click any word to hear it"
@@ -1507,10 +1537,6 @@ msgstr "Click any word to hear it"
 #: src/settings/dictation.tsx
 msgid "Click here, then use your dictation shortcut."
 msgstr "Click here, then use your dictation shortcut."
-
-#: src/onboarding/final.tsx
-msgid "Click New note at the top right, or press ⌘N, to record your first meeting."
-msgstr "Click New note at the top right, or press ⌘N, to record your first meeting."
 
 #: src/settings/dictation-shortcut.tsx
 msgid "Click the shortcut to record a new key combination. Press Escape to cancel."
@@ -1767,6 +1793,10 @@ msgstr "Connect Slack to choose a channel for this recap."
 #: src/settings/developers/index.tsx
 msgid "Connect Upshot to Glaido, the CLI and webhooks."
 msgstr "Connect Upshot to Glaido, the CLI and webhooks."
+
+#: src/settings/developers/index.tsx
+msgid "Connect Upshot to the CLI and webhooks."
+msgstr "Connect Upshot to the CLI and webhooks."
 
 #: src/settings/connectors/index.tsx
 msgid "Connect Upshot to the tools you use."
@@ -2837,6 +2867,10 @@ msgid "ends {formattedTrialEnd}"
 msgstr "ends {formattedTrialEnd}"
 
 #: src/settings/profile/index.tsx
+msgid "Ends Pro and deletes your account. Notes stay on this computer."
+msgstr "Ends Pro and deletes your account. Notes stay on this computer."
+
+#: src/settings/profile/index.tsx
 msgid "Ends Pro and deletes your account. Notes stay on this Mac."
 msgstr "Ends Pro and deletes your account. Notes stay on this Mac."
 
@@ -2895,8 +2929,8 @@ msgid "Events hidden"
 msgstr "Events hidden"
 
 #: src/sidebar/settings-nav-groups.ts
-msgid "events, schedule, Apple Calendar, visible calendars, week start"
-msgstr "events, schedule, Apple Calendar, visible calendars, week start"
+msgid "events, schedule, Google, Outlook, iCloud, Apple Calendar, visible calendars, week start"
+msgstr "events, schedule, Google, Outlook, iCloud, Apple Calendar, visible calendars, week start"
 
 #: src/sidebar/settings-nav-groups.ts
 msgid "events, schedule, month"
@@ -3106,6 +3140,10 @@ msgstr "First words"
 msgid "Flags"
 msgstr "Flags"
 
+#: src/settings/general/notification.tsx
+msgid "Flash taskbar button"
+msgstr "Flash taskbar button"
+
 #: src/chat/components/toolbar-controls.tsx
 msgid "Float chat"
 msgstr "Float chat"
@@ -3221,8 +3259,8 @@ msgid "Full notes copied to clipboard. Paste them here."
 msgstr "Full notes copied to clipboard. Paste them here."
 
 #: src/main/windows-title-bar.tsx
-msgid "Full Screen"
-msgstr "Full Screen"
+msgid "Full screen"
+msgstr "Full screen"
 
 #: src/settings/general/index.tsx
 #: src/sidebar/settings-nav-groups.ts
@@ -3327,10 +3365,6 @@ msgstr "Google Docs"
 msgid "Google Drive export did not finish."
 msgstr "Google Drive export did not finish."
 
-#: src/onboarding/calendar.tsx
-msgid "Google or Outlook calendars added in System Settings › Internet Accounts show up here too."
-msgstr "Google or Outlook calendars added in System Settings › Internet Accounts show up here too."
-
 #: src/billing/trial-started-dialog.tsx
 #: src/settings/ai/stt/select.tsx
 msgid "Got it"
@@ -3359,6 +3393,10 @@ msgstr "guest@company.com"
 #: src/settings/dictation.tsx
 msgid "Hands-free dictation"
 msgstr "Hands-free dictation"
+
+#: src/settings/general/app-settings.tsx
+msgid "Have Upshot ready when you log in to your computer."
+msgstr "Have Upshot ready when you log in to your computer."
 
 #: src/settings/general/app-settings.tsx
 msgid "Have Upshot ready when you log in to your Mac."
@@ -3417,10 +3455,6 @@ msgstr "Hide preview"
 #: src/main/windows-title-bar.tsx
 msgid "Hide sidebar"
 msgstr "Hide sidebar"
-
-#: src/main/windows-title-bar.tsx
-msgid "Hide Sidebar"
-msgstr "Hide Sidebar"
 
 #: src/settings/sync/log.tsx
 msgid "Hide sync log"
@@ -3624,6 +3658,10 @@ msgstr "Installing…"
 #: src/sidebar/settings-nav-groups.ts
 msgid "integrations, Glaido, MCP, CLI, webhooks, export, import"
 msgstr "integrations, Glaido, MCP, CLI, webhooks, export, import"
+
+#: src/sidebar/settings-nav-groups.ts
+msgid "integrations, MCP, CLI, webhooks, export, import"
+msgstr "integrations, MCP, CLI, webhooks, export, import"
 
 #: src/settings/ai/llm/index.tsx
 #: src/sidebar/settings-nav-groups.ts
@@ -3861,6 +3899,10 @@ msgstr "Library connected, but sync could not restart. Try again in sync setting
 #: src/settings/appearance/theme.tsx
 msgid "Light"
 msgstr "Light"
+
+#: src/settings/appearance/theme.tsx
+msgid "Light, dark, or the same as your computer."
+msgstr "Light, dark, or the same as your computer."
 
 #: src/settings/appearance/theme.tsx
 msgid "Light, dark, or the same as your Mac."
@@ -4429,22 +4471,19 @@ msgstr "New folder"
 msgid "New meetings are imported automatically while Upshot is running."
 msgstr "New meetings are imported automatically while Upshot is running."
 
+#: src/main/windows-title-bar.tsx
 #: src/shared/new-note-button.tsx
 #: src/shared/open-note-dialog.tsx
 msgid "New note"
 msgstr "New note"
-
-#: src/main/windows-title-bar.tsx
-msgid "New Note"
-msgstr "New Note"
 
 #: src/shared/keyboard-shortcuts-dialog.tsx
 msgid "New note and start recording"
 msgstr "New note and start recording"
 
 #: src/shared/new-note-button.tsx
-msgid "New note and start recording (⌘N)"
-msgstr "New note and start recording (⌘N)"
+msgid "New note and start recording ({newNoteShortcut})"
+msgstr "New note and start recording ({newNoteShortcut})"
 
 #. placeholder {0}: workspaceConfirmation?.name
 #: src/folders/folder-editor.tsx
@@ -4612,6 +4651,10 @@ msgstr "No matching languages found"
 #: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
 msgid "No matching people"
 msgstr "No matching people"
+
+#: src/imports/screen.tsx
+msgid "No meeting apps found on this computer. You can still import a file exported from one of these apps."
+msgstr "No meeting apps found on this computer. You can still import a file exported from one of these apps."
 
 #: src/imports/screen.tsx
 msgid "No meeting apps found on this Mac. You can still import a file exported from one of these apps."
@@ -4883,6 +4926,10 @@ msgid "On {date}"
 msgstr "On {date}"
 
 #: src/settings/connectors/index.tsx
+msgid "On this computer"
+msgstr "On this computer"
+
+#: src/settings/connectors/index.tsx
 msgid "On this Mac"
 msgstr "On this Mac"
 
@@ -4898,14 +4945,14 @@ msgstr "On-device models can take a few minutes to warm up before text appears."
 msgid "on-device transcription"
 msgstr "on-device transcription"
 
-#: src/settings/general/billing.tsx
-msgid "On-device transcription, recordings, and Upshot AI on Auto."
-msgstr "On-device transcription, recordings, and Upshot AI on Auto."
-
 #: src/folders/folder-editor.tsx
 #: src/settings/general/default-share-access.tsx
 msgid "Only me"
 msgstr "Only me"
+
+#: src/settings/general/account-profile.tsx
+msgid "Only on this computer."
+msgstr "Only on this computer."
 
 #: src/settings/general/account-profile.tsx
 msgid "Only on this Mac."
@@ -5003,6 +5050,10 @@ msgstr "Open System Settings for {title}"
 #: src/settings/general/billing.tsx
 msgid "Open Teams"
 msgstr "Open Teams"
+
+#: src/settings/general/storage/export-location.tsx
+msgid "Open the {shownPath} folder"
+msgstr "Open the {shownPath} folder"
 
 #: src/settings/general/meeting-settings.tsx
 msgid "Open the meeting link when a scheduled meeting begins."
@@ -5295,6 +5346,10 @@ msgstr "Post to a channel"
 msgid "preferences, language, region, time zone, timezone, spoken languages, login, startup, Dock, menu bar, storage, export location"
 msgstr "preferences, language, region, time zone, timezone, spoken languages, login, startup, Dock, menu bar, storage, export location"
 
+#: src/sidebar/settings-nav-groups.ts
+msgid "preferences, language, region, time zone, timezone, spoken languages, login, startup, tray icon, storage, export location"
+msgstr "preferences, language, region, time zone, timezone, spoken languages, login, startup, tray icon, storage, export location"
+
 #: src/chat/components/recipes.tsx
 msgid "Prep me for my next meeting"
 msgstr "Prep me for my next meeting"
@@ -5378,6 +5433,10 @@ msgstr "Privacy policy"
 #: src/sidebar/settings.tsx
 msgid "Pro"
 msgstr "Pro"
+
+#: src/settings/profile/index.tsx
+msgid "Pro ends right away with no refund, and your account and plan are deleted. Your notes stay on this computer. This can't be undone."
+msgstr "Pro ends right away with no refund, and your account and plan are deleted. Your notes stay on this computer. This can't be undone."
 
 #: src/settings/profile/index.tsx
 msgid "Pro ends right away with no refund, and your account and plan are deleted. Your notes stay on this Mac. This can't be undone."
@@ -5558,8 +5617,8 @@ msgid "Record"
 msgstr "Record"
 
 #: src/settings/plan.tsx
-msgid "Record and transcribe on your Mac"
-msgstr "Record and transcribe on your Mac"
+msgid "Record and transcribe your meetings"
+msgstr "Record and transcribe your meetings"
 
 #: src/onboarding/index.tsx
 msgid "Record any call without a bot, and get clear notes from the newest AI models."
@@ -5842,8 +5901,8 @@ msgid "Replace with..."
 msgstr "Replace with..."
 
 #: src/main/windows-title-bar.tsx
-msgid "Report a Bug"
-msgstr "Report a Bug"
+msgid "Report a bug"
+msgstr "Report a bug"
 
 #. placeholder {0}: title.toLowerCase()
 #: src/calendar/components/apple/permission.tsx
@@ -6298,8 +6357,8 @@ msgid "Select a provider"
 msgstr "Select a provider"
 
 #: src/main/windows-title-bar.tsx
-msgid "Select All"
-msgstr "Select All"
+msgid "Select all"
+msgstr "Select all"
 
 #: src/contacts/organization-details.tsx
 msgid "Select an organization to view details"
@@ -6529,10 +6588,6 @@ msgstr "Show all recurring events"
 msgid "Show app in Dock"
 msgstr "Show app in Dock"
 
-#: src/settings/general/permissions.tsx
-msgid "Show Apple Calendar events in Upshot."
-msgstr "Show Apple Calendar events in Upshot."
-
 #: src/sidebar/timeline/index.tsx
 msgid "Show deleted events"
 msgstr "Show deleted events"
@@ -6583,8 +6638,12 @@ msgid "Show my notes"
 msgstr "Show my notes"
 
 #: src/settings/general/notification.tsx
-msgid "Show notification panels, Dock alerts, and completion sounds."
-msgstr "Show notification panels, Dock alerts, and completion sounds."
+msgid "Show notification panels and Dock alerts."
+msgstr "Show notification panels and Dock alerts."
+
+#: src/settings/general/notification.tsx
+msgid "Show notification panels."
+msgstr "Show notification panels."
 
 #: src/shared/keyboard-shortcuts-dialog.tsx
 msgid "Show or hide the sidebar"
@@ -6601,10 +6660,6 @@ msgstr "Show previews"
 #: src/main/windows-title-bar.tsx
 msgid "Show sidebar"
 msgstr "Show sidebar"
-
-#: src/main/windows-title-bar.tsx
-msgid "Show Sidebar"
-msgstr "Show Sidebar"
 
 #: src/session/components/note-input/meta-chips.tsx
 msgid "Show summary"
@@ -6641,6 +6696,10 @@ msgstr "Show when a transcript is ready."
 #: src/settings/dictation.tsx
 msgid "Show words in the floating panel as you speak. Uses a live connection to your selected transcription provider when supported. Text is inserted when you finish."
 msgstr "Show words in the floating panel as you speak. Uses a live connection to your selected transcription provider when supported. Text is inserted when you finish."
+
+#: src/settings/general/permissions.tsx
+msgid "Show your Google, Outlook and iCloud events in Upshot."
+msgstr "Show your Google, Outlook and iCloud events in Upshot."
 
 #. placeholder {0}: options.length
 #: src/settings/ai/shared/model-combobox.tsx
@@ -7038,8 +7097,8 @@ msgid "Submit callback URL"
 msgstr "Submit callback URL"
 
 #: src/main/windows-title-bar.tsx
-msgid "Suggest a Feature"
-msgstr "Suggest a Feature"
+msgid "Suggest a feature"
+msgstr "Suggest a feature"
 
 #: src/session-sharing/invite-recipients.tsx
 msgid "Suggested attendees"
@@ -7332,6 +7391,10 @@ msgstr "Theme"
 msgid "theme, dark, light, mode, Match my Mac, 24-hour, time format, clock"
 msgstr "theme, dark, light, mode, Match my Mac, 24-hour, time format, clock"
 
+#: src/sidebar/settings-nav-groups.ts
+msgid "theme, dark, light, mode, Use system setting, 24-hour, time format, clock"
+msgstr "theme, dark, light, mode, Use system setting, 24-hour, time format, clock"
+
 #: src/settings/automations/workflow-builder.tsx
 msgid "Then"
 msgstr "Then"
@@ -7415,8 +7478,8 @@ msgid "This note was edited on another device at the same time. The later edit w
 msgstr "This note was edited on another device at the same time. The later edit was kept."
 
 #: src/settings/ai/stt/health.tsx
-msgid "This provider isn’t available in Upshot. Pick Soniqo or Apple Speech above."
-msgstr "This provider isn’t available in Upshot. Pick Soniqo or Apple Speech above."
+msgid "This provider isn’t available in Upshot. Pick Upshot transcription above."
+msgstr "This provider isn’t available in Upshot. Pick Upshot transcription above."
 
 #: src/session/components/note-input/transcript/regenerate-confirm.tsx
 msgid "This replaces the current transcript, including your edits and speaker names."
@@ -7592,6 +7655,10 @@ msgstr "Transcription stopped. Pick another engine to keep going."
 msgid "Transcription unavailable"
 msgstr "Transcription unavailable"
 
+#: src/settings/general/billing.tsx
+msgid "Transcription, recordings, and Upshot AI on Auto."
+msgstr "Transcription, recordings, and Upshot AI on Auto."
+
 #: src/settings/team/index.tsx
 msgid "Transfer primary ownership before changing your role."
 msgstr "Transfer primary ownership before changing your role."
@@ -7683,13 +7750,13 @@ msgstr "Turn on Start when meeting begins first."
 msgid "Turn on Upshot in Screen & System Audio Recording"
 msgstr "Turn on Upshot in Screen & System Audio Recording"
 
+#: src/calendar/components/apple/permission.tsx
+msgid "Turn on Upshot in System Settings › Privacy & Security › Calendars, then return here."
+msgstr "Turn on Upshot in System Settings › Privacy & Security › Calendars, then return here."
+
 #: src/settings/calendar/index.tsx
 msgid "Turn on Upshot in System Settings › Privacy & Security › Calendars."
 msgstr "Turn on Upshot in System Settings › Privacy & Security › Calendars."
-
-#: src/calendar/components/apple/permission.tsx
-msgid "Turn on Upshot in System Settings → Privacy & Security → Calendars, then return here."
-msgstr "Turn on Upshot in System Settings → Privacy & Security → Calendars, then return here."
 
 #: src/chat/components/recipes.tsx
 msgid "Turn that into an email"
@@ -8053,20 +8120,20 @@ msgstr "Upshot needs access to your microphone and system audio to record and tr
 
 #: src/calendar/components/apple/permission.tsx
 #: src/settings/calendar/index.tsx
-msgid "Upshot needs calendar access to show your upcoming meetings and name your notes."
-msgstr "Upshot needs calendar access to show your upcoming meetings and name your notes."
+msgid "Upshot needs calendar access to show meetings from your Google, Outlook and iCloud calendars and name your notes."
+msgstr "Upshot needs calendar access to show meetings from your Google, Outlook and iCloud calendars and name your notes."
 
 #: src/onboarding/index.tsx
 msgid "Upshot needs your microphone and your Mac's sound to transcribe meetings. Accessibility is optional: it lets Upshot see which meeting app you're in and when the call ends."
 msgstr "Upshot needs your microphone and your Mac's sound to transcribe meetings. Accessibility is optional: it lets Upshot see which meeting app you're in and when the call ends."
 
 #: src/onboarding/index.tsx
-msgid "Upshot reads Apple Calendar on this Mac to remind you before meetings and add titles and attendees to your notes."
-msgstr "Upshot reads Apple Calendar on this Mac to remind you before meetings and add titles and attendees to your notes."
+msgid "Upshot reads the Google, Outlook and iCloud calendars on this Mac to remind you before meetings and add titles and attendees to your notes."
+msgstr "Upshot reads the Google, Outlook and iCloud calendars on this Mac to remind you before meetings and add titles and attendees to your notes."
 
 #: src/settings/calendar/index.tsx
-msgid "Upshot reads events from Apple Calendar."
-msgstr "Upshot reads events from Apple Calendar."
+msgid "Upshot reads your Google, Outlook, iCloud and other calendars on this Mac."
+msgstr "Upshot reads your Google, Outlook, iCloud and other calendars on this Mac."
 
 #: src/settings/privacy/index.tsx
 msgid "Upshot sends no usage data or crash reports."
@@ -8092,8 +8159,8 @@ msgid "Upshot stops using {0} until you add a key again."
 msgstr "Upshot stops using {0} until you add a key again."
 
 #: src/onboarding/index.tsx
-msgid "Upshot transcribes on your Mac. No account and no API key."
-msgstr "Upshot transcribes on your Mac. No account and no API key."
+msgid "Upshot transcribes your meetings. No account and no API key."
+msgstr "Upshot transcribes your meetings. No account and no API key."
 
 #: src/onboarding/transcription.tsx
 msgid "Upshot transcription"
@@ -8151,6 +8218,10 @@ msgstr "Use recovery key instead"
 #: src/onboarding/permissions.tsx
 msgid "Use system audio to capture other speakers"
 msgstr "Use system audio to capture other speakers"
+
+#: src/settings/appearance/theme.tsx
+msgid "Use system setting"
+msgstr "Use system setting"
 
 #: src/automations/starters.tsx
 msgid "Use the AI meeting summary"
@@ -8341,6 +8412,10 @@ msgstr "Work on this task"
 msgid "Workflow"
 msgstr "Workflow"
 
+#: src/onboarding/calendar.tsx
+msgid "Works with Google, Outlook and iCloud calendars. Add an account in System Settings › Internet Accounts."
+msgstr "Works with Google, Outlook and iCloud calendars. Add an account in System Settings › Internet Accounts."
+
 #: src/sidebar/settings-nav-groups.ts
 msgid "Workspace"
 msgstr "Workspace"
@@ -8493,6 +8568,10 @@ msgstr "Your comment couldn’t be added. Try again."
 #: src/settings/general/account-profile.tsx
 msgid "Your company"
 msgstr "Your company"
+
+#: src/settings/profile/index.tsx
+msgid "Your contact card in Upshot. It stays on this computer."
+msgstr "Your contact card in Upshot. It stays on this computer."
 
 #: src/settings/profile/index.tsx
 msgid "Your contact card in Upshot. It stays on this Mac."

@@ -7,7 +7,14 @@ const mocks = vi.hoisted(() => ({
   downloadModel: vi.fn(),
   cancelDownload: vi.fn(),
   listen: vi.fn(),
+  setSettingValues: vi.fn(),
   os: { platform: "macos", arch: "aarch64" },
+  // An on-device engine already picked (re-onboarding), so the download
+  // path runs; a new profile has none and gets Upshot transcription.
+  config: {
+    current_stt_provider: "apple_speech",
+    current_stt_model: "apple-speech",
+  } as Record<string, string | undefined>,
 }));
 
 vi.mock("@tauri-apps/plugin-os", () => ({
@@ -24,8 +31,12 @@ vi.mock("@anlg/plugin-local-stt", () => ({
   },
   events: { downloadProgressPayload: { listen: mocks.listen } },
 }));
-vi.mock("~/settings/queries", () => ({ setSettingValues: vi.fn() }));
-vi.mock("~/shared/config", () => ({ useConfigValue: () => "apple_speech" }));
+vi.mock("~/settings/queries", () => ({
+  setSettingValues: mocks.setSettingValues,
+}));
+vi.mock("~/shared/config", () => ({
+  useConfigValue: (key: string) => mocks.config[key],
+}));
 
 import {
   formatDownloadSize,
@@ -40,6 +51,10 @@ beforeEach(() => {
   downloaded = false;
   mocks.os.platform = "macos";
   mocks.os.arch = "aarch64";
+  mocks.config = {
+    current_stt_provider: "apple_speech",
+    current_stt_model: "apple-speech",
+  };
   mocks.listSupportedModels.mockResolvedValue({
     status: "ok",
     data: [{ key: "apple-speech" }],
@@ -127,15 +142,41 @@ it("shows the reason in a small line for other failures", async () => {
   expect(reason.className).toContain("text-muted-foreground");
 });
 
-it("explains when this Mac has no on-device engine", async () => {
+it("switches to Upshot transcription when the picked engine can't run here", async () => {
   mocks.listSupportedModels.mockResolvedValue({ status: "ok", data: [] });
   render(<TranscriptionSetupSection onContinue={() => {}} />);
   await settle();
 
-  expect(
-    screen.getByText("No on-device engine is available on this Mac."),
-  ).toBeTruthy();
+  expect(screen.getByText("Upshot transcription is ready")).toBeTruthy();
+  expect(mocks.setSettingValues).toHaveBeenCalledWith({
+    current_stt_provider: "anarlog",
+    current_stt_model: "cloud",
+  });
 });
+
+it.each([
+  ["macos", "aarch64"],
+  ["macos", "x86_64"],
+  ["windows", "x86_64"],
+  ["linux", "x86_64"],
+])(
+  "starts a new profile on Upshot transcription on %s/%s",
+  async (platform, arch) => {
+    mocks.os.platform = platform;
+    mocks.os.arch = arch;
+    mocks.config = {};
+    render(<TranscriptionSetupSection onContinue={() => {}} />);
+    await settle();
+
+    expect(screen.getByText("Upshot transcription is ready")).toBeTruthy();
+    expect(mocks.setSettingValues).toHaveBeenCalledWith({
+      current_stt_provider: "anarlog",
+      current_stt_model: "cloud",
+    });
+    expect(mocks.listSupportedModels).not.toHaveBeenCalled();
+    expect(mocks.downloadModel).not.toHaveBeenCalled();
+  },
+);
 
 it.each([
   ["windows", "x86_64"],

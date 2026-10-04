@@ -18,12 +18,14 @@ const _PROVIDERS = [
   {
     disabled: false,
     id: "apple",
-    displayName: "Apple Calendar",
+    // Fork: every calendar account on this Mac (Google, Outlook, iCloud),
+    // not only Apple's own (support.apple.com/guide/calendar/icl4308d6701/mac).
+    displayName: "Mac calendars",
     badge: "",
     icon: (
       <img
         src="/assets/apple-calendar.png"
-        alt="Apple Calendar"
+        alt=""
         className="size-5 rounded-[4px] object-cover"
       />
     ),

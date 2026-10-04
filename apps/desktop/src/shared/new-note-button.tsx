@@ -3,6 +3,7 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { Plus } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
+import { shortcutLabel } from "~/shared/shortcut-label";
 import { useNewNoteAndListen } from "~/shared/useNewNote";
 import { useListener } from "~/stt/contexts";
 
@@ -19,6 +20,9 @@ export function NewNoteButton({
   const newNoteAndListen = useNewNoteAndListen();
   // While recording, Stop is the main action, so this button steps back.
   const recording = useListener((state) => state.live?.status === "active");
+  // Fork: ⌘N on a Mac, Ctrl+N elsewhere (Microsoft Writing Style Guide,
+  // Keys and keyboard shortcuts).
+  const newNoteShortcut = shortcutLabel(["mod", "N"]);
 
   return (
     <button
@@ -31,7 +35,7 @@ export function NewNoteButton({
       title={
         recording
           ? t`Go to the note being recorded`
-          : t`New note and start recording (⌘N)`
+          : t`New note and start recording (${newNoteShortcut})`
       }
       className={cn([
         recording

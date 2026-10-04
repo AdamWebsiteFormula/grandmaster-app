@@ -119,6 +119,43 @@ describe("NotificationSettingsView", () => {
     );
   });
 
+  // Fork: no sounds anywhere, the Dock only on a Mac, and event reminders
+  // only with the Mac's Calendar (NN/g #2, #5).
+  it("says what notifications do on a Mac, with event reminders", () => {
+    render(<NotificationSettingsView />);
+
+    expect(
+      screen.getByText("Show notification panels and Dock alerts."),
+    ).toBeTruthy();
+    expect(screen.queryByText(/sounds/)).toBeNull();
+    expect(
+      screen.getByRole("switch", { name: "Event notifications" }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("switch", { name: "Bounce app icon" }),
+    ).toBeTruthy();
+  });
+
+  it.each(["windows", "linux"])(
+    "drops the Dock, sounds and event reminders on %s",
+    (os) => {
+      mocks.currentPlatform = os;
+      render(<NotificationSettingsView />);
+
+      expect(screen.getByText("Show notification panels.")).toBeTruthy();
+      expect(screen.queryByText(/Dock|sounds/)).toBeNull();
+      expect(
+        screen.queryByRole("switch", { name: "Event notifications" }),
+      ).toBeNull();
+      expect(
+        screen.queryByRole("switch", { name: "Bounce app icon" }),
+      ).toBeNull();
+      expect(
+        screen.getByRole("switch", { name: "Flash taskbar button" }),
+      ).toBeTruthy();
+    },
+  );
+
   it("disables every notification control with the master switch", () => {
     render(<NotificationSettingsView />);
 

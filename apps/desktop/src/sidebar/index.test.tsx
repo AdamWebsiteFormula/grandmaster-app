@@ -90,6 +90,20 @@ describe("LeftSidebar", () => {
     });
   });
 
+  // Fork: ⌘, is the Mac menu's key; nothing handles Ctrl+, (NN/g #5).
+  it.each(["windows", "linux"])("names no Settings shortcut on %s", (os) => {
+    mocks.platform = os;
+    render(<LeftSidebar />);
+
+    const settings = screen.getByRole("button", { name: "Settings" });
+    expect(settings.hasAttribute("aria-keyshortcuts")).toBe(false);
+    fireEvent.click(settings);
+    expect(mocks.openNew).toHaveBeenCalledWith({
+      type: "settings",
+      state: { tab: "app" },
+    });
+  });
+
   // Fork (Granola 101): the sidebar is navigation; notes live on Home.
   it.each([
     ["all notes", {}],

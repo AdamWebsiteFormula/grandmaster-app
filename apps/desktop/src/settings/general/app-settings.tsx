@@ -46,7 +46,15 @@ export function AppSettingsView({
             icon={Rocket}
             title={<Trans>Start Upshot at login</Trans>}
             description={
-              <Trans>Have Upshot ready when you log in to your Mac.</Trans>
+              // Fork: "your computer" off a Mac (NN/g heuristic #2, the
+              // user's words).
+              isMacos ? (
+                <Trans>Have Upshot ready when you log in to your Mac.</Trans>
+              ) : (
+                <Trans>
+                  Have Upshot ready when you log in to your computer.
+                </Trans>
+              )
             }
             checked={autostart.value}
             onChange={autostart.onChange}

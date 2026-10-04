@@ -39,6 +39,7 @@ import { useSessionSummaries } from "~/session/queries";
 import { useDurableSharedNotes } from "~/shared-notes/cache";
 import { useEmptyNoteIds } from "~/shared/empty-note-ids";
 import { useMainContentCenterOffset } from "~/shared/main/content-offset";
+import { shortcutLabel } from "~/shared/shortcut-label";
 import { useNewNote, useNewNoteAndListen } from "~/shared/useNewNote";
 import { useSettingsNavGroups } from "~/sidebar/settings-nav-groups";
 import { type TabInput, useTabs } from "~/store/zustand/tabs";
@@ -202,11 +203,13 @@ export function OpenNoteDialog({
       },
       // Fork: the row does what its ⌘N hint does (record a new note), and
       // ⇧⌘N gets its own row, so the menu and the shortcut agree
-      // (NN/g heuristic #4, consistency and standards).
+      // (NN/g heuristic #4, consistency and standards). Off a Mac the hints
+      // read Ctrl+N and Ctrl+Shift+N (Microsoft Writing Style Guide, Keys
+      // and keyboard shortcuts).
       {
         id: "new-note",
         label: t`New note`,
-        hint: "⌘N",
+        hint: shortcutLabel(["mod", "N"]),
         groupLabel: t`Go to`,
         icon: NotePencil,
         requiresPro: false,
@@ -216,7 +219,7 @@ export function OpenNoteDialog({
       {
         id: "blank-note",
         label: t`Blank note`,
-        hint: "⇧⌘N",
+        hint: shortcutLabel(["shift", "mod", "N"]),
         groupLabel: t`Go to`,
         icon: FileText,
         requiresPro: false,

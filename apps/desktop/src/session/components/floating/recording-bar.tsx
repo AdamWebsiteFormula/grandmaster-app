@@ -12,6 +12,7 @@ import {
 } from "./capture-health";
 
 import { usePermission } from "~/shared/hooks/usePermissions";
+import { isMac } from "~/shared/shortcut-label";
 import { useListener } from "~/stt/contexts";
 import {
   isMainWebviewWindow,
@@ -196,28 +197,41 @@ export function CaptureHealthBanner({
     return <QuietHint />;
   }
 
+  // Fork: only a Mac has a system audio permission and a System Settings
+  // pane to open; elsewhere the button would do nothing, so it is hidden
+  // and the line points at the sound output (NN/g heuristic #5).
+  const mac = isMac();
+
   return (
     <div
       role="alert"
-      className="border-destructive/50 bg-popover text-popover-foreground pointer-events-auto absolute bottom-16 left-4 z-20 flex max-w-[calc(100%-2rem)] items-center gap-3 rounded-lg border py-2 pr-2 pl-3"
+      className={`border-destructive/50 bg-popover text-popover-foreground pointer-events-auto absolute bottom-16 left-4 z-20 flex max-w-[calc(100%-2rem)] items-center gap-3 rounded-lg border py-2 pl-3 ${mac ? "pr-2" : "pr-3"}`}
     >
       <Warning className="text-destructive size-4 shrink-0" />
       <span className="text-sm">
-        <Trans>
-          Can't hear the other side. Check the system audio permission.
-        </Trans>
+        {mac ? (
+          <Trans>
+            Can't hear the other side. Check the system audio permission.
+          </Trans>
+        ) : (
+          <Trans>
+            Can't hear the other side. Check your computer's sound output.
+          </Trans>
+        )}
       </span>
-      <button
-        type="button"
-        onClick={() => {
-          onOpenSettings().catch((error: unknown) => {
-            console.error("[capture-health] open settings failed", error);
-          });
-        }}
-        className="bg-secondary text-secondary-foreground hover:bg-accent focus-visible:ring-ring inline-flex h-8 shrink-0 cursor-pointer items-center rounded-md px-3 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none"
-      >
-        <Trans>Open System Settings</Trans>
-      </button>
+      {mac ? (
+        <button
+          type="button"
+          onClick={() => {
+            onOpenSettings().catch((error: unknown) => {
+              console.error("[capture-health] open settings failed", error);
+            });
+          }}
+          className="bg-secondary text-secondary-foreground hover:bg-accent focus-visible:ring-ring inline-flex h-8 shrink-0 cursor-pointer items-center rounded-md px-3 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none"
+        >
+          <Trans>Open System Settings</Trans>
+        </button>
+      ) : null}
     </div>
   );
 }

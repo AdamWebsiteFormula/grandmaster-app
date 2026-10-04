@@ -2,11 +2,13 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  platform: "macos",
   status: "notDetermined",
   updateSettingsTabState: vi.fn(),
   scrollToSettingsElement: vi.fn(),
 }));
 
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
 vi.mock("~/shared/hooks/usePermissions", () => ({
   usePermission: () => ({ status: mocks.status }),
 }));
@@ -31,20 +33,43 @@ describe("Settings › Connectors", () => {
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
+    mocks.platform = "macos";
+    mocks.status = "notDetermined";
   });
 
-  it("says Off for Apple Calendar without access, Connected with it", () => {
+  // Fork: "Calendar", not "Apple Calendar": it reads every account in the
+  // Mac's Calendar (Google, Outlook, iCloud).
+  it("says Off for Calendar without access, Connected with it", () => {
     render(<SettingsConnectors />);
+    expect(screen.getByText("On this Mac")).toBeTruthy();
+    expect(screen.queryByText("Apple Calendar")).toBeNull();
     expect(
-      screen.getByRole("button", { name: /Apple Calendar/ }).textContent,
+      screen.getByRole("button", { name: /^Calendar/ }).textContent,
     ).toContain("Off");
     cleanup();
     mocks.status = "authorized";
     render(<SettingsConnectors />);
     expect(
-      screen.getByRole("button", { name: /Apple Calendar/ }).textContent,
+      screen.getByRole("button", { name: /^Calendar/ }).textContent,
     ).toContain("Connected");
   });
+
+  // Fork: the calendar and Glaido are Mac only (NN/g heuristic #5); MCP,
+  // the CLI and webhooks work everywhere.
+  it.each(["windows", "linux"])(
+    "leaves out Calendar and Glaido on %s",
+    (os) => {
+      mocks.platform = os;
+      render(<SettingsConnectors />);
+
+      expect(screen.queryByText("On this Mac")).toBeNull();
+      expect(screen.getByText("On this computer")).toBeTruthy();
+      expect(screen.queryByRole("button", { name: /^Calendar/ })).toBeNull();
+      expect(screen.queryByRole("button", { name: /Glaido/ })).toBeNull();
+      expect(screen.getByRole("button", { name: /MCP and CLI/ })).toBeTruthy();
+      expect(screen.getByRole("button", { name: /Webhooks/ })).toBeTruthy();
+    },
+  );
 
   // Fork: a row opens its page at the matching section (NN/g #4).
   it.each([

@@ -12,11 +12,15 @@ import { OnboardingButton, StepRow } from "./shared";
 
 import { setSettingValues } from "~/settings/queries";
 import { useConfigValue } from "~/shared/config";
-import { isUpshotCloudSttAvailable } from "~/stt/capabilities";
+import {
+  isOnDeviceSttModel,
+  isUpshotCloudSttAvailable,
+} from "~/stt/capabilities";
 
-// Fork (Granola standard: transcription works with zero setup). Pick the best
-// on-device engine for this Mac, select it, and download it here with
-// progress. Never block: the download keeps going if the user continues.
+// Fork (Granola standard: transcription works with zero setup). Upshot
+// transcription is ready at once; an on-device engine picked before is
+// downloaded here with progress. Never block: the download keeps going if
+// the user continues.
 type Choice = { provider: string; model: LocalModel; name: string };
 
 const APPLE_SPEECH: Choice = {
@@ -74,12 +78,13 @@ export function TranscriptionSetupSection({
 }) {
   const { t } = useLingui();
   const currentProvider = useConfigValue("current_stt_provider");
+  const currentModel = useConfigValue("current_stt_model");
   const [choice, setChoice] = useState<Choice | null>(null);
   const [sizeLabel, setSizeLabel] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>({ kind: "checking" });
   const [stalled, setStalled] = useState(false);
-  // Fork: Windows, Linux and Intel Macs have no on-device engine, so they
-  // use Upshot transcription (no download, account or key).
+  // Fork: Upshot transcription is the default on every computer (no
+  // download, account or key), as in Granola (granola.ai/security).
   const [usesCloud, setUsesCloud] = useState(false);
   const startedRef = useRef(false);
   const lastProgressRef = useRef(Date.now());
@@ -90,19 +95,37 @@ export function TranscriptionSetupSection({
     startedRef.current = true;
 
     void (async () => {
+      // Fork: Upshot transcription first on every computer (owner decision
+      // Oct 3). An on-device engine picked before (re-onboarding) keeps its
+      // download path below.
+      if (
+        !isOnDeviceSttModel(currentProvider, currentModel) &&
+        isUpshotCloudSttAvailable(platform(), arch())
+      ) {
+        if (!currentProvider) {
+          await setSettingValues({
+            current_stt_provider: "anarlog",
+            current_stt_model: "cloud",
+          });
+        }
+        setUsesCloud(true);
+        setPhase({ kind: "ready" });
+        return;
+      }
+
       const supported = await localSttCommands.listSupportedModels();
       const picked =
         supported.status === "ok"
           ? pickTranscriptionModel(supported.data.map((m) => m.key))
           : null;
       if (!picked) {
+        // Fork: the saved on-device engine can't run here, so switch to
+        // Upshot transcription instead of a dead end (NN/g #9).
         if (isUpshotCloudSttAvailable(platform(), arch())) {
-          if (!currentProvider) {
-            await setSettingValues({
-              current_stt_provider: "anarlog",
-              current_stt_model: "cloud",
-            });
-          }
+          await setSettingValues({
+            current_stt_provider: "anarlog",
+            current_stt_model: "cloud",
+          });
           setUsesCloud(true);
           setPhase({ kind: "ready" });
           return;
@@ -135,7 +158,7 @@ export function TranscriptionSetupSection({
       }
       await startDownload(picked.model);
     })();
-    // Runs once on mount; currentProvider is read at that moment on purpose.
+    // Runs once on mount; the saved engine is read at that moment on purpose.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

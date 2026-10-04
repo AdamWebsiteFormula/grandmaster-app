@@ -36,35 +36,42 @@ export function MeetingSettingsView({
   const supportsMeetingAx =
     currentPlatform === "macos" || currentPlatform === "linux";
   const supportsMicDetection = currentPlatform !== "windows";
+  // Fork: scheduled meetings come from the Mac's Calendar only, so these
+  // rows show on a Mac only (NN/g heuristic #5, error prevention).
+  const supportsCalendar = currentPlatform === "macos";
 
   return (
     <SettingsGroup title={<Trans>Recording</Trans>}>
-      <SettingSwitchRow
-        icon={Play}
-        title={<Trans>Start when meeting begins</Trans>}
-        description={
-          <Trans>Start recording when a scheduled meeting begins.</Trans>
-        }
-        checked={autoStartScheduledMeetings.value}
-        onChange={autoStartScheduledMeetings.onChange}
-      />
-      <SettingSwitchRow
-        icon={VideoCamera}
-        title={<Trans>Join scheduled meetings</Trans>}
-        description={
-          // Fork: a disabled row says why (ux-audit-oct3 E, NN/g #1).
-          autoStartScheduledMeetings.value ? (
-            <Trans>
-              Open the meeting link when a scheduled meeting begins.
-            </Trans>
-          ) : (
-            <Trans>Turn on Start when meeting begins first.</Trans>
-          )
-        }
-        checked={autoJoinScheduledMeetings.value}
-        onChange={autoJoinScheduledMeetings.onChange}
-        disabled={!autoStartScheduledMeetings.value}
-      />
+      {supportsCalendar && (
+        <>
+          <SettingSwitchRow
+            icon={Play}
+            title={<Trans>Start when meeting begins</Trans>}
+            description={
+              <Trans>Start recording when a scheduled meeting begins.</Trans>
+            }
+            checked={autoStartScheduledMeetings.value}
+            onChange={autoStartScheduledMeetings.onChange}
+          />
+          <SettingSwitchRow
+            icon={VideoCamera}
+            title={<Trans>Join scheduled meetings</Trans>}
+            description={
+              // Fork: a disabled row says why (ux-audit-oct3 E, NN/g #1).
+              autoStartScheduledMeetings.value ? (
+                <Trans>
+                  Open the meeting link when a scheduled meeting begins.
+                </Trans>
+              ) : (
+                <Trans>Turn on Start when meeting begins first.</Trans>
+              )
+            }
+            checked={autoJoinScheduledMeetings.value}
+            onChange={autoJoinScheduledMeetings.onChange}
+            disabled={!autoStartScheduledMeetings.value}
+          />
+        </>
+      )}
       {supportsMicDetection && (
         <SettingSwitchRow
           icon={Pause}

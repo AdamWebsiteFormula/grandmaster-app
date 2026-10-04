@@ -103,8 +103,8 @@ vi.mock("~/stt/capabilities", () => ({
     provider === "soniqo" && model === "soniqo-parakeet-streaming",
   isRealtimeLocalModel: (model: string) =>
     model === "soniqo-parakeet-streaming",
-  isUpshotCloudSttAvailable: (platform: string, arch: string) =>
-    !(platform === "macos" && arch === "aarch64"),
+  isUpshotCloudSttAvailable: (platform: string) =>
+    ["macos", "windows", "linux"].includes(platform),
 }));
 
 import { useSTTConnection } from "./useSTTConnection";
@@ -224,7 +224,7 @@ describe("useSTTConnection", () => {
     expect(result.current.isReady).toBe(true);
   });
 
-  it("never connects Upshot transcription on Apple Silicon", () => {
+  it("connects Upshot transcription on Apple Silicon too", () => {
     os.platform = "macos";
     os.arch = "aarch64";
     const queryClient = new QueryClient({
@@ -235,8 +235,13 @@ describe("useSTTConnection", () => {
 
     const { result } = renderHook(() => useSTTConnection(), { wrapper });
 
-    expect(result.current.conn).toBeNull();
-    expect(result.current.isReady).toBe(false);
+    expect(result.current.conn).toEqual({
+      provider: "anarlog",
+      model: "cloud",
+      baseUrl: "https://api.anarlog.so/stt",
+      apiKey: "",
+    });
+    expect(result.current.isReady).toBe(true);
   });
 
   it("waits for an on-device model server to become ready", async () => {

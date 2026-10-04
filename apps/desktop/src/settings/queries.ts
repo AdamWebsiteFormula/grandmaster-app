@@ -1,4 +1,5 @@
 import { disable, enable } from "@tauri-apps/plugin-autostart";
+import { arch, platform } from "@tauri-apps/plugin-os";
 import { useCallback } from "react";
 
 import { commands as analyticsCommands } from "@anlg/plugin-analytics";
@@ -29,7 +30,11 @@ import {
   type SettingValues,
 } from "~/settings/schema";
 import { isAppStoreBuild } from "~/shared/app-store";
-import { isConfiguredSttModel, isOnDeviceSttModel } from "~/stt/capabilities";
+import {
+  isConfiguredSttModel,
+  isOnDeviceSttModel,
+  isUpshotCloudSttAvailable,
+} from "~/stt/capabilities";
 import {
   getDefaultSttModel,
   normalizeStoredSttModel,
@@ -145,7 +150,16 @@ export async function initializeApplicationSettings(): Promise<void> {
     }
   }
 
-  if (!normalizedSttSelection.model) {
+  // Fork: a new profile starts on Upshot transcription on every computer
+  // (Granola transcribes in the cloud, granola.ai/security). Before, only the
+  // macOS onboarding step set it, so Windows and Linux had no engine.
+  if (
+    !normalizedSttSelection.provider &&
+    isUpshotCloudSttAvailable(platform(), arch())
+  ) {
+    updates.current_stt_provider = "anarlog";
+    updates.current_stt_model = "cloud";
+  } else if (!normalizedSttSelection.model) {
     const defaultModel = getDefaultSttModel(normalizedSttSelection.provider);
     if (defaultModel) {
       updates.current_stt_model = defaultModel;

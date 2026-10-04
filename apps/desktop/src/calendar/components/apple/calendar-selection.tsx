@@ -57,7 +57,7 @@ export function useAppleCalendarSelection() {
   const groups = useMemo((): CalendarGroup[] => {
     const grouped = new Map<string, CalendarItem[]>();
     for (const cal of calendars) {
-      const source = cal.source || "Apple Calendar";
+      const source = cal.source || "On this Mac";
       if (!grouped.has(source)) grouped.set(source, []);
       grouped.get(source)!.push({
         id: cal.id,

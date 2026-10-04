@@ -20,6 +20,7 @@ import { useFolderSelection } from "~/folders/selection";
 import { resolvedFolderIcon } from "~/session/folder-icon";
 import { useFolderIcons, useFolderPaths } from "~/session/queries";
 import { useOpenNoteDialog } from "~/shared/open-note-dialog";
+import { ariaKeyShortcut, kbdLabel } from "~/shared/shortcut-label";
 import { useTabs } from "~/store/zustand/tabs";
 import { TemplateIconGlyph } from "~/templates/template-icon";
 
@@ -79,11 +80,13 @@ export function SidebarHomeNav() {
       >
         <Trans>Home</Trans>
       </NavItem>
-      <ShortcutTooltip label={t`Search`} keys="⌘ K">
+      {/* Fork: ⌘ K on a Mac, Ctrl+K elsewhere (Apple HIG, Keyboards;
+          Microsoft Writing Style Guide, Keys and keyboard shortcuts). */}
+      <ShortcutTooltip label={t`Search`} keys={kbdLabel(["mod", "K"])}>
         <NavItem
           icon={<MagnifyingGlass size={16} />}
           onClick={() => openNoteDialog.open()}
-          keyShortcuts="Meta+K"
+          keyShortcuts={ariaKeyShortcut(["mod", "K"])}
         >
           <Trans>Search</Trans>
         </NavItem>

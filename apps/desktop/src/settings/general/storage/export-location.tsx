@@ -14,6 +14,7 @@ import {
   useStoredSettingValuesQuery,
 } from "~/settings/queries";
 import { SettingIconTile } from "~/settings/setting-row";
+import { isMac } from "~/shared/shortcut-label";
 
 export function ExportLocationRow() {
   const { t } = useLingui();
@@ -63,9 +64,7 @@ export function ExportLocationRow() {
             <Trans>Export location</Trans>
           </h3>
           <p className="text-muted-foreground mt-0.5 text-xs">
-            <Trans>
-              Save PDF, text and Markdown exports to this folder.
-            </Trans>
+            <Trans>Save PDF, text and Markdown exports to this folder.</Trans>
           </p>
           {directory && (
             <Button
@@ -92,7 +91,13 @@ export function ExportLocationRow() {
             type="button"
             className="text-muted-foreground hover:text-foreground max-w-40 truncate text-xs transition-colors"
             title={path}
-            aria-label={t`Open ${shownPath} in Finder`}
+            // Fork: Finder is the Mac's; elsewhere the label names the
+            // folder (NN/g heuristic #2, the user's words).
+            aria-label={
+              isMac()
+                ? t`Open ${shownPath} in Finder`
+                : t`Open the ${shownPath} folder`
+            }
             disabled={settings.isLoading || !!settings.error}
             onClick={() => void openerCommands.openPath(path, null)}
           >
