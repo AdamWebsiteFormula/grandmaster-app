@@ -1,15 +1,15 @@
 # How I built Upshot
 
-Upshot is a bot-free AI meeting notepad for Apple Silicon Macs. I built it in 3 days with Claude Code, starting from the open-source Anarlog app (MIT) instead of from zero. The goal: beat Granola for one person on a Mac.
+Upshot is a bot-free AI meeting notepad for Mac, Windows and Linux. I built it in 3 days with Claude Code, starting from the open-source Anarlog app (MIT) instead of from zero. The goal: beat Granola for one person on their own computer.
 
 ## The stack, in plain words
 
 | Layer | What | Why |
 |---|---|---|
-| App shell | Tauri 2 (Rust) | A real Mac app, small and fast, with a web UI inside |
+| App shell | Tauri 2 (Rust) | A real desktop app for Mac, Windows and Linux, small and fast, with a web UI inside |
 | Interface | React 19, Tailwind 4, Bricolage Grotesque titles and Geist text | Fast to restyle; one design system |
-| Data | Local SQLite on your Mac | No server to run, nothing to leak |
-| Transcription | Apple Speech (macOS 26+) or Parakeet, on device | Private, free, no key |
+| Data | Local SQLite on your computer | No server to run, nothing to leak |
+| Transcription | Upshot transcription: Deepgram Nova 3 through the same Worker, on every computer; Apple Speech (macOS 26+) or Parakeet on device as a choice on Apple Silicon | Free, no key, works the moment you install, like Granola's cloud transcription; on-device for people who want audio to stay on their Mac |
 | Summaries and chat | Upshot AI: a Cloudflare Worker in front of OpenRouter | Works out of the box on Auto (Claude Sonnet 5.5 at medium effort), no key and no account; Pro picks this week's models from Anthropic, OpenAI and Google, like Granola |
 | Pro accounts and billing | Supabase Auth (email and password) and Stripe Checkout in the sandbox, both behind the same Worker | Real Pro you can test with card 4242 4242 4242 4242; no keys in the app |
 | AI tools access | Built-in MCP server (the bundled CLI) | Lets Glaido and other AI tools read your meetings |
@@ -32,7 +32,7 @@ Upshot is a bot-free AI meeting notepad for Apple Silicon Macs. I built it in 3 
 - **Parallel Claude Code sessions.** One session built and shipped, one owned the design, and subagents built features F1 to F6 in separate files at the same time.
 - **Research before building.** Each change names its source (Granola docs, Apple guidance, Nielsen Norman Group, ChatGPT's model picker). See `grandmaster/sops/night-log.md`.
 - **Audits, then fixes.** A five-area UX audit, a WCAG 2.2 contrast audit in light and dark, three user journeys (first run, meeting, after the meeting) and two design redlines, each row fixed with its source named. See `grandmaster/sops/ux-audit-oct3.md`, `contrast-audit.md` and `journey-*.md`.
-- **Tests on every change.** About 4,700 automated tests run on each change, plus the Worker's own tests; the final run had 0 failures.
+- **Tests on every change.** About 4,800 automated tests run on each change, plus the Worker's own tests; the final run had 0 failures.
 - **Red-team pass.** A security review of secrets, local servers, prompt injection, the MCP tools, dependencies and logging, plus secret scanners. See `grandmaster/sops/red-team.md`.
 
 ## What I added on top of Anarlog
@@ -42,14 +42,14 @@ Upshot is a bot-free AI meeting notepad for Apple Silicon Macs. I built it in 3 
 | Upshot AI | Summaries and chat with no key and no account, on Claude Sonnet 5.5 |
 | Pro | "Auto ⌄" in the chat box, like Granola; Pro picks this week's models, rebuilt from OpenRouter at launch, bundled fallback offline. $11 a month billed yearly or $14 monthly, Stripe sandbox, account deletion in Settings › Profile |
 | Capture health | Recording timer, You and Them sound meters, and a live warning when there's no sound from the other side |
-| Transcript you can hear | Speaker bubbles with times; click any word to hear it; audio stays on the Mac |
+| Transcript you can hear | Speaker bubbles with times; click any word to hear it; the recording stays on your computer |
 | Note page | Editable title, template and folder chips, Generate summary from typed notes, Resume after Stop, Share menu, export to PDF, text or Markdown |
 | Chat | Home composer, Chat page with recents and recipes, Say more and Turn into an email, Draft follow-up email |
-| Calendar | Apple Calendar with Coming up on Home, reminders, a "Take notes" prompt when a call starts, optional auto-start; Google and Outlook through macOS Internet Accounts |
-| Organize | Folders with their notes, 9 built-in templates, ⌘K search inside notes, locked notes kept out of chat, MCP, webhooks and export |
-| Glaido bridge | One folder connects Glaido to your meetings |
+| Calendar (Mac) | Google, Outlook and iCloud calendars on the Mac (System Settings › Internet Accounts), several at once, with Coming up on Home, reminders, a "Take notes" prompt when a call starts, optional auto-start |
+| Organize | Folders with their notes, 9 built-in templates, ⌘K (Ctrl+K) search inside notes, locked notes kept out of chat, MCP, webhooks and export |
+| Glaido bridge (Mac) | One folder connects Glaido to your meetings |
 | Granola import | Bring your Granola meetings over through Granola's MCP, no Upshot account |
-| Design | Black and orange, Light, Dark or Match my Mac, Settings in 8 pages |
+| Design | Black and orange, Light, Dark or match your system, Settings in 8 pages |
 | Safety | Chat changes wait for your Apply; AI output can't load remote images |
 
 ## Credits
