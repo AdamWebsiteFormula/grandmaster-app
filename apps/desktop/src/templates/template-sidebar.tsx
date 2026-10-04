@@ -1,5 +1,12 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   ArrowsDownUp,
@@ -469,78 +476,84 @@ export function TemplatesSidebarContent({
           <>
             {hasResults && (
               <div className="pt-1">
-                {combinedTemplates.map((item) =>
-                  item.source === "auto" ? (
-                    <button
-                      key={item.key}
-                      type="button"
-                      onClick={() => setSelectedMineId(AUTO_TEMPLATE_ID)}
-                      data-template-selected={item.selected}
-                      className={cn([
-                        "w-full rounded-lg px-3 py-2 text-left text-sm transition-colors select-none",
-                        // Fork: the open template takes the Settings sidebar's
-                        // gray selection fill, not the hover step (design-system
-                        // "Contrast"; Apple HIG Sidebars; NN/g #1, #4).
-                        item.selected
-                          ? "bg-sidebar-accent"
-                          : "hover:bg-accent/50",
-                      ])}
-                    >
-                      <div className="flex items-center gap-2">
-                        {/* Fork: neutral, as the note picker shows Auto; orange
+                {combinedTemplates.map((item, index) => (
+                  <Fragment key={item.key}>
+                    <TemplateGroupHeading
+                      source={item.source}
+                      previous={combinedTemplates[index - 1]?.source}
+                    />
+                    {item.source === "auto" ? (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() => setSelectedMineId(AUTO_TEMPLATE_ID)}
+                        data-template-selected={item.selected}
+                        className={cn([
+                          "w-full rounded-lg px-3 py-2 text-left text-sm transition-colors select-none",
+                          // Fork: the open template takes the Settings sidebar's
+                          // gray selection fill, not the hover step (design-system
+                          // "Contrast"; Apple HIG Sidebars; NN/g #1, #4).
+                          item.selected
+                            ? "bg-sidebar-accent"
+                            : "hover:bg-accent/50",
+                        ])}
+                      >
+                        <div className="flex items-center gap-2">
+                          {/* Fork: neutral, as the note picker shows Auto; orange
                             marks only the main action (design-system.md The one
                             accent; Apple HIG Color). */}
-                        <Sparkle className="text-muted-foreground size-4" />
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate font-medium">
-                            {item.title}
-                          </div>
-                          {item.customized ? (
-                            <div className="text-muted-foreground truncate text-xs">
-                              <Trans>Customized</Trans>
+                          <Sparkle className="text-muted-foreground size-4" />
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate font-medium">
+                              {item.title}
                             </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    </button>
-                  ) : item.source === "user" ? (
-                    <TemplateListItem
-                      key={item.key}
-                      template={item.template}
-                      selected={item.selected}
-                      onSelect={setSelectedMineId}
-                      onToggleFavorite={handleToggleFavorite}
-                      onDuplicate={handleDuplicateTemplate}
-                      onDelete={requestDeleteTemplate}
-                    />
-                  ) : (
-                    <button
-                      key={item.key}
-                      onClick={() => setSelectedWebIndex(item.index)}
-                      data-template-selected={item.selected}
-                      className={cn([
-                        "w-full rounded-lg px-3 py-2 text-left text-sm transition-colors select-none",
-                        // Fork: the Settings sidebar's gray selection fill (see
-                        // the Auto row above).
-                        item.selected
-                          ? "bg-sidebar-accent"
-                          : "hover:bg-accent/50",
-                      ])}
-                    >
-                      <div className="flex items-center gap-2">
-                        <TemplateIconGlyph
-                          icon={item.template.icon}
-                          className="size-4 text-sm"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate font-medium">
-                            {item.title}
+                            {item.customized ? (
+                              <div className="text-muted-foreground truncate text-xs">
+                                <Trans>Customized</Trans>
+                              </div>
+                            ) : null}
                           </div>
                         </div>
-                      </div>
-                    </button>
-                  ),
-                )}
+                      </button>
+                    ) : item.source === "user" ? (
+                      <TemplateListItem
+                        key={item.key}
+                        template={item.template}
+                        selected={item.selected}
+                        onSelect={setSelectedMineId}
+                        onToggleFavorite={handleToggleFavorite}
+                        onDuplicate={handleDuplicateTemplate}
+                        onDelete={requestDeleteTemplate}
+                      />
+                    ) : (
+                      <button
+                        key={item.key}
+                        onClick={() => setSelectedWebIndex(item.index)}
+                        data-template-selected={item.selected}
+                        className={cn([
+                          "w-full rounded-lg px-3 py-2 text-left text-sm transition-colors select-none",
+                          // Fork: the Settings sidebar's gray selection fill (see
+                          // the Auto row above).
+                          item.selected
+                            ? "bg-sidebar-accent"
+                            : "hover:bg-accent/50",
+                        ])}
+                      >
+                        <div className="flex items-center gap-2">
+                          <TemplateIconGlyph
+                            icon={item.template.icon}
+                            className="size-4 text-sm"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate font-medium">
+                              {item.title}
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    )}
+                  </Fragment>
+                ))}
               </div>
             )}
 
@@ -649,5 +662,27 @@ function TemplateListItem({
         </div>
       </div>
     </button>
+  );
+}
+
+// Fork: label the two groups, your saved templates and the built-in ones,
+// so the list reads as two sets, not one A to Z run (backlog item 3; Apple
+// HIG, Lists and tables: section headers group related rows).
+function TemplateGroupHeading({
+  source,
+  previous,
+}: {
+  source: "auto" | "user" | "web";
+  previous?: "auto" | "user" | "web";
+}) {
+  const { t } = useLingui();
+  if (source === "auto" || source === previous) {
+    return null;
+  }
+
+  return (
+    <div className="text-muted-foreground px-3 pt-3 pb-1 text-xs font-medium">
+      {source === "user" ? t`Your templates` : t`Built-in`}
+    </div>
   );
 }

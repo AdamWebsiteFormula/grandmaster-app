@@ -140,6 +140,23 @@ describe("TemplatesSidebarContent", () => {
     expect(row("Auto").className).not.toContain("bg-sidebar-accent");
   });
 
+  // Backlog item 3: the two groups carry labels.
+  it("labels your templates and the built-in ones", () => {
+    setTab([userTemplate("a", "Board meeting")]);
+    render(<TemplatesSidebarContent tab={tab} />);
+
+    const yours = screen.getByText("Your templates");
+    const builtIn = screen.getByText("Built-in");
+    const board = screen.getByRole("button", { name: /Board meeting/ });
+    const brainstorm = screen.getByRole("button", { name: /Brainstorm/ });
+    const follows = (a: Element, b: Element) =>
+      Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+    expect(follows(yours, board)).toBe(true);
+    expect(follows(board, builtIn)).toBe(true);
+    expect(follows(builtIn, brainstorm)).toBe(true);
+  });
+
   // Built-in templates follow the saved ones (the upstream list order), so
   // "General meeting" sits after "Board meeting", not in one A to Z list.
   it("lists built-in templates after the saved ones", () => {

@@ -1088,6 +1088,10 @@ msgstr ""
 msgid "Build voiceprints from meeting audio so speakers you name in a transcript are recognized in later meetings. Voiceprints never leave this device, and unnamed ones are deleted after 45 days."
 msgstr ""
 
+#: src/templates/template-sidebar.tsx
+msgid "Built-in"
+msgstr ""
+
 #: src/settings/stats/insights.tsx
 msgid "Busiest day"
 msgstr ""
@@ -4358,6 +4362,10 @@ msgstr ""
 msgid "Minimize"
 msgstr ""
 
+#: src/settings/ai/stt/select.tsx
+msgid "Model"
+msgstr ""
+
 #: src/settings/ai/llm/select.tsx
 #: src/settings/ai/stt/select.tsx
 msgid "Model being used"
@@ -5503,6 +5511,10 @@ msgstr ""
 
 #: src/settings/general/e2ee-setup.tsx
 msgid "Protect cloud sync"
+msgstr ""
+
+#: src/settings/ai/stt/select.tsx
+msgid "Provider"
 msgstr ""
 
 #: src/session-sharing/general-access.tsx
@@ -8714,6 +8726,10 @@ msgstr ""
 
 #: src/services/enhancer/summary-notification.ts
 msgid "Your summary is ready."
+msgstr ""
+
+#: src/templates/template-sidebar.tsx
+msgid "Your templates"
 msgstr ""
 
 #: src/store/zustand/listener/general-batch.ts

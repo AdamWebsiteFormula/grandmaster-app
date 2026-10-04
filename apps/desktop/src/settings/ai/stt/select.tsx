@@ -285,6 +285,16 @@ export function SelectProviderAndModel() {
       <SettingsSectionTitle className="flex min-h-6 items-center">
         <Trans>Model being used</Trans>
       </SettingsSectionTitle>
+      {/* Fork: small Provider and Model labels over the two pickers, in
+          place of a bare "/" between them (backlog item 7; NN/g heuristic
+          6, recognition over recall). The pickers keep their own names. */}
+      <div
+        aria-hidden="true"
+        className="text-muted-foreground -mb-1 flex flex-row gap-4 text-xs"
+      >
+        <span className="min-w-0 flex-2">{t`Provider`}</span>
+        <span className="min-w-0 flex-3">{t`Model`}</span>
+      </div>
       <div className="flex flex-row items-center gap-4">
         <div className="min-w-0 flex-2" data-stt-provider-selector>
           <Select value={visibleProvider} onValueChange={handleProviderChange}>
@@ -344,8 +354,6 @@ export function SelectProviderAndModel() {
             </SelectContent>
           </Select>
         </div>
-
-        <span className="text-muted-foreground">/</span>
 
         {visibleProvider === "local_file" ? (
           <div className="min-w-0 flex-3">

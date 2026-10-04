@@ -1088,6 +1088,10 @@ msgstr "Browser handoff not working? Paste the callback link instead"
 msgid "Build voiceprints from meeting audio so speakers you name in a transcript are recognized in later meetings. Voiceprints never leave this device, and unnamed ones are deleted after 45 days."
 msgstr "Build voiceprints from meeting audio so speakers you name in a transcript are recognized in later meetings. Voiceprints never leave this device, and unnamed ones are deleted after 45 days."
 
+#: src/templates/template-sidebar.tsx
+msgid "Built-in"
+msgstr "Built-in"
+
 #: src/settings/stats/insights.tsx
 msgid "Busiest day"
 msgstr "Busiest day"
@@ -4358,6 +4362,10 @@ msgstr "Migration status unavailable"
 msgid "Minimize"
 msgstr "Minimize"
 
+#: src/settings/ai/stt/select.tsx
+msgid "Model"
+msgstr "Model"
+
 #: src/settings/ai/llm/select.tsx
 #: src/settings/ai/stt/select.tsx
 msgid "Model being used"
@@ -5504,6 +5512,10 @@ msgstr "Profile updated"
 #: src/settings/general/e2ee-setup.tsx
 msgid "Protect cloud sync"
 msgstr "Protect cloud sync"
+
+#: src/settings/ai/stt/select.tsx
+msgid "Provider"
+msgstr "Provider"
 
 #: src/session-sharing/general-access.tsx
 msgid "Public on the web"
@@ -8715,6 +8727,10 @@ msgstr "Your summary appears here as it's written."
 #: src/services/enhancer/summary-notification.ts
 msgid "Your summary is ready."
 msgstr "Your summary is ready."
+
+#: src/templates/template-sidebar.tsx
+msgid "Your templates"
+msgstr "Your templates"
 
 #: src/store/zustand/listener/general-batch.ts
 msgid "Your transcript is ready."
