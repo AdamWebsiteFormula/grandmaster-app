@@ -2,7 +2,7 @@ import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { CheckCircle, CircleNotch, Copy } from "@anlg/ui/components/icons";
+import { CircleNotch, Copy } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
@@ -133,20 +133,22 @@ function CliSection({
       className="flex scroll-mt-6 flex-col gap-2"
     >
       <div className="px-1">
-        <SettingsSectionTitle>{t`CLI & MCP`}</SettingsSectionTitle>
+        {/* Fork: the Connectors row says "MCP and CLI"; same words here
+            (NN/g #4). */}
+        <SettingsSectionTitle>{t`MCP and CLI`}</SettingsSectionTitle>
       </div>
       <SettingsCard>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <h3 className="flex items-center gap-1.5 text-sm font-medium">
               <Trans>Upshot CLI</Trans>
-              {/* Fork: a neutral check; orange is the one hue
-                  (design-system.md The one accent; Apple HIG Color). */}
+              {/* Fork: a visible word, not an icon-only check (NN/g, Icon
+                  Usability); muted, as orange is the one hue (design-system.md
+                  The one accent; Apple HIG Color). */}
               {isInstalled && (
-                <CheckCircle
-                  aria-label={t`Installed`}
-                  className="text-muted-foreground size-3.5"
-                />
+                <span className="text-muted-foreground text-xs font-normal">
+                  {t`Installed`}
+                </span>
               )}
             </h3>
             <CliStatus status={status} isLoading={isLoading} error={error} />

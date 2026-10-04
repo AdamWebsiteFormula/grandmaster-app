@@ -27,8 +27,10 @@ import {
 // Apple HIG Dark Mode).
 // Fork: the same card fill and field border as the note bar beside it
 // (NN/g #4).
+// In dark it is lighter than the page, as the Home composer is (Apple HIG
+// Dark Mode: raised is lighter).
 const pillSurfaceClassName =
-  "border-input bg-card text-card-foreground shadow-sm dark:shadow-none";
+  "border-input bg-card text-card-foreground shadow-sm dark:bg-muted dark:shadow-none";
 
 export function RecordingBar({
   sessionId,

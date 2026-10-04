@@ -64,7 +64,8 @@ export function ExportLocationRow() {
             <Trans>Export location</Trans>
           </h3>
           <p className="text-muted-foreground mt-0.5 text-xs">
-            <Trans>Save PDF, text and Markdown exports to this folder.</Trans>
+            {/* Fork: the serial comma (Apple Style Guide; NN/g #4). */}
+            <Trans>Save PDF, text, and Markdown exports to this folder.</Trans>
           </p>
           {directory && (
             <Button

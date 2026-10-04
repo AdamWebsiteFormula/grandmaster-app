@@ -160,6 +160,35 @@ describe("TemplateForm", () => {
     expect(handleDeleteTemplate).not.toHaveBeenCalled();
   });
 
+  // Fork: Oct 4 template screen review (NN/g #4). --muted is the panel's own
+  // color in light, so a bg-muted tag chip was invisible; tags are raised
+  // chips (white in light, bg-muted in dark) with a hairline.
+  it("draws tags and the add tag button as raised chips", () => {
+    render(
+      <TemplateForm
+        template={template}
+        handleDeleteTemplate={vi.fn()}
+        handleDuplicateTemplate={vi.fn()}
+      />,
+    );
+
+    const chip = screen.getByText("Engineering").className.split(/\s+/);
+    expect(chip).toEqual(
+      expect.arrayContaining(["bg-card", "dark:bg-muted", "border-border"]),
+    );
+    expect(chip).not.toContain("bg-muted");
+    // The outline variant has no hover fill, so the white chip stays white.
+    expect(chip).not.toContain("hover:bg-secondary/80");
+
+    const add = screen
+      .getByRole("button", { name: "Add tag" })
+      .className.split(/\s+/);
+    expect(add).toEqual(
+      expect.arrayContaining(["bg-card", "dark:bg-muted", "border-border"]),
+    );
+    expect(add).not.toContain("bg-muted");
+  });
+
   it("names the title field and the tag remove button", () => {
     render(
       <TemplateForm

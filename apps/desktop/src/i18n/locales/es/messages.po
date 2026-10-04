@@ -1526,10 +1526,6 @@ msgstr ""
 msgid "Clear selection"
 msgstr ""
 
-#: src/settings/developers/cli.tsx
-msgid "CLI & MCP"
-msgstr ""
-
 #: src/sidebar/settings-nav-groups.ts
 msgid "CLI, MCP, API, webhooks, Glaido, skills"
 msgstr ""
@@ -1799,7 +1795,7 @@ msgid "Connect Slack to choose a channel for this recap."
 msgstr ""
 
 #: src/settings/developers/index.tsx
-msgid "Connect Upshot to Glaido, the CLI and webhooks."
+msgid "Connect Upshot to Glaido, the CLI, and webhooks."
 msgstr ""
 
 #: src/settings/developers/index.tsx
@@ -3200,7 +3196,7 @@ msgid "Folders"
 msgstr ""
 
 #: src/settings/plan.tsx
-msgid "Folders, templates and search"
+msgid "Folders, templates, and search"
 msgstr ""
 
 #: src/chat/components/body/non-empty.tsx
@@ -4168,6 +4164,7 @@ msgid "Maybe later"
 msgstr ""
 
 #: src/settings/connectors/index.tsx
+#: src/settings/developers/cli.tsx
 msgid "MCP and CLI"
 msgstr ""
 
@@ -4879,7 +4876,7 @@ msgid "Notes stay on Home. This folder, its nested folders and their materials w
 msgstr ""
 
 #: src/folders/folder-editor.tsx
-msgid "Notes, files and context for this folder"
+msgid "Notes, files, and context for this folder"
 msgstr ""
 
 #: src/session/components/outer-header/share-menu.tsx
@@ -5638,7 +5635,7 @@ msgid "Record your voice in meetings and calls."
 msgstr ""
 
 #: src/settings/plan.tsx
-msgid "Record, transcribe and take AI notes for $0."
+msgid "Record, transcribe, and take AI notes for $0."
 msgstr ""
 
 #: src/session/components/floating/recording-bar.tsx
@@ -6118,11 +6115,11 @@ msgid "Save meetings to Google Drive"
 msgstr ""
 
 #: src/settings/general/storage/export-location.tsx
-msgid "Save PDF, text and Markdown exports to this folder."
+msgid "Save PDF, text, and Markdown exports to this folder."
 msgstr ""
 
 #: src/settings/connectors/index.tsx
-msgid "Save PDF, text and Markdown exports."
+msgid "Save PDF, text, and Markdown exports."
 msgstr ""
 
 #: src/settings/team/index.tsx
@@ -6233,7 +6230,7 @@ msgid "Search notes"
 msgstr ""
 
 #: src/shared/open-note-dialog.tsx
-msgid "Search notes and pages…"
+msgid "Search notes and settings…"
 msgstr ""
 
 #: src/contacts/details.tsx
@@ -6703,7 +6700,7 @@ msgid "Show words in the floating panel as you speak. Uses a live connection to 
 msgstr "Muestra las palabras en el panel flotante mientras hablas. Usa una conexión en directo con el proveedor de transcripción seleccionado cuando es compatible. El texto se inserta al terminar."
 
 #: src/settings/general/permissions.tsx
-msgid "Show your Google, Outlook and iCloud events in Upshot."
+msgid "Show your Google, Outlook, and iCloud events in Upshot."
 msgstr ""
 
 #. placeholder {0}: options.length
@@ -7011,7 +7008,7 @@ msgid "Starting…"
 msgstr ""
 
 #: src/settings/general/index.tsx
-msgid "Startup, appearance, language, privacy and permissions."
+msgid "Startup, appearance, language, privacy, and permissions."
 msgstr ""
 
 #: src/sidebar/settings-nav-groups.ts
@@ -7262,7 +7259,7 @@ msgid "Talk to sales"
 msgstr ""
 
 #: src/settings/developers/skills.tsx
-msgid "Teach coding agents when and how to use the Upshot CLI and MCP"
+msgid "Teach coding agents when and how to use the Upshot CLI and MCP."
 msgstr ""
 
 #: src/resource-sharing/share-dialog.tsx
@@ -7365,7 +7362,7 @@ msgid "The model that turns speech into text, and the words it should know."
 msgstr ""
 
 #: src/settings/plan.tsx
-msgid "The newest from OpenAI, Anthropic and Google"
+msgid "The newest from OpenAI, Anthropic, and Google"
 msgstr ""
 
 #: src/shared-notes/index.tsx
@@ -7739,6 +7736,10 @@ msgstr ""
 msgid "Turn off any calendar you don't meet from."
 msgstr ""
 
+#: src/settings/general/meeting-settings.tsx
+msgid "Turn on “Start when meeting begins” first."
+msgstr ""
+
 #. placeholder {0}: permissionName.toLowerCase()
 #: src/onboarding/permissions.tsx
 msgid "Turn on {0} in System Settings"
@@ -7746,10 +7747,6 @@ msgstr ""
 
 #: src/settings/general/notification.tsx
 msgid "Turn on Allow notifications to change these."
-msgstr ""
-
-#: src/settings/general/meeting-settings.tsx
-msgid "Turn on Start when meeting begins first."
 msgstr ""
 
 #: src/onboarding/permissions.tsx
@@ -8122,7 +8119,7 @@ msgstr ""
 
 #: src/calendar/components/apple/permission.tsx
 #: src/settings/calendar/index.tsx
-msgid "Upshot needs calendar access to show meetings from your Google, Outlook and iCloud calendars and name your notes."
+msgid "Upshot needs calendar access to show meetings from your Google, Outlook, and iCloud calendars and name your notes."
 msgstr ""
 
 #: src/onboarding/index.tsx
@@ -8134,7 +8131,7 @@ msgid "Upshot reads the calendars on this Mac to remind you before meetings and 
 msgstr ""
 
 #: src/settings/calendar/index.tsx
-msgid "Upshot reads your Google, Outlook, iCloud and other calendars on this Mac."
+msgid "Upshot reads your Google, Outlook, iCloud, and other calendars on this Mac."
 msgstr ""
 
 #: src/settings/privacy/index.tsx
@@ -8415,7 +8412,7 @@ msgid "Workflow"
 msgstr ""
 
 #: src/onboarding/calendar.tsx
-msgid "Works with Google, Outlook and iCloud calendars. Add an account in System Settings › Internet Accounts."
+msgid "Works with Google, Outlook, and iCloud calendars. Add an account in System Settings › Internet Accounts."
 msgstr ""
 
 #: src/sidebar/settings-nav-groups.ts
@@ -8588,10 +8585,6 @@ msgstr ""
 msgid "Your dictionary is empty"
 msgstr ""
 
-#: src/folders/sidebar.tsx
-msgid "Your folders show up here"
-msgstr ""
-
 #: src/settings/automations/google-drive-config.tsx
 msgid "Your Google account changed. Choose a folder again."
 msgstr ""
@@ -8657,7 +8650,7 @@ msgid "Your plan"
 msgstr ""
 
 #: src/settings/plan.tsx
-msgid "Your plan, your usage and what Pro adds."
+msgid "Your plan, your usage, and what Pro adds."
 msgstr ""
 
 #: src/auth/cloudsync.ts

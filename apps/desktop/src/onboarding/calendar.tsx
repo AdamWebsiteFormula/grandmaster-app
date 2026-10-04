@@ -170,11 +170,12 @@ function CalendarSectionContent({
         <div className="flex flex-col items-start gap-2">
           {/* Fork: say up front that Google, Outlook and iCloud all work, so
               no one reads "Apple only" (owner, Oct 3; Granola names Google
-              and Outlook, docs.granola.ai syncing-your-calendars). */}
+              and Outlook, docs.granola.ai syncing-your-calendars). The
+              serial comma follows the Apple Style Guide (NN/g #4). */}
           <p className="text-muted-foreground text-sm">
             <Trans>
-              Works with Google, Outlook and iCloud calendars. Add an account in
-              System Settings › Internet Accounts.
+              Works with Google, Outlook, and iCloud calendars. Add an account
+              in System Settings › Internet Accounts.
             </Trans>
           </p>
           {/* Fork: Apple's way to add Google or Outlook to Calendar

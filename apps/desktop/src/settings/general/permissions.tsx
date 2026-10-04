@@ -237,7 +237,8 @@ function MacOSPermissions() {
         permission="calendar"
         icon={CalendarDots}
         title={t`Calendar`}
-        description={t`Show your Google, Outlook and iCloud events in Upshot.`}
+        // Fork: the serial comma (Apple Style Guide; NN/g #4).
+        description={t`Show your Google, Outlook, and iCloud events in Upshot.`}
         status={calendar.status}
         isPending={calendar.isPending}
         onRequest={calendar.request}

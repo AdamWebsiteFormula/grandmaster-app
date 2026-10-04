@@ -111,7 +111,7 @@ export function SettingsPlan() {
     <div className="flex w-full min-w-0 flex-col gap-8 pb-6">
       <SettingsPageTitle
         title={<Trans>Plan</Trans>}
-        description={<Trans>Your plan, your usage and what Pro adds.</Trans>}
+        description={<Trans>Your plan, your usage, and what Pro adds.</Trans>}
       />
 
       <SettingsGroup title={<Trans>Current plan</Trans>}>
@@ -171,7 +171,7 @@ export function SettingsPlan() {
                   </p>
                 ) : (
                   <p className="text-muted-foreground text-sm">
-                    <Trans>Record, transcribe and take AI notes for $0.</Trans>
+                    <Trans>Record, transcribe, and take AI notes for $0.</Trans>
                   </p>
                 )}
                 {sessionEnded ? (
@@ -418,10 +418,10 @@ function PlanComparison({
       free: true,
       pro: true,
     },
-    { label: t`Folders, templates and search`, free: true, pro: true },
+    { label: t`Folders, templates, and search`, free: true, pro: true },
     {
       label: t`Pick this week's models`,
-      note: t`The newest from OpenAI, Anthropic and Google`,
+      note: t`The newest from OpenAI, Anthropic, and Google`,
       // Fork: Free still gets a model (Auto), so say so, not "—"
       // (redline3-oct3 S1; Granola's Compare all plans names the limit).
       free: t`Auto only`,

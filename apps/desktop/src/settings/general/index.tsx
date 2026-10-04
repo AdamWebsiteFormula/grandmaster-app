@@ -212,8 +212,9 @@ function SettingsSectionContent({
         }
         description={
           section === "app" ? (
+            // Fork: the serial comma (Apple Style Guide; NN/g #4).
             <Trans>
-              Startup, appearance, language, privacy and permissions.
+              Startup, appearance, language, privacy, and permissions.
             </Trans>
           ) : (
             <Trans>How Upshot records and summarizes your meetings.</Trans>

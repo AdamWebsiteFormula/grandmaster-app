@@ -80,7 +80,9 @@ export function ResourcePreviewHeader({
               {targets.map((target, index) => (
                 <span
                   key={index}
-                  className="bg-muted text-muted-foreground inline-flex h-6 items-center rounded-md px-2 py-0.5 text-xs"
+                  // Fork: a card chip with a hairline; bg-muted is the panel's
+                  // own color in light, so the tag drew no chip (NN/g #4).
+                  className="border-border bg-card dark:bg-muted text-muted-foreground inline-flex h-6 items-center rounded-md border px-2 py-0.5 text-xs"
                 >
                   {target}
                 </span>

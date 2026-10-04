@@ -148,7 +148,7 @@ describe("Settings › Calendar", () => {
     render(<SettingsCalendar />);
     expect(
       screen.getByText(
-        "Upshot needs calendar access to show meetings from your Google, Outlook and iCloud calendars and name your notes.",
+        "Upshot needs calendar access to show meetings from your Google, Outlook, and iCloud calendars and name your notes.",
       ),
     ).toBeTruthy();
     expect(screen.queryByText(/No calendars yet/)).toBeNull();
@@ -163,7 +163,7 @@ describe("Settings › Calendar", () => {
     ).toBeTruthy();
     expect(
       screen.getByText(
-        "Upshot reads your Google, Outlook, iCloud and other calendars on this Mac.",
+        "Upshot reads your Google, Outlook, iCloud, and other calendars on this Mac.",
       ),
     ).toBeTruthy();
     expect(screen.queryByText(/Apple Calendar/)).toBeNull();

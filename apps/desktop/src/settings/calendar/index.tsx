@@ -90,9 +90,10 @@ function SettingsCalendarContent() {
           title={<Trans>Calendar access</Trans>}
           description={
             authorized ? (
+              // Fork: the serial comma (Apple Style Guide; NN/g #4).
               <Trans>
-                Upshot reads your Google, Outlook, iCloud and other calendars on
-                this Mac.
+                Upshot reads your Google, Outlook, iCloud, and other calendars
+                on this Mac.
               </Trans>
             ) : denied ? (
               <Trans>
@@ -101,10 +102,11 @@ function SettingsCalendarContent() {
               </Trans>
             ) : (
               // Fork: say why before asking (Apple HIG, Privacy), and name
-              // the accounts it covers (Granola names Google and Outlook).
+              // the accounts it covers (Granola names Google and Outlook),
+              // with the serial comma (Apple Style Guide; NN/g #4).
               <Trans>
                 Upshot needs calendar access to show meetings from your Google,
-                Outlook and iCloud calendars and name your notes.
+                Outlook, and iCloud calendars and name your notes.
               </Trans>
             )
           }

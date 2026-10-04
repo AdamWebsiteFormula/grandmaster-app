@@ -146,7 +146,12 @@ export function LocalModelLabel({
       className={cn(["flex min-w-0 items-center gap-2", className])}
     >
       {icon ? (
-        <AiIconSlot title={icon.title} className={icon.className}>
+        // Fork: 16 px, the same as the provider logo in the first picker
+        // (NN/g #4, consistency).
+        <AiIconSlot
+          title={icon.title}
+          className={cn(["size-4", icon.className])}
+        >
           {icon.node ??
             (icon.imageSrc ? (
               <img

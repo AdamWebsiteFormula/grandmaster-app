@@ -31,7 +31,7 @@ describe("calendar states", () => {
     render(<CalendarAccessNeeded onAllow={onAllow} />);
     expect(
       screen.getByText(
-        "Upshot needs calendar access to show meetings from your Google, Outlook and iCloud calendars and name your notes.",
+        "Upshot needs calendar access to show meetings from your Google, Outlook, and iCloud calendars and name your notes.",
       ),
     ).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Allow access" }));

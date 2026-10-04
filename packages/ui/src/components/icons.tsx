@@ -168,6 +168,7 @@ import {
   SquareIcon,
   StarIcon,
   StethoscopeIcon,
+  StopCircleIcon,
   Sun01Icon,
   Target01Icon,
   Task01Icon,
@@ -742,6 +743,12 @@ export const Star = /* @__PURE__ */ createIcon(StarIcon, "Star");
 export const Stethoscope = /* @__PURE__ */ createIcon(
   StethoscopeIcon,
   "Stethoscope",
+);
+// Fork: a stop symbol in a circle, for a row that stops recording; a bare
+// square reads as an unchecked checkbox (NN/g, Icon Usability).
+export const StopCircle = /* @__PURE__ */ createIcon(
+  StopCircleIcon,
+  "StopCircle",
 );
 export const Sun = /* @__PURE__ */ createIcon(Sun01Icon, "Sun");
 export const Swap = /* @__PURE__ */ createIcon(Exchange01Icon, "Swap");

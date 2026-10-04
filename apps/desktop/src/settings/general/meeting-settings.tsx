@@ -6,7 +6,7 @@ import {
   Megaphone,
   PictureInPicture,
   Play,
-  Square,
+  StopCircle,
   VideoCamera,
 } from "@anlg/ui/components/icons";
 
@@ -63,7 +63,9 @@ export function MeetingSettingsView({
                   Open the meeting link when a scheduled meeting begins.
                 </Trans>
               ) : (
-                <Trans>Turn on Start when meeting begins first.</Trans>
+                // Fork: the setting's name in quotes so the hint parses at a
+                // glance (NN/g heuristic #2).
+                <Trans>Turn on “Start when meeting begins” first.</Trans>
               )
             }
             checked={autoJoinScheduledMeetings.value}
@@ -74,9 +76,9 @@ export function MeetingSettingsView({
       )}
       {supportsMicDetection && (
         <SettingSwitchRow
-          // Fork: the app's Stop glyph, as the floating bar's Stop, not
-          // Pause (NN/g #4).
-          icon={Square}
+          // Fork: a stop symbol in a circle; a bare square read as an
+          // unchecked checkbox (NN/g, Icon Usability).
+          icon={StopCircle}
           title={<Trans>Stop when meeting ends</Trans>}
           description={<Trans>Stop recording when your call ends.</Trans>}
           checked={autoStopMeetings.value}

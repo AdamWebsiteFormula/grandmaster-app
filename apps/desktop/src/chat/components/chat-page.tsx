@@ -173,11 +173,14 @@ export function ChatPage() {
                 disabled={!value.trim()}
                 // Fork: the brand accent marks Send once there is text (Claude.ai;
                 // Apple HIG, Color: the accent marks the primary action).
+                // Fork: in dark, a bright fill with a dark arrow reads as ready,
+                // so the empty Send is a muted chip with a gray arrow (Apple
+                // HIG, Buttons: a disabled button looks unavailable).
                 className={cn([
-                  "inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition disabled:cursor-default disabled:opacity-45",
+                  "inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition disabled:cursor-default disabled:opacity-45 dark:disabled:opacity-100",
                   value.trim()
                     ? "bg-primary text-primary-foreground hover:brightness-90"
-                    : "bg-foreground text-background",
+                    : "bg-foreground text-background dark:bg-foreground/15 dark:text-foreground/40",
                 ])}
               >
                 <ArrowUp className="size-4" weight="bold" />

@@ -199,7 +199,7 @@ describe("SettingsDevelopers", () => {
   // Fork: Glaido is a Mac app, so off a Mac its section and name go
   // (NN/g heuristic #5); the CLI and webhooks stay.
   it.each([
-    ["macos", "Connect Upshot to Glaido, the CLI and webhooks.", true],
+    ["macos", "Connect Upshot to Glaido, the CLI, and webhooks.", true],
     ["windows", "Connect Upshot to the CLI and webhooks.", false],
     ["linux", "Connect Upshot to the CLI and webhooks.", false],
   ])("shows Glaido only on a Mac (%s)", (os, description, glaido) => {
@@ -246,8 +246,10 @@ describe("SettingsDevelopers", () => {
     );
 
     expect(await screen.findByText("Reinstall")).toBeTruthy();
-    expect(screen.getByLabelText("Installed")).toBeTruthy();
-    expect(screen.queryByText("Installed")).toBeNull();
+    // Fork: the status is a visible word, not an icon-only check (NN/g, Icon
+    // Usability).
+    expect(screen.getByText("Installed")).toBeTruthy();
+    expect(screen.queryByLabelText("Installed")).toBeNull();
     expect(
       screen.queryByText(/\/Users\/test\/\.local\/bin\/anarlog/),
     ).toBeNull();

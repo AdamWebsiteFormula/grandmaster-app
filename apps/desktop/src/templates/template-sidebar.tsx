@@ -338,6 +338,12 @@ export function TemplatesSidebarContent({
     };
   }, [combinedTemplates, selectCombinedTemplate]);
 
+  // Fork: follow the open row when its position moves, not only when the
+  // selection changes. The saved templates load after the first render and
+  // sit above the built-in ones, which pushed the open built-in row below the
+  // fold with no row marked (NN/g #1, visibility of system status).
+  const selectedRowIndex = combinedTemplates.findIndex((item) => item.selected);
+
   useEffect(() => {
     const selectedElement = scrollContainerRef.current?.querySelector(
       "[data-template-selected='true']",
@@ -350,7 +356,7 @@ export function TemplatesSidebarContent({
     selectedElement.scrollIntoView({
       block: "nearest",
     });
-  }, [effectiveSelectedMineId, effectiveSelectedWebIndex]);
+  }, [effectiveSelectedMineId, effectiveSelectedWebIndex, selectedRowIndex]);
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
@@ -472,7 +478,12 @@ export function TemplatesSidebarContent({
                       data-template-selected={item.selected}
                       className={cn([
                         "w-full rounded-lg px-3 py-2 text-left text-sm transition-colors select-none",
-                        item.selected ? "bg-accent" : "hover:bg-accent/50",
+                        // Fork: the open template takes the Settings sidebar's
+                        // gray selection fill, not the hover step (design-system
+                        // "Contrast"; Apple HIG Sidebars; NN/g #1, #4).
+                        item.selected
+                          ? "bg-sidebar-accent"
+                          : "hover:bg-accent/50",
                       ])}
                     >
                       <div className="flex items-center gap-2">
@@ -509,7 +520,11 @@ export function TemplatesSidebarContent({
                       data-template-selected={item.selected}
                       className={cn([
                         "w-full rounded-lg px-3 py-2 text-left text-sm transition-colors select-none",
-                        item.selected ? "bg-accent" : "hover:bg-accent/50",
+                        // Fork: the Settings sidebar's gray selection fill (see
+                        // the Auto row above).
+                        item.selected
+                          ? "bg-sidebar-accent"
+                          : "hover:bg-accent/50",
                       ])}
                     >
                       <div className="flex items-center gap-2">
@@ -621,7 +636,8 @@ function TemplateListItem({
       data-template-selected={selected}
       className={cn([
         "w-full rounded-lg px-3 py-2 text-left text-sm transition-colors select-none",
-        selected ? "bg-accent" : "hover:bg-accent/50",
+        // Fork: the Settings sidebar's gray selection fill (see the Auto row).
+        selected ? "bg-sidebar-accent" : "hover:bg-accent/50",
       ])}
     >
       <div className="flex items-center gap-2">

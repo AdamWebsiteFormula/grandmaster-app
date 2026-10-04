@@ -542,7 +542,7 @@ describe("Settings › Plan", () => {
     expect(privacy.closest(".pb-6")).not.toBeNull();
   });
 
-  it("selects a billing period with a light tile in light and a pill in dark", () => {
+  it("selects a billing period with a light tile in light and a gray fill in dark", () => {
     render(<SettingsPlan />);
     const group = screen.getByRole("group", { name: "Billing period" });
     const pressed = within(group)
@@ -550,7 +550,7 @@ describe("Settings › Plan", () => {
       .find((button) => button.getAttribute("aria-pressed") === "true");
     expect(pressed?.className).toContain("bg-card");
     expect(pressed?.className).toContain("border-input");
-    expect(pressed?.className).toContain("dark:bg-foreground");
+    expect(pressed?.className).toContain("dark:bg-sidebar-accent");
   });
 
   it("P3 Pro shows the price and who is billed", () => {

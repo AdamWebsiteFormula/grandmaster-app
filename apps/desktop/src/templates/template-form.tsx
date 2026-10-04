@@ -30,6 +30,13 @@ import { ResourceShareButton, sharedTemplatePayload } from "~/resource-sharing";
 import { useSetSettingValue } from "~/settings/queries";
 import { useConfigValue } from "~/shared/config";
 
+// Fork: a tag is a raised chip. --muted is the panel's own color in light, so
+// a bg-muted chip vanished there. A card-white chip with a hairline, as the
+// Settings cards and icon tiles, shows in both themes (Apple HIG Dark Mode:
+// raised is lighter; design-system "Contrast"; NN/g #4).
+export const TEMPLATE_TAG_CLASS =
+  "border-border bg-card dark:bg-muted rounded-md border text-xs";
+
 function parseTargets(value: string) {
   return value
     .split(",")
@@ -77,8 +84,13 @@ function TemplateTargetsInput({
       {value.map((target, index) => (
         <Badge
           key={`${target}-${index}`}
-          variant="secondary"
-          className="bg-muted flex h-6 items-center gap-1 rounded-md px-2 py-0.5 text-xs font-normal"
+          // Fork: the outline variant has no hover fill of its own, so the
+          // white chip stays white under the pointer.
+          variant="outline"
+          className={cn([
+            TEMPLATE_TAG_CLASS,
+            "flex h-6 items-center gap-1 px-2 py-0.5 font-normal",
+          ])}
         >
           {target}
           {/* Fork: named, 24 px target (ux-audit-oct3 B; WCAG 4.1.2, 2.5.8). */}
@@ -104,7 +116,10 @@ function TemplateTargetsInput({
       {!isAddingTag ? (
         <button
           type="button"
-          className="bg-muted text-muted-foreground hover:bg-muted/80 inline-flex h-6 items-center gap-1 rounded-md px-2 py-0.5 text-xs transition-colors"
+          className={cn([
+            TEMPLATE_TAG_CLASS,
+            "text-muted-foreground hover:bg-accent inline-flex h-6 items-center gap-1 px-2 py-0.5 transition-colors",
+          ])}
           onClick={() => setIsAddingTag(true)}
         >
           <Plus className="h-3 w-3" />

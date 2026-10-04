@@ -97,10 +97,11 @@ it("offers the calendars on this Mac, with no cloud sign-in", () => {
   expect(screen.queryByText(/Google Calendar/)).toBeNull();
   expect(screen.queryByText(/Connect Outlook/)).toBeNull();
   expect(screen.queryByText(/Sign in/)).toBeNull();
-  // Owner feedback, Oct 3: say Google, Outlook and iCloud work, not Apple only.
+  // Owner feedback, Oct 3: say Google, Outlook, and iCloud work, not Apple
+  // only (serial comma, Apple Style Guide).
   expect(
     screen.getByText(
-      "Works with Google, Outlook and iCloud calendars. Add an account in System Settings › Internet Accounts.",
+      "Works with Google, Outlook, and iCloud calendars. Add an account in System Settings › Internet Accounts.",
     ),
   ).toBeTruthy();
   expect(screen.queryByText(/Apple Calendar/)).toBeNull();
@@ -219,7 +220,7 @@ it("keeps the accounts line and one Add account once calendars are listed", () =
   render(<CalendarSection onContinue={vi.fn()} />);
 
   expect(
-    screen.getByText(/^Works with Google, Outlook and iCloud calendars\./),
+    screen.getByText(/^Works with Google, Outlook, and iCloud calendars\./),
   ).toBeTruthy();
   const buttons = screen.getAllByRole("button", { name: "Add account" });
   expect(buttons).toHaveLength(1);
@@ -231,7 +232,7 @@ it("hides the accounts line when access is on and no calendars came back", () =>
   mocks.permission.status = "authorized";
   render(<CalendarSection onContinue={vi.fn()} />);
   expect(
-    screen.queryByText(/^Works with Google, Outlook and iCloud/),
+    screen.queryByText(/^Works with Google, Outlook, and iCloud/),
   ).toBeNull();
   // Only the main button offers it; the empty state doesn't repeat it.
   expect(screen.getAllByRole("button", { name: "Add account" })).toHaveLength(

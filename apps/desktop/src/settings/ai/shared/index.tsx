@@ -194,7 +194,9 @@ export function AiIconSlot({
 
 export function ProviderIconSlot({ children }: { children: ReactNode }) {
   return (
-    <AiIconSlot className="[--soniox-icon-scale:1.6667] [&_[data-slot=ai-icon-art]]:size-3 [&_[data-slot=ai-icon-art]]:overflow-visible">
+    // Fork: 16 px, the same as the model logos beside it (NN/g #4,
+    // consistency); the art fills the slot instead of a 12 px inset.
+    <AiIconSlot className="size-4 [--soniox-icon-scale:1.6667] [&_[data-slot=ai-icon-art]]:overflow-visible">
       {children}
     </AiIconSlot>
   );

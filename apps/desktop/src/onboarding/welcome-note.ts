@@ -42,7 +42,7 @@ export function welcomeNoteMarkdown(currentPlatform: string = platform()) {
 **See an example:** open **Example: Product sync** on Home for a finished summary and transcript.
 
 
-Recordings, notes and transcripts are stored on this ${device}. While you record, audio streams to Upshot transcription (Deepgram), which keeps nothing. When Upshot writes a summary, the note and transcript go to Upshot AI, which keeps nothing.`;
+Recordings, notes, and transcripts are stored on this ${device}. While you record, audio streams to Upshot transcription (Deepgram), which keeps nothing. When Upshot writes a summary, the note and transcript go to Upshot AI, which keeps nothing.`;
 }
 
 let pendingWelcomeSession: Promise<string> | null = null;

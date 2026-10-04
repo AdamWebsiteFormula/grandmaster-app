@@ -118,23 +118,18 @@ export function FoldersSidebar() {
       </div>
 
       <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto pt-1">
-        {/* Fork: an empty list says why: none match the search, or folders
-            will show up here, as Home says of notes (NN/g "Designing Empty
-            States in Complex Applications": communicate system status; NN/g
-            #4). The main panel has New folder, so the sidebar adds no second
-            one or a second "No folders yet" (NN/g #8). */}
-        {isEmpty ? (
+        {/* Fork: with no folders at all, the main panel already shows the
+            empty state and New folder, so the sidebar shows only a search
+            with no match (NN/g #8; NN/g "Designing Empty States in Complex
+            Applications"); round 6 visual review. */}
+        {isEmpty && folders.length > 0 ? (
           <div className="text-muted-foreground px-3 py-8 text-center">
             <FolderSimple
               size={32}
               className="text-muted-foreground/70 mx-auto mb-2"
             />
             <p className="text-sm">
-              {folders.length > 0 ? (
-                <Trans>No folders found</Trans>
-              ) : (
-                <Trans>Your folders show up here</Trans>
-              )}
+              <Trans>No folders found</Trans>
             </p>
           </div>
         ) : (

@@ -238,13 +238,12 @@ describe("Folders workspace", () => {
   it("creates the first folder from the empty state", async () => {
     renderFoldersWorkspace();
 
-    // Header icon and the main empty state; the sidebar adds no second
-    // New folder (NN/g #8) and no search box until folders exist, and says
-    // where folders will show up, as Home does for notes.
+    // Header icon and the main empty state; the sidebar shows no second
+    // empty state (NN/g #8) and no search box until folders exist.
     expect(screen.getAllByRole("button", { name: "New folder" })).toHaveLength(
       2,
     );
-    expect(screen.getByText("Your folders show up here")).toBeTruthy();
+    expect(screen.queryByText("No folders found")).toBeNull();
     expect(screen.queryByPlaceholderText("Search folders…")).toBeNull();
     // NN/g "Navigation: You Are Here": the empty page names itself.
     expect(screen.getByRole("heading", { name: "Folders" })).toBeTruthy();

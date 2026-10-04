@@ -217,7 +217,10 @@ function SectionItem({
   const [isFocused, setIsFocused] = useState(false);
 
   return (
-    <div className="group bg-card relative">
+    // Fork: no fill on the section band. A white band under gray fields read
+    // as sunken on the light panel; the fields carry the fill now (NN/g #4;
+    // Apple HIG Text fields).
+    <div className="group relative">
       {!disabled && (
         // Fork: named, and shown on keyboard focus, not only hover
         // (ux-audit-oct3 B; WCAG 2.4.7, 4.1.2).
@@ -293,7 +296,11 @@ function SectionItem({
           value={item.title}
           onChange={(e) => onChange({ ...item, title: e.target.value })}
           placeholder={t`Untitled`}
-          className="placeholder:text-muted-foreground border-0 bg-transparent p-0 font-medium shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+          // Fork: a read-only label keeps full opacity in the muted text
+          // color. The Input's disabled:opacity-50 left it near 3.3:1 on
+          // white in light; muted-foreground is 4.6:1 or more (WCAG 2.2
+          // SC 1.4.3).
+          className="placeholder:text-muted-foreground disabled:text-muted-foreground border-0 bg-transparent p-0 font-medium shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:opacity-100"
         />
 
         <textarea
@@ -307,13 +314,15 @@ function SectionItem({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           className={cn([
-            "min-h-[100px] w-full resize-y rounded-xl border p-3 text-sm transition-colors",
+            // Fork: the house field look of Settings text fields, editable or
+            // read-only: white in light, dark:bg-input/30 in dark, a
+            // border-input edge (settings/setting-row.tsx
+            // SETTING_CONTROL_CLASS; NN/g #4; Apple HIG Text fields).
+            "bg-card dark:bg-input/30 min-h-[100px] w-full resize-y rounded-xl border p-3 text-sm transition-colors",
             "focus-visible:outline-hidden",
-            disabled
-              ? "bg-muted"
-              : isFocused
-                ? "ring-primary/20 border-primary ring-2"
-                : "border-input",
+            isFocused
+              ? "ring-primary/20 border-primary ring-2"
+              : "border-input",
           ])}
         />
       </div>

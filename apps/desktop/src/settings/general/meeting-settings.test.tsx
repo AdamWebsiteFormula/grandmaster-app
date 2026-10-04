@@ -17,7 +17,7 @@ vi.mock("@tauri-apps/plugin-os", () => ({
 
 vi.mock("@anlg/ui/components/icons", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@anlg/ui/components/icons")>()),
-  Square: () => <svg data-testid="stop-icon" />,
+  StopCircle: () => <svg data-testid="stop-icon" />,
 }));
 
 vi.mock("./default-share-access", () => ({
@@ -105,7 +105,8 @@ describe("MeetingSettingsView", () => {
     expect(screen.getByText("Stop when meeting ends")).toBeTruthy();
   });
 
-  // Fork: the app's Stop glyph, as the floating bar's Stop (NN/g #4).
+  // Fork: a stop symbol in a circle, not a bare square that reads as an
+  // unchecked checkbox (NN/g, Icon Usability).
   it("marks Stop when meeting ends with the Stop icon", () => {
     renderMeetingSettings();
 
@@ -123,6 +124,10 @@ describe("MeetingSettingsView", () => {
         .getByRole("switch", { name: "Join scheduled meetings" })
         .hasAttribute("disabled"),
     ).toBe(true);
+    // Fork: the setting's name in quotes parses at a glance (NN/g #2).
+    expect(
+      screen.getByText("Turn on “Start when meeting begins” first."),
+    ).toBeTruthy();
   });
 
   it("updates the recording disclosure setting", () => {

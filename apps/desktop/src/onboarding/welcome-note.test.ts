@@ -175,7 +175,7 @@ it("points to New note on Home and says what leaves the computer", () => {
   expect(mac).toContain("on Home, click **New note** at the top right");
   expect(mac).toContain("press **⌘N**");
   expect(mac).toContain(
-    "Recordings, notes and transcripts are stored on this Mac.",
+    "Recordings, notes, and transcripts are stored on this Mac.",
   );
   expect(mac).toContain(
     "While you record, audio streams to Upshot transcription (Deepgram), which keeps nothing.",

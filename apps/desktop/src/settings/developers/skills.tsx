@@ -119,8 +119,10 @@ export function SkillsRow() {
           <Trans>Agent skills</Trans>
         </h3>
         <p className="text-muted-foreground mt-1 text-xs">
+          {/* Fork: ends with a period, as the other row descriptions do
+              (NN/g #4). */}
           <Trans>
-            Teach coding agents when and how to use the Upshot CLI and MCP
+            Teach coding agents when and how to use the Upshot CLI and MCP.
           </Trans>
         </p>
       </div>

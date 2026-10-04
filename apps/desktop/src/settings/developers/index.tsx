@@ -26,9 +26,10 @@ export function SettingsDevelopers() {
       <div className="flex items-start justify-between gap-4">
         <SettingsPageTitle
           title={t`Developers`}
+          // Fork: the serial comma (Apple Style Guide; NN/g #4).
           description={
             mac
-              ? t`Connect Upshot to Glaido, the CLI and webhooks.`
+              ? t`Connect Upshot to Glaido, the CLI, and webhooks.`
               : t`Connect Upshot to the CLI and webhooks.`
           }
         />

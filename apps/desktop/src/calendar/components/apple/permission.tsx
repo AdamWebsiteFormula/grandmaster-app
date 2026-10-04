@@ -109,11 +109,12 @@ export function CalendarAccessNeeded({
     <div className={cn(["flex flex-col items-start gap-3", className])}>
       {/* Fork: name the accounts, so no one reads "Apple only" (owner,
           Oct 3; Granola names Google and Outlook, docs.granola.ai
-          syncing-your-calendars). */}
+          syncing-your-calendars). The serial comma follows the Apple Style
+          Guide (NN/g #4). */}
       <p className="text-muted-foreground text-sm">
         <Trans>
           Upshot needs calendar access to show meetings from your Google,
-          Outlook and iCloud calendars and name your notes.
+          Outlook, and iCloud calendars and name your notes.
         </Trans>
       </p>
       <Button

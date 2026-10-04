@@ -313,7 +313,7 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
               />
             </div>
             <p className="text-muted-foreground line-clamp-2 max-w-[60ch] text-sm text-pretty">
-              {description || t`Notes, files and context for this folder`}
+              {description || t`Notes, files, and context for this folder`}
             </p>
             {noteCount !== null ? (
               <p className="text-muted-foreground text-sm tabular-nums">
