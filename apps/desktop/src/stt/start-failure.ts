@@ -101,6 +101,32 @@ export async function getMicrophonePermission(): Promise<PermissionStatus | null
   }
 }
 
+// Fork: on a Mac, settle the microphone permission before recording starts.
+// A recording that starts while macOS is still asking stays silent even
+// after Allow (owner test, Oct 4; Apple HIG, Privacy: ask in context, then
+// act). Asks when macOS has never asked (the request waits for the answer)
+// and returns false only when macOS says no. Elsewhere the check can't tell a
+// blocked microphone from a busy one, so it never blocks.
+export async function ensureMicrophoneBeforeStart(): Promise<boolean> {
+  try {
+    if (platform() !== "macos") {
+      return true;
+    }
+    const before = await permissionsCommands.checkPermission("microphone");
+    if (before.status !== "ok" || before.data === "authorized") {
+      return true;
+    }
+    if (before.data === "neverRequested") {
+      await permissionsCommands.requestPermission("microphone");
+      const after = await permissionsCommands.checkPermission("microphone");
+      return after.status !== "ok" || after.data === "authorized";
+    }
+    return false;
+  } catch {
+    return true;
+  }
+}
+
 export function showStartFailureToast(
   kind: StartFailureKind,
   openSettings: (tab: SettingsTab) => void,

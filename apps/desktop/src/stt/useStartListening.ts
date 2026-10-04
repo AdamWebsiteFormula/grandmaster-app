@@ -19,6 +19,7 @@ import {
 import { startPrimaryDeviceCoordination } from "./primary-device";
 import {
   classifyStartFailure,
+  ensureMicrophoneBeforeStart,
   getMicrophonePermission,
   showStartFailureToast,
   type StartFailureStage,
@@ -105,6 +106,14 @@ export function useStartListeningState(
 
   const startListening = useCallback(async () => {
     if (!canStartLiveSession(sessionId)) {
+      return;
+    }
+    // Fork: ask for the microphone first, and record only after Allow
+    // (ensureMicrophoneBeforeStart).
+    if (!(await ensureMicrophoneBeforeStart())) {
+      showStartFailureToast("microphone_permission", (tab) =>
+        openNew({ type: "settings", state: { tab } }),
+      );
       return;
     }
     await stopMeetingChatTasks();

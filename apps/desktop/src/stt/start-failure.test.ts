@@ -3,18 +3,23 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import {
   classifyStartFailure,
   describeStartFailure,
+  ensureMicrophoneBeforeStart,
   getMicrophonePermission,
 } from "./start-failure";
 
 const mocks = vi.hoisted(() => ({
   platform: vi.fn(() => "macos"),
   checkPermission: vi.fn(),
+  requestPermission: vi.fn(),
 }));
 
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: mocks.platform }));
 
 vi.mock("@anlg/plugin-permissions", () => ({
-  commands: { checkPermission: mocks.checkPermission },
+  commands: {
+    checkPermission: mocks.checkPermission,
+    requestPermission: mocks.requestPermission,
+  },
 }));
 
 describe("getMicrophonePermission", () => {
@@ -32,6 +37,58 @@ describe("getMicrophonePermission", () => {
     mocks.platform.mockReturnValue("linux");
     await expect(getMicrophonePermission()).resolves.toBeNull();
     expect(mocks.checkPermission).not.toHaveBeenCalled();
+  });
+});
+
+// Owner test, Oct 4: a recording started while macOS still asked for the
+// microphone stayed silent after Allow.
+describe("ensureMicrophoneBeforeStart", () => {
+  beforeEach(() => {
+    mocks.platform.mockReturnValue("macos");
+    mocks.checkPermission.mockReset();
+    mocks.requestPermission.mockReset();
+    mocks.requestPermission.mockResolvedValue({ status: "ok", data: null });
+  });
+
+  test("starts at once when the microphone is allowed", async () => {
+    mocks.checkPermission.mockResolvedValue({
+      status: "ok",
+      data: "authorized",
+    });
+    await expect(ensureMicrophoneBeforeStart()).resolves.toBe(true);
+    expect(mocks.requestPermission).not.toHaveBeenCalled();
+  });
+
+  test("asks first, then starts after Allow", async () => {
+    mocks.checkPermission
+      .mockResolvedValueOnce({ status: "ok", data: "neverRequested" })
+      .mockResolvedValueOnce({ status: "ok", data: "authorized" });
+    await expect(ensureMicrophoneBeforeStart()).resolves.toBe(true);
+    expect(mocks.requestPermission).toHaveBeenCalledWith("microphone");
+  });
+
+  test("does not start after Don't Allow", async () => {
+    mocks.checkPermission
+      .mockResolvedValueOnce({ status: "ok", data: "neverRequested" })
+      .mockResolvedValueOnce({ status: "ok", data: "denied" });
+    await expect(ensureMicrophoneBeforeStart()).resolves.toBe(false);
+  });
+
+  test("does not start when the microphone was turned off", async () => {
+    mocks.checkPermission.mockResolvedValue({ status: "ok", data: "denied" });
+    await expect(ensureMicrophoneBeforeStart()).resolves.toBe(false);
+    expect(mocks.requestPermission).not.toHaveBeenCalled();
+  });
+
+  test("never blocks outside macOS", async () => {
+    mocks.platform.mockReturnValue("windows");
+    await expect(ensureMicrophoneBeforeStart()).resolves.toBe(true);
+    expect(mocks.checkPermission).not.toHaveBeenCalled();
+  });
+
+  test("never blocks when the check fails", async () => {
+    mocks.checkPermission.mockRejectedValue(new Error("no plugin"));
+    await expect(ensureMicrophoneBeforeStart()).resolves.toBe(true);
   });
 });
 
