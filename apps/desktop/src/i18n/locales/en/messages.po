@@ -2259,6 +2259,10 @@ msgstr "Couldn't restore these lines. Try again."
 msgid "Couldn't restore this version. Try again."
 msgstr "Couldn't restore this version. Try again."
 
+#: src/session/folder-instructions.tsx
+msgid "Couldn't save the folder context. Try again."
+msgstr "Couldn't save the folder context. Try again."
+
 #: src/settings/stats/badge-collection.tsx
 msgid "Couldn't save your new badges."
 msgstr "Couldn't save your new badges."
@@ -3193,6 +3197,10 @@ msgstr "Folder context"
 #: src/sidebar/folder-name-dialog.tsx
 msgid "Folder name"
 msgstr "Folder name"
+
+#: src/session/folder-instructions.tsx
+msgid "Folder updated"
+msgstr "Folder updated"
 
 #: src/session/components/folder-picker.tsx
 msgid "Folder: {currentPath}"
@@ -5484,6 +5492,10 @@ msgstr "Production"
 msgid "Profile"
 msgstr "Profile"
 
+#: src/settings/general/account-profile.tsx
+msgid "Profile updated"
+msgstr "Profile updated"
+
 #: src/settings/general/e2ee-setup.tsx
 msgid "Protect cloud sync"
 msgstr "Protect cloud sync"
@@ -6157,7 +6169,6 @@ msgid "Save visible chat from supported meetings using Accessibility."
 msgstr "Save visible chat from supported meetings using Accessibility."
 
 #: src/settings/ai/shared/index.tsx
-#: src/settings/general/account-profile.tsx
 msgid "Saved"
 msgstr "Saved"
 
@@ -6168,10 +6179,6 @@ msgstr "Saved locally"
 #: src/contacts/profile-photo.tsx
 msgid "Saving..."
 msgstr "Saving..."
-
-#: src/settings/general/account-profile.tsx
-msgid "Saving…"
-msgstr "Saving…"
 
 #: src/chat/components/recipes.tsx
 msgid "Say more"

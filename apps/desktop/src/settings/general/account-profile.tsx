@@ -6,6 +6,7 @@ import { type ReactNode, useId } from "react";
 import { Button } from "@anlg/ui/components/ui/button";
 import { Input } from "@anlg/ui/components/ui/input";
 import { Textarea } from "@anlg/ui/components/ui/textarea";
+import { toast } from "@anlg/ui/components/ui/toast";
 
 import { formatProfilePhone } from "./phone";
 
@@ -71,6 +72,12 @@ function ProfileForm({
         ...values,
         phone: formatProfilePhone(values.phone, navigator.language),
       }),
+    // Fork: say so when the profile saves, as Granola's "Profile updated"
+    // toast does; one id, so typing refreshes one toast instead of stacking
+    // (owner test, Oct 4; NN/g heuristic #1, visibility of system status).
+    onSuccess: () => {
+      toast.success(t`Profile updated`, { id: "profile-updated" });
+    },
   });
   const metadataName = auth.session?.user.user_metadata?.full_name;
   // Fork: the email defaults to the Upshot account, not the upstream auth
@@ -255,11 +262,6 @@ function ProfileForm({
             <Trans>Retry</Trans>
           </Button>
         </div>
-      )}
-      {(save.isPending || save.isSuccess) && (
-        <span role="status" className="text-muted-foreground text-sm">
-          {save.isPending ? t`Saving…` : t`Saved`}
-        </span>
       )}
     </form>
   );

@@ -1,6 +1,7 @@
 import { useLingui } from "@lingui/react/macro";
 import { useState } from "react";
 
+import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
 import {
@@ -42,7 +43,15 @@ export function FolderInstructionsField({
         if (value === saved) {
           return;
         }
-        void updateFolderInstructions(folderPath, value);
+        // Fork: say so when the context saves, as Granola confirms edits
+        // with a toast (owner test, Oct 4; NN/g heuristic #1).
+        void Promise.resolve(updateFolderInstructions(folderPath, value))
+          .then(() => {
+            toast.success(t`Folder updated`, { id: "folder-updated" });
+          })
+          .catch(() => {
+            toast.error(t`Couldn't save the folder context. Try again.`);
+          });
       }}
     />
   );

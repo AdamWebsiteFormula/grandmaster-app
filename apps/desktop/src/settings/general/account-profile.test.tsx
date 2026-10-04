@@ -10,6 +10,7 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  toastSuccess: vi.fn(),
   authId: "account-1" as string | null,
   save: vi.fn(),
   contact: {
@@ -22,6 +23,18 @@ const mocks = vi.hoisted(() => ({
   platform: "macos",
 }));
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
+// Owner test, Oct 4: saves are confirmed with a "Profile updated" toast.
+vi.mock("@anlg/ui/components/ui/toast", () => ({
+  toast: Object.assign(vi.fn(), {
+    success: mocks.toastSuccess,
+    error: vi.fn(),
+    info: vi.fn(),
+    message: vi.fn(),
+    warning: vi.fn(),
+    loading: vi.fn(),
+    dismiss: vi.fn(),
+  }),
+}));
 vi.mock("~/upshot-plan", () => ({
   useUpshotAccount: (
     selector: (state: { session: { email: string } | null }) => unknown,
@@ -209,7 +222,11 @@ it("saves the contact fields and photo to the signed-in personal card", async ()
       avatarDataUrl: "data:image/jpeg;base64,photo",
     }),
   );
-  expect(await screen.findByText("Saved")).toBeTruthy();
+  await waitFor(() =>
+    expect(mocks.toastSuccess).toHaveBeenCalledWith("Profile updated", {
+      id: "profile-updated",
+    }),
+  );
 });
 
 it("preserves a failed draft for retry and saves offline info to the local owner", async () => {
@@ -229,7 +246,11 @@ it("preserves a failed draft for retry and saves offline info to the local owner
     "local-owner",
     expect.objectContaining({ name: "Local name" }),
   );
-  expect(await screen.findByText("Saved")).toBeTruthy();
+  await waitFor(() =>
+    expect(mocks.toastSuccess).toHaveBeenCalledWith("Profile updated", {
+      id: "profile-updated",
+    }),
+  );
 });
 
 it("waits for the saved profile and reports read failures without exposing an empty form", () => {
