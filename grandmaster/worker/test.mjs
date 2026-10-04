@@ -1171,7 +1171,7 @@ test("chat: only application/json reaches OpenRouter (no preflight-free POST)", 
   }
 });
 
-test("chat: image and file parts are refused; text parts pass", async () => {
+test("chat: image and file parts are dropped; only text reaches the model", async () => {
   const mock = mockFetch([["https://openrouter.ai/", () => Response.json({})]]);
   try {
     for (const part of [
@@ -1188,9 +1188,30 @@ test("chat: image and file parts are refused; text parts pass", async () => {
         }),
         baseEnv,
       );
-      assert.equal(response.status, 400, JSON.stringify(part));
+      // A note with a pasted picture still gets its summary (owner test,
+      // Oct 4); the picture never leaves the Worker.
+      assert.equal(response.status, 200, JSON.stringify(part));
     }
-    assert.equal(mock.calls.length, 0);
+    assert.equal(mock.calls.length, 4);
+    for (const call of mock.calls) {
+      const sent = JSON.parse(call.init.body);
+      assert.deepEqual(sent.messages[0].content, [{ type: "text", text: "Hi" }]);
+    }
+    const pictureOnly = await worker.fetch(
+      chatRequest({
+        messages: [
+          {
+            role: "user",
+            content: [{ type: "image_url", image_url: { url: "https://x.test/a.png" } }],
+          },
+        ],
+      }),
+      baseEnv,
+    );
+    assert.equal(pictureOnly.status, 200);
+    assert.deepEqual(JSON.parse(mock.calls.at(-1).init.body).messages[0].content, [
+      { type: "text", text: "(image omitted)" },
+    ]);
     const ok = await worker.fetch(
       chatRequest({
         messages: [

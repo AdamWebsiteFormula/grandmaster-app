@@ -111,13 +111,15 @@ export default {
       return json(400, "Invalid request");
     }
     // Text parts only: an image_url or file part makes OpenRouter fetch a
-    // remote file of any size (OWASP LLM10). The app sends text only.
-    const nonText = body.messages.some(
-      (message) =>
-        Array.isArray(message?.content) &&
-        message.content.some((part) => part?.type !== "text"),
-    );
-    if (nonText) return json(400, "Invalid request");
+    // remote file of any size (OWASP LLM10). The app attaches pictures
+    // pasted into a note, so drop every non-text part instead of failing the
+    // summary: only text ever reaches the model.
+    for (const message of body.messages) {
+      if (!message || !Array.isArray(message.content)) continue;
+      const text = message.content.filter((part) => part?.type === "text");
+      message.content =
+        text.length > 0 ? text : [{ type: "text", text: "(image omitted)" }];
+    }
 
     // Only a picked model needs the Pro check (two Supabase reads).
     const wantsPick = body.model !== "Auto" && isProModelSlug(body.model);
