@@ -125,14 +125,17 @@ jobs:
               fi
               echo "Upshot (.deb) was still running after 20 s"
             '
-      - name: Smoke test AppImage (runner, Xvfb, 20 s)
+      - name: Smoke test AppImage (runner, Xvfb, 20 s, screenshot at 15 s)
         run: |
-          sudo apt-get -o Acquire::Retries=5 install -y xvfb dbus-x11
+          sudo apt-get -o Acquire::Retries=5 install -y xvfb dbus-x11 imagemagick
           appimage=$(ls "$OUT_DIR"/*.AppImage)
           chmod +x "$appimage"
+          Xvfb :99 -screen 0 1280x800x24 >/dev/null 2>&1 &
+          export DISPLAY=:99
+          (sleep 15; import -display :99 -window root "$RUNNER_TEMP/upshot-linux-first-run.png" || true) &
           set +e
           ANARLOG_DISABLE_SENTRY=1 APPIMAGE_EXTRACT_AND_RUN=1 \
-            timeout --signal=TERM 20s xvfb-run -a dbus-run-session -- "$appimage" >"$RUNNER_TEMP/appimage.log" 2>&1
+            timeout --signal=TERM 20s dbus-run-session -- "$appimage" >"$RUNNER_TEMP/appimage.log" 2>&1
           status=$?
           set -e
           tail -n 200 "$RUNNER_TEMP/appimage.log"
@@ -141,6 +144,12 @@ jobs:
             exit 1
           fi
           echo "Upshot (AppImage) was still running after 20 s"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: upshot-linux-screenshot
+          path: ${{ runner.temp }}/upshot-linux-first-run.png
+          if-no-files-found: warn
 
   build-windows:
     runs-on: windows-latest
@@ -230,7 +239,17 @@ jobs:
           $log = "$env:RUNNER_TEMP\upshot-out.log"
           $err = "$env:RUNNER_TEMP\upshot-err.log"
           $app = Start-Process -FilePath $exe -PassThru -RedirectStandardOutput $log -RedirectStandardError $err
-          Start-Sleep -Seconds 20
+          Start-Sleep -Seconds 15
+          try {
+            Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+            $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+            $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
+            $g = [System.Drawing.Graphics]::FromImage($bmp)
+            $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
+            $bmp.Save("$env:RUNNER_TEMP\upshot-windows-first-run.png", [System.Drawing.Imaging.ImageFormat]::Png)
+            Write-Host "Saved first-run screenshot"
+          } catch { Write-Host "Screenshot failed: $_" }
+          Start-Sleep -Seconds 5
           $app.Refresh()
           $alive = -not $app.HasExited
           Write-Host "--- stdout"; Get-Content $log -ErrorAction SilentlyContinue | Select-Object -Last 100
@@ -239,3 +258,9 @@ jobs:
           if (-not $alive) { throw "Upshot exited before 20 s with code $($app.ExitCode)" }
           Write-Host "Upshot (Windows) was still running after 20 s"
           Stop-Process -Name upshot -Force -ErrorAction SilentlyContinue
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: upshot-windows-screenshot
+          path: ${{ runner.temp }}/upshot-windows-first-run.png
+          if-no-files-found: warn
