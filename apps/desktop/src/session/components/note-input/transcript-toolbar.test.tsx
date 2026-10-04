@@ -72,13 +72,8 @@ vi.mock("~/stt/contexts", () => ({
 
 import { TranscriptToolbar } from "./transcript-toolbar";
 
-import type { EditorView } from "~/store/zustand/tabs/schema";
-
-const summary = { type: "enhanced", id: "note-1" } as EditorView;
-const transcript = { type: "transcript" } as EditorView;
-
-// Fork: one h-8 row under the player with a way back to the summary
-// (redline-oct3, H2).
+// Fork: one h-8 row under the player (redline-oct3, H2); the way back to
+// the summary is the bar's Transcript button (owner test, Oct 4).
 describe("TranscriptToolbar", () => {
   afterEach(() => {
     cleanup();
@@ -116,14 +111,14 @@ describe("TranscriptToolbar", () => {
     ).toBeNull();
   });
 
-  it("keeps the view switch, language, search, edit and copy in one h-8 row", () => {
+  // Owner test, Oct 4: no Summary / Transcript switch here; the bar's one
+  // Transcript button switches views, as in Granola.
+  it("keeps language, search, edit and copy in one h-8 row, with no view switch", () => {
     render(
       <TranscriptToolbar
         sessionId="session-1"
         editMode={false}
         onEditModeChange={vi.fn()}
-        editorTabs={[summary, transcript]}
-        onSelectView={vi.fn()}
       />,
     );
 
@@ -134,8 +129,6 @@ describe("TranscriptToolbar", () => {
         (button) => button.getAttribute("aria-label") ?? button.textContent,
       ),
     ).toEqual([
-      "Summary",
-      "Transcript",
       "English +1",
       "Search transcript",
       "Edit transcript",
@@ -154,44 +147,6 @@ describe("TranscriptToolbar", () => {
     const search = screen.getByRole("button", { name: "Search transcript" });
     expect(search.getAttribute("title")).toBe(title);
     expect(search.getAttribute("aria-keyshortcuts")).toBe(aria);
-  });
-
-  it("goes back to the summary", () => {
-    const onSelectView = vi.fn();
-    render(
-      <TranscriptToolbar
-        sessionId="session-1"
-        editMode={false}
-        editorTabs={[{ type: "raw" } as EditorView, summary, transcript]}
-        onSelectView={onSelectView}
-      />,
-    );
-
-    expect(screen.getByRole("button", { name: "Transcript" }).ariaPressed).toBe(
-      "true",
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Summary" }));
-
-    expect(onSelectView).toHaveBeenCalledWith(summary);
-  });
-
-  // redline2-oct3 R2: a small switch with a quiet selected pill.
-  it("draws a small switch with a quiet selected segment", () => {
-    render(
-      <TranscriptToolbar
-        sessionId="session-1"
-        editMode={false}
-        editorTabs={[summary, transcript]}
-        onSelectView={vi.fn()}
-      />,
-    );
-
-    const selected = screen.getByRole("button", { name: "Transcript" });
-    expect(selected.className).toContain("h-6");
-    expect(selected.className).toContain("px-2");
-    expect(selected.className).toContain("text-xs");
-    expect(selected.className).toContain("bg-background");
-    expect(selected.className).not.toContain("bg-foreground");
   });
 
   it("changes the language in place instead of opening Settings", async () => {

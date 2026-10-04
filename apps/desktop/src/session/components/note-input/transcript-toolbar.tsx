@@ -27,7 +27,6 @@ import { MainLanguageView } from "~/settings/general/main-language";
 import { useSetSettingValues } from "~/settings/queries";
 import { useConfigValue } from "~/shared/config";
 import { ariaKeyShortcut, shortcutLabel } from "~/shared/shortcut-label";
-import type { EditorView } from "~/store/zustand/tabs/schema";
 import { useListener } from "~/stt/contexts";
 
 const toolbarButtonClassName = cn([
@@ -36,35 +35,26 @@ const toolbarButtonClassName = cn([
   "aria-pressed:bg-accent aria-pressed:text-foreground",
 ]);
 
-// Fork: a small switch with a quiet selected pill: the page background with
-// a field border (3:1 or more on the track, WCAG 2.2 SC 1.4.11), not a solid
-// white pill (redline2-oct3, R2).
-const segmentClassName = cn([
-  "inline-flex h-6 cursor-pointer items-center rounded-full px-2 text-xs font-medium transition-colors",
-  "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
-]);
-
 const languageChipClassName = cn([
   "text-muted-foreground hover:bg-accent hover:text-foreground inline-flex h-7 max-w-40 min-w-0 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-xs whitespace-nowrap transition-colors",
   "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
 ]);
 
-// Fork: one h-8 row under the audio player. On the left a Summary /
-// Transcript switch, so the way back to the summary is always in view; on
-// the right language, search, edit and copy together (redline-oct3, H2; Granola's
-// transcript bar keeps its tools in one slim row, granola-compare-oct3 §2).
+// Fork: one h-8 row under the audio player with language, search, edit and
+// copy together (redline-oct3, H2; Granola's transcript bar keeps its tools in
+// one slim row, granola-compare-oct3 §2). No Summary / Transcript switch: it
+// vanished once used, and the bar's one Transcript button already switches
+// and names the way back, as Granola's single transcript button does (owner
+// test, Oct 4; Granola Help Center, "How transcription works"; NN/g, "Tabs,
+// Used Right"; NN/g heuristic #8).
 export function TranscriptToolbar({
   sessionId,
   editMode,
   onEditModeChange,
-  editorTabs = [],
-  onSelectView,
 }: {
   sessionId: string;
   editMode: boolean;
   onEditModeChange?: (editMode: boolean) => void;
-  editorTabs?: EditorView[];
-  onSelectView?: (view: EditorView) => void;
 }) {
   const { t } = useLingui();
   const search = useSearch();
@@ -76,9 +66,6 @@ export function TranscriptToolbar({
   const searchLabel = t`Search transcript`;
   const copyLabel = t`Copy transcript`;
   const editLabel = editMode ? t`Done editing` : t`Edit transcript`;
-  const notesView =
-    editorTabs.find((view) => view.type === "enhanced") ??
-    editorTabs.find((view) => view.type !== "transcript");
 
   return (
     <div
@@ -87,39 +74,6 @@ export function TranscriptToolbar({
       data-transcript-toolbar
       className="mx-auto mb-2 flex h-8 w-full max-w-[680px] shrink-0 items-center gap-1"
     >
-      {notesView && onSelectView ? (
-        <div
-          role="group"
-          aria-label={t`View`}
-          data-transcript-view-switch
-          // Fork: a white track in light, so the switch reads as a control on
-          // the 96% panel, while the selected pill keeps its 3:1 edge (Apple
-          // HIG, Segmented controls; WCAG 2.2 SC 1.4.11).
-          className="bg-card dark:bg-muted inline-flex h-7 items-center gap-0.5 rounded-full p-0.5"
-        >
-          <button
-            type="button"
-            aria-pressed={false}
-            onClick={() => onSelectView(notesView)}
-            className={cn([
-              segmentClassName,
-              "text-muted-foreground hover:text-foreground",
-            ])}
-          >
-            {notesView.type === "enhanced" ? t`Summary` : t`Notes`}
-          </button>
-          <button
-            type="button"
-            aria-pressed
-            className={cn([
-              segmentClassName,
-              "bg-background text-foreground ring-input ring-1 ring-inset",
-            ])}
-          >
-            {t`Transcript`}
-          </button>
-        </div>
-      ) : null}
       <div className="flex-1" />
       {/* Fork: Resume lives in the note's bottom bar (redline3 S3), so the
           toolbar no longer repeats it. */}

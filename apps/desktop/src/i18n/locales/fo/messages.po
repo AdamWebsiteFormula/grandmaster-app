@@ -4857,7 +4857,6 @@ msgstr ""
 #: src/contacts/details.tsx
 #: src/folders/folder-notes.tsx
 #: src/home/home-view.tsx
-#: src/session/components/note-input/transcript-toolbar.tsx
 #: src/shared/keyboard-shortcuts-dialog.tsx
 msgid "Notes"
 msgstr ""
@@ -7122,7 +7121,6 @@ msgstr ""
 #: src/contacts/details.tsx
 #: src/edit/tab-content.tsx
 #: src/session/components/floating/index.tsx
-#: src/session/components/note-input/transcript-toolbar.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
 #: src/settings/automations/markdown-export-options.tsx
 msgid "Summary"
@@ -8278,7 +8276,6 @@ msgid "Version history"
 msgstr ""
 
 #: src/main/windows-title-bar.tsx
-#: src/session/components/note-input/transcript-toolbar.tsx
 #: src/settings/team/invitation-toast.tsx
 msgid "View"
 msgstr ""

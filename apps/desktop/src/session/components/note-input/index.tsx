@@ -506,8 +506,6 @@ const NoteInputContent = forwardRef<
                     sessionId={sessionId}
                     editMode={transcriptEditMode}
                     onEditModeChange={onTranscriptEditModeChange}
-                    editorTabs={editorTabs}
-                    onSelectView={handleTabChange}
                   />
                 )}
                 <div className="min-h-0 flex-1">
