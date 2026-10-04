@@ -5,7 +5,10 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{DetectEvent, ProcessorState, env::Env, timer_registry::TimerRegistry};
 
-pub(crate) const DEFAULT_MIC_ACTIVE_THRESHOLD_SECS: u64 = 15;
+// Fork: ask about one second after a meeting app turns the mic on, as
+// Granola does, instead of 15 s into the meeting (owner test, Oct 4; Granola
+// Help Center, "Notifications": it prompts when it detects the mic in use).
+pub(crate) const DEFAULT_MIC_ACTIVE_THRESHOLD_SECS: u64 = 1;
 pub(crate) const COOLDOWN_DURATION: Duration = Duration::from_mins(10);
 
 #[derive(Default)]

@@ -345,6 +345,9 @@ export function NotificationSettingsView() {
                                         <SelectValue />
                                       </SelectTrigger>
                                       <SelectContent align="end">
+                                        <SelectItem value="1">
+                                          <Trans>1 second</Trans>
+                                        </SelectItem>
                                         <SelectItem value="5">
                                           <Trans>5 seconds</Trans>
                                         </SelectItem>

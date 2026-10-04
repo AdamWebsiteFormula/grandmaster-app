@@ -303,7 +303,9 @@ export const SETTING_DEFINITIONS = {
   mic_active_threshold: {
     type: "number",
     path: ["notification", "mic_active_threshold"],
-    default: 15 as number,
+    // Fork: ask about 1 s after a meeting app turns the mic on, as Granola
+    // does, not 15 s into the meeting (owner test, Oct 4).
+    default: 1 as number,
   },
   current_llm_provider: {
     type: "string",

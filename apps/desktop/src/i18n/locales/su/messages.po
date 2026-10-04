@@ -288,6 +288,10 @@ msgstr ""
 msgid "1 record is waiting for an app update"
 msgstr ""
 
+#: src/settings/general/notification.tsx
+msgid "1 second"
+msgstr ""
+
 #: src/settings/general/audio-settings.tsx
 msgid "1 week"
 msgstr ""

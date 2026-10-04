@@ -288,6 +288,10 @@ msgstr "1 record is too large to apply"
 msgid "1 record is waiting for an app update"
 msgstr "1 record is waiting for an app update"
 
+#: src/settings/general/notification.tsx
+msgid "1 second"
+msgstr "1 second"
+
 #: src/settings/general/audio-settings.tsx
 msgid "1 week"
 msgstr "1 week"
