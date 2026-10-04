@@ -10,12 +10,14 @@ import { ArrowUp, CaretRight, Chat } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
 import { useOptionalAuth } from "~/auth";
+import { ChatPanelFrame } from "~/chat/components/chat-panel";
 import { ChatModelMenu } from "~/chat/components/input/model-menu";
 import {
   chatPageRecipes,
   RECIPE_CHIP_CLASS,
   RecipeRow,
 } from "~/chat/components/recipes";
+import { useChatSessionProps } from "~/chat/components/session-props-context";
 import { queueChatPrompt } from "~/chat/pending-prompt";
 import { type ChatGroupRecord, useChatGroups } from "~/chat/store/queries";
 import { usePersonalContact } from "~/contacts/queries";
@@ -73,6 +75,7 @@ export function compactAge(fromMs: number, nowMs = Date.now()) {
 export function ChatPage() {
   const { t } = useLingui();
   const { chat } = useShell();
+  const sessionProps = useChatSessionProps();
   const email = useUpshotAccount((state) => state.session?.email ?? null);
   // Fork: the Profile name first, as the Settings header does
   // (sidebar/settings.tsx), then the email rule (journey-after P3 "Chat page
@@ -132,6 +135,25 @@ export function ChatPage() {
 
   const recents = showAll ? groups : groups.slice(0, CHAT_RECENTS_LIMIT);
   const recipes = chatPageRecipes();
+
+  // Fork: a chat opened here (sent, a recipe, or a recent) stays in this
+  // page's column, as ChatGPT and Claude keep a conversation where you typed
+  // it; the right panel stays closed on this page (owner test, Oct 4:
+  // "jarring"; NN/g #4). All chats returns to Recents and Recipes.
+  if (chat.mode === "RightPanelOpen") {
+    return (
+      <div
+        data-chat-page-conversation
+        className="mx-auto flex h-full min-h-0 w-full max-w-[760px] flex-col px-4"
+      >
+        <ChatPanelFrame
+          layout="page"
+          onBack={() => chat.sendEvent({ type: "CLOSE" })}
+          sessionProps={sessionProps}
+        />
+      </div>
+    );
+  }
 
   return (
     <div

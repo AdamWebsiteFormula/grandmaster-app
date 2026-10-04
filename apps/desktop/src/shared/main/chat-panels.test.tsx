@@ -103,12 +103,10 @@ vi.mock("~/store/zustand/tabs", () => ({
 vi.mock("~/chat/components/chat-panel", () => ({
   ChatPanelFrame: ({
     layout,
-    onBack,
     onOpenFloating,
     sessionProps,
   }: {
-    layout?: "floating" | "right-panel" | "page";
-    onBack?: () => void;
+    layout?: "floating" | "right-panel";
     onOpenFloating?: () => void;
     sessionProps: unknown;
   }) => (
@@ -117,7 +115,7 @@ vi.mock("~/chat/components/chat-panel", () => ({
       data-layout={layout}
       data-testid="chat-view"
       type="button"
-      onClick={onBack ?? onOpenFloating}
+      onClick={onOpenFloating}
     >
       Chat
     </button>
@@ -144,6 +142,7 @@ vi.mock("~/chat/components/persistent-chat", () => ({
 
 import { MainChatPanels } from "./chat-panels";
 
+import { useChatSessionProps } from "~/chat/components/session-props-context";
 import { ZOOM_STORAGE_KEY } from "~/shared/zoom";
 
 let restorePanelWidths: (() => void) | null = null;
@@ -200,39 +199,75 @@ describe("MainChatPanels", () => {
   });
 
   // Owner test, Oct 4: sending on the Chat page moved the conversation to
-  // the right panel ("jarring").
-  it("keeps an open chat in the Chat page's column, with no right panel", () => {
+  // the right panel ("jarring"). The page draws it; the body, sidebar
+  // included, stays.
+  it("keeps the right panel closed on the Chat page and shares the session", () => {
     mocks.chatMode = "RightPanelOpen";
     mocks.currentTab = { type: "chat" };
 
+    function SessionProbe() {
+      const sessionProps = useChatSessionProps();
+      return (
+        <div
+          data-testid="main-content"
+          data-has-session={String(sessionProps === mocks.sessionProps)}
+        />
+      );
+    }
+
     render(
       <MainChatPanels>
-        <div data-testid="main-content" />
+        <SessionProbe />
       </MainChatPanels>,
     );
 
-    expect(screen.queryByTestId("main-content")).toBeNull();
+    expect(screen.getByTestId("main-content").dataset.hasSession).toBe("true");
     expect(screen.getAllByTestId("panel")).toHaveLength(1);
     expect(screen.queryByTestId("resize-handle")).toBeNull();
-    const view = screen.getByTestId("chat-view");
-    expect(view.dataset.layout).toBe("page");
-    expect(view.closest("[data-chat-page-conversation]")).not.toBeNull();
-
-    fireEvent.click(view);
-    expect(mocks.sendEvent).toHaveBeenCalledWith({ type: "CLOSE" });
+    expect(screen.queryByTestId("chat-view")).toBeNull();
   });
 
-  it("shows the Chat page itself while no chat is open", () => {
+  // Owner test, Oct 4: going Home from the Chat page moved the open chat into
+  // the right panel and shut the sidebar.
+  it("closes a Chat page conversation when you leave the page", () => {
+    mocks.chatMode = "RightPanelOpen";
     mocks.currentTab = { type: "chat" };
+    const { rerender } = render(
+      <MainChatPanels>
+        <div data-testid="main-content" />
+      </MainChatPanels>,
+    );
+    expect(mocks.sendEvent).not.toHaveBeenCalled();
 
-    render(
+    mocks.currentTab = { type: "empty" };
+    rerender(
       <MainChatPanels>
         <div data-testid="main-content" />
       </MainChatPanels>,
     );
 
-    expect(screen.getByTestId("main-content")).toBeTruthy();
-    expect(screen.queryByTestId("chat-view")).toBeNull();
+    expect(mocks.sendEvent).toHaveBeenCalledWith({ type: "CLOSE" });
+    expect(screen.queryByTestId("resize-handle")).toBeNull();
+    expect(mocks.setLeftSidebarExpanded).not.toHaveBeenCalled();
+  });
+
+  it("keeps a chat docked when you come to the Chat page from Home", () => {
+    mocks.chatMode = "RightPanelOpen";
+    mocks.currentTab = { type: "empty" };
+    const { rerender } = render(
+      <MainChatPanels>
+        <div data-testid="main-content" />
+      </MainChatPanels>,
+    );
+
+    mocks.currentTab = { type: "chat" };
+    rerender(
+      <MainChatPanels>
+        <div data-testid="main-content" />
+      </MainChatPanels>,
+    );
+
+    expect(mocks.sendEvent).not.toHaveBeenCalledWith({ type: "CLOSE" });
   });
 
   it("keeps Automations chat docked without a floating chat host", () => {

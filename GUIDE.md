@@ -182,7 +182,7 @@ A template sets the shape of the summary. Upshot comes with 9, including general
 
 Ask questions about your meetings in plain words.
 
-- **Across all meetings:** type in the chat box on **Home**, or click **Chat** in the sidebar. The Chat page keeps your recent chats and has ready-made recipes.
+- **Across all meetings:** type in the chat box on **Home**, or click **Chat** in the sidebar. The Chat page keeps your recent chats and has ready-made recipes. On the Chat page, the answer shows on the same page. Click **All chats** to go back to your recent chats.
 - **About one meeting:** open the note and click **Ask anything** (⌘J or Ctrl+J).
 
 The model menu in each chat box says **Auto**. Auto uses Claude Sonnet 5.5. To pick a different model, see [Try Pro](#14-try-pro-test-card-no-real-money).
@@ -196,7 +196,7 @@ The model menu in each chat box says **Auto**. Auto uses Claude Sonnet 5.5. To p
 
 **Add a note to a folder.** Right-click the note in the list, then click **Add to folder…**. Or open the note and click **Add to folder** under its title.
 
-**Rename or delete a folder.** Open the folder, click **Folder actions** (⋯), then click **Rename** or **Delete**.
+**Rename or delete a folder.** Right-click the folder in the sidebar, then click **Rename…** or **Delete…**. Or open the folder, click **Folder actions** (⋯), then click **Rename** or **Delete**.
 
 **Search.** Press ⌘K (Ctrl+K on Windows and Linux), or click **Search** in the sidebar. Search looks inside your notes and your settings.
 

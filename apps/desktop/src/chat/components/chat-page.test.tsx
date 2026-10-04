@@ -25,6 +25,7 @@ const mocks = vi.hoisted(() => ({
   email: null as string | null,
   profileName: null as string | null,
   queueChatPrompt: vi.fn(),
+  sessionProps: { messages: [] } as unknown,
 }));
 
 vi.mock("~/auth", () => ({ useOptionalAuth: () => null }));
@@ -46,6 +47,30 @@ vi.mock("~/chat/pending-prompt", () => ({
 }));
 vi.mock("~/chat/components/input/model-menu", () => ({
   ChatModelMenu: () => <button type="button">Auto</button>,
+}));
+vi.mock("~/chat/components/chat-panel", () => ({
+  ChatPanelFrame: ({
+    layout,
+    onBack,
+    sessionProps,
+  }: {
+    layout?: string;
+    onBack?: () => void;
+    sessionProps: unknown;
+  }) => (
+    <button
+      type="button"
+      data-testid="chat-conversation"
+      data-layout={layout}
+      data-has-session={String(sessionProps === mocks.sessionProps)}
+      onClick={onBack}
+    >
+      All chats
+    </button>
+  ),
+}));
+vi.mock("~/chat/components/session-props-context", () => ({
+  useChatSessionProps: () => mocks.sessionProps,
 }));
 vi.mock("~/shared/main", () => ({
   StandardContentWrapper: ({ children }: { children: React.ReactNode }) =>
@@ -215,8 +240,27 @@ describe("ChatPage", () => {
   });
 
   // Fork: journey-after P1 "Chat page": one composer at a time.
-  it("hides the greeting and composer while a chat is open", () => {
+  // Owner test, Oct 4: the conversation stays in the page, not the right
+  // panel.
+  it("shows an open chat in the page's own column, with All chats", () => {
     mocks.chat.mode = "RightPanelOpen";
+    mocks.groups = [group(1, 1)];
+    render(<ChatPage />);
+
+    const conversation = screen.getByTestId("chat-conversation");
+    expect(conversation.dataset.layout).toBe("page");
+    expect(conversation.dataset.hasSession).toBe("true");
+    expect(
+      conversation.closest("[data-chat-page-conversation]"),
+    ).not.toBeNull();
+    expect(screen.queryByRole("heading", { name: "Recents" })).toBeNull();
+
+    fireEvent.click(conversation);
+    expect(mocks.chat.sendEvent).toHaveBeenCalledWith({ type: "CLOSE" });
+  });
+
+  it("hides the greeting and composer while a floating chat is open", () => {
+    mocks.chat.mode = "FloatingOpen";
     mocks.groups = [group(1, 1)];
     render(<ChatPage />);
 
@@ -227,7 +271,7 @@ describe("ChatPage", () => {
   });
 
   it("continues the open chat when a recipe is picked", () => {
-    mocks.chat.mode = "RightPanelOpen";
+    mocks.chat.mode = "FloatingOpen";
     render(<ChatPage />);
 
     fireEvent.click(

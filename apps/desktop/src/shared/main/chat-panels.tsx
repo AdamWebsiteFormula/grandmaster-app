@@ -18,6 +18,7 @@ import {
 
 import { ChatPanelFrame, ChatSessionHost } from "~/chat/components/chat-panel";
 import { PersistentChatPanel } from "~/chat/components/persistent-chat";
+import { ChatSessionPropsContext } from "~/chat/components/session-props-context";
 import { useShell } from "~/contexts/shell";
 import { readZoomFactor } from "~/shared/zoom";
 import { type Tab, useTabs } from "~/store/zustand/tabs";
@@ -43,11 +44,32 @@ export function MainChatPanels({
   const isChatDocked = isAutomationsTab || chat.mode === "RightPanelOpen";
   // Fork: on the Chat page an open chat fills the page's own column instead
   // of jumping to the right panel, as ChatGPT and Claude keep a conversation
-  // where you typed it (owner test, Oct 4: "jarring"; NN/g #4). Other pages
-  // keep the right panel.
+  // where you typed it (owner test, Oct 4: "jarring"; NN/g #4). The page
+  // draws it (chat-page.tsx); other pages keep the right panel.
   const chatOnPage =
     currentTab?.type === "chat" && chat.mode === "RightPanelOpen";
-  const isRightPanelOpen = isChatDocked && !chatOnPage;
+  // Fork: a chat open on the Chat page belongs to that page. Leaving the page
+  // closes it (it stays in Recents), so it never jumps into the right panel
+  // and pushes the sidebar shut, as ChatGPT and Claude leave a conversation
+  // behind when you go elsewhere (owner test, Oct 4). The panel stays hidden
+  // for the render that leaves, before the close lands.
+  const previousTabTypeRef = useRef(currentTab?.type);
+  const leavingChatPage =
+    previousTabTypeRef.current === "chat" &&
+    currentTab?.type !== "chat" &&
+    chat.mode === "RightPanelOpen";
+  const isRightPanelOpen = isChatDocked && !chatOnPage && !leavingChatPage;
+  useLayoutEffect(() => {
+    const previousTabType = previousTabTypeRef.current;
+    previousTabTypeRef.current = currentTab?.type;
+    if (
+      previousTabType === "chat" &&
+      currentTab?.type !== "chat" &&
+      chat.mode === "RightPanelOpen"
+    ) {
+      chat.sendEvent({ type: "CLOSE" });
+    }
+  }, [currentTab?.type, chat]);
   const leftSidebarExpanded = leftSidebarAvailable && leftsidebar.expanded;
   const reserveNoteSurfaceMinWidth = usesNoteSurfaceMinWidth(currentTab);
   const collapseLeftSidebar = useCallback(() => {
@@ -91,20 +113,9 @@ export function MainChatPanels({
                 data-main-body-panel-container
                 className="h-full min-h-0 min-w-0 flex-1 overflow-hidden"
               >
-                {chatOnPage ? (
-                  <div
-                    data-chat-page-conversation
-                    className="mx-auto flex h-full min-h-0 w-full max-w-[760px] flex-col px-4"
-                  >
-                    <ChatPanelFrame
-                      layout="page"
-                      onBack={() => chat.sendEvent({ type: "CLOSE" })}
-                      sessionProps={sessionProps}
-                    />
-                  </div>
-                ) : (
-                  children
-                )}
+                <ChatSessionPropsContext.Provider value={sessionProps}>
+                  {children}
+                </ChatSessionPropsContext.Provider>
               </div>
             </ResizablePanel>
             {isRightPanelOpen ? (
