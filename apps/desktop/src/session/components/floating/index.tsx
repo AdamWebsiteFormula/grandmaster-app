@@ -211,19 +211,25 @@ function TranscriptToggle({
 
   // Fork: a real tooltip naming the action, since the bars icon alone does
   // not say what it does (redline2-oct3, R2; HIG: help tags name the action).
+  // Owner review, Oct 3: the icon-only toggle was hard to find, so it shows
+  // a visible "Transcript" label (NN/g "Icon Usability": label icons; Apple
+  // HIG Buttons: add a label when an icon's meaning isn't obvious). The name
+  // stays "Transcript" and aria-pressed carries the state (WAI-ARIA APG
+  // Button: a toggle's label does not change with its state). Under 480 px
+  // the label drops to the icon plus tooltip, like Resume.
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           <button
             type="button"
-            aria-label={label}
+            data-transcript-toggle
             aria-pressed={showingTranscript}
             onClick={handleClick}
             className={cn([
               // Fork: a segment inside the one bar, not its own pill
               // (redline3 S3).
-              "text-foreground hover:bg-accent inline-flex h-8 shrink-0 cursor-pointer items-center justify-center gap-0.5 rounded-full px-2.5 transition-colors",
+              "text-foreground hover:bg-accent inline-flex h-8 shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-full px-2.5 text-sm font-medium whitespace-nowrap transition-colors @max-[480px]:gap-0.5",
               "focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
               showingTranscript && "bg-accent",
             ])}
@@ -235,6 +241,7 @@ function TranscriptToggle({
               // (redline-oct3, H2).
               <TranscriptAudioIcon />
             )}
+            <span className="@max-[480px]:sr-only">{t`Transcript`}</span>
             <CaretDown
               aria-hidden
               className={cn([

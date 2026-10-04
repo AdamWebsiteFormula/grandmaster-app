@@ -182,10 +182,15 @@ export const SETTING_DEFINITIONS = {
     path: ["notification", "recording"],
     default: true as boolean,
   },
+  // Fork: off by default. Granola's Mac app is silent; it chimes only on
+  // Apple Watch, where the screen isn't in view (docs.granola.ai/help-center/
+  // ios/apple-watch). Owner decision, Oct 3: Upshot makes no sounds, so the
+  // toggle is gone and playCompletionSound is a no-op. Key kept for stored
+  // settings compatibility.
   notification_completion_sound: {
     type: "boolean",
     path: ["notification", "completion_sound"],
-    default: true as boolean,
+    default: false as boolean,
   },
   notification_completion_sound_name: {
     type: "string",

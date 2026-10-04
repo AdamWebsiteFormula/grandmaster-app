@@ -653,6 +653,10 @@ msgstr ""
 msgid "AI-generated summary of all interactions and notes with this contact will appear here. This will synthesize key discussion points, action items, and relationship context across all meetings and notes."
 msgstr ""
 
+#: src/sidebar/settings-nav-groups.ts
+msgid "alerts, reminders, Do Not Disturb, meeting detected, bounce"
+msgstr ""
+
 #: src/settings/developers/webhooks.tsx
 msgid "All events"
 msgstr ""
@@ -755,6 +759,7 @@ msgid "App"
 msgstr "Kuutorgal"
 
 #: src/settings/appearance/app-icon.tsx
+#: src/settings/general/notification.tsx
 msgid "App icon"
 msgstr ""
 
@@ -1028,10 +1033,6 @@ msgstr ""
 msgid "Blank note"
 msgstr ""
 
-#: src/settings/general/notification.tsx
-msgid "Bloom"
-msgstr ""
-
 #: src/settings/appearance/app-icon.tsx
 msgid "Blueprint"
 msgstr ""
@@ -1302,10 +1303,6 @@ msgstr ""
 msgid "Checkout opens in your browser."
 msgstr ""
 
-#: src/settings/general/notification.tsx
-msgid "Chime"
-msgstr ""
-
 #: src/sidebar/toast/registry.tsx
 msgid "Choose"
 msgstr ""
@@ -1404,10 +1401,6 @@ msgstr ""
 
 #: src/folders/folder-editor.tsx
 msgid "Choose folder icon"
-msgstr ""
-
-#: src/settings/general/notification.tsx
-msgid "Choose from five completion sounds."
 msgstr ""
 
 #: src/settings/automations/google-drive-config.tsx
@@ -1682,10 +1675,6 @@ msgstr ""
 
 #: src/instruction/index.tsx
 msgid "Complete sign-in in your browser, then return to Upshot."
-msgstr ""
-
-#: src/settings/general/notification.tsx
-msgid "Completion sound"
 msgstr ""
 
 #: src/composer/index.tsx
@@ -4385,10 +4374,6 @@ msgstr ""
 msgid "Move Upshot to Applications"
 msgstr ""
 
-#: src/onboarding/index.tsx
-msgid "Mute music"
-msgstr ""
-
 #: src/sidebar/automations.tsx
 msgid "My automations"
 msgstr ""
@@ -5269,16 +5254,8 @@ msgstr ""
 msgid "Play"
 msgstr ""
 
-#: src/settings/general/notification.tsx
-msgid "Play a sound when a transcript or summary is ready."
-msgstr ""
-
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 msgid "Play from here"
-msgstr ""
-
-#: src/onboarding/index.tsx
-msgid "Play music"
 msgstr ""
 
 #: src/shared/keyboard-shortcuts-dialog.tsx
@@ -5356,7 +5333,6 @@ msgstr ""
 
 #: src/settings/ai/shared/model-combobox.tsx
 #: src/settings/automations/index.tsx
-#: src/settings/general/notification.tsx
 msgid "Preview"
 msgstr ""
 
@@ -5491,10 +5467,6 @@ msgstr ""
 
 #: src/chat/components/message/tool/generic.tsx
 msgid "Reading the transcript…"
-msgstr ""
-
-#: src/settings/general/notification.tsx
-msgid "Ready"
 msgstr ""
 
 #: src/settings/dictation.tsx
@@ -6875,22 +6847,6 @@ msgstr ""
 msgid "Sort templates"
 msgstr ""
 
-#: src/settings/general/notification.tsx
-msgid "Sound"
-msgstr ""
-
-#: src/settings/general/notification.tsx
-msgid "Sound and Dock"
-msgstr ""
-
-#: src/sidebar/settings-nav-groups.ts
-msgid "sound, alerts, reminders, Do Not Disturb, meeting detected"
-msgstr ""
-
-#: src/settings/general/notification.tsx
-msgid "Sparkle"
-msgstr ""
-
 #: src/settings/dictation.tsx
 msgid "Speak into the focused text field in your apps. Your transcript appears when you finish."
 msgstr ""
@@ -7079,10 +7035,6 @@ msgstr ""
 
 #: src/instruction/index.tsx
 msgid "Submit callback URL"
-msgstr ""
-
-#: src/settings/general/notification.tsx
-msgid "Success"
 msgstr ""
 
 #: src/main/windows-title-bar.tsx
@@ -7562,6 +7514,7 @@ msgstr ""
 msgid "Transcribing…"
 msgstr ""
 
+#: src/session/components/floating/index.tsx
 #: src/session/components/note-input/header-transcript.tsx
 #: src/session/components/note-input/transcript-toolbar.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx

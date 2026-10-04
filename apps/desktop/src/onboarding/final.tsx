@@ -4,7 +4,6 @@ import { platform } from "@tauri-apps/plugin-os";
 import { useRef, useState } from "react";
 
 import { commands as analyticsCommands } from "@anlg/plugin-analytics";
-import { commands as sfxCommands } from "@anlg/plugin-sfx";
 import { CircleNotch } from "@anlg/ui/components/icons";
 
 import { seedExampleSessionOnce } from "./example-note";
@@ -159,7 +158,6 @@ export async function finishOnboarding(
   onContinue?: (sessionId: string) => void,
   welcomeSessionRef?: { current: string | null },
 ) {
-  await sfxCommands.stop("BGM").catch(console.error);
   // Seed the example first so the welcome note stays on top of the list.
   // Never blocks finishing.
   await seedExampleSessionOnce().catch((error) => {

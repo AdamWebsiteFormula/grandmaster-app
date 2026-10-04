@@ -11,12 +11,11 @@ vi.mock("~/store/zustand/tabs", () => ({
 }));
 
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => "macos" }));
-vi.mock("@anlg/plugin-sfx", () => ({
-  commands: {
-    play: vi.fn(() => Promise.resolve()),
-    stop: vi.fn(() => Promise.resolve()),
-  },
+const sfxMocks = vi.hoisted(() => ({
+  play: vi.fn(() => Promise.resolve()),
+  stop: vi.fn(() => Promise.resolve()),
 }));
+vi.mock("@anlg/plugin-sfx", () => ({ commands: sfxMocks }));
 vi.mock("~/analytics", () => ({ trackAnalyticsEvent: vi.fn() }));
 vi.mock("~/auth", () => ({ useAuth: () => ({ signIn: vi.fn() }) }));
 vi.mock("~/shared/window-shell", () => ({
@@ -188,15 +187,18 @@ describe("StandaloneOnboardingScreen", () => {
     expect(screen.getByText("Step 2 of 5")).toBeTruthy();
   });
 
-  it("names the music toggle by what it does", () => {
+  // Fork: Upshot makes no sounds, so onboarding has no music or toggle.
+  it("plays no background music and offers no music toggle", () => {
     render(
       <QueryClientProvider client={new QueryClient()}>
         <StandaloneOnboardingScreen onFinish={vi.fn()} />
       </QueryClientProvider>,
     );
 
-    expect(screen.getByRole("button", { name: "Play music" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Play music" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Mute music" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
+    expect(sfxMocks.play).not.toHaveBeenCalled();
   });
 
   it("says meeting history was skipped when the import step is skipped", () => {

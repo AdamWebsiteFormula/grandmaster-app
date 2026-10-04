@@ -1,12 +1,9 @@
-import { Trans, useLingui } from "@lingui/react/macro";
+import { Trans } from "@lingui/react/macro";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { platform } from "@tauri-apps/plugin-os";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { commands as sfxCommands } from "@anlg/plugin-sfx";
-import { SpeakerHigh, SpeakerX } from "@anlg/ui/components/icons";
 import { DancingSticks } from "@anlg/ui/components/ui/dancing-sticks";
-import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 import { cn } from "@anlg/utils";
 
 import { LoginSection } from "./account";
@@ -90,11 +87,8 @@ function OnboardingScreenContent({
   headerClassName: string;
   headerDragRegion?: boolean;
 }) {
-  const { t } = useLingui();
   const queryClient = useQueryClient();
   const auth = useAuth();
-  // Fork: start muted; the speaker button turns the music on.
-  const [isMuted, setIsMuted] = useState(true);
   const [currentStep, setCurrentStep] = useState(getInitialStep);
   const [didSkipLogin, setDidSkipLogin] = useState(false);
   const [didSkipImports, setDidSkipImports] = useState(false);
@@ -194,23 +188,6 @@ function OnboardingScreenContent({
     });
   }, [currentPlatform, currentStep]);
 
-  useMountEffect(() => {
-    return () => {
-      sfxCommands.stop("BGM").catch(console.error);
-    };
-  });
-
-  useEffect(() => {
-    if (isMuted) {
-      sfxCommands.stop("BGM").catch(console.error);
-      return;
-    }
-    sfxCommands
-      .play("BGM")
-      .then(() => sfxCommands.setVolume("BGM", 0.2))
-      .catch(console.error);
-  }, [isMuted]);
-
   const handleFinish = useCallback(
     (sessionId: string) => {
       trackAnalyticsEvent("onboarding_step_completed", {
@@ -244,20 +221,9 @@ function OnboardingScreenContent({
         data-tauri-drag-region={headerDragRegion || undefined}
         className="relative z-30 flex h-12 shrink-0 items-center justify-end pr-3 pl-12"
       >
-        <button
-          onClick={() => setIsMuted((prev) => !prev)}
-          data-tauri-drag-region="false"
-          className="hover:bg-accent rounded-full p-1.5 transition-colors"
-          // Fork: name what the button does (UX audit Oct 3, A: WCAG 4.1.2).
-          aria-label={isMuted ? t`Play music` : t`Mute music`}
-          title={isMuted ? t`Play music` : t`Mute music`}
-        >
-          {isMuted ? (
-            <SpeakerX size={16} className="text-muted-foreground" />
-          ) : (
-            <SpeakerHigh size={16} className="text-muted-foreground" />
-          )}
-        </button>
+        {/* Fork: no background music or music toggle. Upshot makes no sounds
+            except playback of your own recordings (owner decision, Oct 3;
+            Granola's Mac app is silent). The bar stays as the drag region. */}
       </div>
 
       <div

@@ -11,7 +11,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   clearNotifications: vi.fn(),
   currentPlatform: "macos",
-  previewCompletionSound: vi.fn(),
   setSettingValues: vi.fn(),
   useConfigValues: vi.fn(),
   useQuery: vi.fn(),
@@ -54,11 +53,6 @@ vi.mock("~/shared/config", () => ({
   useConfigValues: mocks.useConfigValues,
 }));
 
-vi.mock("~/shared/completion-sound", () => ({
-  normalizeCompletionSoundName: (value: string) => value,
-  previewCompletionSound: mocks.previewCompletionSound,
-}));
-
 import { NotificationSettingsView } from "./notification";
 
 const baseConfig = {
@@ -69,8 +63,6 @@ const baseConfig = {
   notification_summary_complete: true,
   notification_cloudsync_complete: true,
   notification_recording: true,
-  notification_completion_sound: true,
-  notification_completion_sound_name: "ready",
   notification_bounce: true,
   show_app_in_dock: true,
   respect_dnd: false,
@@ -84,7 +76,6 @@ describe("NotificationSettingsView", () => {
     mocks.clearNotifications.mockReset();
     mocks.currentPlatform = "macos";
     mocks.setSettingValues.mockReset();
-    mocks.previewCompletionSound.mockReset();
     mocks.useConfigValues.mockReset();
     mocks.useConfigValues.mockReturnValue(baseConfig);
     mocks.useQuery.mockImplementation(
@@ -100,6 +91,17 @@ describe("NotificationSettingsView", () => {
   });
 
   afterEach(cleanup);
+
+  // Fork: Upshot makes no sounds, so there is no sound toggle or picker.
+  it("offers no completion sound controls", () => {
+    render(<NotificationSettingsView />);
+
+    expect(
+      screen.queryByRole("switch", { name: "Completion sound" }),
+    ).toBeNull();
+    expect(screen.queryByRole("combobox", { name: "Sound" })).toBeNull();
+    expect(screen.queryByText("Sound and Dock")).toBeNull();
+  });
 
   it("shows persisted ignored apps as soon as the form hydrates", async () => {
     const { rerender } = render(<NotificationSettingsView />);
@@ -142,11 +144,8 @@ describe("NotificationSettingsView", () => {
     ).toBe(true);
     expect(
       screen
-        .getByRole("switch", { name: "Completion sound" })
+        .getByRole("switch", { name: "Bounce app icon" })
         .hasAttribute("disabled"),
-    ).toBe(true);
-    expect(
-      screen.getByRole("combobox", { name: "Sound" }).hasAttribute("disabled"),
     ).toBe(true);
     expect(mocks.clearNotifications).toHaveBeenCalled();
   });

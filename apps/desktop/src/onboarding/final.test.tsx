@@ -15,7 +15,6 @@ const mocks = vi.hoisted(() => ({
   getOrCreateWelcomeSession: vi.fn(),
   setOnboardingNeeded: vi.fn(),
   setPendingWelcomeSession: vi.fn(),
-  stopSfx: vi.fn(),
   setSettingValues: vi.fn(),
   autoPost: false,
   autoStart: false,
@@ -45,10 +44,6 @@ vi.mock("@anlg/plugin-opener2", () => ({
   commands: { openUrl: mocks.openUrl },
 }));
 
-vi.mock("@anlg/plugin-sfx", () => ({
-  commands: { stop: mocks.stopSfx },
-}));
-
 vi.mock("./welcome-note", () => ({
   getOrCreateWelcomeSession: mocks.getOrCreateWelcomeSession,
   setPendingWelcomeSession: mocks.setPendingWelcomeSession,
@@ -74,7 +69,6 @@ beforeEach(() => {
   mocks.flushAutomaticRelaunch.mockResolvedValue(false);
   mocks.getOrCreateWelcomeSession.mockResolvedValue("welcome-session");
   mocks.setOnboardingNeeded.mockResolvedValue({ status: "ok", data: null });
-  mocks.stopSfx.mockResolvedValue(null);
   mocks.setSettingValues.mockResolvedValue(undefined);
   mocks.autoPost = false;
   mocks.autoStart = false;

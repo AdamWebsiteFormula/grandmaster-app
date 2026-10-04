@@ -18,7 +18,6 @@ import {
   Moon,
   RadioButton,
   Sparkle,
-  SpeakerHigh,
   Waveform,
   X,
 } from "@anlg/ui/components/icons";
@@ -60,10 +59,6 @@ import {
   SettingsGroup,
   SettingSwitchRow,
 } from "~/settings/setting-row";
-import {
-  normalizeCompletionSoundName,
-  previewCompletionSound,
-} from "~/shared/completion-sound";
 import { useConfigValues } from "~/shared/config";
 
 export function NotificationSettingsView() {
@@ -82,8 +77,6 @@ export function NotificationSettingsView() {
     "notification_summary_complete",
     "notification_cloudsync_complete",
     "notification_recording",
-    "notification_completion_sound",
-    "notification_completion_sound_name",
     "notification_bounce",
     "show_app_in_dock",
     "respect_dnd",
@@ -143,10 +136,6 @@ export function NotificationSettingsView() {
       notification_summary_complete: configs.notification_summary_complete,
       notification_cloudsync_complete: configs.notification_cloudsync_complete,
       notification_recording: configs.notification_recording,
-      notification_completion_sound: configs.notification_completion_sound,
-      notification_completion_sound_name: normalizeCompletionSoundName(
-        configs.notification_completion_sound_name,
-      ),
       notification_bounce: configs.notification_bounce,
       respect_dnd: configs.respect_dnd,
       ignored_platforms: configs.ignored_platforms,
@@ -168,9 +157,6 @@ export function NotificationSettingsView() {
         notification_summary_complete: value.notification_summary_complete,
         notification_cloudsync_complete: value.notification_cloudsync_complete,
         notification_recording: value.notification_recording,
-        notification_completion_sound: value.notification_completion_sound,
-        notification_completion_sound_name:
-          value.notification_completion_sound_name,
         notification_bounce: value.notification_bounce,
         respect_dnd: value.respect_dnd,
         ignored_platforms: JSON.stringify(value.ignored_platforms),
@@ -585,97 +571,11 @@ export function NotificationSettingsView() {
               {/* Fork: cloud sync is hidden, so its notification row is too. */}
             </SettingsGroup>
 
-            <SettingsGroup title={<Trans>Sound and Dock</Trans>}>
-              <form.Field name="notification_completion_sound">
-                {(field) => (
-                  <div className="flex flex-col gap-4">
-                    <SettingSwitchRow
-                      icon={SpeakerHigh}
-                      title={<Trans>Completion sound</Trans>}
-                      description={
-                        <Trans>
-                          Play a sound when a transcript or summary is ready.
-                        </Trans>
-                      }
-                      checked={field.state.value}
-                      onChange={field.handleChange}
-                      disabled={notificationsDisabled}
-                    />
-
-                    {field.state.value && (
-                      <div
-                        className={cn(["border-border ml-3 border-l-2 pl-4"])}
-                      >
-                        <form.Field name="notification_completion_sound_name">
-                          {(soundField) => (
-                            <SettingRow
-                              title={<Trans>Sound</Trans>}
-                              description={
-                                <Trans>
-                                  Choose from five completion sounds.
-                                </Trans>
-                              }
-                            >
-                              {(labelProps) => (
-                                <div className="flex w-full items-center gap-2">
-                                  <Select
-                                    value={soundField.state.value}
-                                    onValueChange={(value) => {
-                                      const sound =
-                                        normalizeCompletionSoundName(value);
-                                      soundField.handleChange(sound);
-                                      previewCompletionSound(sound);
-                                    }}
-                                    disabled={notificationsDisabled}
-                                  >
-                                    <SelectTrigger
-                                      {...labelProps}
-                                      className="min-w-0 flex-1"
-                                    >
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent align="end">
-                                      <SelectItem value="ready">
-                                        <Trans>Ready</Trans>
-                                      </SelectItem>
-                                      <SelectItem value="success">
-                                        <Trans>Success</Trans>
-                                      </SelectItem>
-                                      <SelectItem value="chime">
-                                        <Trans>Chime</Trans>
-                                      </SelectItem>
-                                      <SelectItem value="sparkle">
-                                        <Trans>Sparkle</Trans>
-                                      </SelectItem>
-                                      <SelectItem value="bloom">
-                                        <Trans>Bloom</Trans>
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    disabled={notificationsDisabled}
-                                    onClick={() =>
-                                      previewCompletionSound(
-                                        soundField.state.value,
-                                      )
-                                    }
-                                  >
-                                    <Trans>Preview</Trans>
-                                  </Button>
-                                </div>
-                              )}
-                            </SettingRow>
-                          )}
-                        </form.Field>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </form.Field>
-              {(currentPlatform !== "macos" || configs.show_app_in_dock) && (
+            {/* Fork: Upshot makes no sounds (owner decision, Oct 3; Granola's
+                Mac app is silent), so the completion sound toggle and picker
+                are gone. Only the app icon bounce remains in this group. */}
+            {(currentPlatform !== "macos" || configs.show_app_in_dock) && (
+              <SettingsGroup title={<Trans>App icon</Trans>}>
                 <form.Field name="notification_bounce">
                   {(field) => (
                     <SettingSwitchRow
@@ -693,8 +593,8 @@ export function NotificationSettingsView() {
                     />
                   )}
                 </form.Field>
-              )}
-            </SettingsGroup>
+              </SettingsGroup>
+            )}
           </>
         )}
       </form.Subscribe>

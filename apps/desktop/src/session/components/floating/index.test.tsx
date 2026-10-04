@@ -118,7 +118,7 @@ describe("FloatingActionButton (note bar)", () => {
         element.getAttribute("aria-label") ?? element.textContent ?? "",
     );
     expect(controls).toEqual([
-      "Show transcript",
+      "Transcript",
       "Resume recording",
       "Ask anything",
       "Draft follow-up email",
@@ -185,9 +185,7 @@ describe("FloatingActionButton (note bar)", () => {
     expect(
       document.querySelector("[data-note-bar-stack]")!.className,
     ).toContain("@max-[760px]:w-auto");
-    expect(
-      screen.getByRole("button", { name: "Show transcript" }),
-    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Transcript" })).toBeTruthy();
   });
 
   it("keeps the Ask field in a narrow pane when not recording", () => {
@@ -231,7 +229,7 @@ describe("FloatingActionButton (note bar)", () => {
     const ask = document.querySelector("[data-note-ask]")!;
     expect(ask.className).not.toContain("border");
     expect(ask.className).not.toContain("shadow-sm");
-    const toggle = screen.getByRole("button", { name: "Show transcript" });
+    const toggle = screen.getByRole("button", { name: "Transcript" });
     expect(toggle.className).not.toContain("border");
   });
 
@@ -263,7 +261,7 @@ describe("FloatingActionButton (note bar)", () => {
         element.getAttribute("aria-label") ?? element.textContent ?? "",
     );
     expect(controls).toEqual([
-      "Show transcript",
+      "Transcript",
       "Ask anything",
       "Draft follow-up email",
     ]);
@@ -297,7 +295,7 @@ describe("FloatingActionButton (note bar)", () => {
     const onSelectView = vi.fn();
     const view = renderBar({ onSelectView });
 
-    fireEvent.click(screen.getByRole("button", { name: "Show transcript" }));
+    fireEvent.click(screen.getByRole("button", { name: "Transcript" }));
     expect(onSelectView).toHaveBeenLastCalledWith(TRANSCRIPT);
 
     view.rerender(
@@ -308,8 +306,9 @@ describe("FloatingActionButton (note bar)", () => {
         tab={tab}
       />,
     );
-    const hide = screen.getByRole("button", { name: "Hide transcript" });
+    const hide = screen.getByRole("button", { name: "Transcript" });
     expect(hide.getAttribute("aria-pressed")).toBe("true");
+    expect(hide.textContent).toContain("Transcript");
     fireEvent.click(hide);
     expect(onSelectView).toHaveBeenLastCalledWith(ENHANCED);
   });
@@ -328,19 +327,31 @@ describe("FloatingActionButton (note bar)", () => {
   it("names the transcript toggle's action in a tooltip", async () => {
     renderBar();
 
-    fireEvent.focus(screen.getByRole("button", { name: "Show transcript" }));
+    fireEvent.focus(screen.getByRole("button", { name: "Transcript" }));
     expect(
       (await screen.findAllByText("Show transcript")).length,
     ).toBeGreaterThan(0);
     expect(screen.getByRole("tooltip").textContent).toBe("Show transcript");
   });
 
+  // Owner review, Oct 3: the toggle shows a visible label, which drops to
+  // the icon plus tooltip under 480 px (NN/g icon labels; Apple HIG).
+  it("labels the transcript toggle with visible text", () => {
+    renderBar();
+
+    const toggle = screen.getByRole("button", { name: "Transcript" });
+    expect(toggle.getAttribute("aria-pressed")).toBe("false");
+    expect(toggle.hasAttribute("aria-label")).toBe(false);
+    const label = Array.from(toggle.querySelectorAll("span")).find(
+      (span) => span.textContent === "Transcript",
+    )!;
+    expect(label.className).toContain("@max-[480px]:sr-only");
+  });
+
   it("hides the transcript toggle when there is no transcript", () => {
     renderBar({ editorTabs: [ENHANCED, RAW] });
 
-    expect(
-      screen.queryByRole("button", { name: "Show transcript" }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: "Transcript" })).toBeNull();
   });
 
   it("steps aside while the chat is open", () => {
@@ -387,9 +398,7 @@ describe("FloatingActionButton (note bar)", () => {
     expect(
       screen.queryByRole("button", { name: "Draft follow-up email" }),
     ).toBeNull();
-    expect(
-      screen.getByRole("button", { name: "Show transcript" }),
-    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Transcript" })).toBeTruthy();
     expect(
       screen.getByRole("button", { name: "Resume recording" }),
     ).toBeTruthy();

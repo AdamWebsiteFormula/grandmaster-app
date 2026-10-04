@@ -214,7 +214,8 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           id: "notifications",
           label: t`Notifications`,
           icon: Bell,
-          keywords: t`sound, alerts, reminders, Do Not Disturb, meeting detected`,
+          // Fork: no "sound" keyword; Upshot has no sound settings.
+          keywords: t`alerts, reminders, Do Not Disturb, meeting detected, bounce`,
         },
         {
           id: "connectors",
