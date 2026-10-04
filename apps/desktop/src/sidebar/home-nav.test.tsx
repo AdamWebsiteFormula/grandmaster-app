@@ -90,11 +90,6 @@ describe("SidebarHomeNav", () => {
       screen.getByRole("button", { name: "Work" }).getAttribute("aria-current"),
     ).toBeNull();
     expect(
-      screen
-        .getByRole("button", { name: "Folders" })
-        .getAttribute("aria-current"),
-    ).toBeNull();
-    expect(
       screen.getByRole("button", { name: "Home" }).getAttribute("aria-current"),
     ).toBeNull();
   });
@@ -111,16 +106,15 @@ describe("SidebarHomeNav", () => {
     ).toBeTruthy();
   });
 
-  it("marks Folders as current when no folder is picked", () => {
-    mocks.currentTab = { type: "folders" };
+  // Owner test, Oct 4: Folders is a heading with a +, as in Granola's
+  // sidebar, not a link that jumps into the first folder.
+  it("shows Folders as a heading with a + to create one", () => {
     mocks.folders = ["Work"];
     render(<SidebarHomeNav />);
 
-    expect(
-      screen
-        .getByRole("button", { name: "Folders" })
-        .getAttribute("aria-current"),
-    ).toBe("page");
+    expect(screen.getByRole("heading", { name: "Folders" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Folders" })).toBeNull();
+    expect(screen.getByRole("button", { name: "New folder" })).toBeTruthy();
   });
 
   it("marks no folder row away from the Folders page", () => {
@@ -139,7 +133,7 @@ describe("SidebarHomeNav", () => {
     const home = screen.getByRole("button", { name: "Home" });
     expect(home.getAttribute("aria-current")).toBe("page");
     expect(screen.getByRole("button", { name: /Search/ })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Folders" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Folders" })).toBeTruthy();
   });
 
   it("keeps the Search shortcut in a tooltip, not a chip on the row", () => {
@@ -185,7 +179,7 @@ describe("SidebarHomeNav", () => {
       .map((button) => button.textContent ?? "");
     expect(names.findIndex((name) => name.startsWith("Search"))).toBe(1);
     expect(names[2]).toBe("Chat");
-    expect(names[3]).toBe("Folders");
+    expect(screen.getByRole("heading", { name: "Folders" })).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Chat" }));
     expect(mocks.openCurrent).toHaveBeenCalledWith({ type: "chat" });
@@ -215,9 +209,5 @@ describe("SidebarHomeNav", () => {
     fireEvent.click(screen.getByRole("button", { name: "Team" }));
     expect(mocks.setSelectedPath).toHaveBeenCalledWith("Team");
     expect(mocks.openNew).toHaveBeenCalledWith({ type: "folders" });
-
-    fireEvent.click(screen.getByRole("button", { name: "Folders" }));
-    expect(mocks.openNew).toHaveBeenCalledTimes(2);
-    expect(mocks.setSelectedPath).toHaveBeenCalledTimes(1);
   });
 });

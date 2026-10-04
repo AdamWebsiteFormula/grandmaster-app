@@ -2,13 +2,14 @@ import { useEffect, useRef } from "react";
 
 import type { Tab } from "~/store/zustand/tabs";
 
+// Fork: Folders keeps the main sidebar and its window chrome row, as Home
+// and Chat do (owner test, Oct 4: Home slid under the window buttons).
 const CUSTOM_SIDEBAR_TYPES: Tab["type"][] = [
   "calendar",
   "settings",
   "contacts",
   "templates",
   "automations",
-  "folders",
 ];
 
 const LEFT_SURFACE_CUSTOM_SIDEBAR_TYPES: Tab["type"][] = [
@@ -17,7 +18,6 @@ const LEFT_SURFACE_CUSTOM_SIDEBAR_TYPES: Tab["type"][] = [
   "contacts",
   "templates",
   "automations",
-  "folders",
 ];
 
 // Tabs whose sidebar nav renders CustomSidebarHeader in the window chrome row.
@@ -27,7 +27,6 @@ const OWN_SIDEBAR_HEADER_TYPES: Tab["type"][] = [
   "contacts",
   "templates",
   "automations",
-  "folders",
 ];
 
 export function hasCustomSidebarTab(tab: Tab | null): boolean {

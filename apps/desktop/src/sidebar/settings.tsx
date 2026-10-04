@@ -248,7 +248,7 @@ export function SettingsNav() {
             data-settings-sign-out
             onClick={() => void signOutUpshot()}
             className={cn([
-              "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground flex w-full items-center gap-2 rounded-full px-3 py-2 text-left text-sm transition-colors",
+              "text-destructive hover:bg-sidebar-accent/50 flex w-full items-center gap-2 rounded-full px-3 py-2 text-left text-sm transition-colors",
               "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset",
             ])}
           >

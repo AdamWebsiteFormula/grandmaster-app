@@ -4,11 +4,15 @@
 // day). Every note stays one step away: Home lists them all, Search opens the
 // ⌘K dialog, and each folder opens its notes.
 import { Trans, useLingui } from "@lingui/react/macro";
-import { useState, type ButtonHTMLAttributes, type ReactNode } from "react";
+import {
+  useId,
+  useState,
+  type ButtonHTMLAttributes,
+  type ReactNode,
+} from "react";
 
 import {
   ChatCircle,
-  FolderSimple,
   House,
   MagnifyingGlass,
   Plus,
@@ -44,6 +48,7 @@ export function SidebarHomeNav() {
   const activeFolder = useFolderSelection((state) => state.selectedPath);
   const onFolders = currentTab?.type === "folders";
   const [creatingFolder, setCreatingFolder] = useState(false);
+  const foldersHeadingId = useId();
 
   const goHome = () => {
     const { tabs, select, openCurrent } = useTabs.getState();
@@ -103,29 +108,34 @@ export function SidebarHomeNav() {
         >
           <Trans>Chat</Trans>
         </NavItem>
-        {/* Fork: a + beside Folders creates one, as Granola's + beside a space
-          in its sidebar does (Granola Help Center, "Spaces & Folders"). */}
-        <div className="relative">
-          <NavItem
-            icon={<FolderSimple size={16} />}
-            active={onFolders && !activeFolder}
-            onClick={() => openFolder(null)}
+        {/* Fork: Folders is a heading with a +, not a page: Granola lists
+            folders under a heading in its sidebar and opens one on click,
+            and a sidebar heading groups items (Granola Help Center, "Spaces
+            & Folders"; Apple HIG, Sidebars). A Folders link that jumped into
+            the first folder surprised people (owner test, Oct 4). */}
+        <div className="mt-4 flex items-center justify-between pr-1.5 pl-3">
+          <h2
+            id={foldersHeadingId}
+            className="text-muted-foreground text-xs font-medium"
           >
             <Trans>Folders</Trans>
-          </NavItem>
+          </h2>
           <button
             type="button"
             aria-label={t`New folder`}
             title={t`New folder`}
             data-new-folder
             onClick={() => setCreatingFolder(true)}
-            className="text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-ring absolute top-1/2 right-1.5 flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-hidden"
+            className="text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-ring flex size-6 cursor-pointer items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-hidden"
           >
             <Plus size={14} />
           </button>
         </div>
         {folders.length > 0 ? (
-          <ul className="flex flex-col gap-0.5 pl-3">
+          <ul
+            aria-labelledby={foldersHeadingId}
+            className="flex flex-col gap-0.5"
+          >
             {folders.map((folder) => (
               <li key={folder}>
                 <NavItem
