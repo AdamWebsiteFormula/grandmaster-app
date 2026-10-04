@@ -4430,6 +4430,7 @@ msgid "My automations"
 msgstr ""
 
 #: src/edit/tab-content.tsx
+#: src/session/components/floating/index.tsx
 #: src/session/components/note-input/header-raw.tsx
 #: src/session/components/note-input/meta-chips.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
@@ -7120,6 +7121,7 @@ msgstr ""
 
 #: src/contacts/details.tsx
 #: src/edit/tab-content.tsx
+#: src/session/components/floating/index.tsx
 #: src/session/components/note-input/transcript-toolbar.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
 #: src/settings/automations/markdown-export-options.tsx

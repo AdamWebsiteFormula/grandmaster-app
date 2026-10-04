@@ -2,7 +2,12 @@ import { useLingui } from "@lingui/react/macro";
 import { AnimatePresence, motion } from "motion/react";
 import { useRef, useState } from "react";
 
-import { CaretDown, Envelope } from "@anlg/ui/components/icons";
+import {
+  CaretDown,
+  Envelope,
+  Sparkle,
+  TextAlignLeft,
+} from "@anlg/ui/components/icons";
 import { Kbd } from "@anlg/ui/components/ui/kbd";
 import { Spinner } from "@anlg/ui/components/ui/spinner";
 import {
@@ -209,24 +214,28 @@ function TranscriptToggle({
 
   const showingTranscript = currentView.type === "transcript";
   const label = showingTranscript ? t`Hide transcript` : t`Show transcript`;
+  // The notes view the button goes back to: the last one shown, or the first
+  // notes view when that one is gone.
+  const previous = lastNotesViewRef.current;
+  const stillThere =
+    previous &&
+    editorTabs.some(
+      (view) =>
+        view.type === previous.type &&
+        (view.type !== "enhanced" ||
+          (previous.type === "enhanced" && view.id === previous.id)),
+    );
+  const backTarget = stillThere
+    ? previous
+    : editorTabs.find((view) => view.type !== "transcript");
+  const backToMyNotes = backTarget?.type === "raw";
   const handleClick = () => {
     if (!showingTranscript) {
       onSelectView(transcriptTab);
       return;
     }
-    const previous = lastNotesViewRef.current;
-    const stillThere =
-      previous &&
-      editorTabs.some(
-        (view) =>
-          view.type === previous.type &&
-          (view.type !== "enhanced" ||
-            (previous.type === "enhanced" && view.id === previous.id)),
-      );
-    const fallback = editorTabs.find((view) => view.type !== "transcript");
-    const target = stillThere ? previous : fallback;
-    if (target) {
-      onSelectView(target);
+    if (backTarget) {
+      onSelectView(backTarget);
     }
   };
 
@@ -234,10 +243,13 @@ function TranscriptToggle({
   // not say what it does (redline2-oct3, R2; HIG: help tags name the action).
   // Owner review, Oct 3: the icon-only toggle was hard to find, so it shows
   // a visible "Transcript" label (NN/g "Icon Usability": label icons; Apple
-  // HIG Buttons: add a label when an icon's meaning isn't obvious). The name
-  // stays "Transcript" and aria-pressed carries the state (WAI-ARIA APG
-  // Button: a toggle's label does not change with its state). Under 480 px
-  // the label drops to the icon plus tooltip, like Resume.
+  // HIG Buttons: add a label when an icon's meaning isn't obvious). Owner
+  // test, Oct 4: on the transcript, a fixed "Transcript" label hid the way
+  // back, so the button then names where it goes, "Summary" or "My notes",
+  // with the icon the switch above uses. A button whose label changes is a
+  // plain button, not a toggle, so it has no aria-pressed (WAI-ARIA APG
+  // Button). Under 480 px the label drops to the icon plus tooltip, like
+  // Resume.
   return (
     <TooltipProvider>
       <Tooltip>
@@ -245,7 +257,6 @@ function TranscriptToggle({
           <button
             type="button"
             data-transcript-toggle
-            aria-pressed={showingTranscript}
             onClick={handleClick}
             className={cn([
               // Fork: a segment inside the one bar, not its own pill
@@ -255,24 +266,31 @@ function TranscriptToggle({
               // bar instead of crossing its border, like the bar's other
               // buttons (house rule: nothing touches edges; NN/g #4).
               "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
-              showingTranscript && "bg-accent",
             ])}
           >
             {isTranscribing ? (
               <Spinner size={16} className="shrink-0" />
+            ) : showingTranscript ? (
+              backToMyNotes ? (
+                <TextAlignLeft aria-hidden className="size-4 shrink-0" />
+              ) : (
+                <Sparkle aria-hidden className="size-4 shrink-0" />
+              )
             ) : (
               // Fork: Lucide AudioLines, the bars Granola's toggle shows
               // (redline-oct3, H2).
               <TranscriptAudioIcon />
             )}
-            <span className="@max-[480px]:sr-only">{t`Transcript`}</span>
-            <CaretDown
-              aria-hidden
-              className={cn([
-                "size-3 transition-transform",
-                !showingTranscript && "rotate-180",
-              ])}
-            />
+            <span className="@max-[480px]:sr-only">
+              {showingTranscript
+                ? backToMyNotes
+                  ? t`My notes`
+                  : t`Summary`
+                : t`Transcript`}
+            </span>
+            {!showingTranscript && (
+              <CaretDown aria-hidden className="size-3 rotate-180" />
+            )}
           </button>
         </TooltipTrigger>
         <TooltipContent side="top">{label}</TooltipContent>

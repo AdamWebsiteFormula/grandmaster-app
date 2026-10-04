@@ -287,3 +287,4 @@ One line per change: what, why, source, test result. Nothing here is committed; 
   - Upshot_1.0.0_x64-setup.exe `1d4deae8e1a7a91efba7b2bc36244c383e5582574658d686a18af05324383857`
   - Upshot_1.0.0_amd64.AppImage `71f36a354e819d6ec82de8ce54b12cd40f4256751fe377dadaec008d45f72a93`
   - Upshot_1.0.0_amd64.deb `0e8ee1ae3ddde0676d42a8f1fcf1f0022828f4cbf0ecf67e785d001a6d7d773a`
+- **Owner test fix (Oct 4, ~5:55 AM; Adam approved lifting the 6:00 AM freeze).** On the transcript, the bottom button said "Transcript" and only flipped its arrow, so Adam could not find the way back. It now names where it goes, "Summary" or "My notes", with the icon the switch above uses, and is a plain button with no aria-pressed (WAI-ARIA APG Button: a button whose label changes is not a toggle). Gates: vitest 557 files, 4,860 passed / 11 skipped; tsc 0; rebrand 0.

@@ -325,11 +325,27 @@ describe("FloatingActionButton (note bar)", () => {
         tab={tab}
       />,
     );
-    const hide = screen.getByRole("button", { name: "Transcript" });
-    expect(hide.getAttribute("aria-pressed")).toBe("true");
-    expect(hide.textContent).toContain("Transcript");
-    fireEvent.click(hide);
+    // Owner test, Oct 4: on the transcript the button names the way back.
+    const back = screen.getByRole("button", { name: "Summary" });
+    expect(back.hasAttribute("aria-pressed")).toBe(false);
+    fireEvent.click(back);
     expect(onSelectView).toHaveBeenLastCalledWith(ENHANCED);
+  });
+
+  it("names My notes when the transcript was opened from My notes", () => {
+    const onSelectView = vi.fn();
+    const view = renderBar({ currentView: RAW, onSelectView });
+
+    view.rerender(
+      <FloatingActionButton
+        currentView={TRANSCRIPT}
+        editorTabs={[ENHANCED, RAW, TRANSCRIPT]}
+        onSelectView={onSelectView}
+        tab={tab}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "My notes" }));
+    expect(onSelectView).toHaveBeenLastCalledWith(RAW);
   });
 
   // redline2-oct3 R2: the bar is the same on Summary and Transcript.
@@ -359,7 +375,7 @@ describe("FloatingActionButton (note bar)", () => {
     renderBar();
 
     const toggle = screen.getByRole("button", { name: "Transcript" });
-    expect(toggle.getAttribute("aria-pressed")).toBe("false");
+    expect(toggle.hasAttribute("aria-pressed")).toBe(false);
     expect(toggle.hasAttribute("aria-label")).toBe(false);
     const label = Array.from(toggle.querySelectorAll("span")).find(
       (span) => span.textContent === "Transcript",
