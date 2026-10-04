@@ -8,13 +8,14 @@
 // The hard spend ceiling is the OpenRouter credit balance (HTTP 402 when empty).
 //
 // Secrets (Cloudflare dashboard › Worker › Settings › Variables and Secrets):
-//   OPENROUTER_API_KEY, and for accounts and Pro the ones listed in
-//   auth.js and billing.js.
+//   OPENROUTER_API_KEY, DEEPGRAM_API_KEY (transcription, stt.js), and for
+//   accounts and Pro the ones listed in auth.js and billing.js.
 // Nothing in a request or response is logged.
 
 import { handleAuth } from "./auth.js";
 import { handleBilling, handleDeleteAccount } from "./billing.js";
 import { json } from "./http.js";
+import { handleStt } from "./stt.js";
 import {
   AUTO_MODEL,
   isProModelSlug,
@@ -62,6 +63,10 @@ export default {
     }
     if (url.pathname.startsWith("/billing/")) {
       return handleBilling(request, env, url.pathname);
+    }
+    // Upshot transcription for Windows, Linux and Intel Macs: see stt.js.
+    if (url.pathname.startsWith("/stt/")) {
+      return handleStt(request, env, url);
     }
     if (request.method === "GET" && url.pathname.endsWith("/models")) {
       return Response.json({ data: [{ id: "auto", name: "Auto" }] });

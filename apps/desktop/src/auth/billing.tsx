@@ -233,7 +233,8 @@ export function BillingProvider({ children }: { children: ReactNode }) {
       arch(),
       currentSttProvider,
       currentSttModel,
-      isReady && billing.isPaid && !!auth?.session,
+      // Fork: Upshot transcription needs no sign-in or plan.
+      true,
     );
     if (!repair) {
       return;

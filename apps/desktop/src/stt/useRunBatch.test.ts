@@ -259,29 +259,9 @@ describe("isTerminalTranscriptionError", () => {
 });
 
 describe("getBatchFallbackTarget", () => {
-  test("uses hosted cloud transcription for paid users with a session", () => {
+  test("uses local Soniqo batch transcription on Apple Silicon", () => {
     expect(
       getBatchFallbackTarget({
-        isPaid: true,
-        accessToken: "token",
-        apiBaseUrl: "https://api.test",
-        currentPlatform: "windows",
-        currentArch: "x86_64",
-      }),
-    ).toEqual({
-      provider: "anarlog",
-      model: "cloud",
-      baseUrl: "https://api.test/stt",
-      apiKey: "token",
-      label: "Pro cloud transcription",
-    });
-  });
-
-  test("uses local Soniqo batch transcription otherwise", () => {
-    expect(
-      getBatchFallbackTarget({
-        isPaid: false,
-        accessToken: null,
         apiBaseUrl: "https://api.test",
         currentPlatform: "macos",
         currentArch: "aarch64",
@@ -300,17 +280,21 @@ describe("getBatchFallbackTarget", () => {
     { currentPlatform: "linux" as const, currentArch: "x86_64" as const },
     { currentPlatform: "macos" as const, currentArch: "x86_64" as const },
   ])(
-    "does not use local Soniqo on $currentPlatform/$currentArch",
+    "uses keyless Upshot transcription on $currentPlatform/$currentArch",
     ({ currentPlatform, currentArch }) => {
       expect(
         getBatchFallbackTarget({
-          isPaid: false,
-          accessToken: null,
           apiBaseUrl: "https://api.test",
           currentPlatform,
           currentArch,
         }),
-      ).toBeNull();
+      ).toEqual({
+        provider: "anarlog",
+        model: "cloud",
+        baseUrl: "https://api.test/stt",
+        apiKey: "",
+        label: "Upshot transcription",
+      });
     },
   );
 });
@@ -1095,10 +1079,13 @@ describe("useRunBatch", () => {
   });
 
   test.each(["windows", "linux"] as const)(
-    "reports a language mismatch instead of a platform gap when Mistral is configured on %s",
+    "falls back to Upshot transcription when Mistral can't take the languages on %s",
     async (currentPlatform) => {
       platformMock.mockReturnValue(currentPlatform);
-      isSupportedLanguagesBatchMock.mockResolvedValue(false);
+      archMock.mockReturnValue("x86_64");
+      isSupportedLanguagesBatchMock.mockImplementation(
+        async (provider: string) => provider === "anarlog",
+      );
       useSTTConnectionMock.mockReturnValue({
         conn: {
           provider: "mistral",
@@ -1107,19 +1094,26 @@ describe("useRunBatch", () => {
           apiKey: "mistral-key",
         },
       });
+      startTranscriptionMock.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useRunBatch("session-1"));
 
-      await expect(
-        act(async () => {
-          await result.current("/tmp/session.wav");
-        }),
-      ).rejects.toThrow(
-        "voxtral-mini-2602 is not available for batch transcription with the selected languages",
-      );
+      await act(async () => {
+        await result.current("/tmp/session.wav");
+      });
 
-      expect(startTranscriptionMock).not.toHaveBeenCalled();
-      expect(toastWarningMock).not.toHaveBeenCalled();
+      expect(startTranscriptionMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: "anarlog",
+          model: "cloud",
+          base_url: "https://api.test/stt",
+        }),
+        expect.any(Object),
+      );
+      expect(toastWarningMock).toHaveBeenCalledWith(
+        "Switching to Upshot transcription for this transcript",
+        expect.any(Object),
+      );
     },
   );
 
@@ -1156,8 +1150,8 @@ describe("useRunBatch", () => {
   );
 
   test.each([
-    { isPaid: false, name: "rejects Soniqo for unpaid users" },
-    { isPaid: true, name: "falls back to cloud for paid users" },
+    { isPaid: false, name: "falls back to Upshot transcription signed out" },
+    { isPaid: true, name: "falls back to Upshot transcription for paid users" },
   ])("never invokes Soniqo on Intel macOS: $name", async ({ isPaid }) => {
     archMock.mockReturnValue("x86_64");
     useBillingAccessMock.mockReturnValue({ isPaid });
@@ -1173,18 +1167,6 @@ describe("useRunBatch", () => {
 
     const { result } = renderHook(() => useRunBatch("session-1"));
 
-    if (!isPaid) {
-      await expect(
-        act(async () => {
-          await result.current("/tmp/session.wav");
-        }),
-      ).rejects.toThrow(
-        "soniqo-parakeet-batch is not available for batch transcription on this platform",
-      );
-      expect(startTranscriptionMock).not.toHaveBeenCalled();
-      return;
-    }
-
     await act(async () => {
       await result.current("/tmp/session.wav");
     });
@@ -1194,17 +1176,21 @@ describe("useRunBatch", () => {
         provider: "anarlog",
         model: "cloud",
         base_url: "https://api.test/stt",
-        api_key: "paid-token",
       }),
+      expect.any(Object),
+    );
+    expect(startTranscriptionMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({ provider: "soniqo" }),
       expect.any(Object),
     );
   });
 
-  test("falls back to hosted cloud transcription for paid users", async () => {
-    isSupportedLanguagesBatchMock.mockResolvedValue(false);
-    useBillingAccessMock.mockReturnValue({
-      isPaid: true,
-    });
+  test("falls back to Upshot transcription off Apple Silicon", async () => {
+    platformMock.mockReturnValue("windows");
+    archMock.mockReturnValue("x86_64");
+    isSupportedLanguagesBatchMock.mockImplementation(
+      async (provider: string) => provider === "anarlog",
+    );
     startTranscriptionMock.mockResolvedValue(undefined);
 
     const { result } = renderHook(() => useRunBatch("session-1"));
@@ -1218,16 +1204,38 @@ describe("useRunBatch", () => {
         provider: "anarlog",
         model: "cloud",
         base_url: "https://api.test/stt",
-        api_key: "paid-token",
       }),
       expect.any(Object),
     );
     expect(toastWarningMock).toHaveBeenCalledWith(
-      "Switching to Pro cloud transcription for this transcript",
+      "Switching to Upshot transcription for this transcript",
       expect.objectContaining({
         description:
-          "nova-3 can't transcribe after you stop, so Upshot uses Pro cloud transcription.",
+          "nova-3 can't transcribe after you stop, so Upshot uses Upshot transcription.",
       }),
+    );
+  });
+
+  test("never sends audio to the cloud on Apple Silicon, even for paid users", async () => {
+    isSupportedLanguagesBatchMock.mockImplementation(
+      async (provider: string) => provider === "soniqo",
+    );
+    useBillingAccessMock.mockReturnValue({ isPaid: true });
+    startTranscriptionMock.mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useRunBatch("session-1"));
+
+    await act(async () => {
+      await result.current("/tmp/session.wav");
+    });
+
+    expect(startTranscriptionMock).toHaveBeenCalledWith(
+      expect.objectContaining({ provider: "soniqo" }),
+      expect.any(Object),
+    );
+    expect(startTranscriptionMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({ provider: "anarlog" }),
+      expect.any(Object),
     );
   });
 

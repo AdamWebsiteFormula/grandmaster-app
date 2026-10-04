@@ -1,4 +1,5 @@
 import { Trans, useLingui } from "@lingui/react/macro";
+import { arch, platform } from "@tauri-apps/plugin-os";
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -11,6 +12,7 @@ import { OnboardingButton, StepRow } from "./shared";
 
 import { setSettingValues } from "~/settings/queries";
 import { useConfigValue } from "~/shared/config";
+import { isUpshotCloudSttAvailable } from "~/stt/capabilities";
 
 // Fork (Granola standard: transcription works with zero setup). Pick the best
 // on-device engine for this Mac, select it, and download it here with
@@ -76,6 +78,9 @@ export function TranscriptionSetupSection({
   const [sizeLabel, setSizeLabel] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>({ kind: "checking" });
   const [stalled, setStalled] = useState(false);
+  // Fork: Windows, Linux and Intel Macs have no on-device engine, so they
+  // use Upshot transcription (no download, account or key).
+  const [usesCloud, setUsesCloud] = useState(false);
   const startedRef = useRef(false);
   const lastProgressRef = useRef(Date.now());
   const isReady = phase.kind === "ready";
@@ -91,6 +96,17 @@ export function TranscriptionSetupSection({
           ? pickTranscriptionModel(supported.data.map((m) => m.key))
           : null;
       if (!picked) {
+        if (isUpshotCloudSttAvailable(platform(), arch())) {
+          if (!currentProvider) {
+            await setSettingValues({
+              current_stt_provider: "anarlog",
+              current_stt_model: "cloud",
+            });
+          }
+          setUsesCloud(true);
+          setPhase({ kind: "ready" });
+          return;
+        }
         // null: the no-engine case, shown with its own translated line.
         setPhase({ kind: "failed", reason: null });
         return;
@@ -172,7 +188,9 @@ export function TranscriptionSetupSection({
     await startDownload(choice.model);
   };
 
-  const name = choice?.name ?? t`on-device transcription`;
+  const name =
+    choice?.name ??
+    (usesCloud ? t`Upshot transcription` : t`on-device transcription`);
   const failureDetail =
     phase.kind !== "failed"
       ? null
@@ -257,6 +275,14 @@ export function TranscriptionSetupSection({
             </OnboardingButton>
           )}
       </div>
+      {usesCloud && (
+        <p className="text-muted-foreground text-sm">
+          <Trans>
+            Audio streams through Upshot to Deepgram for transcription. Nothing
+            is stored.
+          </Trans>
+        </p>
+      )}
       {phase.kind === "downloading" && (
         <p className="text-muted-foreground text-sm">
           <Trans>

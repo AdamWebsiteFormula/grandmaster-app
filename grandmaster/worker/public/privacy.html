@@ -65,7 +65,8 @@ footer{margin-top:48px;color:#737373;font-size:14px}
 <p><strong>The short version</strong></p>
 <ul>
 <li>Your recordings, transcripts and notes stay on your Mac.</li>
-<li>When you make a summary or use chat, the text it needs goes to an AI model to write the answer. Audio never leaves your Mac.</li>
+<li>When you make a summary or use chat, the text it needs goes to an AI model to write the answer.</li>
+<li>On Apple Silicon Macs, audio never leaves your Mac. On Windows, Linux and Intel Macs, audio streams through the Upshot proxy, which stores nothing, to Deepgram for transcription.</li>
 <li>Upshot Free needs no account. Pro needs an email and password, and Stripe handles your card.</li>
 <li>No ads, no analytics, no tracking. We don't sell or share your personal information.</li>
 </ul>
@@ -79,7 +80,7 @@ footer{margin-top:48px;color:#737373;font-size:14px}
 <p>These never leave your Mac unless you send them somewhere yourself:</p>
 <ul>
 <li>Meeting audio, kept until the retention setting in Settings › Meetings removes it.</li>
-<li>Transcripts. Transcription runs on your Mac (Apple Speech or Parakeet). Apple Speech may download its language files from Apple.</li>
+<li>Transcripts. On Apple Silicon Macs, transcription runs on your Mac (Apple Speech or Parakeet), and Apple Speech may download its language files from Apple. On Windows, Linux and Intel Macs, see Transcription below.</li>
 <li>Notes, summaries, folders, templates, contacts and settings.</li>
 <li>Calendar events, which Upshot reads from Apple Calendar on your Mac.</li>
 </ul>
@@ -93,6 +94,7 @@ footer{margin-top:48px;color:#737373;font-size:14px}
 </ul>
 <p>This goes through the Upshot AI proxy, a Cloudflare Worker we run. The proxy passes your request on and doesn't store or log what you send; Its logging is turned off. It uses your IP address only to limit how many requests one address can make per minute. From the proxy, the text goes to <a href="https://openrouter.ai/privacy">OpenRouter</a>, which sends it to the company that runs the model: Anthropic for Auto, or Anthropic, OpenAI or Google (or a cloud provider that hosts their models) for a model a Pro user picks. They process it to write the answer, under their own privacy policies.</p>
 <p>A locked note is never sent to chat, connected tools or webhooks until you unlock it.</p>
+<p><strong>Transcription on Windows, Linux and Intel Macs.</strong> Upshot has no on-device engine for these computers, so while you record, it streams the meeting audio through the Upshot transcription proxy, a Cloudflare Worker we run, to <a href="https://deepgram.com/privacy">Deepgram</a>, which turns the audio into text and sends the transcript back. The proxy passes the audio on and doesn't store or log it. It uses your IP address only for the per-minute limit. Upshot asks Deepgram to opt the audio out of its model improvement program. On Apple Silicon Macs, audio never leaves your Mac.</p>
 <p><strong>A Pro account.</strong> If you create an account:</p>
 <ul>
 <li><a href="https://supabase.com/privacy">Supabase</a> stores your email, a hashed password (never the password itself), and your plan: status, billing period, renewal date, and your Stripe customer and subscription IDs. The app keeps your sign-in session in the macOS Keychain.</li>
@@ -114,6 +116,7 @@ footer{margin-top:48px;color:#737373;font-size:14px}
 <h2>Why we use your data</h2>
 <ul>
 <li>To write summaries and chat answers you ask for.</li>
+<li>To transcribe your meetings on Windows, Linux and Intel Macs.</li>
 <li>To run your Pro account and billing, which is our contract with you.</li>
 <li>To stop abuse of the AI proxy with the per-minute limit, which is our legitimate interest in keeping it running.</li>
 </ul>
@@ -122,6 +125,7 @@ footer{margin-top:48px;color:#737373;font-size:14px}
 <ul>
 <li>Notes, transcripts and audio: on your Mac until you delete them.</li>
 <li>AI requests: the proxy keeps nothing once the answer is sent.</li>
+<li>Transcription audio (Windows, Linux and Intel Macs): the proxy keeps nothing. Deepgram handles it under its own privacy policy.</li>
 <li>Pro account: until you delete it. Stripe may keep payment records it must keep by law.</li>
 </ul>
 
@@ -139,7 +143,7 @@ footer{margin-top:48px;color:#737373;font-size:14px}
 <p>Upshot doesn't track you across websites or apps, and lets no third party do so. Because there is no tracking to turn off, it works the same whether or not your browser sends a Do Not Track signal.</p>
 
 <h2>Where your data is processed</h2>
-<p>Cloudflare, OpenRouter, the model companies, Supabase and Stripe may process data in the United States and other countries.</p>
+<p>Cloudflare, OpenRouter, the model companies, Deepgram, Supabase and Stripe may process data in the United States and other countries.</p>
 
 <h2>Children</h2>
 <p>Upshot is not meant for children under 13, and we don't knowingly collect their information.</p>

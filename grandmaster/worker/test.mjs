@@ -1108,7 +1108,7 @@ test("privacy policy: served from public/ with the CalOPPA items", async () => {
   ]) {
     assert.match(html, new RegExp(`<h2>${heading}</h2>`));
   }
-  for (const name of ["OpenRouter", "Supabase", "Stripe", "Cloudflare"]) {
+  for (const name of ["OpenRouter", "Supabase", "Stripe", "Cloudflare", "Deepgram"]) {
     assert.match(html, new RegExp(name));
   }
   assert.match(html, /Settings › Profile › Delete account/);
@@ -1473,4 +1473,180 @@ test("webhook: a live subscription for a deleted account is canceled", async () 
   } finally {
     console.error = realError;
   }
+});
+
+// ---------- Upshot transcription (/stt) ----------
+
+const sttEnv = {
+  DEEPGRAM_API_KEY: "dg-test",
+  RATE_LIMITER: { limit: async () => ({ success: true }) },
+};
+
+async function withFetch(handler, run) {
+  const realFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url: String(url), init });
+    return handler(String(url), init);
+  };
+  try {
+    await run(calls);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+}
+
+test("stt: a missing DEEPGRAM_API_KEY is a clear 503, never a crash", async () => {
+  for (const init of [
+    { headers: { upgrade: "websocket" } },
+    { method: "POST", headers: { "content-type": "audio/wav" }, body: "x" },
+  ]) {
+    const response = await worker.fetch(
+      new Request("https://w/stt/listen?model=cloud", init),
+      { RATE_LIMITER: sttEnv.RATE_LIMITER },
+    );
+    assert.equal(response.status, 503);
+    const body = await response.json();
+    assert.equal(body.error.code, "stt_unavailable");
+    assert.match(body.error.message, /Upshot transcription isn't available/);
+  }
+});
+
+test("stt live: WebSocket goes to Deepgram with the server key and allowlisted params", async () => {
+  const socket = { webSocket: {}, status: 101 };
+  await withFetch(
+    () => socket,
+    async (calls) => {
+      const response = await worker.fetch(
+        new Request(
+          "https://w/stt/listen?model=nova-3&channels=2&sample_rate=16000&encoding=linear16&diarize=true&interim_results=true&multichannel=true&language=en&keyterm=Upshot&callback=https://evil.test&tag=x",
+          { headers: { upgrade: "websocket", authorization: "Token " } },
+        ),
+        sttEnv,
+      );
+      assert.equal(response, socket);
+      const sent = new URL(calls[0].url);
+      assert.equal(sent.origin + sent.pathname, "https://api.deepgram.com/v1/listen");
+      assert.equal(calls[0].init.headers.authorization, "Token dg-test");
+      assert.equal(calls[0].init.headers.upgrade, "websocket");
+      assert.equal(sent.searchParams.get("model"), "nova-3");
+      assert.equal(sent.searchParams.get("channels"), "2");
+      assert.equal(sent.searchParams.get("encoding"), "linear16");
+      assert.equal(sent.searchParams.get("language"), "en");
+      assert.equal(sent.searchParams.get("keyterm"), "Upshot");
+      assert.equal(sent.searchParams.get("mip_opt_out"), "true");
+      assert.equal(sent.searchParams.has("callback"), false);
+      assert.equal(sent.searchParams.has("tag"), false);
+    },
+  );
+});
+
+test("stt: non-Deepgram or meta models run on nova-3", async () => {
+  const { sttModel } = await import("./src/stt.js");
+  assert.equal(sttModel("cloud"), "nova-3");
+  assert.equal(sttModel("flux-general-en"), "nova-3");
+  assert.equal(sttModel(null), "nova-3");
+  assert.equal(sttModel("nova-2"), "nova-2");
+  assert.equal(sttModel("nova-3-medical"), "nova-3-medical");
+});
+
+test("stt live: Deepgram refusing the key is a 503, busy is a 429", async () => {
+  for (const [status, expected] of [
+    [401, 503],
+    [402, 503],
+    [429, 429],
+    [500, 503],
+  ]) {
+    await withFetch(
+      () => new Response("{}", { status }),
+      async () => {
+        const response = await worker.fetch(
+          new Request("https://w/stt/listen?model=cloud", {
+            headers: { upgrade: "websocket" },
+          }),
+          sttEnv,
+        );
+        assert.equal(response.status, expected);
+      },
+    );
+  }
+});
+
+test("stt batch: the recorded file streams to Deepgram pre-recorded", async () => {
+  await withFetch(
+    () => Response.json({ metadata: {}, results: { channels: [] } }),
+    async (calls) => {
+      const response = await worker.fetch(
+        new Request(
+          "https://w/stt/listen?model=cloud&channels=2&sample_rate=48000&language=en&language=es&keyword=Upshot&num_speakers=3",
+          {
+            method: "POST",
+            headers: { "content-type": "audio/wav", authorization: "Bearer " },
+            body: "RIFF",
+          },
+        ),
+        sttEnv,
+      );
+      assert.equal(response.status, 200);
+      assert.deepEqual(await response.json(), {
+        metadata: {},
+        results: { channels: [] },
+      });
+      const sent = new URL(calls[0].url);
+      assert.equal(calls[0].init.method, "POST");
+      assert.equal(calls[0].init.headers.authorization, "Token dg-test");
+      assert.equal(calls[0].init.headers["content-type"], "audio/wav");
+      assert.equal(sent.searchParams.get("model"), "nova-3");
+      assert.equal(sent.searchParams.get("multichannel"), "true");
+      assert.equal(sent.searchParams.get("diarize"), "true");
+      assert.equal(sent.searchParams.get("mip_opt_out"), "true");
+      assert.deepEqual(sent.searchParams.getAll("detect_language"), [
+        "true",
+        "en",
+        "es",
+      ]);
+      assert.equal(sent.searchParams.has("language"), false);
+      assert.equal(sent.searchParams.get("keyterm"), "Upshot");
+      assert.equal(sent.searchParams.has("sample_rate"), false);
+      assert.equal(sent.searchParams.has("num_speakers"), false);
+    },
+  );
+});
+
+test("stt: browsers, other paths, methods and body types are refused", async () => {
+  await withFetch(
+    () => {
+      throw new Error("must not reach Deepgram");
+    },
+    async () => {
+      const cases = [
+        [
+          new Request("https://w/stt/listen", {
+            headers: { upgrade: "websocket", origin: "https://evil.test" },
+          }),
+          403,
+        ],
+        [
+          new Request("https://w/stt/listen", {
+            method: "POST",
+            headers: { "content-type": "text/plain" },
+            body: "x",
+          }),
+          415,
+        ],
+        [new Request("https://w/stt/listen"), 405],
+        [new Request("https://w/stt/other", { method: "POST" }), 404],
+      ];
+      for (const [request, status] of cases) {
+        assert.equal((await worker.fetch(request, sttEnv)).status, status);
+      }
+      const limited = await worker.fetch(
+        new Request("https://w/stt/listen", {
+          headers: { upgrade: "websocket" },
+        }),
+        { ...sttEnv, RATE_LIMITER: { limit: async () => ({ success: false }) } },
+      );
+      assert.equal(limited.status, 429);
+    },
+  );
 });

@@ -56,21 +56,22 @@ Release DMG: `grandmaster/scripts/release.sh`.
 
 ## Where your data lives
 
-Everything stays on your Mac until you make a summary or use chat.
+On Apple Silicon Macs, everything stays on your Mac until you make a summary or use chat. On Windows, Linux and Intel Macs, meeting audio is also sent for transcription (below).
 
 | What | Where |
 |---|---|
 | Notes, transcripts, summaries, settings | Local SQLite database in `~/Library/Application Support/anarlog/` (the folder keeps the upstream name on purpose; do not rename it) |
 | Meeting audio | The same folder, one `audio.mp3` per meeting. Kept until you change the retention setting (Settings › Meetings) |
-| AI keys | None on your Mac. The Upshot AI key lives only on the Cloudflare Worker. Never in the repo, the build or the app bundle |
+| AI keys | None on your computer. The Upshot AI and Deepgram keys live only on the Cloudflare Worker. Never in the repo, the build or the app bundle |
 | Pro account (optional) | Your sign-in session in the macOS Keychain, and your last known plan cached in the app. Your email, plan status and Stripe customer ID in Supabase. Card details only at Stripe. Settings › Profile › Delete account removes the Stripe customer and the Supabase account |
-| Transcription | On your Mac: Apple Speech (macOS 26+) or Parakeet. Apple Speech language files come from Apple |
+| Transcription | Apple Silicon Macs: on your Mac, Apple Speech (macOS 26+) or Parakeet; Apple Speech language files come from Apple. Windows, Linux and Intel Macs: Upshot transcription, Deepgram Nova 3 through the Upshot proxy |
 | Model list | Public catalogs (models.dev, OpenRouter), cached locally. No user data is sent |
 | Glaido connection (optional) | `~/Library/Application Support/Upshot/glaido/mcp.json`, pointing at the CLI inside the app |
 
 **What leaves your Mac:**
 
-- When you make a summary or use chat: the note text and transcript go through the Upshot AI proxy (a Cloudflare Worker that stores nothing; logging is off) to OpenRouter, which runs Claude Sonnet 5.5 on Auto, or the model a Pro user picked. Audio never leaves your Mac. A locked note is never sent to chat, MCP tools or webhooks until you unlock it.
+- When you make a summary or use chat: the note text and transcript go through the Upshot AI proxy (a Cloudflare Worker that stores nothing; logging is off) to OpenRouter, which runs Claude Sonnet 5.5 on Auto, or the model a Pro user picked. A locked note is never sent to chat, MCP tools or webhooks until you unlock it.
+- Transcription: on Apple Silicon Macs, audio never leaves your Mac. On Windows, Linux and Intel Macs, audio is streamed through the Upshot proxy (the same Cloudflare Worker, which stores nothing) to Deepgram for transcription, with Deepgram's model improvement program opted out.
 - Only if you get Pro: your email and Stripe customer ID are stored in Supabase, and Stripe handles the payment.
 - Only if you set one up: a webhook (Settings › Connectors › Webhooks) sends finished notes where you point it.
 - Nothing else: no telemetry, no crash reports, no cloud sync, no auto-updater. Free needs no account.

@@ -212,32 +212,29 @@ export function canRunBatchTranscription(
   return true;
 }
 
+// Fork: Apple Silicon falls back to on-device Soniqo, so audio never leaves
+// the Mac; every other platform falls back to Upshot transcription (the Upshot
+// Worker's Deepgram proxy), which needs no sign-in, plan or key.
 export function getBatchFallbackTarget({
-  isPaid,
-  accessToken,
   apiBaseUrl,
   currentPlatform = platform(),
   currentArch = arch(),
 }: {
-  isPaid: boolean;
-  accessToken?: string | null;
   apiBaseUrl: string;
   currentPlatform?: ReturnType<typeof platform>;
   currentArch?: ReturnType<typeof arch>;
-}): BatchTarget | null {
-  if (isPaid && accessToken) {
-    return {
-      provider: "anarlog",
-      model: "cloud",
-      baseUrl: new URL("/stt", apiBaseUrl).toString(),
-      apiKey: accessToken,
-      label: "Pro cloud transcription",
-    };
+}): BatchTarget {
+  if (isDesktopLocalSttAvailable(currentPlatform, currentArch)) {
+    return LOCAL_SONIQO_BATCH_TARGET;
   }
 
-  return isDesktopLocalSttAvailable(currentPlatform, currentArch)
-    ? LOCAL_SONIQO_BATCH_TARGET
-    : null;
+  return {
+    provider: "anarlog",
+    model: "cloud",
+    baseUrl: new URL("/stt", apiBaseUrl).toString(),
+    apiKey: "",
+    label: "Upshot transcription",
+  };
 }
 
 async function canUseBatchTarget(
@@ -382,8 +379,6 @@ export const useRunBatch = (sessionId: string) => {
       const cloudAccessToken =
         requestSession?.access_token ?? auth.session?.access_token;
       const fallbackTarget = getBatchFallbackTarget({
-        isPaid: billing.isPaid,
-        accessToken: cloudAccessToken,
         apiBaseUrl: env.VITE_AI_API_URL ?? env.VITE_API_URL,
         currentPlatform,
         currentArch,
@@ -411,11 +406,10 @@ export const useRunBatch = (sessionId: string) => {
         );
       }
 
+      // Fork: Upshot transcription works signed out; the Worker ignores
+      // any token.
       if (target.provider === "anarlog" && target.model === "cloud") {
-        if (!cloudAccessToken) {
-          throw new Error(t`Transcription failed`);
-        }
-        target = { ...target, apiKey: cloudAccessToken };
+        target = { ...target, apiKey: cloudAccessToken ?? "" };
       }
 
       if (!shouldUseSelectedTarget && !options?.recovery && !options?.resume) {

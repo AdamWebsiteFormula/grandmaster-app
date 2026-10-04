@@ -48,7 +48,7 @@ test.each([true, false])(
       ),
     });
 
-    // Fork: the upstream cloud transcription is never configured.
+    // Fork: Upshot transcription waits for the platform to be known.
     expect(result.current.providers.anarlog.configured).toBe(false);
     expect(result.current.providers.deepgram.configured).toBe(false);
     expect(result.current.isReady).toBe(false);
@@ -58,5 +58,37 @@ test.each([true, false])(
 
     expect(result.current.isReady).toBe(true);
     expect(result.current.providers.deepgram.configured).toBe(verified);
+  },
+);
+
+test.each([
+  ["windows", "x86_64", true],
+  ["linux", "x86_64", true],
+  ["macos", "x86_64", true],
+  ["macos", "aarch64", false],
+])(
+  "offers Upshot transcription only without an on-device engine (%s/%s)",
+  (platform, arch, offered) => {
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    client.setQueryData(["device-info"], {
+      platform,
+      arch,
+      totalMemoryBytes: 16e9,
+    });
+    client.setQueryData(["list-supported-models"], []);
+    useProviderAvailabilityMock.mockReturnValue({ deepgram: true });
+
+    const { result } = renderHook(useConfiguredMapping, {
+      wrapper: ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={client}>{children}</QueryClientProvider>
+      ),
+    });
+
+    expect(result.current.providers.anarlog.configured).toBe(offered);
+    expect(result.current.providers.anarlog.models.map((m) => m.id)).toEqual(
+      offered ? ["cloud"] : [],
+    );
   },
 );

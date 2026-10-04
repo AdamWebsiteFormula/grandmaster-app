@@ -324,7 +324,7 @@ describe("BillingProvider", () => {
     refreshedClaims.resolve(paidClaims("user-1"));
   });
 
-  it("defers paid-to-free transcription repair until refreshed claims arrive", async () => {
+  it("defers paid-to-free transcription repair, then keeps keyless Upshot transcription", async () => {
     settingsState.currentPlatform = "windows";
     const refreshedClaims =
       deferred<Awaited<ReturnType<typeof authCommands.decodeClaims>>>();
@@ -357,13 +357,13 @@ describe("BillingProvider", () => {
 
     await waitFor(() => {
       expect(settingsState.setSettingValues).toHaveBeenCalledWith({
-        current_stt_provider: "",
-        current_stt_model: "",
+        current_stt_provider: "anarlog",
+        current_stt_model: "cloud",
       });
     });
     expect(settingsState.setSettingValues).not.toHaveBeenCalledWith({
-      current_stt_provider: "anarlog",
-      current_stt_model: "cloud",
+      current_stt_provider: "",
+      current_stt_model: "",
     });
   });
 
@@ -477,9 +477,9 @@ describe("BillingProvider", () => {
 
   it.each([
     [true, "anarlog", "cloud"],
-    [false, "", ""],
+    [false, "anarlog", "cloud"],
   ])(
-    "repairs unsupported local transcription on Windows when paid access is %s",
+    "repairs unsupported local transcription on Windows to Upshot transcription when paid access is %s",
     async (isPaid, expectedProvider, expectedModel) => {
       settingsState.currentPlatform = "windows";
       settingsState.values.current_stt_provider = "anarlog";
@@ -531,7 +531,7 @@ describe("BillingProvider", () => {
     });
   });
 
-  it("requires provider selection for signed-out Windows users with Apple-local transcription", async () => {
+  it("moves signed-out Windows users with Apple-local transcription to Upshot transcription", async () => {
     authState.session = undefined;
     settingsState.currentPlatform = "windows";
     settingsState.values.current_stt_provider = "anarlog";
@@ -545,8 +545,8 @@ describe("BillingProvider", () => {
 
     await waitFor(() => {
       expect(settingsState.setSettingValues).toHaveBeenCalledWith({
-        current_stt_provider: "",
-        current_stt_model: "",
+        current_stt_provider: "anarlog",
+        current_stt_model: "cloud",
       });
     });
     expect(settingsState.setSettingValues).toHaveBeenCalledTimes(1);

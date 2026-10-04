@@ -1,14 +1,21 @@
+import { arch, platform } from "@tauri-apps/plugin-os";
+
 import { PROVIDERS } from "~/settings/ai/llm/shared";
 import { getProviderSelectionBlockers } from "~/settings/ai/shared/eligibility";
 import { getStoredAiProvider } from "~/settings/providers";
 import { getStoredSettingValues, setSettingValues } from "~/settings/queries";
 import type { SettingValues } from "~/settings/schema";
+import { isUpshotCloudSttAvailable } from "~/stt/capabilities";
 
 export async function configurePaidSettings(): Promise<void> {
   const { values } = await getStoredSettingValues();
   const updates: SettingValues = {};
 
-  if (!values.current_stt_provider) {
+  // Fork: Upshot transcription only off Apple Silicon (audio stays on the Mac).
+  if (
+    !values.current_stt_provider &&
+    isUpshotCloudSttAvailable(platform(), arch())
+  ) {
     updates.current_stt_provider = "anarlog";
     updates.current_stt_model = "cloud";
   }

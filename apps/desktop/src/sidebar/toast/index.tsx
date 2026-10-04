@@ -21,10 +21,7 @@ import { useConfigValues } from "~/shared/config";
 import { useLatestRef } from "~/shared/hooks/useLatestRef";
 import { useDevtoolsToastPreview } from "~/store/zustand/devtools-toast-preview";
 import { useTabs } from "~/store/zustand/tabs";
-import {
-  isConfiguredSttModel,
-  isAnarlogCloudSttModel,
-} from "~/stt/capabilities";
+import { isConfiguredSttModel } from "~/stt/capabilities";
 import { useListener } from "~/stt/contexts";
 
 export function ToastNotifications() {
@@ -90,10 +87,8 @@ export function ToastNotifications() {
     current_stt_provider,
     current_stt_model,
   );
-  const hasProSttConfigured = isAnarlogCloudSttModel(
-    current_stt_provider,
-    current_stt_model,
-  );
+  // Fork: Upshot transcription ("anarlog" "cloud") needs no sign-in either.
+  const hasProSttConfigured = false;
   // Fork: Upshot AI ("anarlog") needs no sign-in, so it never counts as a
   // Pro model that is unusable while signed out.
   const hasProLlmConfigured = false;

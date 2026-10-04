@@ -44,6 +44,13 @@ vi.mock("@anlg/plugin-local-stt", () => ({
   },
 }));
 
+const os = vi.hoisted(() => ({ platform: "windows", arch: "x86_64" }));
+
+vi.mock("@tauri-apps/plugin-os", () => ({
+  platform: () => os.platform,
+  arch: () => os.arch,
+}));
+
 vi.mock("~/auth", () => ({
   useAuth: () => ({ session: authState.session }),
 }));
@@ -96,6 +103,8 @@ vi.mock("~/stt/capabilities", () => ({
     provider === "soniqo" && model === "soniqo-parakeet-streaming",
   isRealtimeLocalModel: (model: string) =>
     model === "soniqo-parakeet-streaming",
+  isUpshotCloudSttAvailable: (platform: string, arch: string) =>
+    !(platform === "macos" && arch === "aarch64"),
 }));
 
 import { useSTTConnection } from "./useSTTConnection";
@@ -110,6 +119,8 @@ describe("useSTTConnection", () => {
     billingState.isReady = true;
     readiness.provider = true;
     readiness.settings = true;
+    os.platform = "windows";
+    os.arch = "x86_64";
     getServerForModelMock.mockReset();
     isModelDownloadedMock.mockReset();
     startServerForPathMock.mockReset();
@@ -128,7 +139,7 @@ describe("useSTTConnection", () => {
       provider: "anarlog",
       model: "cloud",
       baseUrl: "https://api.anarlog.so/stt",
-      apiKey: "access-token",
+      apiKey: "",
     });
     expect(result.current.isReady).toBe(true);
   });
@@ -192,7 +203,9 @@ describe("useSTTConnection", () => {
     expect(settingsPending.result.current.isReady).toBe(false);
   });
 
-  it("waits for cloud authentication and billing access", () => {
+  it("connects Upshot transcription signed out, with no plan or key", () => {
+    authState.session = null;
+    billingState.isPaid = false;
     billingState.isReady = false;
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
@@ -200,17 +213,30 @@ describe("useSTTConnection", () => {
     const wrapper = ({ children }: { children: ReactNode }) =>
       createElement(QueryClientProvider, { client: queryClient }, children);
 
-    const billingPending = renderHook(() => useSTTConnection(), { wrapper });
+    const { result } = renderHook(() => useSTTConnection(), { wrapper });
 
-    expect(billingPending.result.current.isReady).toBe(false);
+    expect(result.current.conn).toEqual({
+      provider: "anarlog",
+      model: "cloud",
+      baseUrl: "https://api.anarlog.so/stt",
+      apiKey: "",
+    });
+    expect(result.current.isReady).toBe(true);
+  });
 
-    billingPending.unmount();
-    billingState.isReady = true;
-    authState.session = undefined;
-    const authPending = renderHook(() => useSTTConnection(), { wrapper });
+  it("never connects Upshot transcription on Apple Silicon", () => {
+    os.platform = "macos";
+    os.arch = "aarch64";
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(QueryClientProvider, { client: queryClient }, children);
 
-    expect(authPending.result.current.conn).toBeNull();
-    expect(authPending.result.current.isReady).toBe(false);
+    const { result } = renderHook(() => useSTTConnection(), { wrapper });
+
+    expect(result.current.conn).toBeNull();
+    expect(result.current.isReady).toBe(false);
   });
 
   it("waits for an on-device model server to become ready", async () => {

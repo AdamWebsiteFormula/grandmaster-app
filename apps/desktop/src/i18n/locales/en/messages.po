@@ -902,6 +902,10 @@ msgstr "Audio is not available on this device."
 msgid "Audio saved on this Mac · kept {kept}"
 msgstr "Audio saved on this Mac · kept {kept}"
 
+#: src/onboarding/transcription.tsx
+msgid "Audio streams through Upshot to Deepgram for transcription. Nothing is stored."
+msgstr "Audio streams through Upshot to Deepgram for transcription. Nothing is stored."
+
 #: src/lock/screen.tsx
 msgid "Authenticate to continue."
 msgstr "Authenticate to continue."
@@ -7592,7 +7596,6 @@ msgid "Transcription downloading"
 msgstr "Transcription downloading"
 
 #: src/session/components/note-input/transcript/screens/empty.tsx
-#: src/stt/useRunBatch.ts
 msgid "Transcription failed"
 msgstr "Transcription failed"
 
@@ -8138,6 +8141,10 @@ msgstr "Upshot stops using {0} until you add a key again."
 #: src/onboarding/index.tsx
 msgid "Upshot transcribes on your Mac. No account and no API key."
 msgstr "Upshot transcribes on your Mac. No account and no API key."
+
+#: src/onboarding/transcription.tsx
+msgid "Upshot transcription"
+msgstr "Upshot transcription"
 
 #: src/session-sharing/access-management.tsx
 msgid "Upshot user"

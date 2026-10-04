@@ -1,11 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
+import { arch, platform } from "@tauri-apps/plugin-os";
 import { useMemo } from "react";
 
 import { commands as localSttCommands } from "@anlg/plugin-local-stt";
 import type { AIProviderStorage } from "@anlg/store";
 
-import { useAuth } from "~/auth";
-import { useBillingAccess } from "~/auth/billing-context";
 import { env } from "~/env";
 import { type ProviderId, PROVIDERS } from "~/settings/ai/stt/shared";
 import { useAiProvidersState } from "~/settings/providers";
@@ -16,12 +15,11 @@ import {
   isLocalFileSttModel,
   isOnDeviceSttModel,
   isRealtimeLocalModel,
+  isUpshotCloudSttAvailable,
 } from "~/stt/capabilities";
 import { localSttQueries } from "~/stt/useLocalSttModel";
 
 export const useSTTConnection = () => {
-  const auth = useAuth();
-  const billing = useBillingAccess();
   const settingsReady = useSettingsReady();
   const { current_stt_provider, current_stt_model, local_stt_model_path } =
     useConfigValues([
@@ -151,7 +149,10 @@ export const useSTTConnection = () => {
     }
 
     if (isCloudModel) {
-      if (!auth?.session || !billing.isPaid) {
+      // Fork: Upshot transcription needs no sign-in or plan: the Upshot
+      // Worker holds the Deepgram key, so the app sends none. Never on Apple
+      // Silicon, where audio stays on the Mac.
+      if (!isUpshotCloudSttAvailable(platform(), arch())) {
         return null;
       }
 
@@ -161,7 +162,7 @@ export const useSTTConnection = () => {
         baseUrl:
           baseUrl ||
           new URL("/stt", env.VITE_AI_API_URL ?? env.VITE_API_URL).toString(),
-        apiKey: auth.session.access_token,
+        apiKey: "",
       };
     }
 
@@ -199,8 +200,6 @@ export const useSTTConnection = () => {
     local.data,
     baseUrl,
     apiKey,
-    auth,
-    billing.isPaid,
   ]);
 
   return {
@@ -210,9 +209,7 @@ export const useSTTConnection = () => {
       connection !== null &&
       (isLocalModel
         ? !local.isPending
-        : isCloudModel
-          ? billing.isReady
-          : providerConfigReady),
+        : isCloudModel || providerConfigReady),
     local,
     localBatchDiarizationAvailable: localBatchModel.data === true,
     isLocalModel,

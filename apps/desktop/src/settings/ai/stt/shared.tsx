@@ -79,7 +79,7 @@ const displayModelId = (model: string): string => {
   if (model === "qwen3-asr") return "Qwen3 ASR";
 
   if (model === "cloud") {
-    return "Pro (Cloud)";
+    return "Nova 3 (cloud)";
   }
 
   if (model === "local-file") {

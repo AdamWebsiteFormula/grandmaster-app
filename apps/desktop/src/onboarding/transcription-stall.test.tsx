@@ -7,6 +7,12 @@ const mocks = vi.hoisted(() => ({
   downloadModel: vi.fn(),
   cancelDownload: vi.fn(),
   listen: vi.fn(),
+  os: { platform: "macos", arch: "aarch64" },
+}));
+
+vi.mock("@tauri-apps/plugin-os", () => ({
+  platform: () => mocks.os.platform,
+  arch: () => mocks.os.arch,
 }));
 
 vi.mock("@anlg/plugin-local-stt", () => ({
@@ -32,6 +38,8 @@ let downloaded = false;
 beforeEach(() => {
   vi.useFakeTimers();
   downloaded = false;
+  mocks.os.platform = "macos";
+  mocks.os.arch = "aarch64";
   mocks.listSupportedModels.mockResolvedValue({
     status: "ok",
     data: [{ key: "apple-speech" }],
@@ -128,6 +136,29 @@ it("explains when this Mac has no on-device engine", async () => {
     screen.getByText("No on-device engine is available on this Mac."),
   ).toBeTruthy();
 });
+
+it.each([
+  ["windows", "x86_64"],
+  ["linux", "x86_64"],
+  ["macos", "x86_64"],
+])(
+  "uses Upshot transcription with no download on %s/%s",
+  async (platform, arch) => {
+    mocks.os.platform = platform;
+    mocks.os.arch = arch;
+    mocks.listSupportedModels.mockResolvedValue({ status: "ok", data: [] });
+    render(<TranscriptionSetupSection onContinue={() => {}} />);
+    await settle();
+
+    expect(screen.getByText("Upshot transcription is ready")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Audio streams through Upshot to Deepgram for transcription. Nothing is stored.",
+      ),
+    ).toBeTruthy();
+    expect(mocks.downloadModel).not.toHaveBeenCalled();
+  },
+);
 
 it("shows the download size while downloading", async () => {
   mocks.listSupportedModels.mockResolvedValue({

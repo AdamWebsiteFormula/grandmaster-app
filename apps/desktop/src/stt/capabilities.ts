@@ -125,6 +125,16 @@ export function isDesktopLocalSttAvailable(
   return currentPlatform === "macos" && currentArch === "aarch64";
 }
 
+// Fork: Upshot transcription (the built-in "anarlog" cloud provider, proxied
+// to Deepgram by the Upshot Worker) is only for platforms with no on-device
+// engine: Windows, Linux and Intel Macs. On Apple Silicon audio stays on the Mac.
+export function isUpshotCloudSttAvailable(
+  currentPlatform: string,
+  currentArch: string,
+) {
+  return !isDesktopLocalSttAvailable(currentPlatform, currentArch);
+}
+
 export function getUnsupportedDesktopLocalSttRepair(
   currentPlatform: string,
   currentArch: string,

@@ -90,6 +90,7 @@ import {
   isConfiguredSttModel,
   getSttModelTranscriptionMode,
   isDesktopLocalSttAvailable,
+  isUpshotCloudSttAvailable,
   isLiveTranscriptionSupported,
   isLocalFileSttModel,
   isOnDeviceSttModel,
@@ -773,10 +774,25 @@ export function useConfiguredMapping(): {
         return [provider.id, { configured: false, models: [] }];
       }
 
-      // Fork (blueprint section 5): the upstream cloud transcription has no
-      // server behind it in this app, so it never counts as configured.
+      // Fork: Upshot transcription (the Upshot Worker's keyless Deepgram
+      // proxy) is offered only where there is no on-device engine: Windows,
+      // Linux and Intel Macs. Apple Silicon keeps audio on the Mac.
       if (provider.id === "anarlog") {
-        return [provider.id, { configured: false, models: [] }];
+        const available =
+          !!deviceInfo.data?.platform &&
+          isUpshotCloudSttAvailable(
+            deviceInfo.data.platform,
+            deviceInfo.data.arch ?? "",
+          );
+        return [
+          provider.id,
+          {
+            configured: available,
+            models: available
+              ? [{ id: "cloud", isDownloaded: true, mode: "realtime" as const }]
+              : [],
+          },
+        ];
       }
 
       if (provider.id === "soniqo") {

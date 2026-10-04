@@ -4,6 +4,12 @@ const mocks = vi.hoisted(() => ({
   getStoredAiProvider: vi.fn(),
   getStoredSettingValues: vi.fn(),
   setSettingValues: vi.fn(async () => undefined),
+  os: { platform: "windows", arch: "x86_64" },
+}));
+
+vi.mock("@tauri-apps/plugin-os", () => ({
+  platform: () => mocks.os.platform,
+  arch: () => mocks.os.arch,
 }));
 
 vi.mock("~/settings/providers", () => ({
@@ -21,6 +27,24 @@ describe("configurePaidSettings", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.getStoredAiProvider.mockResolvedValue(undefined);
+    mocks.os.platform = "windows";
+    mocks.os.arch = "x86_64";
+  });
+
+  it("keeps Apple Silicon transcription on the Mac", async () => {
+    mocks.os.platform = "macos";
+    mocks.os.arch = "aarch64";
+    mocks.getStoredSettingValues.mockResolvedValue({
+      values: {},
+      hasValues: new Set(),
+    });
+
+    await configurePaidSettings();
+
+    expect(mocks.setSettingValues).toHaveBeenCalledWith({
+      current_llm_provider: "anarlog",
+      current_llm_model: "Auto",
+    });
   });
 
   it("selects hosted AI when no language model is configured", async () => {
