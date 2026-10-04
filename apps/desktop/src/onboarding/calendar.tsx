@@ -101,8 +101,12 @@ function AppleCalendarProvider({
         </div>
       )}
 
-      <div className="order-2 flex min-w-56 flex-1">
+      {/* Fork: Connect calendar is the step's one orange action, sized to
+          its label like every other step's button (design-system.md: one
+          accent per screen; NN/g #4). */}
+      <div className="order-2 flex">
         <OnboardingButton
+          variant={isAuthorized ? "secondary" : "primary"}
           onClick={() => {
             if (isAuthorized) {
               void openInternetAccounts();
@@ -113,7 +117,7 @@ function AppleCalendarProvider({
             onRequest();
           }}
           disabled={isPending}
-          className="border-border bg-card text-foreground hover:bg-accent flex h-full w-full items-center justify-center gap-3 border px-6 transition-all duration-150"
+          className="flex items-center gap-3 px-6"
         >
           <img
             src="/assets/apple-calendar.png"

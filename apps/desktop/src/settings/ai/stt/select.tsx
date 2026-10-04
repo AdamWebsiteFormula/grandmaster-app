@@ -82,6 +82,7 @@ import { getBaseLanguageDisplayName } from "~/settings/general/language";
 import { SettingsSectionTitle } from "~/settings/page-title";
 import { useAiProvidersState } from "~/settings/providers";
 import { useSetSettingValues } from "~/settings/queries";
+import { SETTING_CONTROL_CLASS } from "~/settings/setting-row";
 import { useConfigValues } from "~/shared/config";
 import { DestructiveConfirmationDialog } from "~/shared/ui/destructive-confirmation-dialog";
 import { SettingsAlertToast } from "~/shared/ui/settings-alert";
@@ -276,7 +277,11 @@ export function SelectProviderAndModel() {
       />
       {!alertDescription && <TranscriptionLanguageWarningToast />}
 
-      <SettingsSectionTitle>
+      {/* Fork: inset like every other section title (SettingsGroup px-1),
+          and both dropdowns use the Settings select look: the default
+          squircle and a chevron at all times (NN/g #4; NN/g "Beyond Blue
+          Links"). */}
+      <SettingsSectionTitle className="px-1">
         <Trans>Model being used</Trans>
       </SettingsSectionTitle>
       <div className="flex flex-row items-center gap-4">
@@ -284,8 +289,7 @@ export function SelectProviderAndModel() {
           <Select value={visibleProvider} onValueChange={handleProviderChange}>
             <SelectTrigger
               aria-label={t`Transcription provider`}
-              corners={{ radius: 18, smoothing: 0 }}
-              className="bg-card rounded-[18px] shadow-none"
+              className={SETTING_CONTROL_CLASS}
             >
               <SelectValue placeholder={t`Select a provider`} />
             </SelectTrigger>
@@ -367,11 +371,10 @@ export function SelectProviderAndModel() {
             >
               <SelectTrigger
                 aria-label={t`Transcription model`}
-                corners={{ radius: 18, smoothing: 0 }}
                 className={cn([
-                  "bg-card rounded-[18px] text-left shadow-none",
+                  SETTING_CONTROL_CLASS,
+                  "gap-2 text-left",
                   "[&>span]:!flex [&>span]:w-full [&>span]:min-w-0 [&>span]:items-center [&>span]:justify-start [&>span]:gap-2 [&>span]:overflow-visible [&>span]:[-webkit-line-clamp:unset]",
-                  isConfigured && "[&>svg:last-child]:hidden",
                 ])}
               >
                 <SelectValue placeholder={t`Select a model`}>
@@ -380,8 +383,10 @@ export function SelectProviderAndModel() {
                   ) : undefined}
                 </SelectValue>
                 {isConfigured && <HealthStatusIndicator />}
+                {/* Fork: a neutral check, no fixed green (Apple HIG Dark
+                    Mode; design-system "The one accent"). */}
                 {isConfigured && health.status === "success" && (
-                  <Check className="-mr-1 h-4 w-4 shrink-0 text-green-600" />
+                  <Check className="text-muted-foreground h-4 w-4 shrink-0" />
                 )}
               </SelectTrigger>
               <SelectContent align="end">
@@ -1070,8 +1075,10 @@ function ModelModeBadge({ mode }: { mode?: ModelEntry["mode"] }) {
           ref={ref}
           className={cn([
             "shrink-0 cursor-help rounded-md px-1.5 py-0.5 text-xs font-medium",
+            // Fork: neutral chips that adapt to dark mode, no fixed blue
+            // (Apple HIG Dark Mode; design-system "The one accent").
             isRealtime
-              ? "bg-sky-50 text-sky-700"
+              ? "bg-muted text-foreground"
               : "bg-muted text-muted-foreground",
           ])}
         >

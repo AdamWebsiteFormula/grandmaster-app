@@ -1,10 +1,12 @@
-import { renderHook } from "@testing-library/react";
+import { render, renderHook } from "@testing-library/react";
+import { createElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { computeCurrentNoteTab } from "@anlg/utils/session";
 
 import {
   hasStoredNoteContent,
+  RecordingIcon,
   useCanShowTranscript,
   useCurrentNoteHasContent,
   useCurrentNoteTab,
@@ -292,5 +294,17 @@ describe("computeCurrentNoteTab", () => {
     ],
   ])("%s", (_label, args, expected) => {
     expect(computeCurrentNoteTab(...args)).toEqual(expected);
+  });
+});
+
+// Fork: the idle "Start recording" icon is still, so it never reads as
+// "recording now" (NN/g #1; WCAG 2.2 SC 2.2.2 Pause, Stop, Hide).
+describe("RecordingIcon", () => {
+  it("draws a still red dot with no pulsing halo", () => {
+    const view = render(createElement(RecordingIcon));
+
+    expect(view.container.querySelector(".animate-ping")).toBeNull();
+    expect(view.container.querySelector(".bg-destructive")).not.toBeNull();
+    view.unmount();
   });
 });

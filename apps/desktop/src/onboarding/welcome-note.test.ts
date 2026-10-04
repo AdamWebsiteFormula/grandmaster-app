@@ -189,3 +189,10 @@ it.each(["windows", "linux"])("uses Ctrl+N and no Mac words on %s", (os) => {
   expect(note).toContain("stored on this computer");
   expect(note).not.toMatch(/Mac|⌘/);
 });
+
+// NN/g #8: the title is above the body, so the body does not repeat it.
+it("starts the body after the title instead of repeating it", () => {
+  const note = welcomeNoteMarkdown("macos");
+  expect(note.startsWith("Upshot takes notes for your meetings.")).toBe(true);
+  expect(note).not.toContain("Welcome to Upshot");
+});

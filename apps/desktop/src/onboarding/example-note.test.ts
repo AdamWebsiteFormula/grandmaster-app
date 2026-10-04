@@ -44,6 +44,8 @@ it("seeds a labeled example with a two-speaker transcript and a finished summary
     EXAMPLE_NOTE_TRACKING_ID,
   );
   expect(initial.raw_md).toContain("Delete note");
+  // Transcript is in the bottom bar, not above the note.
+  expect(initial.raw_md).toContain("at the bottom");
 
   const transcript = mocks.createTranscript.mock.calls[0][0];
   expect(transcript.sessionId).toBe("example-session");
@@ -57,6 +59,9 @@ it("seeds a labeled example with a two-speaker transcript and a finished summary
     mocks.updateEnhancedNoteContent.mock.calls[0];
   expect([noteId, sessionId]).toEqual(["summary-note", "example-session"]);
   expect(content).toContain("Action items");
+  // NN/g #4: the same name the transcript shows for the other person.
+  expect(content).toContain("Speaker 1:");
+  expect(content).not.toContain("Them:");
 });
 
 it("never re-creates the example, even after the user deleted it", async () => {

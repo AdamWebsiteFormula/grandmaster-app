@@ -199,9 +199,11 @@ export function SettingsPlan() {
               ) : !isSignedIn ? (
                 // Fork: a returning subscriber restores Pro from the page
                 // about Pro (journey-account-settings P2; linear.app/pricing,
-                // raycast.com/pricing; NN/g #6).
+                // raycast.com/pricing; NN/g #6). Outline, as Sign in on
+                // Profile, so it reads as a button (NN/g "Beyond Blue
+                // Links").
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   className="h-8 text-sm"
                   onClick={() => openUpshotSignIn()}
@@ -354,10 +356,12 @@ function PlanUsage() {
           className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-3"
           data-testid="plan-usage"
         >
+          {/* Fork: a text-xl number over a text-sm label, no bigger than
+              the page title (design-system Type; NN/g visual hierarchy). */}
           {metrics.map((metric) => (
             <div key={metric.label} className="flex min-w-0 flex-col gap-1">
-              <dt className="text-muted-foreground text-xs">{metric.label}</dt>
-              <dd className="text-2xl font-semibold tabular-nums">
+              <dt className="text-muted-foreground text-sm">{metric.label}</dt>
+              <dd className="text-xl font-semibold tabular-nums">
                 {ready ? metric.value : "—"}
               </dd>
             </div>
@@ -538,10 +542,12 @@ function PlanComparison({
                 <th scope="row" className={rowHeader("middle")}>
                   <Trans>Price</Trans>
                 </th>
-                <td className={cell(freeCurrent, "middle")}>
+                {/* Fork: both prices start at the top, so $0 and $11 sit on
+                    one line when Pro has an extra line (Apple HIG Layout). */}
+                <td className={cn([cell(freeCurrent, "middle"), "align-top"])}>
                   <Price amount={t`$0`} line={t`No account needed`} />
                 </td>
-                <td className={cell(isPro, "middle")}>
+                <td className={cn([cell(isPro, "middle"), "align-top"])}>
                   {interval === "year" ? (
                     <Price
                       amount={t`$${YEARLY_PER_MONTH}`}

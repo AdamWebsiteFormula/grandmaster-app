@@ -301,9 +301,13 @@ export function NotificationSettingsView() {
                       />
 
                       {field.state.value && !notificationsDisabled && (
+                        // Fork: the rule drops from the icon's center and the
+                        // child rows start where the parent's text does
+                        // (32 px tile + 12 px gap = 44 px: 16 + 2 + 26), as
+                        // Apple HIG Layout aligns related content.
                         <div
                           className={cn([
-                            "border-border ml-3 border-l-2 pt-2 pl-4",
+                            "border-border ml-4 border-l-2 pt-2 pl-6.5",
                           ])}
                         >
                           <form.Field name="mic_active_threshold">
@@ -403,7 +407,10 @@ export function NotificationSettingsView() {
                                         tabIndex={0}
                                         aria-expanded={searchOpen}
                                         className={cn([
-                                          "flex min-h-[38px] w-full cursor-text flex-wrap items-center gap-2 rounded-2xl border p-2",
+                                          // Fork: a field border like the
+                                          // delay select above, 3:1 or more
+                                          // (WCAG 2.2 SC 1.4.11).
+                                          "border-input flex min-h-[38px] w-full cursor-text flex-wrap items-center gap-2 rounded-lg border p-2",
                                           "focus-visible:ring-ring focus-visible:ring-1 focus-visible:outline-hidden",
                                         ])}
                                         onKeyDown={(event) => {
@@ -440,7 +447,9 @@ export function NotificationSettingsView() {
                                               >
                                                 {bundleIdToName(bundleId)}
                                                 {isDefault && (
-                                                  <span className="text-xs opacity-70">
+                                                  // Fork: no fade on text, 4.5:1
+                                                  // or more (WCAG 2.2 SC 1.4.3).
+                                                  <span className="text-xs">
                                                     <Trans>(default)</Trans>
                                                   </span>
                                                 )}

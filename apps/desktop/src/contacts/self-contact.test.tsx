@@ -74,7 +74,7 @@ vi.mock("./shared", () => ({
   ),
 }));
 
-import { DetailsColumn } from "./details";
+import { ContactOrganizationSelector, DetailsColumn } from "./details";
 
 import { ContactsNav } from "~/sidebar/contacts";
 
@@ -171,4 +171,33 @@ it("renders your details without edit, photo, merge, enrich, or delete controls"
     screen.getByRole("button", { name: "Contact options" }),
   ).not.toBeNull();
   expect(screen.queryByRole("button", { name: "Merge" })).toBeNull();
+});
+
+// Fork: the company picker is a real button, so Tab reaches it (WCAG 2.2
+// SC 2.1.1, 4.1.2), with a focus ring (SC 2.4.7) and a label Profile can
+// change.
+it("offers Add organization as a focusable button with an optional label", () => {
+  const { rerender } = render(
+    <ContactOrganizationSelector
+      organization={null}
+      organizations={[]}
+      onChange={vi.fn()}
+    />,
+  );
+  const add = screen.getByRole("button", { name: "Add organization" });
+  expect(add.tagName).toBe("BUTTON");
+  expect(add.getAttribute("type")).toBe("button");
+  expect(add.className).toContain("focus-visible:ring-2");
+  add.focus();
+  expect(document.activeElement).toBe(add);
+  rerender(
+    <ContactOrganizationSelector
+      organization={null}
+      organizations={[]}
+      onChange={vi.fn()}
+      addLabel="Add company"
+    />,
+  );
+  expect(screen.getByRole("button", { name: "Add company" })).toBeTruthy();
+  expect(screen.queryByText("Add organization")).toBeNull();
 });

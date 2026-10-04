@@ -540,6 +540,10 @@ msgstr "Add at least one configured action before enabling."
 msgid "Add at least one example summary."
 msgstr "Add at least one example summary."
 
+#: src/settings/general/account-profile.tsx
+msgid "Add company"
+msgstr "Add company"
+
 #: src/session/folder-instructions.tsx
 msgid "Add context for this folder"
 msgstr "Add context for this folder"
@@ -920,8 +924,8 @@ msgid "Audio saved on this Mac · kept {kept}"
 msgstr "Audio saved on this Mac · kept {kept}"
 
 #: src/onboarding/transcription.tsx
-msgid "Audio streams through Upshot to Deepgram for transcription. Nothing is stored."
-msgstr "Audio streams through Upshot to Deepgram for transcription. Nothing is stored."
+msgid "Audio streams through Upshot to Deepgram for transcription. Neither keeps your audio."
+msgstr "Audio streams through Upshot to Deepgram for transcription. Neither keeps your audio."
 
 #: src/lock/screen.tsx
 msgid "Authenticate to continue."
@@ -3429,8 +3433,8 @@ msgid "Help Upshot listen to you"
 msgstr "Help Upshot listen to you"
 
 #: src/onboarding/permissions.tsx
-msgid "Help Upshot read meeting activity"
-msgstr "Help Upshot read meeting activity"
+msgid "Help Upshot read meeting details"
+msgstr "Help Upshot read meeting details"
 
 #: src/chat/components/chat-page.tsx
 msgid "Hi {firstName}, ask anything"
@@ -4789,6 +4793,7 @@ msgid "Not available"
 msgstr "Not available"
 
 #: src/settings/ai/shared/index.tsx
+#: src/settings/connectors/index.tsx
 #: src/settings/crm/index.tsx
 msgid "Not connected"
 msgstr "Not connected"
@@ -4902,10 +4907,6 @@ msgstr "Now"
 #: src/templates/template-icon-picker.tsx
 msgid "Objects"
 msgstr "Objects"
-
-#: src/settings/connectors/index.tsx
-msgid "Off"
-msgstr "Off"
 
 #: src/settings/ai/shared/model-combobox.tsx
 msgid "Offline list"
@@ -7323,6 +7324,10 @@ msgstr "Templates"
 msgid "Temporary audio couldn't be deleted. Upshot will try again."
 msgstr "Temporary audio couldn't be deleted. Upshot will try again."
 
+#: src/settings/dictionary/index.tsx
+msgid "Terms you add show up here."
+msgstr "Terms you add show up here."
+
 #: src/settings/automations/index.tsx
 #: src/settings/crm/index.tsx
 #: src/settings/developers/webhooks.tsx
@@ -7514,10 +7519,6 @@ msgstr "Time recorded, last 30 days"
 #: src/settings/general/timezone.tsx
 msgid "Time zone"
 msgstr "Time zone"
-
-#: src/settings/dictionary/index.tsx
-msgid "Tip: Add teammate names, acronyms, company jargon, and product terms."
-msgstr "Tip: Add teammate names, acronyms, company jargon, and product terms."
 
 #: src/chat/components/message/tool/search-meetings.tsx
 msgid "To {date}"
@@ -7991,6 +7992,7 @@ msgstr "Upload transcript"
 msgid "Uploads meeting content for remote access while Upshot is closed."
 msgstr "Uploads meeting content for remote access while Upshot is closed."
 
+#: src/settings/general/account-profile.tsx
 #: src/sidebar/settings.tsx
 msgid "Upshot"
 msgstr "Upshot"
@@ -8128,8 +8130,8 @@ msgid "Upshot needs your microphone and your Mac's sound to transcribe meetings.
 msgstr "Upshot needs your microphone and your Mac's sound to transcribe meetings. Accessibility is optional: it lets Upshot see which meeting app you're in and when the call ends."
 
 #: src/onboarding/index.tsx
-msgid "Upshot reads the Google, Outlook and iCloud calendars on this Mac to remind you before meetings and add titles and attendees to your notes."
-msgstr "Upshot reads the Google, Outlook and iCloud calendars on this Mac to remind you before meetings and add titles and attendees to your notes."
+msgid "Upshot reads the calendars on this Mac to remind you before meetings and add titles and attendees to your notes."
+msgstr "Upshot reads the calendars on this Mac to remind you before meetings and add titles and attendees to your notes."
 
 #: src/settings/calendar/index.tsx
 msgid "Upshot reads your Google, Outlook, iCloud and other calendars on this Mac."

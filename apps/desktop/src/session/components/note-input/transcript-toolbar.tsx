@@ -92,7 +92,10 @@ export function TranscriptToolbar({
           role="group"
           aria-label={t`View`}
           data-transcript-view-switch
-          className="bg-muted inline-flex h-7 items-center gap-0.5 rounded-full p-0.5"
+          // Fork: a white track in light, so the switch reads as a control on
+          // the 96% panel, while the selected pill keeps its 3:1 edge (Apple
+          // HIG, Segmented controls; WCAG 2.2 SC 1.4.11).
+          className="bg-card dark:bg-muted inline-flex h-7 items-center gap-0.5 rounded-full p-0.5"
         >
           <button
             type="button"

@@ -165,6 +165,15 @@ describe("NoteMetaChips", () => {
     expect(second.onSelectView).toHaveBeenLastCalledWith(ENHANCED);
   });
 
+  // NN/g "Icon Usability": the notes toggle says "My notes" in words.
+  it("labels the notes toggle in words beside its icon", () => {
+    renderChips();
+
+    const toggle = screen.getByRole("button", { name: "My notes" });
+    expect(toggle.textContent).toBe("My notes");
+    expect(toggle.className).not.toContain("px-1.5");
+  });
+
   // redline2-oct3 R2: the bars chip says what it does next.
   it("names the notes toggle's action in a tooltip", async () => {
     renderChips();

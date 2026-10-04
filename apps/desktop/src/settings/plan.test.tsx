@@ -409,11 +409,13 @@ describe("Settings › Plan", () => {
 
   it("P2 signed out: offers Sign in to restore Pro", () => {
     render(<SettingsPlan />);
-    fireEvent.click(
-      within(currentPlanCard()).getByRole("button", {
-        name: "Already have Pro? Sign in",
-      }),
-    );
+    const signIn = within(currentPlanCard()).getByRole("button", {
+      name: "Already have Pro? Sign in",
+    });
+    // Fork: an outline button, as Sign in on Profile (NN/g "Beyond Blue
+    // Links").
+    expect(signIn.className).toContain("border-input");
+    fireEvent.click(signIn);
     expect(mocks.openUpshotSignIn).toHaveBeenCalledOnce();
     expect(
       screen
@@ -606,6 +608,30 @@ describe("Settings › Plan", () => {
     expect(
       screen.getByRole("button", { name: "Reopen checkout" }),
     ).not.toBeNull();
+  });
+
+  // Fork: a text-xl number over a text-sm label, no bigger than the page
+  // title (design-system Type).
+  it("sizes usage numbers like stats, not above the page title", () => {
+    render(<SettingsPlan />);
+    const usage = screen.getByTestId("plan-usage");
+    const total = within(usage).getByText("2");
+    expect(total.className).toContain("text-xl");
+    expect(total.className).not.toContain("text-2xl");
+    expect(within(usage).getByText("Meetings in total").className).toContain(
+      "text-sm",
+    );
+  });
+
+  // Fork: $0 and the Pro price start on one line (Apple HIG Layout).
+  it("aligns both prices to the top of the row", () => {
+    render(<SettingsPlan />);
+    const free = screen.getByText("No account needed").closest("td")!;
+    const pro = free.nextElementSibling!;
+    for (const cell of [free, pro]) {
+      expect(cell.className).toContain("align-top");
+      expect(cell.className).not.toContain("align-middle");
+    }
   });
 
   it("P3 usage stacks in one column when narrow", () => {

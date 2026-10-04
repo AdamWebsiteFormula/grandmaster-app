@@ -71,47 +71,56 @@ export function FoldersSidebar() {
           </Button>
         </CustomSidebarHeader>
 
-        <div className="pb-2">
-          <div
-            ref={searchRef}
-            className={cn([
-              "border-border bg-accent/50 flex h-8 w-full shrink-0 items-center gap-2 rounded-lg border px-3",
-              "focus-within:bg-accent transition-colors",
-            ])}
-          >
-            <MagnifyingGlass className="text-muted-foreground h-4 w-4 shrink-0" />
-            <input
-              type="text"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Escape") {
-                  setSearch("");
-                }
-              }}
-              placeholder={t`Search folders…`}
-              className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm placeholder:text-sm focus:outline-hidden"
-            />
-            {search ? (
-              <button
-                type="button"
-                onClick={() => setSearch("")}
-                className={cn([
-                  "h-4 w-4 shrink-0",
-                  "text-muted-foreground hover:text-muted-foreground",
-                  "transition-colors",
-                ])}
-                aria-label={t`Clear search`}
-              >
-                <X className="h-4 w-4" />
-              </button>
-            ) : null}
+        {/* Fork: no search box until there are folders to search (NN/g #8);
+            text fields use border-input (design-system.md). */}
+        {folders.length > 0 ? (
+          <div className="pb-2">
+            <div
+              ref={searchRef}
+              className={cn([
+                "border-input bg-accent/50 flex h-8 w-full shrink-0 items-center gap-2 rounded-lg border px-3",
+                "focus-within:bg-accent transition-colors",
+              ])}
+            >
+              <MagnifyingGlass className="text-muted-foreground h-4 w-4 shrink-0" />
+              <input
+                type="text"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    setSearch("");
+                  }
+                }}
+                placeholder={t`Search folders…`}
+                className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm placeholder:text-sm focus:outline-hidden"
+              />
+              {search ? (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  className={cn([
+                    // Fork: a 24 px target (WCAG 2.2 SC 2.5.8).
+                    "-mr-2 flex size-6 shrink-0 items-center justify-center rounded",
+                    "text-muted-foreground hover:text-foreground",
+                    "transition-colors",
+                  ])}
+                  aria-label={t`Clear search`}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              ) : null}
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
 
       <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto pt-1">
-        {isEmpty ? (
+        {/* Fork: with no folders at all, the main panel already shows the
+            empty state and New folder, so the sidebar shows only a search
+            with no match (NN/g #8; NN/g "Designing Empty States in Complex
+            Applications"). */}
+        {isEmpty && search ? (
           <div className="text-muted-foreground px-3 py-8 text-center">
             <FolderSimple
               size={32}

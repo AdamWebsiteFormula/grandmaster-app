@@ -119,6 +119,35 @@ describe("NotificationSettingsView", () => {
     );
   });
 
+  // Fork: "(default)" at full contrast (WCAG 2.2 SC 1.4.3), a field border
+  // on the picker (SC 1.4.11), and child rows that start under the parent's
+  // text (Apple HIG Layout).
+  it("shows default apps at full contrast in a bordered, aligned picker", () => {
+    mocks.useQuery.mockImplementation(
+      ({ queryKey }: { queryKey: readonly string[] }) => {
+        if (queryKey[1] === "all-installed-applications") {
+          return {
+            data: [{ id: "com.ting.aqua-bridge", name: "Ting Aqua Bridge" }],
+          };
+        }
+        if (queryKey[1] === "default-ignored-bundle-ids") {
+          return { data: ["com.ting.aqua-bridge"] };
+        }
+        return { data: [] };
+      },
+    );
+    render(<NotificationSettingsView />);
+
+    const label = screen.getByText("(default)");
+    expect(label.className).not.toContain("opacity");
+    const picker = label.closest("[aria-expanded]")!;
+    expect(picker.className).toContain("border-input");
+    expect(picker.className).toContain("rounded-lg");
+    const children = label.closest(".border-l-2")!;
+    expect(children.className).toContain("ml-4");
+    expect(children.className).toContain("pl-6.5");
+  });
+
   // Fork: no sounds anywhere, the Dock only on a Mac, and event reminders
   // only with the Mac's Calendar (NN/g #2, #5).
   it("says what notifications do on a Mac, with event reminders", () => {

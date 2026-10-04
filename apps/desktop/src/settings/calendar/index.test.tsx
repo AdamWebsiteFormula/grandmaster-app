@@ -117,6 +117,17 @@ describe("Settings › Calendar", () => {
     expect(mocks.openNew).toHaveBeenCalledWith({ type: "calendar" });
   });
 
+  // Fork: one button size in the Calendar accounts card (NN/g #4).
+  it("sizes Add account and Open calendar like Allow access", () => {
+    mocks.status = "notDetermined";
+    render(<SettingsCalendar />);
+    for (const name of ["Allow access", "Add account", /Open calendar/]) {
+      const button = screen.getByRole("button", { name });
+      expect(button.className).toContain("h-8");
+      expect(button.className).toContain("px-3");
+    }
+  });
+
   it("asks for access before listing calendars", () => {
     mocks.status = "notDetermined";
     render(<SettingsCalendar />);

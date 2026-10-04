@@ -10,6 +10,18 @@ afterEach(() => {
 });
 
 describe("AvatarUploadButton", () => {
+  // Fork: keyboard focus reveals the camera too (WCAG 2.2 SC 2.4.7).
+  it("shows the camera on keyboard focus as well as hover", () => {
+    const { container } = render(
+      <AvatarUploadButton label="Change photo" onUpload={vi.fn()}>
+        <span>Avatar</span>
+      </AvatarUploadButton>,
+    );
+    const overlay = container.querySelector("button > span.absolute");
+    expect(overlay?.className).toContain("group-hover:opacity-100");
+    expect(overlay?.className).toContain("group-focus-visible:opacity-100");
+  });
+
   it.each([
     { width: 800, height: 400, output: 256 },
     { width: 64, height: 128, output: 64 },

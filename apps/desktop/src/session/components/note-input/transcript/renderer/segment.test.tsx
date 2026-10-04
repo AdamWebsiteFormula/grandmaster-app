@@ -471,8 +471,9 @@ describe("SegmentRenderer bubbles", () => {
     expect(section.dataset.transcriptSelf).toBe("true");
     expect(section.className).toContain("items-end");
     const bubble = section.querySelector("[data-transcript-bubble]")!;
-    // Fork: journey-meeting P3, a distinct fill from others' bg-muted.
+    // Fork: journey-meeting P3, a distinct fill from others' bg-card.
     expect(bubble.className).toContain("bg-sidebar-accent");
+    expect(bubble.classList.contains("bg-card")).toBe(false);
     expect(bubble.className).toContain("rounded-2xl");
     expect(bubble.className).toContain("max-w-[80%]");
     expect(header(view)?.textContent).toBe("You · 00:14");
@@ -485,9 +486,12 @@ describe("SegmentRenderer bubbles", () => {
 
     const section = view.container.querySelector("section")!;
     expect(section.className).toContain("items-start");
-    expect(
-      section.querySelector("[data-transcript-bubble]")!.className,
-    ).toContain("bg-muted");
+    // Fork: the card recipe, so the bubble shows on the light canvas
+    // (light bg-muted is the canvas color); dark keeps bg-muted.
+    const bubble = section.querySelector("[data-transcript-bubble]")!;
+    expect(bubble.classList.contains("bg-card")).toBe(true);
+    expect(bubble.classList.contains("dark:bg-muted")).toBe(true);
+    expect(bubble.classList.contains("bg-muted")).toBe(false);
     expect(header(view)?.textContent).toBe("Bruce · 00:14");
     view.unmount();
   });

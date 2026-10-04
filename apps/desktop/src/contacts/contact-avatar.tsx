@@ -72,10 +72,12 @@ export function AvatarUploadButton({
       className="group relative flex shrink-0 cursor-pointer rounded-full"
     >
       {children}
+      {/* Fork: keyboard focus shows the camera too, not only hover
+          (WCAG 2.2 SC 2.4.7). */}
       <span
         className={cn([
           "absolute inset-0 flex items-center justify-center rounded-full",
-          "bg-black/40 text-white opacity-0 transition-opacity group-hover:opacity-100",
+          "bg-black/40 text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100",
         ])}
       >
         <Camera className="size-5" />

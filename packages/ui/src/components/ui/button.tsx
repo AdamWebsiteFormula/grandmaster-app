@@ -15,11 +15,14 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground hover:brightness-90 shadow-xs",
+          "bg-primary text-primary-foreground shadow-xs hover:brightness-90",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-xs",
+        // Fork: in dark, a light tint instead of black, so an outline button
+        // on a raised card is not a hole (Apple HIG, Dark Mode: raised is
+        // lighter; shadcn/ui's outline variant uses dark:bg-input/30).
         outline:
-          "border-input bg-background hover:bg-accent hover:text-accent-foreground border shadow-xs",
+          "border-input bg-background dark:bg-input/30 hover:bg-accent hover:text-accent-foreground border shadow-xs",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-xs",
         ghost: "hover:bg-accent hover:text-accent-foreground",

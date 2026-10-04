@@ -342,7 +342,7 @@ function PermissionsSectionContent({
         {accessibility && (
           <PermissionBlock
             enabledLabel={t`Upshot can read meeting details`}
-            enableLabel={t`Help Upshot read meeting activity`}
+            enableLabel={t`Help Upshot read meeting details`}
             enabledBody={t`Meeting details access turned on`}
             enableBody={
               accessibilityGuidance

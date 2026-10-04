@@ -595,11 +595,14 @@ export function ContactOrganizationSelector({
   organization,
   organizations,
   disabled = false,
+  addLabel,
 }: {
   onChange: (organizationId: string | null) => void;
   organization: OrganizationRecord | null;
   organizations: OrganizationRecord[];
   disabled?: boolean;
+  /** The empty-state text; Contacts keeps "Add organization". */
+  addLabel?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const handleRemoveOrganization = () => {
@@ -614,16 +617,20 @@ export function ContactOrganizationSelector({
         if (!disabled) setOpen(next);
       }}
     >
+      {/* Fork: a real button, so Tab reaches it and it is announced as one,
+          with a visible focus ring (WCAG 2.2 SC 2.1.1, 4.1.2, 2.4.7). */}
       <PopoverTrigger asChild>
-        <div
+        <button
+          type="button"
           aria-disabled={disabled || undefined}
           className={cn(
             "hover:bg-accent -mx-2 inline-flex cursor-pointer items-center rounded-lg px-2 py-1 transition-colors",
+            "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
             disabled && "pointer-events-none opacity-60",
           )}
         >
           {organization?.name ? (
-            <div className="flex items-center">
+            <span className="flex items-center">
               <span className="text-base md:text-sm">{organization.name}</span>
               <span className="group text-muted-foreground ml-2">
                 <MinusCircle
@@ -634,14 +641,14 @@ export function ContactOrganizationSelector({
                   }}
                 />
               </span>
-            </div>
+            </span>
           ) : (
             <span className="text-muted-foreground flex items-center gap-1 text-base md:text-sm">
               <Plus className="size-4" />
-              <Trans>Add organization</Trans>
+              {addLabel ?? <Trans>Add organization</Trans>}
             </span>
           )}
-        </div>
+        </button>
       </PopoverTrigger>
 
       <PopoverContent variant="app" align="start" side="bottom">

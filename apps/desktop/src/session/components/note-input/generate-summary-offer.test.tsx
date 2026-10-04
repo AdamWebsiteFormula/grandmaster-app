@@ -147,6 +147,17 @@ describe("GenerateSummaryOffer", () => {
     );
   });
 
+  // Fork: light bg-muted is the canvas color, so the offer uses the card
+  // recipe (design-system.md Contrast); dark keeps bg-muted.
+  it("draws the offer as a card that shows on the light canvas", () => {
+    render(<GenerateSummaryOffer sessionId="session-1" />);
+
+    const card = document.querySelector("[data-generate-summary-offer]")!;
+    expect(card.classList.contains("bg-card")).toBe(true);
+    expect(card.classList.contains("dark:bg-muted")).toBe(true);
+    expect(card.classList.contains("bg-muted")).toBe(false);
+  });
+
   it("says too little was said, and offers to use the typed notes", async () => {
     mocks.session = { title: "Launch review", raw_md: "Ship Sunday" };
     mocks.checkEligibility.mockResolvedValue({

@@ -287,3 +287,20 @@ it("shows auto start on for someone who turned it on before", () => {
       .getAttribute("aria-checked"),
   ).toBe("true");
 });
+
+// Fork: after the calendar step was skipped there are no calendar meetings,
+// so the auto-start switch would do nothing (NN/g #5, error prevention).
+it("leaves out auto start when the calendar was skipped", () => {
+  render(<FinalSection onContinue={vi.fn()} showAutoStart={false} />);
+
+  expect(
+    screen.queryByRole("switch", {
+      name: "Start recording when a scheduled meeting begins",
+    }),
+  ).toBeNull();
+  expect(
+    screen.getByRole("switch", {
+      name: "Post a short notice in the meeting chat",
+    }),
+  ).toBeTruthy();
+});

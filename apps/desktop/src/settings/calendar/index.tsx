@@ -149,10 +149,12 @@ function SettingsCalendarContent() {
           controlWidth="content"
         >
           {(labelProps) => (
+            // Fork: the same size as Allow access (NN/g #4).
             <Button
               aria-describedby={labelProps["aria-describedby"]}
               variant="outline"
               size="sm"
+              className="h-8 px-3"
               onClick={() => void openInternetAccounts()}
             >
               <Trans>Add account</Trans>
@@ -172,6 +174,7 @@ function SettingsCalendarContent() {
             <Button
               variant="outline"
               size="sm"
+              className="h-8 px-3"
               onClick={() => openNew({ type: "calendar" })}
             >
               <Trans>Open calendar</Trans>

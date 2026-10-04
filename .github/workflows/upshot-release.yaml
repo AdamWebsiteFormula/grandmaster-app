@@ -144,11 +144,31 @@ jobs:
             exit 1
           fi
           echo "Upshot (AppImage) was still running after 20 s"
+      - name: Screenshot Home (setup marked done, non-fatal)
+        continue-on-error: true
+        run: |
+          appimage=$(ls "$OUT_DIR"/*.AppImage)
+          store="$HOME/.local/share/anarlog/store.json"
+          mkdir -p "$(dirname "$store")"
+          python3 - "$store" <<'PY'
+          import json, os, sys
+          p = sys.argv[1]
+          d = json.load(open(p)) if os.path.exists(p) else {}
+          d["desktop"] = json.dumps({"OnboardingNeeded2": False})
+          json.dump(d, open(p, "w"))
+          PY
+          Xvfb :98 -screen 0 1280x800x24 >/dev/null 2>&1 &
+          export DISPLAY=:98
+          (sleep 15; import -display :98 -window root "$RUNNER_TEMP/upshot-linux-home.png" || true) &
+          ANARLOG_DISABLE_SENTRY=1 APPIMAGE_EXTRACT_AND_RUN=1 \
+            timeout --signal=TERM 20s dbus-run-session -- "$appimage" >/dev/null 2>&1 || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: upshot-linux-screenshot
-          path: ${{ runner.temp }}/upshot-linux-first-run.png
+          path: |
+            ${{ runner.temp }}/upshot-linux-first-run.png
+            ${{ runner.temp }}/upshot-linux-home.png
           if-no-files-found: warn
 
   build-windows:
@@ -233,6 +253,16 @@ jobs:
               Select-Object -First 1 -ExpandProperty FullName
           }
           if (-not $exe) { throw "upshot.exe not found after install" }
+          # Which DLLs the app loads, so a missing Visual C++ runtime on a clean
+          # PC shows up here (non-fatal; the runner has the runtime installed).
+          try {
+            $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+            $dumpbin = & $vswhere -latest -find "VC\Tools\MSVC\**\bin\Hostx64\x64\dumpbin.exe" | Select-Object -First 1
+            Write-Host "--- DLLs upshot.exe imports"
+            & $dumpbin /dependents $exe | Select-String -Pattern "\.dll" | ForEach-Object { $_.Line.Trim() }
+            Write-Host "--- files next to upshot.exe"
+            Get-ChildItem (Split-Path $exe) | Select-Object -ExpandProperty Name
+          } catch { Write-Host "DLL check failed: $_" }
           Write-Host "Launching $exe"
           $env:ANARLOG_DISABLE_SENTRY = "1"
           $env:RUST_BACKTRACE = "1"
@@ -258,9 +288,35 @@ jobs:
           if (-not $alive) { throw "Upshot exited before 20 s with code $($app.ExitCode)" }
           Write-Host "Upshot (Windows) was still running after 20 s"
           Stop-Process -Name upshot -Force -ErrorAction SilentlyContinue
+      - name: Screenshot Home (setup marked done, non-fatal)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem "$env:LOCALAPPDATA", "$env:ProgramFiles" -Recurse -Filter "upshot.exe" -ErrorAction SilentlyContinue |
+            Select-Object -First 1 -ExpandProperty FullName
+          $store = "$env:APPDATA\anarlog\store.json"
+          New-Item -ItemType Directory -Force -Path (Split-Path $store) | Out-Null
+          $data = @{}
+          if (Test-Path $store) {
+            (Get-Content $store -Raw | ConvertFrom-Json).PSObject.Properties | ForEach-Object { $data[$_.Name] = $_.Value }
+          }
+          $data["desktop"] = '{"OnboardingNeeded2":false}'
+          $data | ConvertTo-Json | Set-Content -Path $store -Encoding utf8
+          $env:ANARLOG_DISABLE_SENTRY = "1"
+          Start-Process -FilePath $exe | Out-Null
+          Start-Sleep -Seconds 15
+          Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+          $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+          $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
+          $g = [System.Drawing.Graphics]::FromImage($bmp)
+          $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
+          $bmp.Save("$env:RUNNER_TEMP\upshot-windows-home.png", [System.Drawing.Imaging.ImageFormat]::Png)
+          Stop-Process -Name upshot -Force -ErrorAction SilentlyContinue
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: upshot-windows-screenshot
-          path: ${{ runner.temp }}/upshot-windows-first-run.png
+          path: |
+            ${{ runner.temp }}/upshot-windows-first-run.png
+            ${{ runner.temp }}/upshot-windows-home.png
           if-no-files-found: warn

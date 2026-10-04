@@ -234,7 +234,9 @@ function OnboardingScreenContent({
       </div>
 
       <div className="scroll-fade-y relative z-10 flex-1 overflow-y-auto">
-        <div className="flex flex-col gap-4 px-12 pb-16">
+        {/* Fork: one column width for every step, about 80 characters a
+            line (Butterick, Practical Typography, "Line length"). */}
+        <div className="flex max-w-2xl flex-col gap-4 px-12 pb-16">
           <OnboardingSection
             title={<Trans>Start with permissions</Trans>}
             completedTitle={
@@ -337,9 +339,8 @@ function OnboardingScreenContent({
               // Fork: every calendar account on the Mac counts, not only
               // Apple's (support.apple.com/guide/calendar/icl4308d6701/mac).
               <Trans>
-                Upshot reads the Google, Outlook and iCloud calendars on this
-                Mac to remind you before meetings and add titles and attendees
-                to your notes.
+                Upshot reads the calendars on this Mac to remind you before
+                meetings and add titles and attendees to your notes.
               </Trans>
             }
             completedTitle={
@@ -378,6 +379,8 @@ function OnboardingScreenContent({
             onBack={backFor("imports")}
             onNext={continueImports}
             onSkip={skipImports}
+            // Fork: "Skip for now" sits under the list; one Skip (NN/g #8).
+            skippable={false}
           >
             <ImportSection onContinue={continueImports} onSkip={skipImports} />
           </OnboardingSection>
@@ -391,7 +394,10 @@ function OnboardingScreenContent({
             onBack={backFor("final")}
             onNext={() => void finishOnboarding(handleFinish)}
           >
-            <FinalSection onContinue={handleFinish} />
+            <FinalSection
+              onContinue={handleFinish}
+              showAutoStart={!didSkipCalendar}
+            />
           </OnboardingSection>
         </div>
       </div>

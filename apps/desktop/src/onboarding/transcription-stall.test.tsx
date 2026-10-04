@@ -196,7 +196,7 @@ it.each([
     expect(screen.getByText("Upshot transcription is ready")).toBeTruthy();
     expect(
       screen.getByText(
-        "Audio streams through Upshot to Deepgram for transcription. Nothing is stored.",
+        "Audio streams through Upshot to Deepgram for transcription. Neither keeps your audio.",
       ),
     ).toBeTruthy();
     expect(mocks.downloadModel).not.toHaveBeenCalled();

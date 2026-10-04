@@ -4,9 +4,9 @@ import { platform } from "@tauri-apps/plugin-os";
 import {
   Chats,
   Megaphone,
-  Pause,
   PictureInPicture,
   Play,
+  Square,
   VideoCamera,
 } from "@anlg/ui/components/icons";
 
@@ -74,7 +74,9 @@ export function MeetingSettingsView({
       )}
       {supportsMicDetection && (
         <SettingSwitchRow
-          icon={Pause}
+          // Fork: the app's Stop glyph, as the floating bar's Stop, not
+          // Pause (NN/g #4).
+          icon={Square}
           title={<Trans>Stop when meeting ends</Trans>}
           description={<Trans>Stop recording when your call ends.</Trans>}
           checked={autoStopMeetings.value}

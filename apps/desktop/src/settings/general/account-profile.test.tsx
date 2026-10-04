@@ -6,6 +6,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -51,33 +52,51 @@ vi.mock("~/contacts/queries", () => ({
   useOrganizations: () => [{ id: "company-1", name: "Acme" }],
   savePersonalContact: mocks.save,
 }));
-vi.mock("~/contacts/shared", () => ({ ContactFacehash: () => null }));
+vi.mock("~/contacts/shared", () => ({
+  ContactFacehash: ({ name }: { name: string }) => (
+    <span data-testid="avatar-name">{name}</span>
+  ),
+}));
 vi.mock("~/contacts/contact-avatar", () => ({
   ContactImage: () => <img alt="Profile" />,
-  AvatarUploadButton: ({ onUpload }: { onUpload: (value: string) => void }) => (
-    <button
-      type="button"
-      onClick={() => onUpload("data:image/jpeg;base64,photo")}
-    >
-      Change photo
-    </button>
+  AvatarUploadButton: ({
+    onUpload,
+    children,
+  }: {
+    onUpload: (value: string) => void;
+    children?: ReactNode;
+  }) => (
+    <>
+      <button
+        type="button"
+        onClick={() => onUpload("data:image/jpeg;base64,photo")}
+      >
+        Change photo
+      </button>
+      {children}
+    </>
   ),
 }));
 vi.mock("~/contacts/details", () => ({
   ContactOrganizationSelector: ({
     onChange,
     disabled,
+    addLabel,
   }: {
     onChange: (value: string) => void;
     disabled?: boolean;
+    addLabel?: ReactNode;
   }) => (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={() => onChange("company-1")}
-    >
-      Choose company
-    </button>
+    <>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => onChange("company-1")}
+      >
+        Choose company
+      </button>
+      <span data-testid="company-add-label">{addLabel}</span>
+    </>
   ),
 }));
 import { AccountProfile } from "./account-profile";
@@ -126,6 +145,30 @@ it("defaults the email to the Upshot account and labels About you and LinkedIn",
   expect(document.getElementById(prefixId)?.textContent).toBe(
     "linkedin.com/in/",
   );
+});
+
+// Fork: the Company row says "Add company" (NN/g #4), the phone field has
+// no sample number (NN/g, "Placeholders in Form Fields Are Harmful"), and
+// the avatar uses the Settings sidebar's name, never an internal ID.
+it("says Add company and shows no sample phone number", () => {
+  render(view());
+  expect(screen.getByTestId("company-add-label").textContent).toBe(
+    "Add company",
+  );
+  expect(screen.getByLabelText("Phone").getAttribute("placeholder")).toBeNull();
+});
+
+it("names the avatar as the Settings sidebar does", () => {
+  render(view());
+  expect(screen.getByTestId("avatar-name").textContent).toBe("Upshot");
+  cleanup();
+  mocks.upshotEmail = "judge@example.com";
+  render(view());
+  expect(screen.getByTestId("avatar-name").textContent).toBe("judge");
+  cleanup();
+  mocks.contact.data = { name: "Saved name" };
+  render(view());
+  expect(screen.getByTestId("avatar-name").textContent).toBe("Saved name");
 });
 
 it("falls back to the upstream email when signed out of Upshot", () => {

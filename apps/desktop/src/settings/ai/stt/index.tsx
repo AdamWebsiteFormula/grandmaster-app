@@ -9,7 +9,8 @@ import { SettingsPageTitle } from "~/settings/page-title";
 export function STT() {
   return (
     <SttSettingsProvider>
-      <div className="flex flex-col gap-6">
+      {/* Fork: gap-8 between sections, as every other Settings page. */}
+      <div className="flex flex-col gap-8">
         <SettingsPageTitle
           title={<Trans>Transcription</Trans>}
           description={

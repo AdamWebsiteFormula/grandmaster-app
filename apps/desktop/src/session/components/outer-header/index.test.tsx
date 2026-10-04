@@ -303,6 +303,17 @@ describe("OuterHeader", () => {
     expect(screen.getByRole("button", { name: "More" })).not.toBeNull();
   });
 
+  // Fork: the field border, as on Share; the hairline was nearly invisible
+  // on the panel (WCAG 2.2 SC 1.4.11).
+  it("outlines Start recording with the field border, like Share", () => {
+    arrange({});
+    renderHeader();
+
+    const record = screen.getByRole("button", { name: "Start recording" });
+    expect(record.classList.contains("border-input")).toBe(true);
+    expect(record.classList.contains("border-border")).toBe(false);
+  });
+
   it("starts listening from record without opening a meeting", () => {
     arrange({ event: scheduled("https://naver.me/example") });
     renderHeader();

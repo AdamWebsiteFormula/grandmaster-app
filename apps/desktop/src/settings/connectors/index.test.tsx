@@ -39,19 +39,19 @@ describe("Settings › Connectors", () => {
 
   // Fork: "Calendar", not "Apple Calendar": it reads every account in the
   // Mac's Calendar (Google, Outlook, iCloud).
-  it("says Off for Calendar without access, Connected with it", () => {
+  it("says Not connected for Calendar without access, Connected with it", () => {
     render(<SettingsConnectors />);
     expect(screen.getByText("On this Mac")).toBeTruthy();
     expect(screen.queryByText("Apple Calendar")).toBeNull();
-    expect(
-      screen.getByRole("button", { name: /^Calendar/ }).textContent,
-    ).toContain("Off");
+    const off = screen.getByRole("button", { name: /^Calendar/ }).textContent;
+    expect(off).toContain("Not connected");
+    expect(off).not.toContain("Off");
     cleanup();
     mocks.status = "authorized";
     render(<SettingsConnectors />);
-    expect(
-      screen.getByRole("button", { name: /^Calendar/ }).textContent,
-    ).toContain("Connected");
+    const on = screen.getByRole("button", { name: /^Calendar/ }).textContent;
+    expect(on).toContain("Connected");
+    expect(on).not.toContain("Not connected");
   });
 
   // Fork: the calendar and Glaido are Mac only (NN/g heuristic #5); MCP,

@@ -115,7 +115,14 @@ function ProfileForm({
         <div>
           <ProfilePhoto
             userId={humanId}
-            name={human?.name || human?.email || humanId}
+            // Fork: the same name as the Settings sidebar header (saved
+            // name, then the Upshot email's local part, then "Upshot"),
+            // never a letter from an internal ID (NN/g #4).
+            name={
+              human?.name?.trim() ||
+              upshotEmail?.split("@")[0]?.trim() ||
+              t`Upshot`
+            }
             localPhoto={human?.avatarDataUrl ?? null}
             onSave={(avatarDataUrl) =>
               savePersonalContact(humanId, {
@@ -165,9 +172,9 @@ function ProfileForm({
                         }
                         field.handleBlur();
                       }}
-                      placeholder={
-                        name === "phone" ? "+1 202 555 0123" : undefined
-                      }
+                      // Fork: no sample number; a placeholder looks like
+                      // saved data (NN/g, "Placeholders in Form Fields Are
+                      // Harmful").
                     />
                   </PrefixedInput>
                 )}
@@ -186,6 +193,9 @@ function ProfileForm({
               </span>
               <div className="flex min-w-0 justify-end">
                 <ContactOrganizationSelector
+                  // Fork: the row says Company, so the action does too
+                  // (NN/g #4).
+                  addLabel={<Trans>Add company</Trans>}
                   organization={
                     organizations.find(
                       (organization) => organization.id === field.state.value,

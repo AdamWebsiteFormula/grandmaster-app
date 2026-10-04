@@ -238,11 +238,13 @@ describe("Folders workspace", () => {
   it("creates the first folder from the empty state", async () => {
     renderFoldersWorkspace();
 
-    // Header icon, sidebar empty state and main empty state.
+    // Header icon and the main empty state; the sidebar shows no second
+    // empty state (NN/g #8) and no search box until folders exist.
     expect(screen.getAllByRole("button", { name: "New folder" })).toHaveLength(
-      3,
+      2,
     );
-    fireEvent.click(screen.getAllByRole("button", { name: "New folder" })[2]);
+    expect(screen.queryByPlaceholderText("Search folders…")).toBeNull();
+    fireEvent.click(screen.getAllByRole("button", { name: "New folder" })[1]);
     fireEvent.change(screen.getByLabelText("Folder name"), {
       target: { value: "CS 101" },
     });

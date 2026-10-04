@@ -153,10 +153,11 @@ export const SegmentRenderer = memo(
           className={cn([
             "w-fit max-w-[80%] min-w-0 rounded-2xl px-3 py-2",
             "border-border border dark:border-transparent",
-            // Fork: your bubbles use the 19%/90% step, others 10%/96%, so
+            // Fork: your bubbles use the 19%/90% step, others 10%/white
+            // (the card recipe; light bg-muted was the canvas itself), so
             // they differ by fill, not only by side (journey-meeting P3;
-            // Granola docs; WCAG 2.2 SC 1.4.1).
-            isSelf ? "bg-sidebar-accent" : "bg-muted",
+            // Granola docs; WCAG 2.2 SC 1.4.1; NN/g flat UI).
+            isSelf ? "bg-sidebar-accent" : "bg-card dark:bg-muted",
           ])}
         >
           {editMode ? (

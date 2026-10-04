@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -7,6 +13,11 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@tauri-apps/plugin-os", () => ({
   platform: mocks.platform,
+}));
+
+vi.mock("@anlg/ui/components/icons", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@anlg/ui/components/icons")>()),
+  Square: () => <svg data-testid="stop-icon" />,
 }));
 
 vi.mock("./default-share-access", () => ({
@@ -92,6 +103,16 @@ describe("MeetingSettingsView", () => {
       screen.getByText(/supported meetings using Accessibility/),
     ).toBeTruthy();
     expect(screen.getByText("Stop when meeting ends")).toBeTruthy();
+  });
+
+  // Fork: the app's Stop glyph, as the floating bar's Stop (NN/g #4).
+  it("marks Stop when meeting ends with the Stop icon", () => {
+    renderMeetingSettings();
+
+    const row = screen
+      .getByRole("switch", { name: "Stop when meeting ends" })
+      .closest("div.justify-between") as HTMLElement;
+    expect(within(row).getByTestId("stop-icon")).toBeTruthy();
   });
 
   it("only enables automatic joining when scheduled listening is enabled", () => {

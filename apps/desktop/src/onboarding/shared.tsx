@@ -71,8 +71,13 @@ export function OnboardingSection({
           isActive && "mb-3 pt-4",
         ])}
       >
+        {/* Fork: gray, so the step's one orange element is its next action
+            (design-system.md: one accent per screen; NN/g #4). */}
         {isCompleted && (
-          <Check className="text-primary size-4 shrink-0" weight="bold" />
+          <Check
+            className="text-muted-foreground size-4 shrink-0"
+            weight="bold"
+          />
         )}
         <div className="flex min-w-0 flex-col gap-3">
           <div className="flex items-center gap-2">
@@ -89,8 +94,10 @@ export function OnboardingSection({
               {isCompleted ? (completedTitle ?? title) : title}
             </h2>
             {/* Fork: a step count and an always-visible Back (UX audit Oct 3,
-                A: NN/g #1, #3). */}
-            {isActive && progress && (
+                A: NN/g #1, #3). No count for a single step: "Step 1 of 1"
+                tells nothing (NN/g #8; Windows and Linux with no meeting
+                app have only the last step). */}
+            {isActive && progress && progress.total > 1 && (
               <span className="text-muted-foreground text-xs">
                 <Trans>
                   Step {progress.current} of {progress.total}
@@ -191,7 +198,9 @@ export function StepRow({
 }) {
   return (
     <div className="flex items-center gap-2 text-sm">
-      {status === "done" && <CheckCircle className="text-primary size-4" />}
+      {status === "done" && (
+        <CheckCircle className="text-muted-foreground size-4" />
+      )}
       {status === "active" && (
         <CircleNotch className="text-muted-foreground size-4 animate-spin" />
       )}

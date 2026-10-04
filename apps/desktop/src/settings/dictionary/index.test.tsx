@@ -212,4 +212,22 @@ describe("DictionarySettings", () => {
     );
     expect(add.className).toContain("bg-secondary");
   });
+
+  // Fork: Settings cards (design-system "Contrast") and an empty state
+  // that says what shows up here (NN/g empty states).
+  it("uses Settings cards and an empty state that does not repeat the hint", () => {
+    render(<DictionarySettings terms={[]} onSave={vi.fn()} />);
+    expect(screen.getByText("Terms you add show up here.")).toBeTruthy();
+    expect(screen.queryByText(/^Tip:/)).toBeNull();
+    const empty = screen.getByText("Your dictionary is empty").parentElement!;
+    expect(empty.className).toContain("dark:bg-muted");
+    expect(empty.className).toContain("rounded-xl");
+    expect(empty.className).not.toContain("rounded-2xl");
+    cleanup();
+
+    render(<DictionarySettings terms={["Anarlog"]} onSave={vi.fn()} />);
+    const list = screen.getByText("Anarlog").closest(".divide-y")!;
+    expect(list.className).toContain("dark:bg-muted");
+    expect(list.className).toContain("rounded-xl");
+  });
 });

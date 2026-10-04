@@ -194,6 +194,9 @@ export function SettingsNav() {
                       className={cn([
                         "flex w-full items-center gap-2 rounded-full px-3 py-2 text-left text-sm",
                         "transition-colors",
+                        // Fork: a visible focus ring, inset so the scroll
+                        // area never clips it (WCAG 2.2 SC 2.4.7).
+                        "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset",
                         isActive
                           ? "bg-sidebar-accent text-foreground font-medium"
                           : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground",

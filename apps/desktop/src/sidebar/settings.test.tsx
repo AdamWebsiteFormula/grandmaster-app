@@ -443,6 +443,14 @@ describe("SettingsNav", () => {
     expect(empty).toBe(true);
   });
 
+  // Fork: keyboard focus is visible on every nav row (WCAG 2.2 SC 2.4.7).
+  it("draws a focus ring on nav rows", () => {
+    render(<SettingsNav />);
+    const general = screen.getByRole("button", { name: "General" });
+    expect(general.className).toContain("focus-visible:ring-2");
+    expect(general.className).toContain("focus-visible:ring-ring");
+  });
+
   it("marks the open page with aria-current", () => {
     mocks.currentTab = { type: "settings", state: { tab: "plan" } };
     render(<SettingsNav />);

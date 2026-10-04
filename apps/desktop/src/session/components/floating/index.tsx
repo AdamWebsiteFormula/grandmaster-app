@@ -231,7 +231,10 @@ function TranscriptToggle({
               // Fork: a segment inside the one bar, not its own pill
               // (redline3 S3).
               "text-foreground hover:bg-accent inline-flex h-8 shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-full px-2.5 text-sm font-medium whitespace-nowrap transition-colors @max-[480px]:gap-0.5",
-              "focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
+              // Fork: no ring offset, so the focus ring stays inside the
+              // bar instead of crossing its border, like the bar's other
+              // buttons (house rule: nothing touches edges; NN/g #4).
+              "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
               showingTranscript && "bg-accent",
             ])}
           >

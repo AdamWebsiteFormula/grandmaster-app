@@ -334,11 +334,13 @@ function HeaderMeetingAction({
             title={action.title}
             disabled={disabled}
             onClick={action.onClick}
+            // Fork: the field border, as on Share; the hairline was 1.15:1
+            // on the panel (WCAG 2.2 SC 1.4.11; NN/g flat UI elements).
             className={cn([
               "max-w-56 shrink-0 gap-1.5 overflow-hidden border pr-2.5 pl-1.5 text-sm",
               isPrimaryCta
-                ? "border-border text-foreground bg-transparent shadow-none"
-                : "border-border bg-card text-foreground",
+                ? "border-input text-foreground bg-transparent shadow-none"
+                : "border-input bg-card text-foreground",
               disabled && "cursor-default opacity-60",
             ])}
           >

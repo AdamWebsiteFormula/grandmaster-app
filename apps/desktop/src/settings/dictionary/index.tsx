@@ -175,18 +175,19 @@ export function DictionarySettings({
           );
           const hasSearch = parseDictionaryTermsText(value).length > 0;
 
+          // Fork: Settings cards (bg-card dark:bg-muted, rounded-xl) per
+          // design-system "Contrast", and an empty state that says what
+          // shows up here instead of repeating the hint above (NN/g empty
+          // states).
           if (normalizedTerms.length === 0) {
             return (
-              <div className="border-border bg-card flex min-h-40 flex-col items-center justify-center rounded-2xl border px-6 text-center">
+              <div className="border-border bg-card dark:bg-muted flex min-h-40 flex-col items-center justify-center rounded-xl border px-6 text-center">
                 <BookOpen className="text-muted-foreground mb-3 size-5" />
                 <p className="text-sm font-medium">
                   <Trans>Your dictionary is empty</Trans>
                 </p>
                 <p className="text-muted-foreground mt-1 max-w-sm text-xs">
-                  <Trans>
-                    Tip: Add teammate names, acronyms, company jargon, and
-                    product terms.
-                  </Trans>
+                  <Trans>Terms you add show up here.</Trans>
                 </p>
               </div>
             );
@@ -201,7 +202,7 @@ export function DictionarySettings({
           }
 
           return (
-            <div className="border-border bg-card divide-border divide-y overflow-hidden rounded-2xl border">
+            <div className="border-border bg-card dark:bg-muted divide-border divide-y overflow-hidden rounded-xl border">
               {visibleTerms.map((term) => (
                 <DictionaryTermRow
                   key={term}

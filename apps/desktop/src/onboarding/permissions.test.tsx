@@ -226,7 +226,7 @@ describe("PermissionsSection", () => {
     render(<PermissionsSection />);
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Help Upshot read meeting activity" }),
+      screen.getByRole("button", { name: "Help Upshot read meeting details" }),
     );
 
     expect(mocks.permissions.accessibility.request).toHaveBeenCalledTimes(1);
@@ -239,7 +239,7 @@ describe("PermissionsSection", () => {
     render(<PermissionsSection />);
 
     const row = screen.getByRole("button", {
-      name: "Help Upshot read meeting activity",
+      name: "Help Upshot read meeting details",
     });
     fireEvent.click(row);
 
@@ -275,7 +275,7 @@ describe("PermissionsSection", () => {
     const restartName = "Turned it on? Restart Upshot";
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Help Upshot read meeting activity" }),
+      screen.getByRole("button", { name: "Help Upshot read meeting details" }),
     );
     act(() => {
       window.dispatchEvent(new Event("blur"));

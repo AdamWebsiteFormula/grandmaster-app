@@ -540,6 +540,10 @@ msgstr ""
 msgid "Add at least one example summary."
 msgstr ""
 
+#: src/settings/general/account-profile.tsx
+msgid "Add company"
+msgstr ""
+
 #: src/session/folder-instructions.tsx
 msgid "Add context for this folder"
 msgstr ""
@@ -920,7 +924,7 @@ msgid "Audio saved on this Mac · kept {kept}"
 msgstr ""
 
 #: src/onboarding/transcription.tsx
-msgid "Audio streams through Upshot to Deepgram for transcription. Nothing is stored."
+msgid "Audio streams through Upshot to Deepgram for transcription. Neither keeps your audio."
 msgstr ""
 
 #: src/lock/screen.tsx
@@ -3429,7 +3433,7 @@ msgid "Help Upshot listen to you"
 msgstr ""
 
 #: src/onboarding/permissions.tsx
-msgid "Help Upshot read meeting activity"
+msgid "Help Upshot read meeting details"
 msgstr ""
 
 #: src/chat/components/chat-page.tsx
@@ -4789,6 +4793,7 @@ msgid "Not available"
 msgstr ""
 
 #: src/settings/ai/shared/index.tsx
+#: src/settings/connectors/index.tsx
 #: src/settings/crm/index.tsx
 msgid "Not connected"
 msgstr ""
@@ -4901,10 +4906,6 @@ msgstr ""
 
 #: src/templates/template-icon-picker.tsx
 msgid "Objects"
-msgstr ""
-
-#: src/settings/connectors/index.tsx
-msgid "Off"
 msgstr ""
 
 #: src/settings/ai/shared/model-combobox.tsx
@@ -7323,6 +7324,10 @@ msgstr ""
 msgid "Temporary audio couldn't be deleted. Upshot will try again."
 msgstr ""
 
+#: src/settings/dictionary/index.tsx
+msgid "Terms you add show up here."
+msgstr ""
+
 #: src/settings/automations/index.tsx
 #: src/settings/crm/index.tsx
 #: src/settings/developers/webhooks.tsx
@@ -7513,10 +7518,6 @@ msgstr ""
 
 #: src/settings/general/timezone.tsx
 msgid "Time zone"
-msgstr ""
-
-#: src/settings/dictionary/index.tsx
-msgid "Tip: Add teammate names, acronyms, company jargon, and product terms."
 msgstr ""
 
 #: src/chat/components/message/tool/search-meetings.tsx
@@ -7991,6 +7992,7 @@ msgstr ""
 msgid "Uploads meeting content for remote access while Upshot is closed."
 msgstr ""
 
+#: src/settings/general/account-profile.tsx
 #: src/sidebar/settings.tsx
 msgid "Upshot"
 msgstr ""
@@ -8128,7 +8130,7 @@ msgid "Upshot needs your microphone and your Mac's sound to transcribe meetings.
 msgstr ""
 
 #: src/onboarding/index.tsx
-msgid "Upshot reads the Google, Outlook and iCloud calendars on this Mac to remind you before meetings and add titles and attendees to your notes."
+msgid "Upshot reads the calendars on this Mac to remind you before meetings and add titles and attendees to your notes."
 msgstr ""
 
 #: src/settings/calendar/index.tsx

@@ -366,6 +366,16 @@ describe("FloatingActionButton (note bar)", () => {
     expect(label.className).toContain("@max-[480px]:sr-only");
   });
 
+  // Fork: no ring offset, so the focus ring stays inside the bar's border,
+  // like the bar's other buttons (house rule: nothing touches edges).
+  it("keeps the transcript toggle's focus ring inside the bar", () => {
+    renderBar();
+
+    const toggle = screen.getByRole("button", { name: "Transcript" });
+    expect(toggle.className).toContain("focus-visible:ring-2");
+    expect(toggle.className).not.toContain("ring-offset");
+  });
+
   it("hides the transcript toggle when there is no transcript", () => {
     renderBar({ editorTabs: [ENHANCED, RAW] });
 

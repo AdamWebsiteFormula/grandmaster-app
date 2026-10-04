@@ -149,7 +149,7 @@ export function ChatPage() {
           <form
             onSubmit={onSubmit}
             className={cn([
-              "bg-card border-input flex min-h-[88px] flex-col gap-2 rounded-2xl border p-3",
+              "bg-card dark:bg-muted border-input flex min-h-[88px] flex-col gap-2 rounded-2xl border p-3",
               "focus-within:ring-ring focus-within:ring-2",
             ])}
           >
@@ -162,7 +162,10 @@ export function ChatPage() {
               aria-label={t`Ask anything`}
               className="text-foreground placeholder:text-muted-foreground min-h-10 w-full resize-none bg-transparent text-sm outline-none"
             />
-            <div className="flex items-center justify-between gap-2">
+            {/* Fork: the model menu sits next to Send, as on Home (NN/g #4,
+                consistency); the field is raised in dark like Home's
+                (Apple HIG, Dark Mode: elevated surfaces are lighter). */}
+            <div className="flex items-center justify-end gap-2">
               <ChatModelMenu />
               <button
                 type="submit"

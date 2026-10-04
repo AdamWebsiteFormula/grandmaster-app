@@ -21,14 +21,13 @@ const PENDING_WELCOME_SESSION_KEY = "anarlog.pending-welcome-session";
 // for the duration necessary to process the request", developers.deepgram.com
 // Model Improvement Partnership Program) and summaries go to Upshot AI. Keys
 // and device words follow the platform (Microsoft Writing Style Guide: Ctrl+N).
+// The body starts after the title instead of repeating it (NN/g #8 aesthetic
+// and minimalist design).
 export function welcomeNoteMarkdown(currentPlatform: string = platform()) {
   const mac = currentPlatform === "macos";
   const newNoteKey = mac ? "⌘N" : "Ctrl+N";
   const device = mac ? "Mac" : "computer";
-  return `Welcome to Upshot 👋
-
-
-Upshot takes notes for your meetings. No bot joins your call.
+  return `Upshot takes notes for your meetings. No bot joins your call.
 
 
 **Record:** on Home, click **New note** at the top right, or press **${newNoteKey}**. Upshot starts listening right away. It hears you through your microphone and the other people through your ${device}'s sound.

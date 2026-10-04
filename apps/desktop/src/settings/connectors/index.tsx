@@ -62,8 +62,13 @@ export function SettingsConnectors() {
                 <Trans>See upcoming meetings and pick calendars.</Trans>
               }
               // Fork: a status either way, as Granola's "1/2 Connected"
-              // (journey-account-settings P3; NN/g #1).
-              value={calendar.status === "authorized" ? t`Connected` : t`Off`}
+              // (journey-account-settings P3; NN/g #1), in the same words:
+              // Connected or Not connected (NN/g #4).
+              value={
+                calendar.status === "authorized"
+                  ? t`Connected`
+                  : t`Not connected`
+              }
               onClick={() => open("calendars")}
             />
             <SettingLinkRow

@@ -162,7 +162,9 @@ export function NoteMetaChips({
     >
       {showNotesToggle ? (
         // Fork: a tooltip naming what the chip does next, as Granola's
-        // notes toggle shows (redline2-oct3, R2).
+        // notes toggle shows (redline2-oct3, R2). The chip says "My notes"
+        // in words beside the icon, like its neighbors (NN/g "Icon
+        // Usability": labels beat icon-only).
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -171,9 +173,10 @@ export function NoteMetaChips({
                 aria-label={t`My notes`}
                 aria-pressed={rawActive}
                 onClick={handleNotesToggle}
-                className={noteChipClassName(rawActive, "px-1.5")}
+                className={noteChipClassName(rawActive)}
               >
                 <TextAlignLeft aria-hidden />
+                <span className="min-w-0 truncate">{t`My notes`}</span>
               </button>
             </TooltipTrigger>
             <TooltipContent side="bottom">

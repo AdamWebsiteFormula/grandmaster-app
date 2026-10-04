@@ -214,7 +214,10 @@ export function GenerateSummaryOffer({ sessionId }: { sessionId: string }) {
     <div
       data-generate-summary-offer
       role="status"
-      className="bg-muted mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl px-4 py-3"
+      // Fork: the card recipe (design-system.md Contrast): white on the
+      // light canvas, where bg-muted was the canvas color and the card
+      // vanished; 10% on the dark panel as before (NN/g flat UI).
+      className="bg-card dark:bg-muted mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl px-4 py-3"
     >
       <p className="text-muted-foreground min-w-0 flex-1 basis-56 text-sm text-pretty">
         {message}
@@ -227,7 +230,7 @@ export function GenerateSummaryOffer({ sessionId }: { sessionId: string }) {
         disabled={pending}
         size="sm"
         // Neutral, so the screen keeps one orange accent; the outline (field
-        // border, 3:1) separates it from the muted card (design-system.md
+        // border, 3:1) separates it from the card (design-system.md
         // Contrast; WCAG 2.2 SC 1.4.11).
         variant="outline"
         className="shrink-0 gap-2"

@@ -109,11 +109,13 @@ export function getCanShowTranscript({
   );
 }
 
+// Fork: a still dot. This icon sits on the idle "Start recording" button,
+// where a pulsing halo read as "recording now" (NN/g #1 visibility of system
+// status; WCAG 2.2 SC 2.2.2 Pause, Stop, Hide).
 export function RecordingIcon() {
   return (
     <span className="relative flex size-3 items-center justify-center">
-      <span className="absolute size-2.5 animate-ping rounded-full bg-destructive/40" />
-      <span className="relative size-2 rounded-full bg-destructive" />
+      <span className="bg-destructive relative size-2 rounded-full" />
     </span>
   );
 }

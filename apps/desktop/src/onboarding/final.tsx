@@ -43,7 +43,9 @@ export function FinalDescription() {
 // and offers an automated chat message (.../transparency-solutions/introduction);
 // Fathom's setup confirms consent responsibilities and offers a Recording
 // Notice switch (help.fathom.video/en/articles/11577345, 6150977).
-export function RecordingNotice() {
+export function RecordingNotice({
+  showAutoStart = true,
+}: { showAutoStart?: boolean } = {}) {
   const autoPost = useConfigValue("consent_auto_send_chat");
   // Same platforms as the Settings switch: posting uses Accessibility.
   const canAutoPost = platform() === "macos" || platform() === "linux";
@@ -74,9 +76,10 @@ export function RecordingNotice() {
         />
       )}
       {/* Fork: auto start needs calendar meetings, which Upshot reads from
-          the Mac's Calendar only, so it shows on a Mac only (NN/g heuristic
-          #5, error prevention). */}
-      {platform() === "macos" && <AutoStartSwitch />}
+          the Mac's Calendar only, so it shows on a Mac only, and not after
+          the calendar step was skipped (NN/g heuristic #5, error
+          prevention). */}
+      {platform() === "macos" && showAutoStart && <AutoStartSwitch />}
     </div>
   );
 }
@@ -109,8 +112,11 @@ function AutoStartSwitch() {
 
 export function FinalSection({
   onContinue,
+  showAutoStart = true,
 }: {
   onContinue: (sessionId: string) => void;
+  // Fork: false after the calendar step was skipped (NN/g #5).
+  showAutoStart?: boolean;
 }) {
   const { i18n } = useLingui();
   const translate = i18n._.bind(i18n);
@@ -136,7 +142,7 @@ export function FinalSection({
 
   return (
     <div className="flex flex-col items-start gap-2">
-      <RecordingNotice />
+      <RecordingNotice showAutoStart={showAutoStart} />
       <OnboardingButton
         className="mt-4 px-6 py-2 text-sm disabled:cursor-wait disabled:opacity-70"
         disabled={status === "loading"}

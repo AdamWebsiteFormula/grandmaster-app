@@ -16,7 +16,8 @@ import type { WordWithId } from "~/stt/types";
 
 export const EXAMPLE_NOTE_TITLE = "Example: Product sync";
 
-const EXAMPLE_MEMO = `This is an example meeting, so you can see what Upshot makes. Open **Summary** and **Transcript** above.
+// Summary is a chip above the notes; Transcript is in the bottom bar.
+const EXAMPLE_MEMO = `This is an example meeting, so you can see what Upshot makes. Open **Summary** above and **Transcript** at the bottom.
 
 
 To delete it, right-click it on Home and choose **Delete note**.`;
@@ -33,12 +34,13 @@ export const EXAMPLE_SUMMARY = `## Summary
 
 ## Action items
 
-- Them: have the promo code design ready by Wednesday.
-- Them: follow up with the payment provider today.
+- Speaker 1: have the promo code design ready by Wednesday.
+- Speaker 1: follow up with the payment provider today.
 - You: update the launch plan and share it with support by Thursday.
 - Both: check in again on Friday.`;
 
-// Channel 0 is your microphone (You); channel 1 is the Mac's sound (Them).
+// Channel 0 is your microphone (You); channel 1 is the Mac's sound, which the
+// transcript labels "Speaker 1", so the action items use that name (NN/g #4).
 export const EXAMPLE_TURNS: ReadonlyArray<{ channel: 0 | 1; text: string }> = [
   {
     channel: 0,

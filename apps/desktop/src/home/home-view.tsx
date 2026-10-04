@@ -120,10 +120,10 @@ function SectionTitle({ id, children }: { id: string; children: ReactNode }) {
   );
 }
 
-// Fork: design-system.md, times in Geist sans with tabular figures. AM and PM
-// sit in small caps, as Granola sets them ("10:00 – 10:05 AM").
-const TIME_CLASS =
-  "text-muted-foreground shrink-0 tabular-nums [font-variant-caps:all-small-caps]";
+// Fork: design-system.md, times in Geist sans with tabular figures, at full
+// size: small caps shrank the digits to about 9 pt, under the 10 pt macOS
+// minimum (Apple HIG, Typography). Apple Mail and Calendar write "10:37 PM".
+const TIME_CLASS = "text-muted-foreground shrink-0 tabular-nums";
 
 function useOpenNote() {
   const openCurrent = useTabs((state) => state.openCurrent);
@@ -589,7 +589,10 @@ export function RecentNotes({
           <Trans>Notes</Trans>
         </h2>
       )}
-      <div className="flex flex-col gap-5">
+      {/* Fork: -mx-2 lines the day labels and titles up with "Coming up"
+          and its card; the rows keep px-2 for their hover fill (Apple HIG,
+          Layout: indented items read as subordinate). */}
+      <div className="-mx-2 flex flex-col gap-5">
         {groups.map((group) => (
           <div key={group.key} className="flex flex-col">
             <h3 className="text-muted-foreground px-2 pb-1 text-xs font-medium">

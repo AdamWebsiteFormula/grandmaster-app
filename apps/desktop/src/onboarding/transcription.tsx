@@ -288,6 +288,16 @@ export function TranscriptionSetupSection({
         </p>
       )}
 
+      {/* Fork: the privacy line comes before Continue, so it is read before
+          the click (Apple HIG, Privacy: be transparent about data). */}
+      {usesCloud && (
+        <p className="text-muted-foreground text-sm">
+          <Trans>
+            Audio streams through Upshot to Deepgram for transcription. Neither
+            keeps your audio.
+          </Trans>
+        </p>
+      )}
       <div className="flex flex-wrap items-center gap-3">
         {/* Fork: also report a download still running, so the step title
             doesn't claim setup is done (NN/g #1). */}
@@ -306,14 +316,6 @@ export function TranscriptionSetupSection({
             </OnboardingButton>
           )}
       </div>
-      {usesCloud && (
-        <p className="text-muted-foreground text-sm">
-          <Trans>
-            Audio streams through Upshot to Deepgram for transcription. Nothing
-            is stored.
-          </Trans>
-        </p>
-      )}
       {phase.kind === "downloading" && (
         <p className="text-muted-foreground text-sm">
           <Trans>
