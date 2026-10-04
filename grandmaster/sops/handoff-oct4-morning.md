@@ -27,11 +27,16 @@ Windows and Linux, 10:43 AM, cloud run 37205566680 (same code as the Mac DMGs, c
 
 Mac DMGs 2:27 PM (commit fda4746; Intel smoke-tested under Rosetta). Windows and Linux 2:38 PM from cloud run 37206908446 (commit bd387a7, same code), after the key scan and the run's screenshots. Every installer on the page is now the same code.
 
+## How to test and publish
+
+The scripts and steps are in `grandmaster/scripts/test-tools/README.md`: build, install, open on a test profile (a throwaway copy of the data), drive with the computer-use app_* tools, right-click helpers, the Rosetta smoke test, and the publish scripts (they refuse to run without `--yes`; do not publish during judging without Adam's OK).
+
 ## Things Adam should know
 
 - 8:53 AM: a test copy of Upshot opened on screen for about a minute while Keynote was showing a slideshow. Testing stopped at once and waited until the slideshow ended.
 - Adam's own Upshot was quit for the install and left closed. /Applications/Upshot.app is the published fda4746 build. macOS will ask again for the microphone, system audio and keychain after this update (ad-hoc signing, backlog item 12).
-- Open decisions: turn on GitHub Issues (none on the repo now, so the guide has no bug link); email SQLite Cloud about the sqlite-sync production license (ELv2 README asks production users for a commercial license).
+- Done at 3 PM: the GitHub About box now links to the download page and describes Upshot (it pointed to anarlog.so); the test count wording says most tests came with Anarlog.
+- Open decisions: turn on GitHub Issues (none on the repo now, so the guide has no bug link); email SQLite Cloud about the sqlite-sync production license (ELv2 README asks production users for a commercial license); spend caps on OpenRouter and Deepgram (Adam skipped them for now).
 
 ## Still on the UX backlog
 

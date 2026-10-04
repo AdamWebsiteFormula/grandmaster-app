@@ -55,7 +55,7 @@ On your computer, in the `anarlog` folder (`~/Library/Application Support/anarlo
 Sharing and teams first. Then the rest of Granola's features, and more. Roadmap: https://claude.ai/artifact/1pStsX6PV6TDSd6m7BQD1N
 
 **How I built it**
-Claude Code with B.L.A.S.T.: a blueprint first, a gate test before any change, one SOP per workstream, a codified design system, parallel Claude Code sessions and subagents, Granola as the benchmark for every flow, about 4,850 automated tests, and a red-team security pass. Details are in `grandmaster/HOW-I-BUILT-THIS.md` in the repo.
+Claude Code with B.L.A.S.T.: a blueprint first, a gate test before any change, one SOP per workstream, a codified design system, parallel Claude Code sessions and subagents, Granola as the benchmark for every flow, a full suite of about 4,880 automated tests (most from Anarlog), and a red-team security pass. Details are in `grandmaster/HOW-I-BUILT-THIS.md` in the repo.
 
 **Credits**
 Upshot is a fork of Anarlog by Fastrepl (MIT). It ships sqlite-sync unmodified (Elastic License 2.0). Fonts: Geist and Bricolage Grotesque (SIL Open Font License).
