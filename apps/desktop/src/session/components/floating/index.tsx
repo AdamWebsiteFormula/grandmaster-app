@@ -21,6 +21,7 @@ import { cn } from "@anlg/utils";
 import { RecordingBar } from "./recording-bar";
 import { setSessionFabSelectionHost } from "./selection-slot";
 
+import { ChatModelMenu } from "~/chat/components/input/model-menu";
 import { queueChatPrompt } from "~/chat/pending-prompt";
 import { useShell } from "~/contexts/shell";
 import { isWelcomeNoteEvent } from "~/onboarding/welcome-note.constants";
@@ -365,6 +366,12 @@ function NoteAskField({
       <Kbd className="shrink-0 @max-[22rem]/ask:hidden">
         {kbdLabel(["mod", "J"])}
       </Kbd>
+      {/* Fork: pick the model before you type, as on Home, in the chat, and
+          in Granola's Ask bar (owner test, Oct 4). It outlasts the ⌘J hint
+          as the field narrows. */}
+      <span data-note-ask-model className="shrink-0 @max-[17rem]/ask:hidden">
+        <ChatModelMenu compact />
+      </span>
       {trailing}
     </form>
   );

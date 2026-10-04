@@ -20,6 +20,14 @@ const hoisted = vi.hoisted(() => ({
 
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => hoisted.platform }));
 
+vi.mock("~/chat/components/input/model-menu", () => ({
+  ChatModelMenu: () => (
+    <button type="button" aria-label="Model: Auto">
+      Auto
+    </button>
+  ),
+}));
+
 vi.mock("./recording-bar", () => ({
   RecordingBar: (props: unknown) => {
     hoisted.recordingBarProps(props);
@@ -125,6 +133,7 @@ describe("FloatingActionButton (note bar)", () => {
       "Transcript",
       "Resume recording",
       "Ask anything",
+      "Model: Auto",
       "Draft follow-up email",
     ]);
     const stack = document.querySelector("[data-note-bar-stack]")!;
@@ -132,6 +141,19 @@ describe("FloatingActionButton (note bar)", () => {
     expect(stack.className).toContain("-translate-x-1/2");
     expect(stack.className).not.toContain("right-4");
     expect(document.querySelector("[data-note-bar-divider]")).not.toBeNull();
+  });
+
+  // Owner test, Oct 4: pick the model before typing, as on Home and in
+  // Granola's Ask bar.
+  it("offers the model menu in the note's Ask field", () => {
+    renderBar();
+
+    const field = document.querySelector("[data-note-ask]")!;
+    expect(
+      field.querySelector(
+        "[data-note-ask-model] button[aria-label='Model: Auto']",
+      ),
+    ).not.toBeNull();
   });
 
   it("passes the recording bar no Resume, so no far-left pill shows", () => {
@@ -282,6 +304,7 @@ describe("FloatingActionButton (note bar)", () => {
     expect(controls).toEqual([
       "Transcript",
       "Ask anything",
+      "Model: Auto",
       "Draft follow-up email",
     ]);
   });
