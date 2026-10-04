@@ -64,10 +64,11 @@ function EditActions({
         size="sm"
         onClick={() => void applyProposalReview(toolCallId)}
       >
+        {/* Fork: the tab is "My notes", not "memo" (NN/g #4). */}
         {target === "summary" ? (
           <Trans>Apply to summary</Trans>
         ) : (
-          <Trans>Apply to memo</Trans>
+          <Trans>Apply to my notes</Trans>
         )}
       </Button>
     </div>
@@ -82,7 +83,8 @@ export const ToolEditSummary = defineTool({
     if (running) return "Edit summary — review tab opened";
     if (failed) return "Summary edit failed";
     if (parsed?.status === "applied") return "Summary updated";
-    if (parsed?.status === "declined") return "Summary edit declined";
+    // Fork: the button says Discard, so the result does too (NN/g #4).
+    if (parsed?.status === "declined") return "Summary edit discarded";
     return "Edit summary";
   },
   renderBody: (input) =>
@@ -118,12 +120,13 @@ export const ToolEditMemo = defineTool({
   icon: <Pencil />,
   parseFn: parseEditSummaryOutput,
   isDone: (parsed) => parsed?.status === "applied",
+  // Fork: "My notes", the tab's name, not "memo" (NN/g #4).
   label: ({ running, failed, parsed }) => {
-    if (running) return "Edit memo — review tab opened";
-    if (failed) return "Memo edit failed";
-    if (parsed?.status === "applied") return "Memo updated";
-    if (parsed?.status === "declined") return "Memo edit declined";
-    return "Edit memo";
+    if (running) return "Edit my notes — review tab opened";
+    if (failed) return "My notes edit failed";
+    if (parsed?.status === "applied") return "My notes updated";
+    if (parsed?.status === "declined") return "My notes edit discarded";
+    return "Edit my notes";
   },
   renderBody: (input) =>
     input?.content ? (

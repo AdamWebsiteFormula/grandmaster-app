@@ -76,11 +76,12 @@ export function TabContentEdit({ tab }: { tab: EditTab }) {
   }, [queryClient, tab.requestId]);
   useStrictModeUnmount(declineOnUnmount);
 
+  // Fork: the diff header shows this name, so it says "my-notes" (NN/g #4).
   const oldFile = useMemo(
     () =>
       edit
         ? {
-            name: isMemo ? "memo.md" : "summary.md",
+            name: isMemo ? "my-notes.md" : "summary.md",
             contents: edit.currentContent || "",
           }
         : null,
@@ -90,7 +91,7 @@ export function TabContentEdit({ tab }: { tab: EditTab }) {
     () =>
       edit
         ? {
-            name: isMemo ? "memo.md" : "summary.md",
+            name: isMemo ? "my-notes.md" : "summary.md",
             contents: edit.proposedContent,
           }
         : null,
@@ -145,8 +146,10 @@ export function TabContentEdit({ tab }: { tab: EditTab }) {
               {sessionTitle ?? <Trans>Untitled session</Trans>}
             </div>
             <div className="text-muted-foreground text-[12px]">
+              {/* Fork: "My notes" and "Discard", the words the tab and the
+                  chat card use (NN/g #4). */}
               {isMemo ? (
-                <Trans>Memo</Trans>
+                <Trans>My notes</Trans>
               ) : (
                 (summaryTitle ?? <Trans>Summary</Trans>)
               )}
@@ -160,7 +163,7 @@ export function TabContentEdit({ tab }: { tab: EditTab }) {
               disabled={busy}
               onClick={() => void review(false)}
             >
-              <Trans>Decline</Trans>
+              <Trans>Discard</Trans>
             </Button>
             <Button
               type="button"
@@ -169,7 +172,7 @@ export function TabContentEdit({ tab }: { tab: EditTab }) {
               onClick={() => void review(true)}
             >
               {isMemo ? (
-                <Trans>Apply to memo</Trans>
+                <Trans>Apply to my notes</Trans>
               ) : (
                 <Trans>Apply to summary</Trans>
               )}
@@ -177,7 +180,7 @@ export function TabContentEdit({ tab }: { tab: EditTab }) {
           </div>
         </div>
         {error ? (
-          <div className="border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive">
+          <div className="border-destructive/40 bg-destructive/10 text-destructive px-4 py-2 text-sm">
             {error}
           </div>
         ) : null}

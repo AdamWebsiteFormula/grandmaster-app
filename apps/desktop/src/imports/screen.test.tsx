@@ -262,6 +262,10 @@ describe("MeetingImportScreen", () => {
     expect(mocks.signIn).not.toHaveBeenCalled();
     expect(screen.queryByText("Sign in to connect")).toBeNull();
     expect(await screen.findByText("Connected")).toBeTruthy();
+    // Fork: the name holds the visible text (WCAG 2.2 SC 2.5.3).
+    expect(
+      screen.getByRole("button", { name: "Connected, sync now" }),
+    ).toBeTruthy();
   });
 
   it("lets the user cancel an abandoned browser connection and retry", async () => {

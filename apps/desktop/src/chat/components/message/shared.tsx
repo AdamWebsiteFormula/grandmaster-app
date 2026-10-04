@@ -53,8 +53,11 @@ export function MessageBubble({
     <div
       className={cn([
         "select-text-deep overflow-wrap-anywhere max-w-full min-w-0 text-sm",
+        // Fork: your messages use the neutral fill of your transcript bubbles;
+        // the orange tint marks a selected transcript line (Apple HIG Color;
+        // design-system.md The one accent).
         variant === "user" &&
-          "bg-primary/10 text-foreground w-fit rounded-2xl px-3 py-1 [&_p]:[text-wrap:wrap]",
+          "bg-sidebar-accent text-foreground w-fit rounded-2xl px-3 py-1 [&_p]:[text-wrap:wrap]",
         variant === "assistant" &&
           (isDarkAppearance
             ? "bg-accent text-accent-foreground rounded-2xl px-3 py-1"

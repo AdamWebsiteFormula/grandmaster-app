@@ -25,10 +25,18 @@ import {
 // Fork: the pill gets a soft shadow in light, none on black, so it separates
 // from the note text under it (journey-meeting P3; design-system.md Dialogs;
 // Apple HIG Dark Mode).
+// Fork: the same card fill and field border as the note bar beside it
+// (NN/g #4).
 const pillSurfaceClassName =
-  "border-border bg-popover text-popover-foreground shadow-sm dark:shadow-none";
+  "border-input bg-card text-card-foreground shadow-sm dark:shadow-none";
 
-export function RecordingBar({ sessionId }: { sessionId: string }) {
+export function RecordingBar({
+  sessionId,
+  hideNotices = false,
+}: {
+  sessionId: string;
+  hideNotices?: boolean;
+}) {
   const { t } = useLingui();
   const { mode, amplitude, mic, speaker, muted, seconds } = useListener(
     (state) => ({
@@ -79,7 +87,12 @@ export function RecordingBar({ sessionId }: { sessionId: string }) {
 
   return (
     <>
-      <CaptureHealth speaker={speaker} />
+      {/* Fork: the open chat covers the space above the bar, so the notice
+          waits under it and shows again when the chat closes; it stays
+          mounted to keep its silence clock (NN/g #1, #8). */}
+      <div hidden={hideNotices} className="contents">
+        <CaptureHealth speaker={speaker} />
+      </div>
       {/* Fork: no live region on the whole bar, whose timer and meters
           change ten times a second; only the label below is announced
           (journey-meeting P2; WCAG 2.2 SC 4.1.3, SC 2.2.2). */}

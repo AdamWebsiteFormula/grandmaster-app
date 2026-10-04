@@ -505,7 +505,9 @@ export function MeetingImportScreen({
                                   type="button"
                                   size="sm"
                                   smoothCorners={false}
-                                  aria-label={t`Sync now`}
+                                  // Fork: the name holds the visible
+                                  // text (WCAG 2.2 SC 2.5.3).
+                                  aria-label={t`Connected, sync now`}
                                   className="group/sync hover:bg-primary-foreground/10 rounded-none border-0 bg-transparent shadow-none"
                                   disabled={
                                     syncQuery?.isFetching || disconnecting

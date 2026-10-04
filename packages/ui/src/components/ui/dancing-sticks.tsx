@@ -120,8 +120,10 @@ export const DancingSticks = memo(function DancingSticks({
               transform: `scaleY(${maxScaleY})`,
             }}
           >
+            {/* Fork: still with Reduce Motion on; the bars keep following
+                the audio level (Apple HIG Accessibility; WCAG 2.2 SC 2.3.3). */}
             <div
-              className="animate-anarlog-dancing-stick w-full origin-center rounded-full"
+              className="animate-anarlog-dancing-stick w-full origin-center rounded-full motion-reduce:animate-none"
               style={{
                 height: resolvedHeight,
                 backgroundColor: color,

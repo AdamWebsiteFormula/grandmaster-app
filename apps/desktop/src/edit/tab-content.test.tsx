@@ -105,12 +105,33 @@ describe("TabContentEdit", () => {
   it("declines a database-backed proposal without auto-writing", async () => {
     renderTab();
 
-    fireEvent.click(await screen.findByRole("button", { name: "Decline" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Discard" }));
 
     await waitFor(() => {
       expect(mocks.declineSessionProposal).toHaveBeenCalledWith("proposal-1");
     });
     expect(mocks.applySessionProposal).not.toHaveBeenCalled();
+  });
+
+  // Fork: "My notes", the tab's name, not "Memo" (NN/g #4).
+  it("names My notes for a notes proposal", async () => {
+    mocks.loadSessionProposal.mockResolvedValue({
+      id: "proposal-1",
+      sessionId: "session-1",
+      kind: "memo_replace",
+      targetId: "session-1",
+      currentMarkdown: "Current",
+      proposedMarkdown: "Proposed",
+      status: "pending",
+      source: "cli",
+    });
+    renderTab();
+
+    expect(await screen.findByText("My notes")).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Apply to my notes" }),
+    ).toBeTruthy();
+    expect(screen.queryByText("Memo")).toBeNull();
   });
 
   it("shows a stale apply error without closing the review", async () => {

@@ -811,8 +811,8 @@ msgstr "Apply to all"
 
 #: src/chat/components/message/tool/edit-summary.tsx
 #: src/edit/tab-content.tsx
-msgid "Apply to memo"
-msgstr "Apply to memo"
+msgid "Apply to my notes"
+msgstr "Apply to my notes"
 
 #: src/chat/components/message/tool/edit-summary.tsx
 #: src/edit/tab-content.tsx
@@ -1837,6 +1837,10 @@ msgstr "Connected with your {0} subscription."
 msgid "Connected with your existing subscription."
 msgstr "Connected with your existing subscription."
 
+#: src/imports/screen.tsx
+msgid "Connected, sync now"
+msgstr "Connected, sync now"
+
 #: src/settings/sync/index.tsx
 msgid "Connecting"
 msgstr "Connecting"
@@ -2434,7 +2438,6 @@ msgstr "Date and time are required"
 msgid "Date range"
 msgstr "Date range"
 
-#: src/edit/tab-content.tsx
 #: src/settings/team/index.tsx
 msgid "Decline"
 msgstr "Decline"
@@ -2648,6 +2651,7 @@ msgstr "Disable"
 
 #: src/chat/components/message/tool/approval-tools.tsx
 #: src/chat/components/message/tool/edit-summary.tsx
+#: src/edit/tab-content.tsx
 msgid "Discard"
 msgstr "Discard"
 
@@ -4272,7 +4276,6 @@ msgstr "Members"
 msgid "Members on a claimed email domain must sign in with SSO instead of Google, GitHub, or email."
 msgstr "Members on a claimed email domain must sign in with SSO instead of Google, GitHub, or email."
 
-#: src/edit/tab-content.tsx
 #: src/settings/automations/markdown-export-options.tsx
 msgid "Memo"
 msgstr "Memo"
@@ -4429,6 +4432,7 @@ msgstr "Move Upshot to Applications"
 msgid "My automations"
 msgstr "My automations"
 
+#: src/edit/tab-content.tsx
 #: src/session/components/note-input/header-raw.tsx
 #: src/session/components/note-input/meta-chips.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx

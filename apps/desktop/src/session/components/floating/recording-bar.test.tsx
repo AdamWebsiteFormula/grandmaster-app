@@ -60,6 +60,16 @@ describe("RecordingBar", () => {
     cleanup();
   });
 
+  // Fork: the open chat covers the notice spot, so the notice waits under
+  // it, still mounted (NN/g #8).
+  it("holds capture notices while the chat covers them", () => {
+    const view = render(<RecordingBar sessionId="session-1" hideNotices />);
+    expect(view.container.querySelector("div[hidden]")).not.toBeNull();
+
+    view.rerender(<RecordingBar sessionId="session-1" />);
+    expect(view.container.querySelector("div[hidden]")).toBeNull();
+  });
+
   it("renders nothing when the note is not recording", () => {
     mocks.mode = "inactive";
     render(<RecordingBar sessionId="session-1" />);
@@ -133,6 +143,15 @@ describe("RecordingBar", () => {
     const bar = view.container.querySelector("[data-recording-bar]")!;
     expect(bar.className).toContain("shadow-sm");
     expect(bar.className).toContain("dark:shadow-none");
+  });
+
+  // Fork: the same surface as the note bar beside it (NN/g #4).
+  it("uses the note bar's card fill and field border", () => {
+    const view = render(<RecordingBar sessionId="session-1" />);
+
+    const bar = view.container.querySelector("[data-recording-bar]")!;
+    expect(bar.className).toContain("border-input");
+    expect(bar.className).toContain("bg-card");
   });
 
   it.each(["finalizing", "running_batch"])(

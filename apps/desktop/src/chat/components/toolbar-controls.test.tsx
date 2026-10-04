@@ -68,6 +68,17 @@ describe("ChatToolbarControls", () => {
     );
 
     expect(onOpenRightPanel).toHaveBeenCalledOnce();
+    // Fork: icon-only buttons show a help tag (Apple HIG Offering help).
+    expect(
+      screen
+        .getByRole("button", { name: "Open in right panel" })
+        .getAttribute("title"),
+    ).toBe("Open in right panel");
+    expect(
+      screen
+        .getByRole("button", { name: "Chat history" })
+        .getAttribute("title"),
+    ).toBe("Chat history");
     // Fork: the floating chat has a close button too (ux-audit-oct3 D).
     fireEvent.click(screen.getByRole("button", { name: "Close chat" }));
     expect(onClose).toHaveBeenCalledOnce();

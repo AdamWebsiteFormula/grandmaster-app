@@ -145,6 +145,9 @@ function ChatActionButton({
   return (
     <Button
       aria-label={label}
+      // Fork: a help tag on the icon-only button (Apple HIG Offering help;
+      // NN/g Icon Usability).
+      title={label}
       data-tauri-drag-region="false"
       onClick={onClick}
       size="icon"
@@ -183,6 +186,8 @@ export function ChatGroups({
       <DropdownMenuTrigger asChild>
         <Button
           aria-label={label ?? t`Chat history`}
+          // Fork: a help tag on the icon-only trigger (Apple HIG Offering help).
+          title={label ?? t`Chat history`}
           data-tauri-drag-region="false"
           variant="ghost"
           size="sm"

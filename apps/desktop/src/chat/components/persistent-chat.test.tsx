@@ -9,6 +9,7 @@ import { useRef } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  recording: { current: false },
   chatMode: {
     current: "FloatingOpen" as
       | "FloatingClosed"
@@ -52,7 +53,10 @@ vi.mock("~/stt/contexts", () => ({
       getSessionMode: () => string;
     }) => unknown,
   ) =>
-    selector({ live: { sessionId: null }, getSessionMode: () => "inactive" }),
+    selector({
+      live: { sessionId: mocks.recording.current ? "session-1" : null },
+      getSessionMode: () => (mocks.recording.current ? "active" : "inactive"),
+    }),
 }));
 
 vi.mock("./chat-panel", () => ({
@@ -121,6 +125,22 @@ describe("PersistentChatPanel", () => {
     expect(mocks.sendEvent).toHaveBeenCalledWith({
       type: "OPEN_RIGHT_PANEL",
     });
+  });
+
+  // Fork: while recording, the click-to-close frame ends above the
+  // recording bar, so a click on Stop reaches Stop (NN/g #3).
+  it("keeps the frame off the recording bar while recording", async () => {
+    mocks.recording.current = true;
+    render(<TestHost />);
+
+    await screen.findByTestId("chat-view");
+
+    const floatingFrame = document.querySelector<HTMLElement>(
+      "[data-chat-floating-frame]",
+    );
+    expect(floatingFrame!.className).toContain("pb-2");
+    expect(floatingFrame!.className).not.toContain("pb-16");
+    mocks.recording.current = false;
   });
 
   it("closes on backdrop click while the draft is empty", async () => {

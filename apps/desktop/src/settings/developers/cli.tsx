@@ -140,10 +140,12 @@ function CliSection({
           <div className="min-w-0">
             <h3 className="flex items-center gap-1.5 text-sm font-medium">
               <Trans>Upshot CLI</Trans>
+              {/* Fork: a neutral check; orange is the one hue
+                  (design-system.md The one accent; Apple HIG Color). */}
               {isInstalled && (
                 <CheckCircle
                   aria-label={t`Installed`}
-                  className="size-3.5 text-emerald-600"
+                  className="text-muted-foreground size-3.5"
                 />
               )}
             </h3>
@@ -153,6 +155,9 @@ function CliSection({
             <Button
               type="button"
               size="sm"
+              // Fork: orange marks Install, the main action; Reinstall is
+              // secondary (design-system.md The one accent).
+              variant={isInstalled ? "outline" : "default"}
               disabled={!canInstall || isInstalling}
               onClick={onInstall}
             >

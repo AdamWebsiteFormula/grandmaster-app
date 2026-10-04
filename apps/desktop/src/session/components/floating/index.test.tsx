@@ -139,6 +139,7 @@ describe("FloatingActionButton (note bar)", () => {
     renderBar({ allowListening: true });
     expect(hoisted.recordingBarProps).toHaveBeenLastCalledWith({
       sessionId: "session-1",
+      hideNotices: false,
     });
     expect(
       screen.getAllByRole("button", { name: "Resume recording" }),

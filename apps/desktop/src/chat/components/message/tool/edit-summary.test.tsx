@@ -106,7 +106,8 @@ describe("ToolEditSummary", () => {
     ).toBeNull();
   });
 
-  it("applies a reviewed memo edit from the chat card", () => {
+  // Fork: the card says "my notes", the tab's name (NN/g #4).
+  it("applies a reviewed My notes edit from the chat card", () => {
     usePendingEditStore.getState().addEdit({
       requestId: "tool-call-1",
       sessionId: "session-1",
@@ -118,7 +119,7 @@ describe("ToolEditSummary", () => {
     });
 
     render(<ToolEditMemo part={memoPart} />);
-    fireEvent.click(screen.getByRole("button", { name: "Apply to memo" }));
+    fireEvent.click(screen.getByRole("button", { name: "Apply to my notes" }));
 
     expect(reviewMocks.applyProposalReview).toHaveBeenCalledWith("tool-call-1");
   });

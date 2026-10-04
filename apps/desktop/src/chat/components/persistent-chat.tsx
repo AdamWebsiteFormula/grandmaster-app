@@ -155,7 +155,14 @@ export function PersistentChatPanel({
                   top: containerRect.top,
                   left: containerRect.left,
                   width: containerRect.width,
-                  height: containerRect.height,
+                  // Fork: while recording, the frame stops above the
+                  // recording bar (bottom-4 + h-10 = 56 px), so its
+                  // click-to-close area never sits on top of Stop (NN/g #3,
+                  // user control and freedom).
+                  height: Math.max(
+                    0,
+                    containerRect.height - (isRecording ? 56 : 0),
+                  ),
                   willChange: "opacity",
                 }
               : { display: "none" }
@@ -171,10 +178,10 @@ export function PersistentChatPanel({
               "pointer-events-auto relative flex h-full min-h-0",
               "items-end justify-center px-3",
               // Fork: 16 px off the panel bottom, level with the Home and note
-              // composers it opens from; while recording it clears the
-              // recording bar (bottom-4 + h-10) with 8 px to spare
-              // (redline4-oct3; Apple HIG Layout margins).
-              isRecording ? "pb-16" : "pb-4",
+              // composers it opens from; while recording the frame already
+              // ends above the recording bar, so 8 px keeps the panel 64 px
+              // up as before (redline4-oct3; Apple HIG Layout margins).
+              isRecording ? "pb-2" : "pb-4",
             ])}
             style={{
               paddingTop: FLOATING_PANEL_TOP_CLEARANCE,
