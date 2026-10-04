@@ -39,18 +39,30 @@ Context and local meeting tool guidance:
 - Do not assume meeting contents from chat history when a typed tool can read the current source of truth.
 `.trim();
 
-function appendMeetingContextToolGuidance(
+// Fork: the meeting tools return UTC times, and a chat answer said "Times
+// are in UTC" (in-app test, Oct 4). Answers use the time zone from Settings
+// › General, as the rest of the app does (NN/g #2: the user's words).
+export function timeZoneGuidance(timeZone: string): string {
+  return `- Times from the meeting tools are in UTC. Convert every date and time to the user's time zone, ${timeZone}, before you show it, and never label times as UTC.`;
+}
+
+export function appendMeetingContextToolGuidance(
   prompt: string | undefined,
+  timeZone?: string,
 ): string | undefined {
   if (prompt === undefined) {
     return undefined;
   }
 
+  const guidance = timeZone
+    ? `${MEETING_CONTEXT_TOOL_GUIDANCE}\n${timeZoneGuidance(timeZone)}`
+    : MEETING_CONTEXT_TOOL_GUIDANCE;
+
   if (!prompt.trim()) {
-    return MEETING_CONTEXT_TOOL_GUIDANCE;
+    return guidance;
   }
 
-  return `${prompt.trim()}\n\n${MEETING_CONTEXT_TOOL_GUIDANCE}`;
+  return `${prompt.trim()}\n\n${guidance}`;
 }
 
 async function renderHumanContext(humanId: string): Promise<string | null> {
@@ -118,7 +130,13 @@ export function useTransport(
     systemPromptOverride ??
     (systemPromptQuery.isError ? "" : systemPromptQuery.data);
 
-  const effectiveSystemPrompt = appendMeetingContextToolGuidance(systemPrompt);
+  const timeZone =
+    useConfigValue("timezone") ||
+    Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const effectiveSystemPrompt = appendMeetingContextToolGuidance(
+    systemPrompt,
+    timeZone,
+  );
   const isSystemPromptReady = systemPrompt !== undefined;
 
   const tools = useMemo(() => {
