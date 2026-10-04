@@ -20,17 +20,17 @@ Mac, both DMGs, 9:34 AM, commit 5b3d36d (SHA-256 in the release's SHA256SUMS.txt
 
 Windows and Linux, 10:43 AM, cloud run 37205566680 (same code as the Mac DMGs, commit 5b3d36d). Reviewed first: key scan 0, and the run's own screenshots show the Windows and Linux first-run and Home screens. Published with the Mac lines of SHA256SUMS.txt kept, so the sums match every file.
 
-## Committed, not yet on the download page (needs an in-app check)
+## Afternoon update (2:38 PM): three more fixes, tested in the app, on the page
 
-- ce006b4: chat answers convert UTC to the Settings time zone (checked against Upshot AI: 10:01 UTC came back 6:01 AM EDT).
-- e9b886f: template list group labels (Your templates, Built-in); Provider and Model labels on Settings › Transcription.
+- ce006b4: chat answers give times in the Settings time zone (in-app: "times in Eastern Time", 6:01 AM, not 10:01 UTC).
+- e9b886f: template list group labels (Your templates, Built-in); Provider and Model labels on Settings › Transcription (no "/").
 
-The screen locked at about 9:40 AM, so these wait for an unlocked screen. Then: build, test on a test profile (copy of the anarlog folder into a scratch HOME), publish Mac. Cloud run 37206908446 (commit bd387a7) already has these for Windows and Linux; download it with final-winlinux.sh after the Mac test passes, review, publish.
+Mac DMGs 2:27 PM (commit fda4746; Intel smoke-tested under Rosetta). Windows and Linux 2:38 PM from cloud run 37206908446 (commit bd387a7, same code), after the key scan and the run's screenshots. Every installer on the page is now the same code.
 
 ## Things Adam should know
 
 - 8:53 AM: a test copy of Upshot opened on screen for about a minute while Keynote was showing a slideshow. Testing stopped at once and waited until the slideshow ended.
-- Adam's own Upshot was quit for the install and left closed. /Applications/Upshot.app is the time-zone test build (the published 5b3d code plus ce006b4). macOS will ask again for the microphone, system audio and keychain after this update (ad-hoc signing, backlog item 12).
+- Adam's own Upshot was quit for the install and left closed. /Applications/Upshot.app is the published fda4746 build. macOS will ask again for the microphone, system audio and keychain after this update (ad-hoc signing, backlog item 12).
 - Open decisions: turn on GitHub Issues (none on the repo now, so the guide has no bug link); email SQLite Cloud about the sqlite-sync production license (ELv2 README asks production users for a commercial license).
 
 ## Still on the UX backlog
