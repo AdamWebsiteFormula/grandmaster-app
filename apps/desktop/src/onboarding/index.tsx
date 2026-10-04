@@ -3,7 +3,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { platform } from "@tauri-apps/plugin-os";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { DancingSticks } from "@anlg/ui/components/ui/dancing-sticks";
 import { cn } from "@anlg/utils";
 
 import { LoginSection } from "./account";
@@ -203,20 +202,8 @@ function OnboardingScreenContent({
   return (
     // Fork: plain true-black background; the upstream landscape video is not shown.
     <div className="bg-background relative flex h-full min-h-0 flex-col overflow-hidden">
-      {/* Fork: a quiet sign of life, soft recording bars, very dim, bottom right. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute right-12 bottom-12 opacity-20 motion-reduce:hidden"
-      >
-        <DancingSticks
-          amplitude={0.6}
-          color="hsl(var(--primary))"
-          height={72}
-          width={128}
-          stickWidth={8}
-          gap={6}
-        />
-      </div>
+      {/* Fork: no decorative moving bars (owner, Oct 3): they looked like a live
+          meter and looped with no way to stop them (WCAG 2.2 SC 2.2.2). */}
       <div
         data-tauri-drag-region={headerDragRegion || undefined}
         className="relative z-30 flex h-12 shrink-0 items-center justify-end pr-3 pl-12"

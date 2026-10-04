@@ -201,6 +201,20 @@ describe("StandaloneOnboardingScreen", () => {
     expect(sfxMocks.play).not.toHaveBeenCalled();
   });
 
+  // Fork: no decorative moving bars (owner, Oct 3; WCAG 2.2 SC 2.2.2): they
+  // looked like a live sound meter during setup.
+  it("shows no decorative moving bars", () => {
+    const { container } = render(
+      <QueryClientProvider client={new QueryClient()}>
+        <StandaloneOnboardingScreen onFinish={vi.fn()} />
+      </QueryClientProvider>,
+    );
+
+    expect(
+      container.querySelector(".animate-anarlog-dancing-stick"),
+    ).toBeNull();
+  });
+
   it("says meeting history was skipped when the import step is skipped", () => {
     renderAtImports();
     fireEvent.click(screen.getByText("Import skip"));
