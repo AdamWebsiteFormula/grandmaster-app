@@ -111,6 +111,10 @@ pub fn default_ignored_bundle_ids() -> Vec<String> {
         .collect()
 }
 
+fn is_speech_daemon(app_id: &str) -> bool {
+    app_id.ends_with("/corespeechd") || app_id == "com.apple.corespeechd"
+}
+
 pub struct PolicyContext<'a> {
     pub apps: &'a [anlg_detect::InstalledApp],
     pub is_dnd: bool,
@@ -132,6 +136,13 @@ pub struct MicNotificationPolicy {
 
 impl MicNotificationPolicy {
     pub fn should_track_app(&self, app_id: &str) -> bool {
+        // Fork: macOS's speech daemon (Siri, Dictation) turns the mic on
+        // beside other apps and is never a meeting (owner test, Oct 4: it
+        // prompted when Loom started).
+        if is_speech_daemon(app_id) {
+            return false;
+        }
+
         if self.user_ignored_bundle_ids.contains(app_id) {
             return false;
         }
@@ -299,6 +310,16 @@ mod tests {
                 );
             }
         }
+    }
+
+    // Fork: owner test, Oct 4.
+    #[test]
+    fn test_should_track_app_skips_the_speech_daemon() {
+        let policy = MicNotificationPolicy::default();
+        assert!(!policy.should_track_app(
+            "/System/Library/PrivateFrameworks/CoreSpeech.framework/corespeechd"
+        ));
+        assert!(policy.should_track_app("com.google.Chrome"));
     }
 
     #[test]

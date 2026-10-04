@@ -100,6 +100,7 @@ fn handle_mic_stopped<E: Env>(
 
         for app in &apps {
             guard.mic_usage_tracker.cancel_app(&app.id);
+            guard.mic_usage_tracker.mic_stopped(&app.id);
         }
     }
 

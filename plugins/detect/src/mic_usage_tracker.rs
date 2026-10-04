@@ -10,10 +10,17 @@ use crate::{DetectEvent, ProcessorState, env::Env, timer_registry::TimerRegistry
 // Help Center, "Notifications": it prompts when it detects the mic in use).
 pub(crate) const DEFAULT_MIC_ACTIVE_THRESHOLD_SECS: u64 = 1;
 pub(crate) const COOLDOWN_DURATION: Duration = Duration::from_mins(10);
+// Fork: a new call asks again. Once the app's mic has been off for a minute,
+// that call has ended, so the next mic start is a new meeting. Granola
+// prompts "by detecting that your microphone is in use" (Granola Help
+// Center, "Notifications"). Owner test, Oct 4: a second Meet 8 minutes after
+// the first got no prompt.
+pub(crate) const NEW_CALL_GAP: Duration = Duration::from_secs(60);
 
 #[derive(Default)]
 pub struct MicUsageTracker {
     timers: TimerRegistry,
+    // Fork: the time each app's cooldown ends.
     cooldowns: HashMap<String, tokio::time::Instant>,
 }
 
@@ -24,8 +31,8 @@ impl MicUsageTracker {
 
     pub fn is_in_cooldown(&mut self, app_id: &str) -> bool {
         match self.cooldowns.get(app_id) {
-            Some(&fired_at) => {
-                if tokio::time::Instant::now().duration_since(fired_at) < COOLDOWN_DURATION {
+            Some(&until) => {
+                if tokio::time::Instant::now() < until {
                     true
                 } else {
                     self.cooldowns.remove(app_id);
@@ -40,6 +47,13 @@ impl MicUsageTracker {
         self.timers.start_replace(app_id, token)
     }
 
+    /// Fork: once a prompted app's mic stops, its cooldown ends a minute later.
+    pub fn mic_stopped(&mut self, app_id: &str) {
+        if let Some(until) = self.cooldowns.get_mut(app_id) {
+            *until = tokio::time::Instant::now() + NEW_CALL_GAP;
+        }
+    }
+
     pub fn cancel_app(&mut self, app_id: &str) {
         if self.timers.cancel(app_id) {
             tracing::info!(app_id = %app_id, "cancelled_mic_active_timer");
@@ -51,8 +65,10 @@ impl MicUsageTracker {
     /// On success, sets a cooldown so the same app won't be re-tracked for a while.
     pub fn claim(&mut self, app_id: &str, generation: u64) -> bool {
         if self.timers.claim(app_id, generation) {
-            self.cooldowns
-                .insert(app_id.to_string(), tokio::time::Instant::now());
+            self.cooldowns.insert(
+                app_id.to_string(),
+                tokio::time::Instant::now() + COOLDOWN_DURATION,
+            );
             true
         } else {
             false
@@ -128,6 +144,36 @@ mod tests {
             !tracker.is_in_cooldown("app.x"),
             "cooldown expired at 10 min"
         );
+    }
+
+    // Fork: owner test, Oct 4.
+    #[tokio::test(start_paused = true)]
+    async fn test_cooldown_ends_a_minute_after_the_mic_stops() {
+        let mut tracker = MicUsageTracker::default();
+        let generation = tracker.start_tracking("app.x".to_string(), CancellationToken::new());
+        assert!(tracker.claim("app.x", generation));
+
+        tokio::time::advance(Duration::from_secs(2 * 60)).await;
+        tracker.mic_stopped("app.x");
+
+        tokio::time::advance(Duration::from_secs(30)).await;
+        assert!(
+            tracker.is_in_cooldown("app.x"),
+            "a quick rejoin is the same call"
+        );
+
+        tokio::time::advance(Duration::from_secs(31)).await;
+        assert!(
+            !tracker.is_in_cooldown("app.x"),
+            "a call after a minute off asks again"
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn test_mic_stopped_without_prompt_sets_no_cooldown() {
+        let mut tracker = MicUsageTracker::default();
+        tracker.mic_stopped("app.x");
+        assert!(!tracker.is_in_cooldown("app.x"));
     }
 
     #[tokio::test(start_paused = true)]

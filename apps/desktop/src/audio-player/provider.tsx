@@ -114,13 +114,11 @@ function useAudioExistence(sessionId: string) {
   const audioExists = useQuery({
     queryKey: ["audio", sessionId, "exist"],
     queryFn: () => fsSyncCommands.audioExist(sessionId),
-    // Fork: check again every 3 s until the recording is on disk, so the
+    // Fork: check again every second until the recording is on disk, so the
     // player shows about a second after Stop instead of up to a minute
     // later (owner test, Oct 4; NN/g heuristic #1). A local file check.
     refetchInterval: (query) =>
-      query.state.data?.status === "ok" && query.state.data.data
-        ? false
-        : 3000,
+      query.state.data?.status === "ok" && query.state.data.data ? false : 1000,
     select: (result) => {
       if (result.status === "error") {
         throw new Error(result.error);

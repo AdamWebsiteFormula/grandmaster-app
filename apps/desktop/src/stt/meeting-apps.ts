@@ -640,11 +640,42 @@ export async function getNotificationIconForDetectedApps(
       browserMeetingPlatform,
     );
     if (icon) {
-      return icon;
+      return withUpshotLogo(icon);
     }
   }
 
   return null;
+}
+
+// Fork: lead with the Upshot logo and badge it with the meeting app.
+// Granola's prompt names the app and "includes a 'Take Notes' button with the
+// Granola icon" (docs.granola.ai/help-center/taking-notes/notifications), and
+// Upshot's calendar prompt already badges its logo (owner test, Oct 4).
+export function withUpshotLogo(icon: NotificationIcon): NotificationIcon {
+  const base = { type: "app_icon" } as const;
+
+  switch (icon.type) {
+    case "bundle_id":
+      return {
+        type: "overlay",
+        base,
+        badge: { type: "bundle_id", bundle_id: icon.bundle_id },
+      };
+    case "path":
+      return {
+        type: "overlay",
+        base,
+        badge: { type: "path", path: icon.path },
+      };
+    case "system_symbol":
+      return {
+        type: "overlay",
+        base,
+        badge: { type: "system_symbol", name: icon.name },
+      };
+    default:
+      return icon;
+  }
 }
 
 export function getIgnorableApps(apps: MicApp[]) {
