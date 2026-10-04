@@ -88,7 +88,11 @@ export function WindowsTitleBar({
       >
         {showBackButton ? (
           <>
-            <LeftSurfaceChromeButton ariaLabel={t`Go home`} onClick={goBack}>
+            <LeftSurfaceChromeButton
+              ariaLabel={t`Back`}
+              label={t`Back`}
+              onClick={goBack}
+            >
               <ArrowLeft size={16} />
             </LeftSurfaceChromeButton>
             <div

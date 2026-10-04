@@ -120,12 +120,15 @@ export function LeftSurfaceChromeButton({
   badge = null,
   children,
   disabled = false,
+  label = null,
   onClick,
 }: {
   ariaLabel: string;
   badge?: "upcomingMeeting" | null;
   children: ReactNode;
   disabled?: boolean;
+  // Fork: a visible word after the icon (owner test, Oct 4).
+  label?: ReactNode;
   onClick: () => void;
 }) {
   return (
@@ -135,7 +138,8 @@ export function LeftSurfaceChromeButton({
       data-tauri-drag-region="false"
       disabled={disabled}
       className={cn([
-        "pointer-events-auto relative flex size-7 items-center justify-center rounded-full",
+        "pointer-events-auto relative flex items-center rounded-full",
+        label ? "h-7 gap-1 pr-2.5 pl-1.5" : "size-7 justify-center",
         "text-muted-foreground hover:bg-accent hover:text-foreground transition-colors",
         "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-hidden",
         "disabled:text-muted-foreground/70 disabled:hover:text-muted-foreground/70 disabled:hover:bg-transparent",
@@ -143,6 +147,7 @@ export function LeftSurfaceChromeButton({
       onClick={onClick}
     >
       {children}
+      {label ? <span className="text-sm">{label}</span> : null}
       {badge ? (
         <span
           aria-hidden="true"

@@ -138,7 +138,7 @@ describe("WindowsTitleBar", () => {
     expect(screen.queryByRole("button", { name: "Show sidebar" })).toBeNull();
     expect(document.getElementById("title-bar-sidebar-actions")).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: "Go home" }));
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
 
     expect(mocks.toggleExpanded).not.toHaveBeenCalled();
     expect(mocks.openCurrent).toHaveBeenCalledWith({ type: "empty" });
@@ -150,7 +150,7 @@ describe("WindowsTitleBar", () => {
 
     render(<WindowsTitleBar showSidebarTimelineChrome={false} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Go home" }));
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
 
     expect(mocks.sendEvent).toHaveBeenCalledWith({ type: "CLOSE" });
     expect(mocks.openCurrent).not.toHaveBeenCalled();

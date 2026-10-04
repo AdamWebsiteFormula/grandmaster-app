@@ -250,10 +250,10 @@ describe("OpenNoteDialog", () => {
   });
 
   // Fork: WCAG 2.2 SC 2.4.7, the selected row is easy to see.
-  it("marks the selected row with the accent fill and foreground text", () => {
+  it("marks the selected row with the selected gray and foreground text", () => {
     render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
     const row = screen.getByRole("option", { name: "Home" });
-    expect(row.className).toContain("data-[selected=true]:bg-accent ");
+    expect(row.className).toContain("data-[selected=true]:bg-sidebar-accent ");
     expect(row.className).toContain("data-[selected=true]:text-foreground");
     expect(row.className).not.toContain("bg-accent/60");
   });

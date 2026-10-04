@@ -1002,6 +1002,7 @@ msgstr "Average across the capture days counted above."
 
 #: src/calendar/components/apple/permission.tsx
 #: src/instruction/index.tsx
+#: src/main/windows-title-bar.tsx
 #: src/onboarding/shared.tsx
 #: src/session-sharing/delivery-panel.tsx
 #: src/settings/general/e2ee-setup.tsx
@@ -3350,10 +3351,6 @@ msgstr "Glaido folder is ready"
 #: src/sidebar/timeline/index.tsx
 msgid "Go back to now"
 msgstr "Go back to now"
-
-#: src/main/windows-title-bar.tsx
-msgid "Go home"
-msgstr "Go home"
 
 #: src/shared/open-note-dialog.tsx
 msgid "Go to"

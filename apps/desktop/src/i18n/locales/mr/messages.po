@@ -1002,6 +1002,7 @@ msgstr ""
 
 #: src/calendar/components/apple/permission.tsx
 #: src/instruction/index.tsx
+#: src/main/windows-title-bar.tsx
 #: src/onboarding/shared.tsx
 #: src/session-sharing/delivery-panel.tsx
 #: src/settings/general/e2ee-setup.tsx
@@ -3349,10 +3350,6 @@ msgstr ""
 
 #: src/sidebar/timeline/index.tsx
 msgid "Go back to now"
-msgstr ""
-
-#: src/main/windows-title-bar.tsx
-msgid "Go home"
 msgstr ""
 
 #: src/shared/open-note-dialog.tsx

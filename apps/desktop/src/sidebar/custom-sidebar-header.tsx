@@ -77,13 +77,17 @@ function InlineCustomSidebarHeader({ children }: { children?: ReactNode }) {
         className="flex min-w-0 flex-1 items-center gap-1"
       >
         {/* Fork: the name says what it does, it goes back (ux-audit-oct3 B,
-            WCAG 4.1.2). */}
+            WCAG 4.1.2). The word shows next to the arrow, since an arrow
+            alone was easy to miss on Settings and Templates (owner test,
+            Oct 4; NN/g, "Icon Usability": label icons with text; Linear's
+            Settings has "Back to app"). */}
         <CustomSidebarHeaderButton
           label={t`Back`}
           title={t`Back`}
           onClick={handleBack}
         >
           <ArrowLeft size={16} />
+          <span className="text-sm">{t`Back`}</span>
         </CustomSidebarHeaderButton>
       </div>
       {children ? (
@@ -119,7 +123,7 @@ function CustomSidebarHeaderButton({
       data-tauri-drag-region="false"
       disabled={disabled}
       className={cn([
-        "relative z-50 flex size-7 shrink-0 items-center justify-center rounded-full",
+        "relative z-50 flex h-7 shrink-0 items-center gap-1 rounded-full pr-2.5 pl-1.5",
         "text-muted-foreground hover:bg-accent hover:text-foreground transition-colors",
         "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-hidden",
         "disabled:text-muted-foreground/70 disabled:hover:text-muted-foreground/70 disabled:hover:bg-transparent",

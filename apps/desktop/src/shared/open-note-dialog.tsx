@@ -534,10 +534,12 @@ export function OpenNoteDialog({
           className={cn([
             "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5",
             "text-muted-foreground text-sm",
-            // Fork: the selected row gets the full accent fill and foreground
-            // text (14.7:1 dark, 15.4:1 light) so the keyboard position is
-            // easy to see (WCAG 2.2 SC 2.4.7, 1.4.11). Same on all four lists.
-            "data-[selected=true]:bg-accent data-[selected=true]:text-foreground dark:data-[selected=true]:bg-[hsl(0_0%_22%)]",
+            // Fork: the selected row gets the selected gray of the sidebar's
+            // active row (light 90%, was the 94% hover gray Adam did not see
+            // on Oct 4) and foreground text, so the keyboard position is easy
+            // to see (WCAG 2.2 SC 2.4.7, 1.4.11; design-system.md: selected
+            // rows stay neutral). Same on all four lists.
+            "data-[selected=true]:bg-sidebar-accent data-[selected=true]:text-foreground dark:data-[selected=true]:bg-[hsl(0_0%_22%)]",
             "transition-colors",
           ])}
         >
@@ -679,7 +681,7 @@ export function OpenNoteDialog({
                           className={cn([
                             "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5",
                             "text-muted-foreground text-sm",
-                            "data-[selected=true]:bg-accent data-[selected=true]:text-foreground dark:data-[selected=true]:bg-[hsl(0_0%_22%)]",
+                            "data-[selected=true]:bg-sidebar-accent data-[selected=true]:text-foreground dark:data-[selected=true]:bg-[hsl(0_0%_22%)]",
                             "transition-colors",
                           ])}
                         >
@@ -714,7 +716,7 @@ export function OpenNoteDialog({
                           className={cn([
                             "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5",
                             "text-muted-foreground text-sm",
-                            "data-[selected=true]:bg-accent data-[selected=true]:text-foreground dark:data-[selected=true]:bg-[hsl(0_0%_22%)]",
+                            "data-[selected=true]:bg-sidebar-accent data-[selected=true]:text-foreground dark:data-[selected=true]:bg-[hsl(0_0%_22%)]",
                             "transition-colors",
                           ])}
                         >
@@ -755,7 +757,7 @@ export function OpenNoteDialog({
                           className={cn([
                             "flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2.5",
                             "text-muted-foreground text-sm",
-                            "data-[selected=true]:bg-accent data-[selected=true]:text-foreground dark:data-[selected=true]:bg-[hsl(0_0%_22%)]",
+                            "data-[selected=true]:bg-sidebar-accent data-[selected=true]:text-foreground dark:data-[selected=true]:bg-[hsl(0_0%_22%)]",
                             "transition-colors",
                           ])}
                         >
