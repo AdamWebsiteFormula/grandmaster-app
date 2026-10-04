@@ -52,10 +52,6 @@ vi.mock("~/sidebar/templates", () => ({
   TemplatesNav: () => <div data-testid="templates-nav" />,
 }));
 
-vi.mock("~/sidebar/folders", () => ({
-  FoldersNav: () => <div data-testid="folders-nav" />,
-}));
-
 vi.mock("~/sidebar/home-nav", () => ({
   SidebarHomeNav: () => <nav data-testid="home-nav" />,
 }));
@@ -124,7 +120,6 @@ describe("LeftSidebar", () => {
     ["contacts", "contacts-nav"],
     ["templates", "templates-nav"],
     ["automations", "automations-nav"],
-    ["folders", "folders-nav"],
   ])("shows the %s nav instead of the timeline", (type, testId) => {
     mocks.currentTab = { type };
 
@@ -133,5 +128,16 @@ describe("LeftSidebar", () => {
     expect(screen.getByTestId(testId)).toBeTruthy();
     expect(screen.queryByTestId("timeline-view")).toBeNull();
     expect(screen.queryByTestId("home-nav")).toBeNull();
+  });
+
+  // Owner test, Oct 4: an open folder keeps the main sidebar, with its
+  // folders listed, as Granola's one sidebar does (Granola Help Center,
+  // "Spaces & Folders").
+  it("keeps the main sidebar while a folder is open", () => {
+    mocks.currentTab = { type: "folders" };
+
+    render(<LeftSidebar />);
+
+    expect(screen.getByTestId("home-nav")).toBeTruthy();
   });
 });

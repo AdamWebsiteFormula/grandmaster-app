@@ -866,7 +866,7 @@ export function useSessionContextMenu({
       // (journey-after P2 "Add note to folder from Home"; NN/g #7).
       {
         id: "move-to-folder",
-        text: t`Move to folder…`,
+        text: t`Add to folder…`,
         action: () => openMoveToFolderDialog(sessionId),
       },
     ];

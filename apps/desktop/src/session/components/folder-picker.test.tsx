@@ -224,7 +224,7 @@ describe("FolderPicker", () => {
 
     act(() => openMoveToFolderDialog("session-1"));
     expect(
-      await screen.findByRole("dialog", { name: "Move to folder" }),
+      await screen.findByRole("dialog", { name: "Add to folder" }),
     ).toBeTruthy();
     fireEvent.click(screen.getByRole("option", { name: "work" }));
 

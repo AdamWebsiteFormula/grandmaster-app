@@ -141,7 +141,7 @@ export function FolderPicker({
   );
 }
 
-// Fork: "Move to folder…" from a note's right-click menu on Home and in the
+// Fork: "Add to folder…" (Granola's word, as on the note chip) from a note's right-click menu on Home and in the
 // sidebar opens this picker, as Granola rows offer Add to folder
 // (journey-after P2 "Add note to folder from Home"; granola-compare-oct3
 // "Home"; NN/g #7). The native menu can't hold React, so a store opens it.
@@ -170,7 +170,7 @@ export function MoveToFolderDialog() {
       {sessionId ? (
         <GlassDialogContent className="gap-3">
           <DialogTitle className="text-base leading-normal font-semibold">
-            {t`Move to folder`}
+            {t`Add to folder`}
           </DialogTitle>
           <div className="border-border overflow-hidden rounded-xl border">
             <FolderPickerContent sessionId={sessionId} onClose={close} />

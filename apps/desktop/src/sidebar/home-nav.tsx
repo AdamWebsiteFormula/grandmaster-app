@@ -4,19 +4,22 @@
 // day). Every note stays one step away: Home lists them all, Search opens the
 // ⌘K dialog, and each folder opens its notes.
 import { Trans, useLingui } from "@lingui/react/macro";
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { useState, type ButtonHTMLAttributes, type ReactNode } from "react";
 
 import {
   ChatCircle,
   FolderSimple,
   House,
   MagnifyingGlass,
+  Plus,
 } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
+import { FolderNameDialog } from "./folder-name-dialog";
 import { ShortcutTooltip } from "./shortcut-tooltip";
 
 import { useFolderSelection } from "~/folders/selection";
+import { createNamedFolder } from "~/session/folder-catalog";
 import { resolvedFolderIcon } from "~/session/folder-icon";
 import { useFolderIcons, useFolderPaths } from "~/session/queries";
 import { useOpenNoteDialog } from "~/shared/open-note-dialog";
@@ -40,6 +43,7 @@ export function SidebarHomeNav() {
   // Chat are (journey-after P2 "Folders"; design-system.md; NN/g #1).
   const activeFolder = useFolderSelection((state) => state.selectedPath);
   const onFolders = currentTab?.type === "folders";
+  const [creatingFolder, setCreatingFolder] = useState(false);
 
   const goHome = () => {
     const { tabs, select, openCurrent } = useTabs.getState();
@@ -69,70 +73,96 @@ export function SidebarHomeNav() {
   };
 
   return (
-    <nav
-      aria-label={t`Main`}
-      className="scrollbar-hide flex h-full min-h-0 flex-col gap-0.5 overflow-y-auto pt-2"
-    >
-      <NavItem
-        icon={<House size={16} />}
-        active={currentTab?.type === "empty"}
-        onClick={goHome}
+    <>
+      <nav
+        aria-label={t`Main`}
+        className="scrollbar-hide flex h-full min-h-0 flex-col gap-0.5 overflow-y-auto pt-2"
       >
-        <Trans>Home</Trans>
-      </NavItem>
-      {/* Fork: ⌘ K on a Mac, Ctrl+K elsewhere (Apple HIG, Keyboards;
-          Microsoft Writing Style Guide, Keys and keyboard shortcuts). */}
-      <ShortcutTooltip label={t`Search`} keys={kbdLabel(["mod", "K"])}>
         <NavItem
-          icon={<MagnifyingGlass size={16} />}
-          onClick={() => openNoteDialog.open()}
-          keyShortcuts={ariaKeyShortcut(["mod", "K"])}
+          icon={<House size={16} />}
+          active={currentTab?.type === "empty"}
+          onClick={goHome}
         >
-          <Trans>Search</Trans>
+          <Trans>Home</Trans>
         </NavItem>
-      </ShortcutTooltip>
-      <NavItem
-        icon={<ChatCircle size={16} />}
-        active={currentTab?.type === "chat"}
-        onClick={openChatPage}
-      >
-        <Trans>Chat</Trans>
-      </NavItem>
-      <NavItem
-        icon={<FolderSimple size={16} />}
-        active={onFolders && !activeFolder}
-        onClick={() => openFolder(null)}
-      >
-        <Trans>Folders</Trans>
-      </NavItem>
-      {folders.length > 0 ? (
-        <ul className="flex flex-col gap-0.5 pl-3">
-          {folders.map((folder) => (
-            <li key={folder}>
-              <NavItem
-                icon={
-                  <TemplateIconGlyph
-                    icon={resolvedFolderIcon(
-                      folder,
-                      persistedIcons,
-                      iconOverrides,
-                    )}
-                    className="size-4 text-sm"
-                  />
-                }
-                active={onFolders && activeFolder === folder}
-                onClick={() => openFolder(folder)}
-              >
-                {/* Fork: full name on hover (ux-audit-oct3 B, WCAG 1.3.1). */}
-                <span title={folder} className="min-w-0 truncate">
-                  {folder}
-                </span>
-              </NavItem>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </nav>
+        {/* Fork: ⌘ K on a Mac, Ctrl+K elsewhere (Apple HIG, Keyboards;
+          Microsoft Writing Style Guide, Keys and keyboard shortcuts). */}
+        <ShortcutTooltip label={t`Search`} keys={kbdLabel(["mod", "K"])}>
+          <NavItem
+            icon={<MagnifyingGlass size={16} />}
+            onClick={() => openNoteDialog.open()}
+            keyShortcuts={ariaKeyShortcut(["mod", "K"])}
+          >
+            <Trans>Search</Trans>
+          </NavItem>
+        </ShortcutTooltip>
+        <NavItem
+          icon={<ChatCircle size={16} />}
+          active={currentTab?.type === "chat"}
+          onClick={openChatPage}
+        >
+          <Trans>Chat</Trans>
+        </NavItem>
+        {/* Fork: a + beside Folders creates one, as Granola's + beside a space
+          in its sidebar does (Granola Help Center, "Spaces & Folders"). */}
+        <div className="relative">
+          <NavItem
+            icon={<FolderSimple size={16} />}
+            active={onFolders && !activeFolder}
+            onClick={() => openFolder(null)}
+          >
+            <Trans>Folders</Trans>
+          </NavItem>
+          <button
+            type="button"
+            aria-label={t`New folder`}
+            title={t`New folder`}
+            data-new-folder
+            onClick={() => setCreatingFolder(true)}
+            className="text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-ring absolute top-1/2 right-1.5 flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-hidden"
+          >
+            <Plus size={14} />
+          </button>
+        </div>
+        {folders.length > 0 ? (
+          <ul className="flex flex-col gap-0.5 pl-3">
+            {folders.map((folder) => (
+              <li key={folder}>
+                <NavItem
+                  icon={
+                    <TemplateIconGlyph
+                      icon={resolvedFolderIcon(
+                        folder,
+                        persistedIcons,
+                        iconOverrides,
+                      )}
+                      className="size-4 text-sm"
+                    />
+                  }
+                  active={onFolders && activeFolder === folder}
+                  onClick={() => openFolder(folder)}
+                >
+                  {/* Fork: full name on hover (ux-audit-oct3 B, WCAG 1.3.1). */}
+                  <span title={folder} className="min-w-0 truncate">
+                    {folder}
+                  </span>
+                </NavItem>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </nav>
+      <FolderNameDialog
+        open={creatingFolder}
+        title={t`New folder`}
+        confirmLabel={t`Create`}
+        onOpenChange={setCreatingFolder}
+        onSubmit={async (path) => {
+          const created = await createNamedFolder(path);
+          openFolder(created);
+        }}
+      />
+    </>
   );
 }
 

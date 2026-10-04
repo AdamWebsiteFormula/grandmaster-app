@@ -8,7 +8,6 @@ import { AutomationsNav } from "./automations";
 import { CalendarNav } from "./calendar";
 import { ContactsNav } from "./contacts";
 import { FolderMaterialsPanel } from "./folder-materials";
-import { FoldersNav } from "./folders";
 import { SidebarHomeNav } from "./home-nav";
 import type { SidebarNoteFilter } from "./note-filter";
 import { SettingsNav } from "./settings";
@@ -49,14 +48,15 @@ export function LeftSidebar({
   const isContactsMode = currentTab?.type === "contacts";
   const isTemplatesMode = currentTab?.type === "templates";
   const isAutomationsMode = currentTab?.type === "automations";
-  const isFoldersMode = currentTab?.type === "folders";
   const isSpecialMode =
     isSettingsMode ||
     isCalendarMode ||
     isContactsMode ||
     isTemplatesMode ||
-    isAutomationsMode ||
-    isFoldersMode;
+    // Fork: Folders keeps the main sidebar, with the open folder selected in
+    // its list, as Granola's one sidebar holds its folders (Granola Help
+    // Center, "Spaces & Folders"; owner test, Oct 4).
+    isAutomationsMode;
   const isTimelineSidebarLayout = !isSpecialMode;
   // Navs with their own CustomSidebarHeader fill the chrome row themselves; a
   // top padding here would push the header out of it (and overflow-hidden
@@ -84,8 +84,6 @@ export function LeftSidebar({
             <TemplatesNav />
           ) : isAutomationsMode ? (
             <AutomationsNav />
-          ) : isFoldersMode ? (
-            <FoldersNav />
           ) : !SHOW_SIDEBAR_TIMELINE ? (
             <SidebarHomeNav />
           ) : (

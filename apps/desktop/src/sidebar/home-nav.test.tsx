@@ -99,6 +99,18 @@ describe("SidebarHomeNav", () => {
     ).toBeNull();
   });
 
+  // Owner test, Oct 4: a + beside Folders creates one, as Granola's + beside
+  // a space in its sidebar does (Granola Help Center, "Spaces & Folders").
+  it("creates a folder from the + beside Folders", async () => {
+    render(<SidebarHomeNav />);
+
+    fireEvent.click(screen.getByRole("button", { name: "New folder" }));
+
+    expect(
+      await screen.findByRole("dialog", { name: "New folder" }),
+    ).toBeTruthy();
+  });
+
   it("marks Folders as current when no folder is picked", () => {
     mocks.currentTab = { type: "folders" };
     mocks.folders = ["Work"];

@@ -316,7 +316,7 @@ describe("TimelineItemComponent", () => {
     renderSession("session-move");
 
     const item = findMenuItem("move-to-folder");
-    expect(item?.text).toBe("Move to folder\u2026");
+    expect(item?.text).toBe("Add to folder\u2026");
     item?.action?.();
 
     expect(useMoveToFolderDialog.getState().sessionId).toBe("session-move");

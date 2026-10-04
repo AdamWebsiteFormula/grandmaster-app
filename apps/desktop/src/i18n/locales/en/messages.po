@@ -625,6 +625,10 @@ msgstr "Add the account in System Settings › Internet Accounts. Its calendars 
 msgid "Add to folder"
 msgstr "Add to folder"
 
+#: src/sidebar/timeline/item.tsx
+msgid "Add to folder…"
+msgstr "Add to folder…"
+
 #: src/settings/developers/webhooks.tsx
 msgid "Add webhook"
 msgstr "Add webhook"
@@ -2283,6 +2287,7 @@ msgstr "Couldn't update {title}. Try again."
 #: src/folders/index.tsx
 #: src/folders/sidebar.tsx
 #: src/settings/team/index.tsx
+#: src/sidebar/home-nav.tsx
 msgid "Create"
 msgstr "Create"
 
@@ -4413,14 +4418,6 @@ msgstr "Move down"
 msgid "Move meetings"
 msgstr "Move meetings"
 
-#: src/session/components/folder-picker.tsx
-msgid "Move to folder"
-msgstr "Move to folder"
-
-#: src/sidebar/timeline/item.tsx
-msgid "Move to folder…"
-msgstr "Move to folder…"
-
 #: src/templates/sections-editor.tsx
 msgid "Move up"
 msgstr "Move up"
@@ -4479,6 +4476,7 @@ msgstr "New chat"
 #: src/folders/index.tsx
 #: src/folders/new-folder-button.tsx
 #: src/folders/sidebar.tsx
+#: src/sidebar/home-nav.tsx
 msgid "New folder"
 msgstr "New folder"
 
@@ -4932,6 +4930,10 @@ msgstr "Oldest"
 msgid "On {date}"
 msgstr "On {date}"
 
+#: src/folders/folder-notes.tsx
+msgid "On Home, right-click a note and choose Add to folder. Or open a note and click Add to folder under its title."
+msgstr "On Home, right-click a note and choose Add to folder. Or open a note and click Add to folder under its title."
+
 #: src/settings/connectors/index.tsx
 msgid "On this computer"
 msgstr "On this computer"
@@ -4994,10 +4996,6 @@ msgstr "Open {noteTitle}"
 #: src/settings/general/storage/export-location.tsx
 msgid "Open {shownPath} in Finder"
 msgstr "Open {shownPath} in Finder"
-
-#: src/folders/folder-notes.tsx
-msgid "Open a note and choose Add to folder under its title."
-msgstr "Open a note and choose Add to folder under its title."
 
 #: src/settings/calendar/index.tsx
 #: src/sidebar/timeline/index.tsx

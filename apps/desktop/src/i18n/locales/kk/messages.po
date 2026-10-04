@@ -625,6 +625,10 @@ msgstr ""
 msgid "Add to folder"
 msgstr ""
 
+#: src/sidebar/timeline/item.tsx
+msgid "Add to folder…"
+msgstr ""
+
 #: src/settings/developers/webhooks.tsx
 msgid "Add webhook"
 msgstr ""
@@ -2283,6 +2287,7 @@ msgstr ""
 #: src/folders/index.tsx
 #: src/folders/sidebar.tsx
 #: src/settings/team/index.tsx
+#: src/sidebar/home-nav.tsx
 msgid "Create"
 msgstr ""
 
@@ -4413,14 +4418,6 @@ msgstr ""
 msgid "Move meetings"
 msgstr ""
 
-#: src/session/components/folder-picker.tsx
-msgid "Move to folder"
-msgstr ""
-
-#: src/sidebar/timeline/item.tsx
-msgid "Move to folder…"
-msgstr ""
-
 #: src/templates/sections-editor.tsx
 msgid "Move up"
 msgstr ""
@@ -4479,6 +4476,7 @@ msgstr ""
 #: src/folders/index.tsx
 #: src/folders/new-folder-button.tsx
 #: src/folders/sidebar.tsx
+#: src/sidebar/home-nav.tsx
 msgid "New folder"
 msgstr ""
 
@@ -4932,6 +4930,10 @@ msgstr ""
 msgid "On {date}"
 msgstr ""
 
+#: src/folders/folder-notes.tsx
+msgid "On Home, right-click a note and choose Add to folder. Or open a note and click Add to folder under its title."
+msgstr ""
+
 #: src/settings/connectors/index.tsx
 msgid "On this computer"
 msgstr ""
@@ -4993,10 +4995,6 @@ msgstr ""
 
 #: src/settings/general/storage/export-location.tsx
 msgid "Open {shownPath} in Finder"
-msgstr ""
-
-#: src/folders/folder-notes.tsx
-msgid "Open a note and choose Add to folder under its title."
 msgstr ""
 
 #: src/settings/calendar/index.tsx
