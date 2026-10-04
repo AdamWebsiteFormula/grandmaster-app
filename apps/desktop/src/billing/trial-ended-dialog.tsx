@@ -1,5 +1,4 @@
 import { t } from "@lingui/core/macro";
-import { arch, platform } from "@tauri-apps/plugin-os";
 import { useEffect } from "react";
 
 import { Button } from "@anlg/ui/components/ui/button";
@@ -18,7 +17,6 @@ import {
   GlassDialogCancelButton,
   GlassDialogContent,
 } from "~/shared/ui/glass-dialog";
-import { isDesktopLocalSttAvailable } from "~/stt/capabilities";
 
 interface TrialEndedDialogProps {
   open: boolean;
@@ -31,10 +29,6 @@ export function TrialEndedDialog({
   onOpenChange,
   onUpgrade,
 }: TrialEndedDialogProps) {
-  const supportsFreeLocalTranscription = isDesktopLocalSttAvailable(
-    platform(),
-    arch(),
-  );
   useEffect(() => {
     if (!open) return;
     trackAnalyticsEvent("paywall_viewed", {
@@ -52,9 +46,9 @@ export function TrialEndedDialog({
             {t`Your Pro trial has ended`}
           </DialogTitle>
           <DialogDescription className="text-foreground w-full text-center text-sm leading-[1.36]">
-            {supportsFreeLocalTranscription
-              ? t`Your notes and recordings are safe. Free local transcription still works. Upgrade anytime to keep Pro features.`
-              : t`Your notes and recordings are safe. Upgrade anytime to keep cloud transcription and Pro features, or configure your own transcription provider.`}
+            {/* Fork: Upshot transcription is free on every computer, so
+                the trial ending changes only the Pro features. */}
+            {t`Your notes and recordings are safe, and transcription keeps working. Upgrade anytime to keep Pro features.`}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="grid grid-cols-2 gap-2 sm:grid-cols-2 sm:justify-normal">
@@ -62,7 +56,7 @@ export function TrialEndedDialog({
             {t`Maybe later`}
           </GlassDialogCancelButton>
           <Button
-            className="bg-primary text-primary-foreground hover:brightness-90 h-8 rounded-full px-4 text-xs font-medium shadow-sm dark:bg-white dark:text-black dark:hover:bg-white/90"
+            className="bg-primary text-primary-foreground h-8 rounded-full px-4 text-xs font-medium shadow-sm hover:brightness-90 dark:bg-white dark:text-black dark:hover:bg-white/90"
             onClick={() => {
               onUpgrade();
               onOpenChange(false);

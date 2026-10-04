@@ -426,7 +426,11 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
         // bar shows them, so this item is Mac only (NN/g heuristic #5).
         #[cfg(target_os = "macos")]
         menu.append(&TrayShowEvents::build(app)?)?;
-        menu.append(&PredefinedMenuItem::separator(app)?)?;
+        // Fork: off a Mac there is no events item, so the line only follows
+        // agenda items and the menu never starts with a separator.
+        if cfg!(target_os = "macos") || !agenda.is_empty() {
+            menu.append(&PredefinedMenuItem::separator(app)?)?;
+        }
 
         menu.append(&TrayOpen::build(app)?)?;
         // Fork: Stop recording replaces the disabled New note while a

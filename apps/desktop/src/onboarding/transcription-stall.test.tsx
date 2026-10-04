@@ -31,11 +31,13 @@ vi.mock("@anlg/plugin-local-stt", () => ({
   },
   events: { downloadProgressPayload: { listen: mocks.listen } },
 }));
+// The step reads the saved engine from the database when it mounts.
 vi.mock("~/settings/queries", () => ({
   setSettingValues: mocks.setSettingValues,
-}));
-vi.mock("~/shared/config", () => ({
-  useConfigValue: (key: string) => mocks.config[key],
+  getStoredSettingValues: async () => ({
+    values: mocks.config,
+    hasValues: new Set(Object.keys(mocks.config)),
+  }),
 }));
 
 import {

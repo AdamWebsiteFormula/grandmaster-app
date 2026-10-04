@@ -10,8 +10,7 @@ import {
 
 import { OnboardingButton, StepRow } from "./shared";
 
-import { setSettingValues } from "~/settings/queries";
-import { useConfigValue } from "~/shared/config";
+import { getStoredSettingValues, setSettingValues } from "~/settings/queries";
 import {
   isOnDeviceSttModel,
   isUpshotCloudSttAvailable,
@@ -77,8 +76,6 @@ export function TranscriptionSetupSection({
   onContinue: (failed?: boolean, downloading?: boolean) => void;
 }) {
   const { t } = useLingui();
-  const currentProvider = useConfigValue("current_stt_provider");
-  const currentModel = useConfigValue("current_stt_model");
   const [choice, setChoice] = useState<Choice | null>(null);
   const [sizeLabel, setSizeLabel] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>({ kind: "checking" });
@@ -95,6 +92,17 @@ export function TranscriptionSetupSection({
     startedRef.current = true;
 
     void (async () => {
+      // Fork: read the saved engine from the database here; a hook value is
+      // still empty on a component's first render (useLiveQuery loads after
+      // it subscribes), so the mount effect would never see it.
+      const { values } = await getStoredSettingValues().catch(() => ({
+        values: {} as Awaited<
+          ReturnType<typeof getStoredSettingValues>
+        >["values"],
+      }));
+      const currentProvider = values.current_stt_provider;
+      const currentModel = values.current_stt_model;
+
       // Fork: Upshot transcription first on every computer (owner decision
       // Oct 3). An on-device engine picked before (re-onboarding) keeps its
       // download path below.

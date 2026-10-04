@@ -8622,12 +8622,8 @@ msgid "Your notes"
 msgstr "Your notes"
 
 #: src/billing/trial-ended-dialog.tsx
-msgid "Your notes and recordings are safe. Free local transcription still works. Upgrade anytime to keep Pro features."
-msgstr "Your notes and recordings are safe. Free local transcription still works. Upgrade anytime to keep Pro features."
-
-#: src/billing/trial-ended-dialog.tsx
-msgid "Your notes and recordings are safe. Upgrade anytime to keep cloud transcription and Pro features, or configure your own transcription provider."
-msgstr "Your notes and recordings are safe. Upgrade anytime to keep cloud transcription and Pro features, or configure your own transcription provider."
+msgid "Your notes and recordings are safe, and transcription keeps working. Upgrade anytime to keep Pro features."
+msgstr "Your notes and recordings are safe, and transcription keeps working. Upgrade anytime to keep Pro features."
 
 #: src/settings/sync/index.tsx
 msgid "Your notes remain available locally."
