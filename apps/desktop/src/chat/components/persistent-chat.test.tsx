@@ -10,6 +10,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   recording: { current: false },
+  openTab: { current: { type: "sessions", id: "session-1" } as unknown },
   chatMode: {
     current: "FloatingOpen" as
       | "FloatingClosed"
@@ -44,6 +45,11 @@ vi.mock("~/contexts/shell", () => ({
       sendEvent: mocks.sendEvent,
     },
   }),
+}));
+
+vi.mock("~/store/zustand/tabs", () => ({
+  useTabs: (selector: (state: { currentTab: unknown }) => unknown) =>
+    selector({ currentTab: mocks.openTab.current }),
 }));
 
 vi.mock("~/stt/contexts", () => ({
@@ -141,6 +147,23 @@ describe("PersistentChatPanel", () => {
     expect(floatingFrame!.className).toContain("pb-2");
     expect(floatingFrame!.className).not.toContain("pb-16");
     mocks.recording.current = false;
+  });
+
+  // Fork: Home has no recording bar, so the chat keeps its full
+  // click-to-close area there while another note records.
+  it("keeps the full frame on pages without the recording bar", async () => {
+    mocks.recording.current = true;
+    mocks.openTab.current = { type: "empty" };
+    render(<TestHost />);
+
+    await screen.findByTestId("chat-view");
+
+    const floatingFrame = document.querySelector<HTMLElement>(
+      "[data-chat-floating-frame]",
+    );
+    expect(floatingFrame!.className).toContain("pb-4");
+    mocks.recording.current = false;
+    mocks.openTab.current = { type: "sessions", id: "session-1" };
   });
 
   it("closes on backdrop click while the draft is empty", async () => {

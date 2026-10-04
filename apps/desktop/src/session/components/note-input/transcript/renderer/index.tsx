@@ -508,7 +508,10 @@ export function TranscriptViewer({
             "px-[max(0px,calc((100%_-_680px)/2))]",
             "scrollbar-hide",
             "scroll-pb-[calc(8rem+env(safe-area-inset-bottom))]",
-            "pb-[calc(4rem+env(safe-area-inset-bottom))]",
+            // Fork: the newest line rests above the floating bar and its fade
+            // (56 px + 24 px) with 16 px of air, so live text never looks
+            // washed out (Apple HIG, Scroll views: content insets).
+            "pb-[calc(6rem+env(safe-area-inset-bottom))]",
           ])}
         >
           {visibleTranscriptIds.map((transcriptId, index) => {

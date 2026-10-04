@@ -10,6 +10,7 @@ import { ChatPanelFrame } from "./chat-panel";
 import type { ChatSessionRenderProps } from "~/chat/components/session-provider";
 import { chatFloatingPanelShellClassNames } from "~/chat/surface";
 import { useShell } from "~/contexts/shell";
+import { useTabs } from "~/store/zustand/tabs";
 import { useListener } from "~/stt/contexts";
 
 const FLOATING_CHAT_INPUT_MAX_WIDTH = 640;
@@ -37,9 +38,14 @@ export function PersistentChatPanel({
   const { chat } = useShell();
   const isVisible = chat.mode === "FloatingOpen";
   // Fork: while recording, the floating chat sits above the recording bar so
-  // Stop stays visible (real-app test, Oct 3; NN/g #3 user control).
+  // Stop stays visible (real-app test, Oct 3; NN/g #3 user control). Only the
+  // recording note shows that bar, so on Home or another note the chat keeps
+  // its usual place and its full click-to-close area.
+  const openSessionId = useTabs((state) =>
+    state.currentTab?.type === "sessions" ? state.currentTab.id : null,
+  );
   const isRecording = useListener((state) =>
-    state.live.sessionId
+    state.live.sessionId && state.live.sessionId === openSessionId
       ? state.getSessionMode(state.live.sessionId) === "active"
       : false,
   );
