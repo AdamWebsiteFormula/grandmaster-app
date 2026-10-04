@@ -1,5 +1,8 @@
 #!/bin/bash
-# Gate release: aarch64, base tauri.conf.json, ad-hoc signed, DMG + SHA-256.
+# Gate release: base tauri.conf.json, ad-hoc signed, DMG + SHA-256.
+# Usage: release.sh [aarch64|x86_64]   (or ARCH=x86_64; default aarch64)
+# x86_64 cross-compiles for Intel Macs the way desktop_cd.yaml does: adds
+# tauri.conf.macos-intel.json (x86_64 cloudsync dylib, no MLX metallib).
 # Output: ~/grandmaster-release/
 set -euo pipefail
 # Swift shim first: Xcode 27 SwiftPM defaults to swiftbuild; swift-rs needs --build-system native.
@@ -18,7 +21,13 @@ export CMAKE_POLICY_VERSION_MINIMUM=3.5
 unset POSTHOG_API_KEY VITE_POSTHOG_API_KEY SENTRY_DSN VITE_SENTRY_DSN TAURI_SIGNING_PRIVATE_KEY
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-TRIPLE=aarch64-apple-darwin
+ARCH="${1:-${ARCH:-aarch64}}"
+case "$ARCH" in
+  aarch64) EXTRA_CONF=(); DMG_ARCH=aarch64 ;;
+  x86_64) EXTRA_CONF=(--config ./src-tauri/tauri.conf.macos-intel.json); DMG_ARCH=x64 ;;
+  *) echo "unsupported ARCH: $ARCH (use aarch64 or x86_64)" >&2; exit 1 ;;
+esac
+TRIPLE=$ARCH-apple-darwin
 ST="$ROOT/apps/desktop/src-tauri"
 OUT="$HOME/grandmaster-release"
 mkdir -p "$OUT"
@@ -42,7 +51,7 @@ echo "== 2 tauri build"
 # Remove old bundles first, so step 3 can never pick a stale .app (e.g. "Anarlog Dev.app").
 rm -rf "$CARGO_TARGET_DIR/$TRIPLE/release/bundle/macos"
 pnpm -F ui build
-pnpm -F desktop tauri build --target $TRIPLE --config "$CONF" --bundles app
+pnpm -F desktop tauri build --target $TRIPLE --config "$CONF" ${EXTRA_CONF[@]+"${EXTRA_CONF[@]}"} --bundles app
 
 APP=$(ls -d "$CARGO_TARGET_DIR/$TRIPLE/release/bundle/macos/"*.app | head -1)
 echo "APP=$APP"
@@ -63,7 +72,7 @@ STAGE="$OUT/dmg-stage"
 rm -rf "$STAGE" && mkdir -p "$STAGE"
 ditto "$APP" "$STAGE/$NAME.app"
 ln -s /Applications "$STAGE/Applications"
-DMG="$OUT/${NAME// /-}_${APP_VERSION}_aarch64.dmg"
+DMG="$OUT/${NAME// /-}_${APP_VERSION}_${DMG_ARCH}.dmg"
 rm -f "$DMG"
 hdiutil create -volname "$NAME" -srcfolder "$STAGE" -ov -format UDZO "$DMG"
 rm -rf "$STAGE"
