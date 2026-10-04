@@ -22,10 +22,11 @@ import { cn } from "@anlg/utils";
 import { FolderNameDialog } from "./folder-name-dialog";
 import { ShortcutTooltip } from "./shortcut-tooltip";
 
-import { useFolderSelection } from "~/folders/selection";
+import { type FolderAction, useFolderSelection } from "~/folders/selection";
 import { createNamedFolder } from "~/session/folder-catalog";
 import { resolvedFolderIcon } from "~/session/folder-icon";
 import { useFolderIcons, useFolderPaths } from "~/session/queries";
+import { useNativeContextMenu } from "~/shared/hooks/useNativeContextMenu";
 import { useOpenNoteDialog } from "~/shared/open-note-dialog";
 import { ariaKeyShortcut, kbdLabel } from "~/shared/shortcut-label";
 import { useTabs } from "~/store/zustand/tabs";
@@ -75,6 +76,14 @@ export function SidebarHomeNav() {
   const openFolder = (folder: string | null) => {
     if (folder) setSelectedPath(folder);
     openNew({ type: "folders" });
+  };
+
+  const requestFolderAction = useFolderSelection(
+    (state) => state.requestFolderAction,
+  );
+  const runFolderAction = (folder: string, action: FolderAction) => {
+    openFolder(folder);
+    requestFolderAction(folder, action);
   };
 
   return (
@@ -138,7 +147,9 @@ export function SidebarHomeNav() {
           >
             {folders.map((folder) => (
               <li key={folder}>
-                <NavItem
+                <FolderNavItem
+                  folder={folder}
+                  onAction={(action) => runFolderAction(folder, action)}
                   icon={
                     <TemplateIconGlyph
                       icon={resolvedFolderIcon(
@@ -156,7 +167,7 @@ export function SidebarHomeNav() {
                   <span title={folder} className="min-w-0 truncate">
                     {folder}
                   </span>
-                </NavItem>
+                </FolderNavItem>
               </li>
             ))}
           </ul>
@@ -174,6 +185,38 @@ export function SidebarHomeNav() {
       />
     </>
   );
+}
+
+// Fork: right-click a folder to rename or delete it, as a note row offers
+// Add to folder… (owner test, Oct 4: "How do I delete folders?"; Apple HIG,
+// Context menus: offer an item's common actions where the item is; NN/g #4).
+function FolderNavItem({
+  folder,
+  onAction,
+  ...props
+}: {
+  folder: string;
+  onAction: (action: FolderAction) => void;
+  icon: ReactNode;
+  active: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  const { t } = useLingui();
+  const showMenu = useNativeContextMenu([
+    {
+      id: `folder-rename-${folder}`,
+      text: t`Rename…`,
+      action: () => onAction("rename"),
+    },
+    {
+      id: `folder-delete-${folder}`,
+      text: t`Delete…`,
+      action: () => onAction("delete"),
+    },
+  ]);
+
+  return <NavItem {...props} onContextMenu={(event) => void showMenu(event)} />;
 }
 
 function NavItem({

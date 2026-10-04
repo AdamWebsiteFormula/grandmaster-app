@@ -2575,6 +2575,10 @@ msgstr ""
 msgid "Delete your Upshot account?"
 msgstr ""
 
+#: src/sidebar/home-nav.tsx
+msgid "Delete…"
+msgstr ""
+
 #: src/settings/team/index.tsx
 msgid "Deleting removes the workspace for everyone. Transfer ownership first if you only want to leave."
 msgstr ""
@@ -5866,6 +5870,10 @@ msgstr ""
 
 #: src/settings/sync/index.tsx
 msgid "Rename this device"
+msgstr ""
+
+#: src/sidebar/home-nav.tsx
+msgid "Rename…"
 msgstr ""
 
 #: src/automations/starters.tsx

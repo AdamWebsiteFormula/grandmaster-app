@@ -10,8 +10,17 @@ const mocks = vi.hoisted(() => ({
   select: vi.fn(),
   openDialog: vi.fn(),
   setSelectedPath: vi.fn(),
+  requestFolderAction: vi.fn(),
+  menuItems: [] as { text?: string; action?: () => void }[],
   selectedPath: null as string | null,
   platform: "macos",
+}));
+
+vi.mock("~/shared/hooks/useNativeContextMenu", () => ({
+  useNativeContextMenu:
+    (items: { text?: string; action?: () => void }[]) => () => {
+      mocks.menuItems = items;
+    },
 }));
 
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
@@ -53,12 +62,14 @@ vi.mock("~/folders/selection", () => ({
       iconOverrides: Record<string, unknown>;
       selectedPath: string | null;
       setSelectedPath: (path: string | null) => void;
+      requestFolderAction: (path: string, action: string) => void;
     }) => unknown,
   ) =>
     selector({
       iconOverrides: {},
       selectedPath: mocks.selectedPath,
       setSelectedPath: mocks.setSelectedPath,
+      requestFolderAction: mocks.requestFolderAction,
     }),
 }));
 
@@ -200,6 +211,23 @@ describe("SidebarHomeNav", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Search/ }));
     expect(mocks.openDialog).toHaveBeenCalled();
+  });
+
+  // Owner test, Oct 4: "How do I delete folders?"
+  it("renames or deletes a folder from its right-click menu", () => {
+    mocks.folders = ["Clients"];
+    render(<SidebarHomeNav />);
+
+    fireEvent.contextMenu(screen.getByRole("button", { name: /Clients/ }));
+    expect(mocks.menuItems.map((item) => item.text)).toEqual([
+      "Rename…",
+      "Delete…",
+    ]);
+
+    mocks.menuItems[1]!.action!();
+    expect(mocks.setSelectedPath).toHaveBeenCalledWith("Clients");
+    expect(mocks.openNew).toHaveBeenCalledWith({ type: "folders" });
+    expect(mocks.requestFolderAction).toHaveBeenCalledWith("Clients", "delete");
   });
 
   it("opens a folder's notes", () => {

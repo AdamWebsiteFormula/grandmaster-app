@@ -1,6 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { DotsThree, File, Plus, X } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
@@ -112,6 +112,18 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
   const [actionsOpen, setActionsOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [renaming, setRenaming] = useState(false);
+  // Fork: Rename… or Delete… from the folder's right-click menu in the
+  // sidebar opens the same dialog as Folder actions here.
+  const pendingAction = useFolderSelection((state) => state.pendingAction);
+  const clearFolderAction = useFolderSelection(
+    (state) => state.clearFolderAction,
+  );
+  useEffect(() => {
+    if (!pendingAction || pendingAction.path !== folderPath) return;
+    if (pendingAction.action === "rename") setRenaming(true);
+    else setDeleting(true);
+    clearFolderAction();
+  }, [pendingAction, folderPath, clearFolderAction]);
   const [removingMaterial, setRemovingMaterial] = useState<{
     filename: string;
     relativePath: string;

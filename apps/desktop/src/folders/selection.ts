@@ -2,10 +2,18 @@ import { create } from "zustand";
 
 import { type TemplateIcon } from "~/templates/template-icon";
 
+// Fork: Rename or Delete picked from a folder's right-click menu in the
+// sidebar. The folder page opens its own dialog for it, so both places share
+// one rename and one delete (owner test, Oct 4).
+export type FolderAction = "rename" | "delete";
+
 export const useFolderSelection = create<{
   selectedPath: string | null;
   deletedPrefixes: string[];
   iconOverrides: Record<string, TemplateIcon>;
+  pendingAction: { path: string; action: FolderAction } | null;
+  requestFolderAction: (path: string, action: FolderAction) => void;
+  clearFolderAction: () => void;
   setSelectedPath: (path: string | null) => void;
   markFolderDeleted: (path: string) => void;
   setIconOverride: (path: string, icon: TemplateIcon) => void;
@@ -15,6 +23,10 @@ export const useFolderSelection = create<{
   selectedPath: null,
   deletedPrefixes: [],
   iconOverrides: {},
+  pendingAction: null,
+  requestFolderAction: (path, action) =>
+    set({ pendingAction: { path, action } }),
+  clearFolderAction: () => set({ pendingAction: null }),
   setSelectedPath: (selectedPath) =>
     set((state) => ({
       selectedPath,
