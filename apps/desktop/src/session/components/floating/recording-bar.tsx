@@ -32,10 +32,10 @@ const pillSurfaceClassName =
 
 export function RecordingBar({
   sessionId,
-  hideNotices = false,
+  holdQuietHint = false,
 }: {
   sessionId: string;
-  hideNotices?: boolean;
+  holdQuietHint?: boolean;
 }) {
   const { t } = useLingui();
   const { mode, amplitude, mic, speaker, muted, seconds } = useListener(
@@ -87,12 +87,7 @@ export function RecordingBar({
 
   return (
     <>
-      {/* Fork: the open chat covers the space above the bar, so the notice
-          waits under it and shows again when the chat closes; it stays
-          mounted to keep its silence clock (NN/g #1, #8). */}
-      <div hidden={hideNotices} className="contents">
-        <CaptureHealth speaker={speaker} />
-      </div>
+      <CaptureHealth speaker={speaker} holdQuietHint={holdQuietHint} />
       {/* Fork: no live region on the whole bar, whose timer and meters
           change ten times a second; only the label below is announced
           (journey-meeting P2; WCAG 2.2 SC 4.1.3, SC 2.2.2). */}
@@ -186,12 +181,24 @@ function LevelMeter({
 
 // Fork (F2): mounted only while recording, so the 10 s silence clock starts
 // with the recording and the permission poll stops with it.
-function CaptureHealth({ speaker }: { speaker: number }) {
+function CaptureHealth({
+  speaker,
+  holdQuietHint,
+}: {
+  speaker: number;
+  holdQuietHint: boolean;
+}) {
   const systemAudio = usePermission("systemAudio");
   const notice = useCaptureHealthNotice(speaker, systemAudio.confirmedStatus);
 
+  // Fork: the open chat covers the space above the bar, so the soft "no
+  // sound yet" hint waits under it, still mounted to keep its timer, and
+  // shows again when the chat closes (NN/g #8). The red alert always
+  // renders, so it is still announced (NN/g #1; WCAG 2.2 SC 4.1.3).
   return (
-    <CaptureHealthBanner notice={notice} onOpenSettings={systemAudio.open} />
+    <div hidden={holdQuietHint && notice === "quiet"} className="contents">
+      <CaptureHealthBanner notice={notice} onOpenSettings={systemAudio.open} />
+    </div>
   );
 }
 

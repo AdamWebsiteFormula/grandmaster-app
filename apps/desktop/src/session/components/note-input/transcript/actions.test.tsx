@@ -71,7 +71,7 @@ describe("useRegenerateTranscript", () => {
       {
         id: "transcript-regenerate-failed-session-1",
         description:
-          "Try again, or pick another engine in Settings › Transcription.",
+          "Try again, or pick another model in Settings › Transcription.",
       },
     );
     expect(consoleError).toHaveBeenCalledWith(

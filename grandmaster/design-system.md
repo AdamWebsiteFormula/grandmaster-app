@@ -41,7 +41,7 @@ Bare HSL triples in `packages/design-system/src/tokens.css`, read as `hsl(var(--
 | `--sidebar-accent` | `0 0% 19%` | `60 5% 90%` | Active sidebar row (Home nav and Settings nav), above the 13% hover |
 | `--border` | `0 0% 24%` | `24 6% 90%` | Hairlines |
 | `--input` | `0 0% 42%` | `24 5% 54%` | Field borders (3:1 or more on every surface a field sits on, both themes: light 3.05 on accent to 3.46 on white; 58% would be 2.79 on the canvas) |
-| `--primary` | `20 100% 56%` | `20 100% 39%` | Accent fill (primary buttons, checks, gauges). Dark: the logo orange #FF6A1F with black text (WCAG 2.2 7.3:1; Apple HIG: accents get brighter in dark mode). Light: #C74200 with white text. WCAG 2.2 4.99:1 and APCA Lc 79, which black-on-orange can't reach (Oct 3 button research; Radix orange step 9 also takes white text). The logo and icon stay #FF6A1F. Hover is `hover:brightness-90` |
+| `--primary` | `20 100% 56%` | `20 100% 39%` | Accent fill (primary buttons, gauges). Dark: the logo orange #FF6A1F with black text (WCAG 2.2 7.3:1; Apple HIG: accents get brighter in dark mode). Light: #C74200 with white text. WCAG 2.2 4.99:1 and APCA Lc 79, which black-on-orange can't reach (Oct 3 button research; Radix orange step 9 also takes white text). The logo and icon stay #FF6A1F. Hover is `hover:brightness-90` |
 | `--primary-text` | `20 100% 56%` | `20 100% 35%` | Orange text: `text-primary`, note links, hashtags (4.5:1 or more). Read through `--text-color-primary` |
 | `--primary-foreground` | `0 0% 0%` | `0 0% 100%` | Text on the accent: black in dark mode, white in light |
 | `--ring` | `20 100% 56%` | `20 100% 46%` | Focus ring (3:1 or more, both themes) |

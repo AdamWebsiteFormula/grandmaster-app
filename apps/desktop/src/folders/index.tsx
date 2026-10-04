@@ -41,8 +41,8 @@ function NoFolders() {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 px-6">
       {/* Fork: the page says where you are, as the Chat page does (NN/g,
-          "Navigation: You Are Here"); the sidebar shows only the folder list
-          here. */}
+          "Navigation: You Are Here"); the sidebar only says where folders
+          will show up. */}
       <h1 className="text-foreground font-display text-2xl font-semibold tracking-[-0.01em]">
         <Trans>Folders</Trans>
       </h1>

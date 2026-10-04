@@ -7,6 +7,7 @@ import {
   getProviderProfileImageUrl,
 } from "@anlg/supabase/profile";
 import { saveProfileAvatar } from "@anlg/supabase/profile-avatar";
+import { User } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 
 import { AvatarUploadButton, ContactImage } from "./contact-avatar";
@@ -137,10 +138,10 @@ export function ProfilePhoto({
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-4">
         {/* Fork: one avatar for one person: the photo or a gray circle with
-            the initial, as the Settings sidebar header, not a gradient
-            squircle (NN/g #4; design-system "The one accent"). The button
-            clips its hover overlay to the same circle; `!` because
-            .rounded-full is unlayered in globals.css. */}
+            the initial (a person icon with no name), as the Settings sidebar
+            header, not a gradient squircle (NN/g #4; design-system "The one
+            accent"). The button clips its hover overlay to the same circle;
+            `!` because .rounded-full is unlayered in globals.css. */}
         <div className="[&>button]:rounded-pill! flex shrink-0 [&>button]:overflow-hidden [&>button]:[corner-shape:round]">
           <AvatarUploadButton
             label={t`Change photo`}
@@ -156,7 +157,11 @@ export function ProfilePhoto({
                 aria-hidden
                 className="bg-sidebar-accent text-foreground rounded-pill flex size-16 items-center justify-center text-xl font-medium"
               >
-                {initial}
+                {name.trim() ? (
+                  initial
+                ) : (
+                  <User aria-hidden className="size-7" />
+                )}
               </span>
             )}
           </AvatarUploadButton>

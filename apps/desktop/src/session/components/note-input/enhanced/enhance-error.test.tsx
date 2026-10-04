@@ -91,18 +91,20 @@ describe("EnhanceError", () => {
     expect(mocks.generate).not.toHaveBeenCalled();
   });
 
-  it("keeps the retry action for other generation failures", () => {
+  // Fork: the button says "Try again", as the not-ready state does
+  // (NN/g #4; Apple HIG, Alerts).
+  it("keeps the Try again action for other generation failures", () => {
     renderError(false);
 
     expect(screen.getByText("Summary generation failed")).toBeTruthy();
     expect(
-      screen.getByText("Upshot couldn't write this summary. Click Retry."),
+      screen.getByText("Upshot couldn't write this summary. Try again."),
     ).toBeTruthy();
     expect(
       screen.getByText("AI generation did not return any text."),
     ).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
 
     expect(mocks.generate).toHaveBeenCalledWith("enhance-task", {
       model: mocks.model,
@@ -117,7 +119,7 @@ describe("EnhanceError", () => {
   });
 
   // Fork tests: journey-meeting P3 (413, 402, model briefly missing).
-  it("says what to do when the meeting is too long, without a Retry that can't help", () => {
+  it("says what to do when the meeting is too long, without a Try again that can't help", () => {
     renderError(false, new Error("This meeting is too long for Upshot AI."));
 
     expect(
@@ -125,13 +127,13 @@ describe("EnhanceError", () => {
         "This meeting is too long for one summary. Try a shorter template, or ask in chat.",
       ),
     ).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Try again" })).toBeNull();
     expect(
       screen.queryByText("This meeting is too long for Upshot AI."),
     ).toBeNull();
   });
 
-  it("says Upshot AI is paused when out of credit and keeps Retry", () => {
+  it("says Upshot AI is paused when out of credit and keeps Try again", () => {
     renderError(
       false,
       new Error("Upshot AI is out of credit for now. Try again later."),
@@ -140,14 +142,14 @@ describe("EnhanceError", () => {
     expect(
       screen.getByText("Upshot AI is paused for now. Try again later."),
     ).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Try again" })).toBeTruthy();
   });
 
-  it("keeps Retry enabled with no model and says why nothing ran", () => {
+  it("keeps Try again enabled with no model and says why nothing ran", () => {
     mocks.model = null;
     renderError(false);
 
-    const retry = screen.getByRole("button", { name: "Retry" });
+    const retry = screen.getByRole("button", { name: "Try again" });
     expect(retry.hasAttribute("disabled")).toBe(false);
     fireEvent.click(retry);
 
@@ -163,7 +165,7 @@ describe("EnhanceError", () => {
 
     expect(
       screen.getByText(
-        "Upshot can't reach the internet. Check your connection, then click Retry.",
+        "Upshot can't reach the internet. Check your connection, then try again.",
       ),
     ).toBeTruthy();
     expect(screen.getByText("Failed to fetch")).toBeTruthy();

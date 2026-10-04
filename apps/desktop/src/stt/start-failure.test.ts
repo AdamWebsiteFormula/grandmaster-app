@@ -86,3 +86,39 @@ describe("classifyStartFailure", () => {
     );
   });
 });
+
+describe("describeStartFailure for a recorder failure", () => {
+  const selectionHint =
+    "Upshot couldn't open your audio input. Check your microphone selection, then try again.";
+
+  beforeEach(() => {
+    mocks.platform.mockReset();
+    mocks.platform.mockReturnValue("macos");
+  });
+
+  // Fork: Windows can't tell Upshot that a microphone is blocked, so the
+  // hint names the page that blocks it (Microsoft Support, "Turn on app
+  // permissions for your microphone in Windows"; NN/g #9).
+  test("points to the Microphone privacy page on Windows", () => {
+    mocks.platform.mockReturnValue("windows");
+    expect(describeStartFailure("recorder").description).toBe(
+      "Upshot couldn't open your audio input. Check Windows Settings › Privacy & security › Microphone, then try again.",
+    );
+    expect(describeStartFailure("recorder").action?.tab).toBe("meetings");
+  });
+
+  test.each(["macos", "linux"])(
+    "keeps the microphone selection hint on %s",
+    (os) => {
+      mocks.platform.mockReturnValue(os);
+      expect(describeStartFailure("recorder").description).toBe(selectionHint);
+    },
+  );
+
+  test("keeps the microphone selection hint outside the Tauri runtime", () => {
+    mocks.platform.mockImplementationOnce(() => {
+      throw new Error("no runtime");
+    });
+    expect(describeStartFailure("recorder").description).toBe(selectionHint);
+  });
+});

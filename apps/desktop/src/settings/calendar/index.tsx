@@ -164,8 +164,14 @@ function SettingsCalendarContent() {
             </Button>
           )}
         </SettingRow>
-        {/* Fork: a calendar glyph for the month view, not Kanban
-            (journey-account-settings P3; Granola screen 16). */}
+      </SettingsGroup>
+
+      <SettingsGroup title={<Trans>Display</Trans>}>
+        <WeekStartSelector />
+        {/* Fork: the month view is a way to see the calendar, not an account,
+            so it sits with Display (NN/g, Gestalt proximity: related items
+            are grouped). A calendar glyph, not Kanban (journey-account-settings
+            P3; Granola screen 16). */}
         <SettingRow
           icon={CalendarDots}
           title={<Trans>Month view</Trans>}
@@ -185,10 +191,6 @@ function SettingsCalendarContent() {
             </Button>
           )}
         </SettingRow>
-      </SettingsGroup>
-
-      <SettingsGroup title={<Trans>Display</Trans>}>
-        <WeekStartSelector />
       </SettingsGroup>
 
       {/* Fork: the list waits for access; the Allow access row above already

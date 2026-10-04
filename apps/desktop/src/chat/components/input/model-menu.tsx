@@ -1,7 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useMemo } from "react";
 
-import { CaretDown, Check } from "@anlg/ui/components/icons";
+import { CaretDown, Check, Lock } from "@anlg/ui/components/icons";
 import {
   AppFloatingPanel,
   appFloatingMenuPanelClassName,
@@ -79,6 +79,10 @@ export function ChatModelMenu({
           <DropdownMenuItem
             onSelect={() => setModel(UPSHOT_AUTO_MODEL)}
             className="cursor-pointer"
+            // Fork: the pick is announced as a checked radio item (WAI-ARIA
+            // APG menu pattern; WCAG 2.2 SC 4.1.2).
+            role="menuitemradio"
+            aria-checked={selected === UPSHOT_AUTO_MODEL}
           >
             <span className="flex-1">
               <Trans>Auto</Trans>
@@ -96,12 +100,26 @@ export function ChatModelMenu({
                 "cursor-pointer",
                 !isPro && "text-muted-foreground",
               ])}
+              // Fork: Pro users pick a model, so the item is a radio; free
+              // users go to Plan, so it stays a plain item. A spread, not
+              // role={undefined}: Radix puts item props after its own role
+              // (WAI-ARIA APG menu pattern; WCAG 2.2 SC 4.1.2).
+              {...(isPro
+                ? {
+                    role: "menuitemradio",
+                    "aria-checked": selected === model.id,
+                  }
+                : {})}
             >
               <span className="flex-1 truncate">{model.name}</span>
               {!isPro ? (
-                <span className="text-muted-foreground border-border rounded-full border px-1.5 text-xs leading-4">
-                  <Trans>Pro</Trans>
-                </span>
+                // Fork: a lock marks Pro-only items, as in Settings and ⌘K
+                // (NN/g #4 consistency); a "Pro" tag after "Gemini 2.5 Pro"
+                // read as a repeat.
+                <Lock
+                  aria-label={t`Requires Upshot Pro`}
+                  className="size-3.5 shrink-0"
+                />
               ) : selected === model.id ? (
                 <Check className="size-4" aria-hidden="true" />
               ) : null}

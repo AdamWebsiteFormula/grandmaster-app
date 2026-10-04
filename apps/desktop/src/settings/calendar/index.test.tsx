@@ -117,7 +117,8 @@ describe("Settings › Calendar", () => {
     expect(mocks.openNew).toHaveBeenCalledWith({ type: "calendar" });
   });
 
-  // Fork: one button size in the Calendar accounts card (NN/g #4).
+  // Fork: one button size on the Calendar page: Allow access and Add account in
+  // the Calendar accounts card, Open calendar in Display (NN/g #4).
   it("sizes Add account and Open calendar like Allow access", () => {
     mocks.status = "notDetermined";
     render(<SettingsCalendar />);

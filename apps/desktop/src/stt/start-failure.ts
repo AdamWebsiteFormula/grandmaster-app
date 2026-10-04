@@ -6,6 +6,7 @@ import {
 } from "@anlg/plugin-permissions";
 import { toast } from "@anlg/ui/components/ui/toast";
 
+import { runtimePlatform } from "~/shared/shortcut-label";
 import type { SettingsTab } from "~/store/zustand/tabs/schema";
 
 export type StartFailureStage =
@@ -74,7 +75,13 @@ export function describeStartFailure(kind: StartFailureKind): {
       return {
         title: "Recording couldn't start",
         description:
-          "Upshot couldn't open your audio input. Check your microphone selection, then try again.",
+          // Fork: Windows can't tell Upshot that a microphone is blocked
+          // (getMicrophonePermission), so the hint names the page that blocks
+          // it (Microsoft Support, "Turn on app permissions for your
+          // microphone in Windows"; NN/g #9).
+          runtimePlatform() === "windows"
+            ? "Upshot couldn't open your audio input. Check Windows Settings › Privacy & security › Microphone, then try again."
+            : "Upshot couldn't open your audio input. Check your microphone selection, then try again.",
         action: { label: "Audio settings", tab: "meetings" },
       };
   }

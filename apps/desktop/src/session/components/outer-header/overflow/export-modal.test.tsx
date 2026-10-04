@@ -152,6 +152,21 @@ describe("ExportModal destination", () => {
     expect(screen.queryByRole("radio", { name: "Org" })).toBeNull();
   });
 
+  // Fork: radios and checkboxes stay neutral, never the accent
+  // (design-system "The one accent"; NN/g #4).
+  it("keeps the radios and checkboxes neutral", () => {
+    renderModal();
+    const inputs = [
+      ...screen.getAllByRole("radio"),
+      ...screen.getAllByRole("checkbox"),
+    ];
+    expect(inputs).toHaveLength(6);
+    for (const input of inputs) {
+      expect(input.className).toContain("accent-foreground");
+      expect(input.className).not.toContain("accent-primary");
+    }
+  });
+
   // Fork: journey-after P2 "Export, no summary".
   it("defaults to My notes and disables Summary when there is no summary", async () => {
     mocks.enhancedNotes = [];

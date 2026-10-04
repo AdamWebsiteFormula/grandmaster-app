@@ -51,6 +51,7 @@ import { ProfilePhoto } from "./profile-photo";
 function view(
   localPhoto: string | null = "data:image/jpeg;base64,bGVnYWN5",
   cachedPhoto?: string,
+  name = "Ada",
 ) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
@@ -67,7 +68,7 @@ function view(
     <QueryClientProvider client={queryClient}>
       <ProfilePhoto
         userId="account-1"
-        name="Ada"
+        name={name}
         localPhoto={localPhoto}
         onSave={onSave}
       />
@@ -157,6 +158,20 @@ it("shows the initial in a gray circle when there is no photo", () => {
   expect(initial.getAttribute("aria-hidden")).toBe("true");
   expect(initial.className).toContain("bg-sidebar-accent");
   expect(initial.className).toContain("rounded-pill");
+  expect(screen.getByRole("button", { name: "Change photo" })).toBeTruthy();
+});
+
+// Fork: with no name, the same gray circle holds a person icon, never "U"
+// (NN/g #4; the Settings sidebar header does the same).
+it("shows a person icon in the gray circle when there is no name", () => {
+  mocks.signedIn = false;
+  const { container } = view(null, undefined, "  ");
+  expect(screen.queryByText("U")).toBeNull();
+  const circle = container.querySelector("span[aria-hidden]");
+  expect(circle?.textContent).toBe("");
+  expect(circle?.querySelector("svg")).not.toBeNull();
+  expect(circle?.className).toContain("bg-sidebar-accent");
+  expect(circle?.className).toContain("rounded-pill");
   expect(screen.getByRole("button", { name: "Change photo" })).toBeTruthy();
 });
 

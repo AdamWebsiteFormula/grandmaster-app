@@ -3,6 +3,8 @@ import { useCallback } from "react";
 import { commands as analyticsCommands } from "@anlg/plugin-analytics";
 import { toast } from "@anlg/ui/components/ui/toast";
 
+import { showModelNotReadyToast } from "./enhanced/model-not-ready";
+
 import { useAITaskTask } from "~/ai/hooks";
 import { useLanguageModel } from "~/ai/hooks";
 import {
@@ -39,7 +41,10 @@ export function useEnhancedNoteActions({
       }
 
       if (!model) {
-        toast.error("Upshot AI is busy. Try again in a minute.");
+        // Fork: the same toast as Generate summary, Retry and Try again for
+        // the same state (no model yet); "busy" was another word for it
+        // (NN/g heuristic #4, consistency and standards).
+        showModelNotReadyToast();
         return;
       }
 

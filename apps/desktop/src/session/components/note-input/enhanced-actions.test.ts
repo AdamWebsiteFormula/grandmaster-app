@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   model: null as unknown,
   start: vi.fn(),
+  toast: vi.fn(),
   toastError: vi.fn(),
   toastWarning: vi.fn(),
   isMainWindow: true,
@@ -16,7 +17,10 @@ vi.mock("@anlg/plugin-analytics", () => ({
 }));
 
 vi.mock("@anlg/ui/components/ui/toast", () => ({
-  toast: { error: mocks.toastError, warning: mocks.toastWarning },
+  toast: Object.assign(mocks.toast, {
+    error: mocks.toastError,
+    warning: mocks.toastWarning,
+  }),
 }));
 
 vi.mock("~/ai/hooks", () => ({
@@ -61,19 +65,24 @@ describe("useEnhancedNoteActions", () => {
     mocks.isMainWindow = true;
     mocks.snapshot = null;
     mocks.start.mockReset();
+    mocks.toast.mockReset();
     mocks.toastError.mockReset();
     mocks.toastWarning.mockReset();
     mocks.requestMainEnhance.mockReset();
   });
 
+  // Fork: the same toast as Generate summary, Retry and Try again for the
+  // same state, not a one-off "busy" error (NN/g #4).
   it("shows a toast without entering an error state when Upshot AI is not ready", async () => {
     const { result } = renderActions();
 
     await act(() => result.current.onRegenerate(null));
 
-    expect(mocks.toastError).toHaveBeenCalledWith(
-      "Upshot AI is busy. Try again in a minute.",
+    expect(mocks.toast).toHaveBeenCalledWith(
+      "Upshot AI is getting ready. Try again in a minute.",
+      { id: "summary-model-not-ready" },
     );
+    expect(mocks.toastError).not.toHaveBeenCalled();
     expect(mocks.start).not.toHaveBeenCalled();
     expect(result.current.isError).toBe(false);
     expect(result.current.error).toBeNull();

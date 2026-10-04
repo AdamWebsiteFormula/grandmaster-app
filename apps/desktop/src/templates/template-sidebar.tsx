@@ -476,7 +476,10 @@ export function TemplatesSidebarContent({
                       ])}
                     >
                       <div className="flex items-center gap-2">
-                        <Sparkle className="text-primary size-4" />
+                        {/* Fork: neutral, as the note picker shows Auto; orange
+                            marks only the main action (design-system.md The one
+                            accent; Apple HIG Color). */}
+                        <Sparkle className="text-muted-foreground size-4" />
                         <div className="min-w-0 flex-1">
                           <div className="truncate font-medium">
                             {item.title}
@@ -595,6 +598,9 @@ function TemplateListItem({
         text: t`Duplicate`,
         action: () => onDuplicate(template),
       },
+      // Fork: Delete sits in its own group, as in the note menu (Apple HIG
+      // Menus: separate groups of items with a separator).
+      { separator: true as const },
       {
         id: `delete-template-${template.id}`,
         text: t`Delete`,

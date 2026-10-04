@@ -147,7 +147,10 @@ export function AutoFormatForm({
     >
       <div className="flex h-12 shrink-0 items-center justify-between gap-3 pr-1 pl-3">
         <div className="flex min-w-0 items-center gap-2">
-          <Sparkle className="text-primary size-4 shrink-0" />
+          {/* Fork: neutral, as the note picker shows Auto; orange marks only
+              the main action (design-system.md The one accent; Apple HIG
+              Color). */}
+          <Sparkle className="text-muted-foreground size-4 shrink-0" />
           <span className="truncate text-sm font-semibold">Auto</span>
         </div>
         <div className="flex shrink-0 items-center gap-1">
@@ -157,8 +160,10 @@ export function AutoFormatForm({
             variant="ghost"
             className={cn([
               "text-muted-foreground hover:text-foreground shrink-0",
+              // Fork: neutral, orange marks only the main action (design-system.md
+              // The one accent; Apple HIG Color).
               isDefault
-                ? "text-primary hover:text-primary hover:bg-transparent disabled:opacity-100"
+                ? "text-foreground hover:text-foreground hover:bg-transparent disabled:opacity-100"
                 : null,
             ])}
             onClick={() => {

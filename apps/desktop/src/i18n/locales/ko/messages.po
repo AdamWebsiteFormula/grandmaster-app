@@ -1415,10 +1415,6 @@ msgstr "내보낼 섹션을 하나 이상 선택하세요."
 msgid "Choose custom color"
 msgstr ""
 
-#: src/sidebar/toast/registry.tsx
-msgid "Choose engine"
-msgstr ""
-
 #: src/settings/automations/starter-config.tsx
 #: src/settings/general/storage/export-location.tsx
 msgid "Choose export folder"
@@ -1459,6 +1455,10 @@ msgstr ""
 
 #: src/sidebar/toast/registry.tsx
 msgid "Choose how Upshot transcribes"
+msgstr ""
+
+#: src/sidebar/toast/registry.tsx
+msgid "Choose model"
 msgstr ""
 
 #: src/templates/template-icon-picker.tsx
@@ -4624,10 +4624,6 @@ msgstr ""
 msgid "No folders found."
 msgstr ""
 
-#: src/folders/sidebar.tsx
-msgid "No folders yet"
-msgstr ""
-
 #: src/session/components/folder-picker.tsx
 msgid "No folders yet."
 msgstr ""
@@ -5437,7 +5433,6 @@ msgstr ""
 msgid "Privacy policy"
 msgstr ""
 
-#: src/chat/components/input/model-menu.tsx
 #: src/settings/ai/stt/select.tsx
 #: src/settings/plan.tsx
 #: src/sidebar/settings.tsx
@@ -5944,6 +5939,7 @@ msgstr ""
 msgid "Require Windows Hello face, PIN, or password when opening Upshot."
 msgstr ""
 
+#: src/chat/components/input/model-menu.tsx
 #: src/shared/open-note-dialog.tsx
 #: src/sidebar/settings.tsx
 msgid "Requires Upshot Pro"
@@ -6029,7 +6025,6 @@ msgstr ""
 
 #: src/chat/components/message/error.tsx
 #: src/contacts/profile-photo.tsx
-#: src/session/components/note-input/enhanced/enhance-error.tsx
 #: src/settings/general/account-profile.tsx
 #: src/settings/general/storage/legacy-cleanup.tsx
 #: src/settings/sync/index.tsx
@@ -7658,7 +7653,7 @@ msgid "Transcription skipped"
 msgstr ""
 
 #: src/sidebar/toast/registry.tsx
-msgid "Transcription stopped. Pick another engine to keep going."
+msgid "Transcription stopped. Pick another model to keep going."
 msgstr ""
 
 #: src/sidebar/toast/registry.tsx
@@ -7700,6 +7695,7 @@ msgstr ""
 #: src/onboarding/transcription.tsx
 #: src/session-sharing/management-panel.tsx
 #: src/session/components/note-input/enhanced/config-error.tsx
+#: src/session/components/note-input/enhanced/enhance-error.tsx
 #: src/settings/general/permissions.tsx
 #: src/settings/plan.tsx
 #: src/settings/stats/badge-collection.tsx
@@ -7712,7 +7708,7 @@ msgid "Try again in a minute to turn this transcript into a summary."
 msgstr ""
 
 #: src/session/components/note-input/transcript/actions.ts
-msgid "Try again, or pick another engine in Settings › Transcription."
+msgid "Try again, or pick another model in Settings › Transcription."
 msgstr ""
 
 #: src/settings/dictation.tsx
@@ -8001,11 +7997,6 @@ msgstr ""
 msgid "Uploads meeting content for remote access while Upshot is closed."
 msgstr ""
 
-#: src/settings/general/account-profile.tsx
-#: src/sidebar/settings.tsx
-msgid "Upshot"
-msgstr ""
-
 #. placeholder {0}: update.version
 #: src/sidebar/toast/registry.tsx
 msgid "Upshot {0} is available"
@@ -8053,7 +8044,7 @@ msgid "Upshot can read meeting details"
 msgstr ""
 
 #: src/session/components/note-input/enhanced/enhance-error.tsx
-msgid "Upshot can't reach the internet. Check your connection, then click Retry."
+msgid "Upshot can't reach the internet. Check your connection, then try again."
 msgstr ""
 
 #: src/onboarding/permissions.tsx
@@ -8106,11 +8097,11 @@ msgid "Upshot couldn't start the summary. Try again in a moment."
 msgstr ""
 
 #: src/session/components/note-input/transcript/screens/empty.tsx
-msgid "Upshot couldn't transcribe this audio. Try again, or pick another engine."
+msgid "Upshot couldn't transcribe this audio. Try again, or pick another model."
 msgstr ""
 
 #: src/session/components/note-input/enhanced/enhance-error.tsx
-msgid "Upshot couldn't write this summary. Click Retry."
+msgid "Upshot couldn't write this summary. Try again."
 msgstr ""
 
 #: src/lock/gate.tsx
@@ -8480,6 +8471,7 @@ msgstr ""
 #: src/session/components/floating/recording-bar.tsx
 #: src/session/components/note-input/transcript/renderer/segment.tsx
 #: src/settings/team/index.tsx
+#: src/sidebar/settings.tsx
 msgid "You"
 msgstr ""
 
@@ -8594,6 +8586,10 @@ msgstr ""
 
 #: src/settings/dictionary/index.tsx
 msgid "Your dictionary is empty"
+msgstr ""
+
+#: src/folders/sidebar.tsx
+msgid "Your folders show up here"
 msgstr ""
 
 #: src/settings/automations/google-drive-config.tsx

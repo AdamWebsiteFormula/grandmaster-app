@@ -42,11 +42,12 @@ export function useRegenerateTranscript(sessionId: string) {
       const msg = error instanceof Error ? error.message : String(error);
       handleBatchFailed(sessionId, msg);
       // Fork: plain words and a next step, not the raw error, which stays in
-      // the console (NN/g #9).
+      // the console (NN/g #9). "Model", the word Settings › Transcription
+      // uses, not "engine" (NN/g heuristic #4).
       console.error("[transcript] transcribe again failed", error);
       toast.error(t`Couldn't transcribe this recording again`, {
         id: `transcript-regenerate-failed-${sessionId}`,
-        description: t`Try again, or pick another engine in Settings › Transcription.`,
+        description: t`Try again, or pick another model in Settings › Transcription.`,
       });
     }
   }, [handleBatchFailed, runBatch, sessionId]);

@@ -56,7 +56,7 @@ describe("TranscriptEmptyState", () => {
     // Fork: journey-meeting P3, plain words first, raw error small below.
     expect(
       screen.getByText(
-        "Upshot couldn't transcribe this audio. Try again, or pick another engine.",
+        "Upshot couldn't transcribe this audio. Try again, or pick another model.",
       ).className,
     ).toContain("text-sm");
     expect(

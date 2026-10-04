@@ -5,6 +5,7 @@ import {
   ArrowUpRight,
   Lock,
   MagnifyingGlass,
+  User,
   X,
 } from "@anlg/ui/components/icons";
 import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
@@ -272,7 +273,11 @@ export function SettingsAccountHeader() {
 
   const signedInEmail = isSignedIn && email ? email : null;
   const emailLocalPart = signedInEmail?.split("@")[0]?.trim() || null;
-  const title = profileName ?? emailLocalPart ?? t`Upshot`;
+  // Fork: no name yet is "You" with a person icon, never the app's name and
+  // letter as the user's own; the transcript and the recording bar already
+  // say "You" (NN/g heuristic #4, consistency and standards).
+  const named = profileName ?? emailLocalPart;
+  const title = named ?? t`You`;
   const initial = (title.trim()[0] ?? "U").toUpperCase();
 
   return (
@@ -295,7 +300,7 @@ export function SettingsAccountHeader() {
           aria-hidden
           className="bg-sidebar-accent text-foreground rounded-pill mb-1 flex size-10 items-center justify-center text-base font-medium"
         >
-          {initial}
+          {named ? initial : <User aria-hidden className="size-5" />}
         </span>
       )}
       <div className="flex w-full min-w-0 items-center justify-center gap-1.5">

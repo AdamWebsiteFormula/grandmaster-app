@@ -352,7 +352,9 @@ export function TemplatePickerPopover({
       {
         key: "create",
         title: "Create new template",
-        icon: <Plus className="text-primary h-3.5 w-3.5" />,
+        // Fork: neutral, orange marks only the main action (design-system.md
+        // The one accent; Apple HIG Color).
+        icon: <Plus className="text-muted-foreground h-3.5 w-3.5" />,
         uppercase: false,
         items: [
           {
@@ -663,7 +665,9 @@ function TemplateResultButton({
   return (
     <div
       className={cn([
-        "hover:bg-accent focus-within:bg-muted h-8 w-full rounded-md px-2.5",
+        // Fork: the focused row takes the fill of the footer rows below, so
+        // the keyboard position is visible (WCAG 2.2 SC 2.4.7 Focus Visible).
+        "hover:bg-accent focus-within:bg-accent h-8 w-full rounded-md px-2.5",
         "flex items-center gap-1.5",
       ])}
     >
@@ -679,7 +683,12 @@ function TemplateResultButton({
           {title}
         </span>
         {isFavorite ? (
-          <Heart aria-hidden className="text-primary size-3.5 shrink-0" />
+          // Fork: a neutral heart, as on the Templates page; orange marks only
+          // the main action (design-system.md The one accent; Apple HIG Color).
+          <Heart
+            aria-hidden
+            className="text-muted-foreground size-3.5 shrink-0"
+          />
         ) : null}
       </button>
       {regenerateLabel && onRegenerate ? (

@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { CaptureHealthNotice } from "./capture-health";
 import {
   CaptureHealthBanner,
   formatElapsed,
@@ -16,9 +17,15 @@ const mocks = vi.hoisted(() => ({
   stop: vi.fn(),
   resume: vi.fn(),
   platform: "macos",
+  notice: "none" as CaptureHealthNotice,
 }));
 
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
+
+vi.mock("./capture-health", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./capture-health")>()),
+  useCaptureHealthNotice: () => mocks.notice,
+}));
 
 vi.mock("~/stt/useStartListeningWithBatchOverride", () => ({
   useStartListeningWithBatchOverride: () => mocks.resume,
@@ -51,6 +58,7 @@ describe("RecordingBar", () => {
     mocks.mode = "active";
     mocks.muted = false;
     mocks.seconds = 0;
+    mocks.notice = "none";
     mocks.requestMainListenerControl.mockClear();
     mocks.stop.mockClear();
     mocks.resume.mockClear();
@@ -60,14 +68,24 @@ describe("RecordingBar", () => {
     cleanup();
   });
 
-  // Fork: the open chat covers the notice spot, so the notice waits under
-  // it, still mounted (NN/g #8).
-  it("holds capture notices while the chat covers them", () => {
-    const view = render(<RecordingBar sessionId="session-1" hideNotices />);
-    expect(view.container.querySelector("div[hidden]")).not.toBeNull();
+  // Fork: the open chat covers the notice spot, so the soft hint waits
+  // under it, still mounted (NN/g #8).
+  it("holds the quiet hint while the chat covers it", () => {
+    mocks.notice = "quiet";
+    const view = render(<RecordingBar sessionId="session-1" holdQuietHint />);
+    const hint = () => screen.getByText("No sound from the other side yet");
+    expect(hint().closest("[hidden]")).not.toBeNull();
 
     view.rerender(<RecordingBar sessionId="session-1" />);
-    expect(view.container.querySelector("div[hidden]")).toBeNull();
+    expect(hint().closest("[hidden]")).toBeNull();
+  });
+
+  // Fork: the red alert never waits, so it is seen or announced (NN/g #1;
+  // WCAG 2.2 SC 4.1.3).
+  it("keeps the red alert while the chat is open", () => {
+    mocks.notice = "permission";
+    render(<RecordingBar sessionId="session-1" holdQuietHint />);
+    expect(screen.getByRole("alert").closest("[hidden]")).toBeNull();
   });
 
   it("renders nothing when the note is not recording", () => {

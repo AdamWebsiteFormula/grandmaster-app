@@ -114,9 +114,11 @@ export function createToastRegistry({
       toast: {
         id: "local-stt-unreachable",
         // Fork: say what happened and what to do (ux-audit-oct3 B; NN/g #9).
-        description: t`Transcription stopped. Pick another engine to keep going.`,
+        // One word for one thing: Settings › Transcription says model, not
+        // engine (NN/g heuristic #4).
+        description: t`Transcription stopped. Pick another model to keep going.`,
         primaryAction: {
-          label: t`Choose engine`,
+          label: t`Choose model`,
           onClick: onOpenSTTSettings,
         },
         lifecycle: { type: "condition-bound" },

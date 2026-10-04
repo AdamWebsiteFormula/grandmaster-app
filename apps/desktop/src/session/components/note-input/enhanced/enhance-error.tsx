@@ -89,12 +89,14 @@ export function EnhanceError({
             <Trans>Upshot AI is paused for now. Try again later.</Trans>
           ) : isNetworkError(error) ? (
             // Fork: plain-language errors with the raw text kept small below (ux-audit-oct3 C, NN/g #9).
+            // Both messages and the button say "try again", as the
+            // not-ready state does (NN/g heuristic #4; Apple HIG, Alerts).
             <Trans>
-              Upshot can't reach the internet. Check your connection, then click
-              Retry.
+              Upshot can't reach the internet. Check your connection, then try
+              again.
             </Trans>
           ) : (
-            <Trans>Upshot couldn't write this summary. Click Retry.</Trans>
+            <Trans>Upshot couldn't write this summary. Try again.</Trans>
           )}
         </p>
         {!isUnauthenticated && errorKind === "other" && error?.message ? (
@@ -126,8 +128,10 @@ export function EnhanceError({
           variant="secondary"
         >
           <ArrowsClockwise size={16} />
+          {/* Fork: "Try again", as config-error.tsx and Apple HIG Alerts
+              (NN/g heuristic #4, one word for one thing). */}
           <span>
-            <Trans>Retry</Trans>
+            <Trans>Try again</Trans>
           </span>
         </Button>
       )}

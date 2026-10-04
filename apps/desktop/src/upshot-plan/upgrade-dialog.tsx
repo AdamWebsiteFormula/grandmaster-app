@@ -226,7 +226,13 @@ export function UpshotUpgradeDialog() {
                 >
                   <Trans>Cancel</Trans>
                 </GlassDialogCancelButton>
-                <Button type="submit" className="h-8 flex-1" disabled={busy}>
+                <Button
+                  type="submit"
+                  // Fork: the same text size as Cancel beside it, as the other
+                  // glass dialogs pair them (NN/g #4 consistency).
+                  className="h-8 flex-1 text-xs"
+                  disabled={busy}
+                >
                   {signedIn ? (
                     <Trans>Continue to checkout</Trans>
                   ) : mode === "signup" ? (

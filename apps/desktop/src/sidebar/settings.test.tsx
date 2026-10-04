@@ -470,11 +470,16 @@ describe("SettingsNav", () => {
 
     const badge = () => screen.getByTestId("settings-plan-badge");
 
-    it("names the app and the plan when signed out", () => {
+    // Fork: no name yet is "You" with a person icon, never the app's name and
+    // letter as the user's own (NN/g #4; the transcript says "You" too).
+    it("calls an unnamed user You, with a person icon, and names the plan", () => {
       render(<SettingsNav />);
-      expect(header().textContent).toContain("Upshot");
+      expect(screen.getByText("You").className).toContain("font-medium");
+      expect(header().textContent).not.toContain("Upshot");
       expect(badge().textContent).toBe("Free plan");
-      expect(header().querySelector("[aria-hidden]")?.textContent).toBe("U");
+      const circle = header().querySelector("[aria-hidden]");
+      expect(circle?.textContent).toBe("");
+      expect(circle?.querySelector("svg")).not.toBeNull();
     });
 
     it("shows the profile name and email when signed in", () => {

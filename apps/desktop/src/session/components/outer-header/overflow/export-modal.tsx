@@ -469,7 +469,9 @@ export function ExportModal({
                     name="export-format"
                     checked={format === f}
                     onChange={() => setFormat(f)}
-                    className="accent-primary"
+                    // Fork: radios and checkboxes stay neutral, never the
+                    // accent (design-system "The one accent"; NN/g #4).
+                    className="accent-foreground"
                   />
                   {f === "md" ? "Markdown" : f.toUpperCase()}
                 </label>
@@ -522,7 +524,10 @@ export function ExportModal({
                         unavailable ? "export-no-summary" : undefined
                       }
                       onChange={(e) => setter(e.target.checked)}
-                      className="accent-primary"
+                      // Fork: neutral, as the radios above and the Home
+                      // follow-up checkboxes (design-system "The one
+                      // accent"; NN/g #4).
+                      className="accent-foreground"
                     />
                     {label}
                   </label>

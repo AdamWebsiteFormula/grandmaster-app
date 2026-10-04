@@ -254,8 +254,10 @@ export function TemplateForm({
             title={isDefault ? t`Remove as default` : t`Set as default`}
             className={cn([
               "text-muted-foreground hover:text-foreground shrink-0",
+              // Fork: neutral, orange marks only the main action (design-system.md
+              // The one accent; Apple HIG Color).
               isDefault
-                ? "text-primary hover:text-primary hover:bg-transparent"
+                ? "text-foreground hover:text-foreground hover:bg-transparent"
                 : null,
             ])}
           >

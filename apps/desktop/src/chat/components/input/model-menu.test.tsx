@@ -90,14 +90,18 @@ describe("ChatModelMenu", () => {
     mocks.openNew.mockReset();
   });
 
-  it("shows Auto to free users, with current models tagged Pro", () => {
+  // Fork: a lock, not a "Pro" tag, marks Pro-only models, as Settings and ⌘K do
+  // (NN/g #4 consistency).
+  it("shows Auto to free users, with current models marked by a lock", () => {
     mocks.model = "openai/gpt-6.1-sol";
     render(<ChatModelMenu />);
 
     expect(screen.getByRole("button", { name: "Model, Auto" })).not.toBeNull();
     const sonnet = screen.getByRole("menuitem", { name: /Claude Sonnet 5.5/ });
     expect(sonnet.hasAttribute("disabled")).toBe(false);
-    expect(sonnet.textContent).toContain("Pro");
+    expect(
+      sonnet.querySelector('[aria-label="Requires Upshot Pro"]'),
+    ).not.toBeNull();
   });
 
   // Fork: a Pro model or Upgrade opens Settings › Plan (ux-audit-oct3 D).

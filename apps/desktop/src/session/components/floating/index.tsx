@@ -97,7 +97,7 @@ export function FloatingActionButton(props: {
           (floatingChatOpen || barEmpty) && "hidden",
         ])}
       />
-      <RecordingBar sessionId={sessionId} hideNotices={floatingChatOpen} />
+      <RecordingBar sessionId={sessionId} holdQuietHint={floatingChatOpen} />
       <div
         data-note-bar-stack
         className={cn([

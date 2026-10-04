@@ -154,10 +154,15 @@ it("says Add company and shows no sample phone number", () => {
 });
 
 // Fork: without a photo the avatar is the sidebar header's initial in a gray
-// circle (NN/g #4), so each step of the shared name chain shows its letter.
+// circle (NN/g #4), so each step of the shared name chain shows its letter,
+// and no name at all shows a person icon, never the app's name or "U".
 it("names the avatar as the Settings sidebar does", () => {
-  render(view());
-  expect(screen.getByText("U").getAttribute("aria-hidden")).toBe("true");
+  const { container } = render(view());
+  expect(screen.queryByText("U")).toBeNull();
+  expect(screen.queryByText("Upshot")).toBeNull();
+  const circle = container.querySelector("span[aria-hidden]");
+  expect(circle?.textContent).toBe("");
+  expect(circle?.querySelector("svg")).not.toBeNull();
   cleanup();
   mocks.upshotEmail = "judge@example.com";
   render(view());

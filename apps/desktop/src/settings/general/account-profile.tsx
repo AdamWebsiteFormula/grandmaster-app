@@ -116,12 +116,11 @@ function ProfileForm({
           <ProfilePhoto
             userId={humanId}
             // Fork: the same name as the Settings sidebar header (saved
-            // name, then the Upshot email's local part, then "Upshot"),
-            // never a letter from an internal ID (NN/g #4).
+            // name, then the Upshot email's local part), never a letter from
+            // an internal ID or the app's name. With no name the photo shows
+            // a person icon, as the sidebar header does (NN/g #4).
             name={
-              human?.name?.trim() ||
-              upshotEmail?.split("@")[0]?.trim() ||
-              t`Upshot`
+              human?.name?.trim() || upshotEmail?.split("@")[0]?.trim() || ""
             }
             localPhoto={human?.avatarDataUrl ?? null}
             onSave={(avatarDataUrl) =>
