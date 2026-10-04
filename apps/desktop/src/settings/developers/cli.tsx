@@ -158,8 +158,9 @@ function CliSection({
               type="button"
               size="sm"
               // Fork: orange marks Install, the main action; Reinstall is
-              // secondary (design-system.md The one accent).
-              variant={isInstalled ? "outline" : "default"}
+              // secondary (design-system.md The one accent). Outline while
+              // the status loads, so an installed CLI never flashes orange.
+              variant={isInstalled || isLoading ? "outline" : "default"}
               disabled={!canInstall || isInstalling}
               onClick={onInstall}
             >

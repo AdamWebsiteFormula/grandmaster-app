@@ -28,9 +28,10 @@ export const SEGMENT_BASE_CLASS = "border border-transparent";
 // Fork: in dark the selected segment is the sidebar's gray selection fill,
 // as macOS draws a selected segment, not a white pill that outshines the
 // page's one orange action (Apple HIG Segmented controls, Dark Mode; NN/g
-// Visual hierarchy).
+// Visual hierarchy). The field border marks it, as in light: the fill alone
+// measured 1.22:1 on its track, the border 3.02:1 (WCAG 2.2 SC 1.4.11).
 export const SEGMENT_SELECTED_CLASS =
-  "bg-card text-foreground border-input hover:bg-card hover:text-foreground dark:bg-sidebar-accent dark:text-foreground! dark:border-transparent! dark:hover:bg-sidebar-accent dark:hover:text-foreground!";
+  "bg-card text-foreground border-input hover:bg-card hover:text-foreground dark:bg-sidebar-accent dark:text-foreground! dark:border-input! dark:hover:bg-sidebar-accent dark:hover:text-foreground!";
 export const SEGMENT_IDLE_CLASS = "text-muted-foreground hover:text-foreground";
 /** A note inside the selected segment, for example "save 21%". */
 export const SEGMENT_SELECTED_NOTE_CLASS =

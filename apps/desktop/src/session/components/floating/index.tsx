@@ -89,13 +89,14 @@ export function FloatingActionButton(props: {
       {/* Fork: note text fades out under the floating bar instead of
           showing through and below it, as on Home (Apple HIG, Scroll views:
           a scroll edge effect behind floating elements). Solid up to the
-          bar's top (bottom-4 + h-10 = 56 px), then a 40 px fade above it,
-          like Home's composer (pt-10). */}
+          bar's top (bottom-4 + h-10 = 56 px), then a 24 px fade above it, so
+          a line under the bar softens instead of being cut, and the last
+          visible line stays readable. */}
       <div
         aria-hidden
         data-note-bar-fade
         className={cn([
-          "from-panel via-panel pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 bg-gradient-to-t via-60% to-transparent",
+          "from-panel via-panel pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-gradient-to-t via-70% to-transparent",
           (floatingChatOpen || barEmpty) && "hidden",
         ])}
       />

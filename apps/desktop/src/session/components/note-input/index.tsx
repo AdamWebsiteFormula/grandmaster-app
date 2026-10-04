@@ -404,10 +404,13 @@ const NoteInputContent = forwardRef<
               // above cancels the surface's px-2), then centers at 680 px
               // (redline4-oct3; design-system.md "nothing touches edges").
               // The gutter is here, not on the column, so the absolute chip
-              // row (inset-x-0) still lines up with the title.
+              // row (inset-x-0) still lines up with the title. pb-28 lets the
+              // last line scroll fully clear of the floating bar and its fade
+              // (bar top 56 px + fade 24 px + 32 px air; Apple HIG, Scroll
+              // views: content insets for floating elements).
               renderedCurrentTab.type === "transcript"
                 ? "overflow-hidden px-3 pb-0"
-                : "overflow-x-hidden overflow-y-auto px-8 pb-16",
+                : "overflow-x-hidden overflow-y-auto px-8 pb-28",
             ])}
           >
             {isEditableTab && (

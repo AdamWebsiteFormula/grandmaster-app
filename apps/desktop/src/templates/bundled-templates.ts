@@ -21,7 +21,7 @@ export const BUNDLED_TEMPLATES: Record<string, unknown>[] = [
       {
         title: "Key points",
         description:
-          "The main topics discussed, with concrete details, numbers and names.",
+          "The main topics discussed, with concrete details, numbers, and names.",
       },
       {
         title: "Decisions",
@@ -56,7 +56,7 @@ export const BUNDLED_TEMPLATES: Record<string, unknown>[] = [
       },
       {
         title: "Growth",
-        description: "Career goals, skills and development topics raised.",
+        description: "Career goals, skills, and development topics raised.",
       },
       {
         title: "Next steps",
@@ -109,14 +109,14 @@ export const BUNDLED_TEMPLATES: Record<string, unknown>[] = [
     sections: [
       {
         title: "Prospect",
-        description: "Company, attendees and their roles.",
+        description: "Company, attendees, and their roles.",
       },
       {
         title: "Needs and pain points",
         description: "What they are trying to solve and why now.",
       },
       {
-        title: "Budget, authority and timeline",
+        title: "Budget, authority, and timeline",
         description:
           "Budget, who decides and signs, and the timeline to buy, as stated.",
       },
@@ -172,7 +172,7 @@ export const BUNDLED_TEMPLATES: Record<string, unknown>[] = [
   {
     slug: "team-standup",
     title: "Team standup",
-    description: "A short daily sync: done, next and blocked, per person.",
+    description: "A short daily sync: done, next, and blocked, per person.",
     category: "Team",
     icon: icon("list-checks"),
     targets: ["team", "standup"],
@@ -195,7 +195,7 @@ export const BUNDLED_TEMPLATES: Record<string, unknown>[] = [
     slug: "project-kickoff",
     title: "Project kickoff",
     description:
-      "Align on goals, scope, owners and milestones at the start of a project.",
+      "Align on goals, scope, owners, and milestones at the start of a project.",
     category: "Projects",
     icon: icon("rocket"),
     targets: ["project", "kickoff"],
@@ -219,7 +219,8 @@ export const BUNDLED_TEMPLATES: Record<string, unknown>[] = [
       },
       {
         title: "Risks and open questions",
-        description: "Known risks, dependencies and questions still to answer.",
+        description:
+          "Known risks, dependencies, and questions still to answer.",
       },
       {
         title: "Next steps",
@@ -231,7 +232,7 @@ export const BUNDLED_TEMPLATES: Record<string, unknown>[] = [
     slug: "board-investor-update",
     title: "Board or investor update",
     description:
-      "A board meeting or investor update: performance, asks and decisions.",
+      "A board meeting or investor update: performance, asks, and decisions.",
     category: "Leadership",
     icon: icon("landmark"),
     targets: ["board", "investor"],
@@ -243,7 +244,7 @@ export const BUNDLED_TEMPLATES: Record<string, unknown>[] = [
       {
         title: "Key metrics",
         description:
-          "Numbers shared, such as revenue, growth, burn and runway, with comparisons.",
+          "Numbers shared, such as revenue, growth, burn, and runway, with comparisons.",
       },
       {
         title: "Challenges",
@@ -255,7 +256,7 @@ export const BUNDLED_TEMPLATES: Record<string, unknown>[] = [
       },
       {
         title: "Decisions and feedback",
-        description: "Votes, approvals and advice given.",
+        description: "Votes, approvals, and advice given.",
       },
       {
         title: "Next steps",
