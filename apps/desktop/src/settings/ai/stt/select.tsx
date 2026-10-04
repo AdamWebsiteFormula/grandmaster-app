@@ -282,7 +282,7 @@ export function SelectProviderAndModel() {
           and both dropdowns use the Settings select look: the default
           squircle and a chevron at all times (NN/g #4; NN/g "Beyond Blue
           Links"). */}
-      <SettingsSectionTitle className="flex min-h-6 items-center px-1">
+      <SettingsSectionTitle className="flex min-h-6 items-center">
         <Trans>Model being used</Trans>
       </SettingsSectionTitle>
       <div className="flex flex-row items-center gap-4">

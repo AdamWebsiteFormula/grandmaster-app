@@ -132,7 +132,7 @@ export function SettingsInsights() {
               className="overflow-x-auto pb-1"
               tabIndex={0}
               role="region"
-              aria-label={t`Daily conversations`}
+              aria-label={t`Daily meetings`}
             >
               <div className="min-w-[620px]">
                 <div
@@ -173,14 +173,14 @@ export function SettingsInsights() {
                   </div>
                   <Tracker
                     className="flex-1"
-                    aria-label={t`Daily conversations`}
+                    aria-label={t`Daily meetings`}
                     data={stats.days.map((day) => {
                       const date = dateFormat.format(day.date);
                       const count = day.count;
                       return {
                         key: day.key,
                         color: ACTIVITY_COLORS[Math.min(count, 4)],
-                        tooltip: t`${date}. Conversations: ${count}`,
+                        tooltip: t`${date}. Meetings: ${count}`,
                       };
                     })}
                   />
@@ -189,7 +189,7 @@ export function SettingsInsights() {
             </div>
             <div className="text-muted-foreground flex flex-wrap items-center justify-between gap-3 text-xs">
               <span>
-                <Trans>Every conversation adds to your story.</Trans>
+                <Trans>Every meeting adds to your story.</Trans>
               </span>
               <div className="flex items-center gap-1.5" aria-hidden="true">
                 <span>
@@ -216,7 +216,7 @@ export function SettingsInsights() {
           />
           <p className="text-muted-foreground text-xs">
             <Trans>
-              Includes imported transcripts. Deleted conversations are excluded.
+              Includes imported transcripts. Deleted meetings are excluded.
             </Trans>
           </p>
         </>

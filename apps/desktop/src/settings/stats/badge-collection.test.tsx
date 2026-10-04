@@ -145,7 +145,7 @@ describe("badge collection", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: /^Good listener/ }));
     const dialog = screen.getByRole("dialog", { name: "Good listener" });
-    expect(within(dialog).getByText("1 / 10 conversations")).toBeTruthy();
+    expect(within(dialog).getByText("1 / 10 meetings")).toBeTruthy();
     expect(
       within(dialog).getByRole("progressbar").getAttribute("aria-valuenow"),
     ).toBe("1");

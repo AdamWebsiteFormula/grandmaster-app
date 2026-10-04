@@ -39,10 +39,10 @@ export function ConversationPatterns({
   return (
     <section
       className="flex flex-col gap-8"
-      aria-label={t`Your conversation patterns`}
+      aria-label={t`Your meeting patterns`}
     >
       <h3 className="text-sm font-medium">
-        <Trans>Your conversation patterns</Trans>
+        <Trans>Your meeting patterns</Trans>
       </h3>
 
       <InsightPanel
@@ -58,7 +58,7 @@ export function ConversationPatterns({
             {!hasPatterns ? (
               <Trans>A little more history will help</Trans>
             ) : busiest.length === 1 ? (
-              <Trans>Most conversations: {busiestDay}</Trans>
+              <Trans>Most meetings: {busiestDay}</Trans>
             ) : (
               <Trans>No single busiest day</Trans>
             )}
@@ -66,17 +66,17 @@ export function ConversationPatterns({
           <p className="text-muted-foreground text-sm">
             {!hasPatterns ? (
               <Trans>
-                Capture at least 5 conversations in this period to see patterns.
+                Capture at least 5 meetings in this period to see patterns.
               </Trans>
             ) : busiest.length === 1 ? (
               <Trans>
-                {peakCount} of {total} conversations ({share}) started on this
+                {peakCount} of {total} meetings ({share}) started on this
                 weekday in the selected period.
               </Trans>
             ) : (
               <Trans>
-                Your busiest weekdays are tied at {peakCount} conversations each
-                in the selected period.
+                Your busiest weekdays are tied at {peakCount} meetings each in
+                the selected period.
               </Trans>
             )}
           </p>
@@ -87,14 +87,14 @@ export function ConversationPatterns({
         <>
           <section
             className="flex flex-col gap-5"
-            aria-label={t`Conversations by weekday`}
+            aria-label={t`Meetings by weekday`}
           >
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h3 className="text-sm font-medium">
                 <Trans>Your week at a glance</Trans>
               </h3>
               <span className="text-muted-foreground text-xs">
-                <Trans>Conversations: {total}</Trans>
+                <Trans>Meetings: {total}</Trans>
               </span>
             </div>
             <ul className="flex flex-col gap-3">
@@ -132,7 +132,7 @@ export function ConversationPatterns({
             <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2">
               <InsightPanel className="border-border flex flex-col gap-2 rounded-[20px] border p-4">
                 <h3 className="text-muted-foreground text-xs">
-                  <Trans>Typical conversation length</Trans>
+                  <Trans>Typical meeting length</Trans>
                 </h3>
                 <p className="text-2xl font-medium tabular-nums">
                   {stats.medianMinutes === null ? (
@@ -143,14 +143,14 @@ export function ConversationPatterns({
                 </p>
                 <p className="text-muted-foreground text-xs">
                   <Trans>
-                    Median transcribed time. Conversations with timing:{" "}
+                    Median transcribed time. Meetings with timing:{" "}
                     {number.format(stats.timedConversations)}.
                   </Trans>
                 </p>
               </InsightPanel>
               <InsightPanel className="border-border flex flex-col gap-2 rounded-[20px] border p-4">
                 <h3 className="text-muted-foreground text-xs">
-                  <Trans>Conversations per active day</Trans>
+                  <Trans>Meetings per active day</Trans>
                 </h3>
                 <p className="text-2xl font-medium tabular-nums">
                   {number.format(stats.conversations / stats.conversationDays)}
@@ -165,10 +165,9 @@ export function ConversationPatterns({
       )}
       <p className="text-muted-foreground text-xs">
         <Trans>
-          Based on captured conversations, including imported transcripts. Each
-          conversation is counted once, on its first capture day in the selected
-          period, using your calendar timezone. Deleted conversations are
-          excluded.
+          Based on captured meetings, including imported transcripts. Each
+          meeting is counted once, on its first capture day in the selected
+          period, using your calendar timezone. Deleted meetings are excluded.
         </Trans>
       </p>
     </section>

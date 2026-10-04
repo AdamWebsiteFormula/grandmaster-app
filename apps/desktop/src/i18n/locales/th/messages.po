@@ -118,7 +118,7 @@ msgid "{count} of {total} collected"
 msgstr ""
 
 #: src/settings/stats/index.tsx
-msgid "{date}. Conversations: {count}"
+msgid "{date}. Meetings: {count}"
 msgstr ""
 
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
@@ -167,7 +167,7 @@ msgid "{noteCount} notes"
 msgstr ""
 
 #: src/settings/stats/insights.tsx
-msgid "{peakCount} of {total} conversations ({share}) started on this weekday in the selected period."
+msgid "{peakCount} of {total} meetings ({share}) started on this weekday in the selected period."
 msgstr ""
 
 #: src/settings/plan.tsx
@@ -224,7 +224,7 @@ msgid "{value} / {target} active weeks"
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
-msgid "{value} / {target} conversations"
+msgid "{value} / {target} meetings"
 msgstr ""
 
 #: src/sidebar/timeline/utils/index.ts
@@ -1031,7 +1031,7 @@ msgid "Base URL"
 msgstr ""
 
 #: src/settings/stats/insights.tsx
-msgid "Based on captured conversations, including imported transcripts. Each conversation is counted once, on its first capture day in the selected period, using your calendar timezone. Deleted conversations are excluded."
+msgid "Based on captured meetings, including imported transcripts. Each meeting is counted once, on its first capture day in the selected period, using your calendar timezone. Deleted meetings are excluded."
 msgstr ""
 
 #: src/settings/ai/stt/select.tsx
@@ -1227,35 +1227,35 @@ msgid "Canceled. Pro stays on until the end of this billing period."
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
-msgid "Capture 10 conversations. More moments you can return to."
+msgid "Capture 10 meetings. More moments you can return to."
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
-msgid "Capture 100 conversations. A hundred stories, saved in your own words."
+msgid "Capture 100 meetings. A hundred stories, saved in your own words."
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
-msgid "Capture 250 conversations. Your own library of shared knowledge."
+msgid "Capture 250 meetings. Your own library of shared knowledge."
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
-msgid "Capture 50 conversations. A growing collection of ideas and decisions."
+msgid "Capture 50 meetings. A growing collection of ideas and decisions."
 msgstr ""
 
 #: src/settings/stats/insights.tsx
-msgid "Capture at least 5 conversations in this period to see patterns."
+msgid "Capture at least 5 meetings in this period to see patterns."
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
-msgid "Capture conversations in 12 different weeks. A little at a time, at your own pace."
+msgid "Capture meetings in 12 different weeks. A little at a time, at your own pace."
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
-msgid "Capture conversations in 4 different weeks. They don't need to be consecutive."
+msgid "Capture meetings in 4 different weeks. They don't need to be consecutive."
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
-msgid "Capture your first conversation. Every collection starts somewhere."
+msgid "Capture your first meeting. Every collection starts somewhere."
 msgstr ""
 
 #: src/contacts/details.tsx
@@ -1713,7 +1713,7 @@ msgid "Complete onboarding"
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
-msgid "Complete onboarding. You're ready for your next conversation."
+msgid "Complete onboarding. You're ready for your next meeting."
 msgstr ""
 
 #: src/instruction/index.tsx
@@ -1921,18 +1921,6 @@ msgstr ""
 
 #: src/settings/general/meeting-settings.tsx
 msgid "Control recording without reopening Upshot."
-msgstr ""
-
-#: src/settings/stats/insights.tsx
-msgid "Conversations by weekday"
-msgstr ""
-
-#: src/settings/stats/insights.tsx
-msgid "Conversations per active day"
-msgstr ""
-
-#: src/settings/stats/insights.tsx
-msgid "Conversations: {total}"
 msgstr ""
 
 #: src/chat/components/message/normal.tsx
@@ -2354,7 +2342,7 @@ msgid "Create your Upshot account"
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
-msgid "Create your Upshot account. A place for your conversations to call home."
+msgid "Create your Upshot account. A place for your meetings to call home."
 msgstr ""
 
 #: src/session/components/outer-header/overflow/export-modal.tsx
@@ -2427,7 +2415,7 @@ msgid "Cut"
 msgstr ""
 
 #: src/settings/stats/index.tsx
-msgid "Daily conversations"
+msgid "Daily meetings"
 msgstr ""
 
 #: src/settings/appearance/theme.tsx
@@ -2966,12 +2954,12 @@ msgstr ""
 msgid "events, schedule, month"
 msgstr ""
 
-#: src/settings/stats/index.tsx
-msgid "Every conversation adds to your story."
-msgstr ""
-
 #: src/shared/keyboard-shortcuts-dialog.tsx
 msgid "Every keyboard shortcut in Upshot"
+msgstr ""
+
+#: src/settings/stats/index.tsx
+msgid "Every meeting adds to your story."
 msgstr ""
 
 #: src/settings/automations/google-drive-config.tsx
@@ -3649,7 +3637,7 @@ msgid "Included"
 msgstr ""
 
 #: src/settings/stats/index.tsx
-msgid "Includes imported transcripts. Deleted conversations are excluded."
+msgid "Includes imported transcripts. Deleted meetings are excluded."
 msgstr ""
 
 #: src/templates/sections-editor.tsx
@@ -4200,7 +4188,7 @@ msgstr ""
 
 #. placeholder {0}: number.format(stats.timedConversations)
 #: src/settings/stats/insights.tsx
-msgid "Median transcribed time. Conversations with timing: {0}."
+msgid "Median transcribed time. Meetings with timing: {0}."
 msgstr ""
 
 #: src/settings/ai/llm/select.tsx
@@ -4267,12 +4255,24 @@ msgstr ""
 msgid "Meetings"
 msgstr "การประชุม"
 
+#: src/settings/stats/insights.tsx
+msgid "Meetings by weekday"
+msgstr ""
+
 #: src/settings/plan.tsx
 msgid "Meetings in total"
 msgstr ""
 
+#: src/settings/stats/insights.tsx
+msgid "Meetings per active day"
+msgstr ""
+
 #: src/settings/plan.tsx
 msgid "Meetings, last 30 days"
+msgstr ""
+
+#: src/settings/stats/insights.tsx
+msgid "Meetings: {total}"
 msgstr ""
 
 #: src/contacts/organization-details.tsx
@@ -4412,7 +4412,7 @@ msgid "More options"
 msgstr ""
 
 #: src/settings/stats/insights.tsx
-msgid "Most conversations: {busiestDay}"
+msgid "Most meetings: {busiestDay}"
 msgstr ""
 
 #: src/main/move-to-applications.ts
@@ -7801,7 +7801,7 @@ msgid "Typewriter Key"
 msgstr ""
 
 #: src/settings/stats/insights.tsx
-msgid "Typical conversation length"
+msgid "Typical meeting length"
 msgstr ""
 
 #: src/settings/developers/cli.tsx
@@ -8580,7 +8580,7 @@ msgid "Your badges"
 msgstr ""
 
 #: src/settings/stats/insights.tsx
-msgid "Your busiest weekdays are tied at {peakCount} conversations each in the selected period."
+msgid "Your busiest weekdays are tied at {peakCount} meetings each in the selected period."
 msgstr ""
 
 #: src/session-sharing/comments.tsx
@@ -8597,10 +8597,6 @@ msgstr ""
 
 #: src/settings/profile/index.tsx
 msgid "Your contact card in Upshot. It stays on this Mac."
-msgstr ""
-
-#: src/settings/stats/insights.tsx
-msgid "Your conversation patterns"
 msgstr ""
 
 #: src/settings/dictionary/index.tsx
@@ -8621,6 +8617,10 @@ msgstr ""
 
 #: src/auth/context.tsx
 msgid "Your local notes are available. Connect this library to sync with your current account."
+msgstr ""
+
+#: src/settings/stats/insights.tsx
+msgid "Your meeting patterns"
 msgstr ""
 
 #: src/settings/profile/index.tsx

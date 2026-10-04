@@ -10,8 +10,11 @@ import { SettingsSectionTitle } from "~/settings/page-title";
 // tint, so every Settings control has one fill and sits raised on the card
 // (Apple HIG, Dark Mode: raised is lighter; shadcn/ui's input uses
 // dark:bg-input/30; NN/g #4). Light keeps bg-card.
+// Fork: 32 pt, the same height as the buttons beside them, so a row of
+// controls lines up (backlog item 4: selects were 36 pt, buttons 32 pt;
+// Apple HIG, Layout: consistent control sizes in a group).
 export const SETTING_CONTROL_CLASS =
-  "bg-card dark:bg-input/30 h-9 w-full shadow-none";
+  "bg-card dark:bg-input/30 h-8 w-full shadow-none";
 
 // Fork: one segmented control look for Theme, Plan billing period and
 // Insights date range. Light: the selected segment is a white tile with a
@@ -93,7 +96,10 @@ export function SettingsGroup({
       className={cn(["flex min-w-0 scroll-mt-6 flex-col gap-2", className])}
     >
       {title || action ? (
-        <div className="flex min-h-6 items-center justify-between gap-3 px-1">
+        // Fork: the section label starts on the card's left edge, the same
+        // line as the page title (backlog item 6: it sat 4 pt in; Apple HIG,
+        // Layout: align to one edge).
+        <div className="flex min-h-6 items-center justify-between gap-3">
           {title ? (
             <SettingsSectionTitle id={titleId}>{title}</SettingsSectionTitle>
           ) : (
@@ -104,7 +110,7 @@ export function SettingsGroup({
       ) : null}
       <SettingsCard>{children}</SettingsCard>
       {footer ? (
-        <p className="text-muted-foreground px-1 text-xs">{footer}</p>
+        <p className="text-muted-foreground text-xs">{footer}</p>
       ) : null}
     </section>
   );

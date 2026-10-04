@@ -77,12 +77,12 @@ describe("merged insights page", () => {
       within(overview).getByText("Meetings").nextElementSibling?.textContent,
     ).toBe("2");
     expect(within(overview).getByText("Hours recorded")).toBeTruthy();
-    expect(screen.getByText("Conversations: 2")).toBeTruthy();
+    expect(screen.getByText("Meetings: 2")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "7 days" }));
     expect(
       within(overview).getByText("Meetings").nextElementSibling?.textContent,
     ).toBe("1");
-    expect(screen.getByText("Conversations: 1")).toBeTruthy();
+    expect(screen.getByText("Meetings: 1")).toBeTruthy();
     expect(
       screen
         .getByRole("button", { name: "7 days" })
@@ -90,16 +90,12 @@ describe("merged insights page", () => {
     ).toBe("true");
     expect(screen.getByText("Lifetime records: 2")).toBeTruthy();
     const day = screen.getByRole("listitem", {
-      name: "August 1, 2026. Conversations: 1",
+      name: "August 1, 2026. Meetings: 1",
     });
     fireEvent.click(day);
+    expect(await screen.findByText("August 1, 2026. Meetings: 1")).toBeTruthy();
     expect(
-      await screen.findByText("August 1, 2026. Conversations: 1"),
-    ).toBeTruthy();
-    expect(
-      screen
-        .getByText("August 1, 2026. Conversations: 1")
-        .getAttribute("data-slot"),
+      screen.getByText("August 1, 2026. Meetings: 1").getAttribute("data-slot"),
     ).toBe("smooth-corners");
   });
 

@@ -148,39 +148,39 @@ export function BadgeGallery({
   const details = {
     hello: {
       name: t`Hello, Upshot`,
-      description: t`Create your Upshot account. A place for your conversations to call home.`,
+      description: t`Create your Upshot account. A place for your meetings to call home.`,
     },
     "all-set": {
       name: t`All set`,
-      description: t`Complete onboarding. You're ready for your next conversation.`,
+      description: t`Complete onboarding. You're ready for your next meeting.`,
     },
     "first-words": {
       name: t`First words`,
-      description: t`Capture your first conversation. Every collection starts somewhere.`,
+      description: t`Capture your first meeting. Every collection starts somewhere.`,
     },
     "good-listener": {
       name: t`Good listener`,
-      description: t`Capture 10 conversations. More moments you can return to.`,
+      description: t`Capture 10 meetings. More moments you can return to.`,
     },
     "memory-keeper": {
       name: t`Memory keeper`,
-      description: t`Capture 50 conversations. A growing collection of ideas and decisions.`,
+      description: t`Capture 50 meetings. A growing collection of ideas and decisions.`,
     },
     "story-collector": {
       name: t`Story collector`,
-      description: t`Capture 100 conversations. A hundred stories, saved in your own words.`,
+      description: t`Capture 100 meetings. A hundred stories, saved in your own words.`,
     },
     "living-library": {
       name: t`Living library`,
-      description: t`Capture 250 conversations. Your own library of shared knowledge.`,
+      description: t`Capture 250 meetings. Your own library of shared knowledge.`,
     },
     "finding-rhythm": {
       name: t`Finding your rhythm`,
-      description: t`Capture conversations in 4 different weeks. They don't need to be consecutive.`,
+      description: t`Capture meetings in 4 different weeks. They don't need to be consecutive.`,
     },
     "familiar-face": {
       name: t`Familiar face`,
-      description: t`Capture conversations in 12 different weeks. A little at a time, at your own pace.`,
+      description: t`Capture meetings in 12 different weeks. A little at a time, at your own pace.`,
     },
   };
   const number = new Intl.NumberFormat(i18n.locale);
@@ -199,7 +199,7 @@ export function BadgeGallery({
       collectedAt: collected[badge.id],
       progressLabel:
         badge.metric === "conversations"
-          ? t`${value} / ${target} conversations`
+          ? t`${value} / ${target} meetings`
           : badge.metric === "weeks"
             ? t`${value} / ${target} active weeks`
             : t`Complete onboarding`,

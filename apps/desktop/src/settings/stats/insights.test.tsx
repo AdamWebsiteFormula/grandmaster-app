@@ -51,20 +51,20 @@ describe("personal insights page", () => {
       "2026-09-04T10:00:00Z",
     ]);
     render(<SettingsInsights />);
-    expect(screen.getByText("Most conversations: Wednesday")).toBeTruthy();
-    expect(screen.getByText(/3 of 5 conversations \(60%\)/)).toBeTruthy();
+    expect(screen.getByText("Most meetings: Wednesday")).toBeTruthy();
+    expect(screen.getByText(/3 of 5 meetings \(60%\)/)).toBeTruthy();
     expect(screen.getByText("30 min")).toBeTruthy();
     const chart = screen.getByRole("region", {
-      name: "Conversations by weekday",
+      name: "Meetings by weekday",
     });
     expect(within(chart).getAllByRole("listitem")).toHaveLength(7);
     expect(within(chart).getAllByRole("listitem")[0].textContent).toBe(
       "Monday0",
     );
     fireEvent.click(screen.getByRole("button", { name: "7 days" }));
-    expect(screen.queryByText("Most conversations: Wednesday")).toBeNull();
+    expect(screen.queryByText("Most meetings: Wednesday")).toBeNull();
     expect(screen.getByText("A little more history will help")).toBeTruthy();
-    expect(screen.getByText("Conversations: 3")).toBeTruthy();
+    expect(screen.getByText("Meetings: 3")).toBeTruthy();
   });
 
   it("does not invent a busiest day when weekdays tie", () => {
@@ -78,7 +78,7 @@ describe("personal insights page", () => {
     ]);
     render(<SettingsInsights />);
     expect(screen.getByText("No single busiest day")).toBeTruthy();
-    expect(screen.getByText(/tied at 3 conversations/)).toBeTruthy();
+    expect(screen.getByText(/tied at 3 meetings/)).toBeTruthy();
   });
 
   it("distinguishes empty history from loading and failed queries", () => {
@@ -104,8 +104,8 @@ describe("personal insights page", () => {
       ),
     ).toBeTruthy();
     expect(
-      screen.queryByRole("region", { name: "Conversations by weekday" }),
+      screen.queryByRole("region", { name: "Meetings by weekday" }),
     ).toBeNull();
-    expect(screen.queryByText("Typical conversation length")).toBeNull();
+    expect(screen.queryByText("Typical meeting length")).toBeNull();
   });
 });
