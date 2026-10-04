@@ -202,6 +202,35 @@ describe("SettingsNav", () => {
     );
   });
 
+  // Owner test, Oct 4: Sign out stays in view at the bottom of Settings,
+  // where Granola puts it.
+  it("shows Sign out at the bottom while signed in", () => {
+    mocks.upshot = {
+      ...mocks.upshot,
+      isSignedIn: true,
+      email: "judge@example.com",
+      plan: { pro: true },
+    };
+    render(<SettingsNav />);
+
+    expect(screen.getByRole("button", { name: "Sign out" })).toBeTruthy();
+  });
+
+  it("hides Sign out when no one is signed in", () => {
+    render(<SettingsNav />);
+
+    expect(screen.queryByRole("button", { name: "Sign out" })).toBeNull();
+  });
+
+  // Owner test, Oct 4: the plan badge opens Plan, one click to upgrade.
+  it("opens Plan from the plan badge", () => {
+    render(<SettingsNav />);
+
+    fireEvent.click(screen.getByTestId("settings-plan-badge"));
+
+    expect(openedSettingsTab()).toEqual({ tab: "plan" });
+  });
+
   // Fork: Folders and Templates are workspaces, so they leave the Settings
   // sidebar and stay in ⌘K (redline-oct3 Settings).
   it.each(["Folders", "Templates"])("keeps %s out of the sidebar", (label) => {

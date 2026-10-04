@@ -5028,6 +5028,10 @@ msgstr ""
 msgid "Open on GitHub"
 msgstr ""
 
+#: src/sidebar/settings.tsx
+msgid "Open Plan"
+msgstr ""
+
 #: src/crm/enrich-contact.tsx
 msgid "Open record"
 msgstr ""
@@ -6827,6 +6831,7 @@ msgstr ""
 
 #: src/settings/general/account.tsx
 #: src/settings/profile/index.tsx
+#: src/sidebar/settings.tsx
 msgid "Sign out"
 msgstr ""
 

@@ -5028,6 +5028,10 @@ msgstr "Open in right panel"
 msgid "Open on GitHub"
 msgstr "Open on GitHub"
 
+#: src/sidebar/settings.tsx
+msgid "Open Plan"
+msgstr "Open Plan"
+
 #: src/crm/enrich-contact.tsx
 msgid "Open record"
 msgstr "Open record"
@@ -6827,6 +6831,7 @@ msgstr "Sign in with your Claude account. After you authorize, copy the code and
 
 #: src/settings/general/account.tsx
 #: src/settings/profile/index.tsx
+#: src/sidebar/settings.tsx
 msgid "Sign out"
 msgstr "Sign out"
 

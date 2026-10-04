@@ -24,10 +24,12 @@ import { scrollToSettingsSection, settingsNavPage } from "~/settings/sections";
 import { useOwnerUserId } from "~/shared/owner-user";
 import { type SettingsTab, useTabs } from "~/store/zustand/tabs";
 import { useUpshotPlan } from "~/upshot-plan";
+import { signOutUpshot } from "~/upshot-plan/session";
 
 export function SettingsNav() {
   const { t } = useLingui();
   const { isPro } = useBillingAccess();
+  const { isSignedIn } = useUpshotPlan();
   // Fork: entries kept only for the ⌘K navigator stay out of the sidebar.
   const groups = useSettingsNavGroups()
     .map((group) => ({
@@ -236,6 +238,24 @@ export function SettingsNav() {
           ))}
         </div>
       </div>
+      {/* Fork: Sign out stays in view at the bottom of Settings, where
+          Granola puts it; it was only at the end of Profile (owner test,
+          Oct 4; NN/g #6, recognition rather than recall). */}
+      {isSignedIn ? (
+        <div className="border-border border-t pt-2">
+          <button
+            type="button"
+            data-settings-sign-out
+            onClick={() => void signOutUpshot()}
+            className={cn([
+              "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground flex w-full items-center gap-2 rounded-full px-3 py-2 text-left text-sm transition-colors",
+              "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset",
+            ])}
+          >
+            <Trans>Sign out</Trans>
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -260,6 +280,15 @@ function titleWhenTruncated(event: MouseEvent<HTMLElement>) {
 export function SettingsAccountHeader() {
   const { t } = useLingui();
   const { email, isSignedIn, isLoading, plan } = useUpshotPlan();
+  const currentTab = useTabs((state) => state.currentTab);
+  const updateSettingsTabState = useTabs(
+    (state) => state.updateSettingsTabState,
+  );
+  const openPlan = () => {
+    if (currentTab?.type === "settings") {
+      updateSettingsTabState(currentTab, { tab: "plan" });
+    }
+  };
   const auth = useAuth();
   const localOwnerUserId = useOwnerUserId();
   const humanId = auth.session?.user.id ?? localOwnerUserId ?? "";
@@ -311,13 +340,18 @@ export function SettingsAccountHeader() {
           {title}
         </p>
         {planKnown ? (
-          <span
+          // Fork: the plan badge opens Plan, so Upgrade to Pro is one click
+          // from the top of Settings (owner test, Oct 4; NN/g #7).
+          <button
+            type="button"
             data-testid="settings-plan-badge"
-            className="border-input text-muted-foreground shrink-0 rounded-full border px-1.5 text-xs leading-4 font-medium"
+            title={t`Open Plan`}
+            onClick={openPlan}
+            className="border-input text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground focus-visible:ring-ring shrink-0 cursor-pointer rounded-full border px-1.5 text-xs leading-4 font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none"
           >
             {isProPlan ? t`Pro` : t`Free`}
             <span className="sr-only"> {t`plan`}</span>
-          </span>
+          </button>
         ) : null}
       </div>
       {signedInEmail ? (
