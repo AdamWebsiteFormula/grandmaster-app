@@ -17,7 +17,8 @@ The judges score effectiveness, looks, creativity, simplicity and value. Each be
 | 76–80 s | Home | "Upshot. Built with Claude Code in three days, open source, with credit to Anarlog." | |
 
 **Before recording:**
-- Settings › Transcription shows **Upshot transcription** (set on this Mac on Oct 3; new installs start on it).
+- Settings › Transcription shows **Upshot** / **Nova 3 (cloud)** (Upshot transcription; set on this Mac on Oct 3, and new installs start on it).
+- Don't open the old **Welcome to Upshot** note on camera: it was made before tonight and still has the old privacy wording.
 - Have one finished meeting with a summary and a transcript, so Home has a note and the transcript has words to click.
 - Let the live recording run long enough for a real summary. If Upshot says too little was said, click **Generate summary** and cut the gap.
 - Connect Glaido first: Settings › Connectors › Glaido › Create Glaido folder, then in Glaido open Tools › Import and pick that folder.
