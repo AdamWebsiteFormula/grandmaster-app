@@ -210,6 +210,7 @@ function TranscriptLanguageChip() {
         className="w-80 p-4"
       >
         <MainLanguageView
+          stacked
           value={mainLanguage}
           supportedLanguages={CORE_TRANSCRIPTION_LANGUAGE_CODES}
           onChange={(value) =>

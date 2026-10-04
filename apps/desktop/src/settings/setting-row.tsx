@@ -128,6 +128,7 @@ export function SettingRow({
   icon,
   controlWidth = "fixed",
   disabled = false,
+  stacked = false,
   children,
 }: {
   title: ReactNode;
@@ -136,6 +137,8 @@ export function SettingRow({
   controlWidth?: "fixed" | "content";
   /** The row's control is unavailable: the title dims to muted text. */
   disabled?: boolean;
+  /** Label above a full-width control, for narrow places like popovers. */
+  stacked?: boolean;
   children: (labelProps: {
     "aria-labelledby": string;
     "aria-describedby": string | undefined;
@@ -145,7 +148,15 @@ export function SettingRow({
   const descriptionId = useId();
 
   return (
-    <div className="flex w-full min-w-0 items-center justify-between gap-4">
+    <div
+      className={cn([
+        "flex w-full min-w-0 justify-between",
+        // Fork: in a narrow popover the label sits above a full-width
+        // control instead of being squeezed beside a 192 px one (owner
+        // test, Oct 4; Apple HIG, Popovers: keep content compact).
+        stacked ? "flex-col gap-3" : "items-center gap-4",
+      ])}
+    >
       <div className="flex min-w-0 flex-1 items-center gap-3">
         {icon ? <SettingIconTile icon={icon} /> : null}
         <div className="min-w-0 flex-1">
@@ -174,8 +185,9 @@ export function SettingRow({
       <div
         className={cn([
           "flex justify-end",
-          controlWidth === "fixed" && "w-48 max-w-full min-w-0",
-          controlWidth !== "fixed" && "shrink-0",
+          stacked && "w-full min-w-0",
+          !stacked && controlWidth === "fixed" && "w-48 max-w-full min-w-0",
+          !stacked && controlWidth !== "fixed" && "shrink-0",
         ])}
       >
         {children({

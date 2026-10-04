@@ -3,7 +3,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { Bell, Gear } from "@anlg/ui/components/icons";
 
-import { SettingLinkRow, SettingsGroup, SettingSwitchRow } from "./setting-row";
+import {
+  SettingLinkRow,
+  SettingRow,
+  SettingsGroup,
+  SettingSwitchRow,
+} from "./setting-row";
 
 describe("Settings card groups", () => {
   afterEach(cleanup);
@@ -87,6 +92,21 @@ describe("Settings card groups", () => {
     expect(
       screen.getByRole("heading", { name: "Stop when meeting ends" }).className,
     ).not.toContain("text-muted-foreground");
+  });
+
+  // Fork: owner test, Oct 4. In the transcript's 320 px language popover,
+  // the label sat beside a 192 px select and wrapped a syllable per line.
+  it("stacks the label above a full-width control when asked", () => {
+    const { container } = render(
+      <SettingRow title="Main language" description="For summaries." stacked>
+        {(labelProps) => <select {...labelProps} />}
+      </SettingRow>,
+    );
+    const row = container.firstElementChild as HTMLElement;
+    expect(row.className).toContain("flex-col");
+    const control = screen.getByRole("combobox").parentElement!;
+    expect(control.className).toContain("w-full");
+    expect(control.className).not.toContain("w-48");
   });
 
   it("link rows open their page", () => {

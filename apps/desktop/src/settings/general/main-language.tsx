@@ -15,10 +15,13 @@ export function MainLanguageView({
   value,
   onChange,
   supportedLanguages,
+  stacked = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   supportedLanguages: readonly string[];
+  /** Label above the select, for the transcript's narrow popover. */
+  stacked?: boolean;
 }) {
   const { i18n, t } = useLingui();
 
@@ -50,6 +53,7 @@ export function MainLanguageView({
   return (
     <SettingRow
       icon={Globe}
+      stacked={stacked}
       title={<Trans>Main language</Trans>}
       description={
         <Trans>Use this language for summaries and AI responses.</Trans>
