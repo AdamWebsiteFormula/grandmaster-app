@@ -3,7 +3,7 @@
 <plist version="1.0">
   <dict>
     <key>NSMicrophoneUsageDescription</key>
-    <string>Upshot records your voice so it can write your meeting notes. Audio stays on your Mac unless you choose a cloud model.</string>
+    <string>Upshot records your voice to write your meeting notes.</string>
     <key>NSAudioCaptureUsageDescription</key>
     <string>Upshot listens to other people on your call so the transcript includes everyone.</string>
     <key>NSContactsUsageDescription</key>
