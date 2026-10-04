@@ -18,14 +18,14 @@ Mac, both DMGs, 9:34 AM, commit 5b3d36d (SHA-256 in the release's SHA256SUMS.txt
 - Audio player checks every second after Stop.
 - Intel DMG smoke-tested under Rosetta (Home renders).
 
-Windows and Linux on the page: the 7:38 AM build (model menu). Cloud run 37205566680 (same code as the Mac DMGs) finishes about 10:35 AM; its files download to ~/grandmaster-release for review, then publish (keep the Mac lines of SHA256SUMS.txt; see scratchpad publish-mac-now.sh for the pattern).
+Windows and Linux, 10:43 AM, cloud run 37205566680 (same code as the Mac DMGs, commit 5b3d36d). Reviewed first: key scan 0, and the run's own screenshots show the Windows and Linux first-run and Home screens. Published with the Mac lines of SHA256SUMS.txt kept, so the sums match every file.
 
 ## Committed, not yet on the download page (needs an in-app check)
 
 - ce006b4: chat answers convert UTC to the Settings time zone (checked against Upshot AI: 10:01 UTC came back 6:01 AM EDT).
 - e9b886f: template list group labels (Your templates, Built-in); Provider and Model labels on Settings › Transcription.
 
-The screen locked at about 9:40 AM, so these wait for an unlocked screen. Then: build, test on a test profile (copy of the anarlog folder into a scratch HOME), publish Mac, dispatch the cloud build, publish Windows and Linux.
+The screen locked at about 9:40 AM, so these wait for an unlocked screen. Then: build, test on a test profile (copy of the anarlog folder into a scratch HOME), publish Mac. Cloud run 37206908446 (commit bd387a7) already has these for Windows and Linux; download it with final-winlinux.sh after the Mac test passes, review, publish.
 
 ## Things Adam should know
 
