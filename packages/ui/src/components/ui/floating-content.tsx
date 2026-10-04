@@ -25,6 +25,12 @@ export const appFloatingItemClassName = "rounded-[14px]";
 
 export type FloatingContentVariant = "default" | "app";
 
+// Fork: in dark, the 13% menu would hide a 13% hover row, so rows inside a
+// floating panel highlight in the sidebar's selection gray (backlog item 10;
+// Apple HIG, Dark Mode).
+const APP_FLOATING_PANEL_DARK_ACCENT =
+  "dark:[--color-accent:hsl(var(--sidebar-accent))]";
+
 export function AppFloatingPanel({
   className,
   ref,
@@ -35,6 +41,7 @@ export function AppFloatingPanel({
     <div
       className={cn([
         "bg-app-floating-panel text-popover-foreground border-app-floating-border rounded-[20px] border",
+        APP_FLOATING_PANEL_DARK_ACCENT,
         className,
       ])}
       {...props}

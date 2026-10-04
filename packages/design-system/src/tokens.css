@@ -67,7 +67,10 @@
     --input: 0 0% 42%;
     --ring: 20 100% 56%;
     --app-floating-chrome: 0 0% 10%;
-    --app-floating-panel: 0 0% 5%;
+    /* Fork: menus are raised, so lighter than the 6% panel and 8% chat they
+     * open over (Apple HIG, Dark Mode: elevated surfaces are lighter;
+     * backlog item 10). */
+    --app-floating-panel: 0 0% 13%;
     --app-floating-border: 0 0% 20%;
     --chart-1: 20 100% 56%;
     --chart-2: 0 0% 80%;

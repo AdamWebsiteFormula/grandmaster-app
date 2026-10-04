@@ -47,7 +47,7 @@ Bare HSL triples in `packages/design-system/src/tokens.css`, read as `hsl(var(--
 | `--ring` | `20 100% 56%` | `20 100% 46%` | Focus ring (3:1 or more, both themes) |
 | `--destructive` | `0 72% 51%` | `0 72% 45%` | Delete buttons (white text 4.6:1 dark, 5.6:1 light) |
 | `--destructive-text` | `0 86% 72%` | `0 72% 45%` | Error text: `text-destructive` (4.5:1 or more). Read through `--text-color-destructive` |
-| `--app-floating-panel` | `0 0% 5%` | `60 9% 98%` | Floating bar body, opaque |
+| `--app-floating-panel` | `0 0% 13%` | `60 9% 98%` | Menu and floating bar body, opaque. Dark is lighter than the panel and chat it opens over (Apple HIG, Dark Mode: raised is lighter); rows inside highlight in `--sidebar-accent`. Raised from 5% on Oct 4 (backlog item 10) |
 
 ### Contrast (Oct 3)
 
