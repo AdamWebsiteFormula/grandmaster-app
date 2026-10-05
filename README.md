@@ -10,11 +10,11 @@
 
 <p>
   <a href="https://github.com/AdamWebsiteFormula/grandmaster-app/releases/latest"><b>Download Upshot</b></a>
-  &nbsp;·&nbsp;
+  ·
   <a href="GUIDE.md">Guide</a>
-  &nbsp;·&nbsp;
+  ·
   <a href="ROADMAP.md">Roadmap</a>
-  &nbsp;·&nbsp;
+  ·
   <a href="grandmaster/HOW-I-BUILT-THIS.md">How I built it</a>
 </p>
 
