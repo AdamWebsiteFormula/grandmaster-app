@@ -392,10 +392,9 @@ impl NotificationSource {
                 base: NotificationIconAsset::AppIcon,
                 badge: NotificationIconAsset::Calendar,
             }),
-            Self::Session { .. } => None,
-            Self::MicDetected { app_ids, .. } => app_ids
-                .iter()
-                .find_map(|app_id| NotificationIcon::from_app_id(app_id)),
+            // Fork: the meeting prompt shows only the Upshot logo, as Granola's does
+            // (owner test, Oct 5). The footer still names and shows the app.
+            Self::Session { .. } | Self::MicDetected { .. } => None,
         }
     }
 }
@@ -565,19 +564,14 @@ mod tests {
     }
 
     #[test]
-    fn mic_notifications_default_to_first_resolvable_app_icon() {
+    fn mic_notifications_default_to_the_app_logo() {
         let source = NotificationSource::MicDetected {
             app_names: vec!["Zoom".to_string()],
             app_ids: vec!["pid:42".to_string(), "us.zoom.xos".to_string()],
             event_ids: vec![],
         };
 
-        assert_eq!(
-            source.default_icon(),
-            Some(NotificationIcon::BundleId {
-                bundle_id: "us.zoom.xos".to_string(),
-            })
-        );
+        assert_eq!(source.default_icon(), None);
     }
 
     #[test]
@@ -626,12 +620,7 @@ mod tests {
             })
             .build();
 
-        assert_eq!(
-            default_icon_notification.icon,
-            Some(NotificationIcon::Path {
-                path: "/Applications/Zoom.app".to_string(),
-            })
-        );
+        assert_eq!(default_icon_notification.icon, None);
 
         let explicit_icon_notification = Notification::builder()
             .title("Title")

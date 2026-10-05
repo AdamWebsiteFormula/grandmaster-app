@@ -27,7 +27,6 @@ import {
   getNotificationAppName,
   getNotificationDisplayApp,
   getNotificationDisplayApps,
-  getNotificationIconForDetectedApps,
   getNotificationIconForDisplayApp,
 } from "./meeting-apps";
 import { recordDetectedMeetingApps } from "./meeting-source-apps";
@@ -406,10 +405,6 @@ export const useHandleDetectEvents = (store: ListenerStore) => {
                       browserMeetingPlatform,
                     )
                   : null;
-              const notificationIcon = await getNotificationIconForDetectedApps(
-                payload.apps,
-                browserMeetingPlatform,
-              );
               const footer =
                 displayIgnorableApps.length > 0
                   ? {
@@ -451,7 +446,8 @@ export const useHandleDetectEvents = (store: ListenerStore) => {
                 action_variant: null,
                 options: null,
                 footer,
-                icon: notificationIcon,
+                // Fork: only the Upshot logo, as Granola (owner test, Oct 5).
+                icon: null,
               });
             } finally {
               pendingMicDetectedPromptRef.current = false;
