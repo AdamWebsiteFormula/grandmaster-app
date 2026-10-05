@@ -1183,7 +1183,6 @@ msgstr ""
 #: src/calendar/components/apple/permission.tsx
 #: src/folders/folder-editor.tsx
 #: src/imports/screen.tsx
-#: src/main/move-to-applications.ts
 #: src/resource-sharing/library.tsx
 #: src/session-sharing/comments.tsx
 #: src/session/components/folder-picker.tsx
@@ -3160,6 +3159,10 @@ msgstr ""
 msgid "Finish checkout in your browser to unlock more, then return to Upshot."
 msgstr ""
 
+#: src/imports/screen.tsx
+msgid "Finish connecting in your browser."
+msgstr ""
+
 #: src/settings/general/account.tsx
 msgid "Finish in your browser, then return to Upshot."
 msgstr ""
@@ -3606,6 +3609,10 @@ msgstr ""
 
 #: src/session/components/note-input/transcript/screens/empty.tsx
 msgid "Importing audio…"
+msgstr ""
+
+#: src/imports/screen.tsx
+msgid "Importing your meetings…"
 msgstr ""
 
 #: src/settings/imports/index.tsx
@@ -4871,6 +4878,7 @@ msgid "Not invited"
 msgstr ""
 
 #: src/billing/trial-payment-reminder-dialog.tsx
+#: src/main/move-to-applications.ts
 msgid "Not now"
 msgstr ""
 
@@ -8383,7 +8391,6 @@ msgid "Version history"
 msgstr ""
 
 #: src/main/windows-title-bar.tsx
-#: src/session/components/note-input/meta-chips.tsx
 #: src/settings/team/invitation-toast.tsx
 msgid "View"
 msgstr ""

@@ -733,6 +733,51 @@ export function MeetingImportScreen({
                           </Button>
                         )}
                       </div>
+                      {/* Fork: status sits under the row, not in the
+                          collapsed panel, so an import or a failed
+                          connection shows without opening it (Apple HIG
+                          progress indicators; NN/g #1, #9). */}
+                      {error ? (
+                        <p
+                          className="text-destructive -mt-2 px-4 pb-3 pl-15 text-xs"
+                          role="alert"
+                        >
+                          {error.message}
+                        </p>
+                      ) : connecting ? (
+                        <p
+                          className="text-muted-foreground -mt-2 px-4 pb-3 pl-15 text-xs"
+                          role="status"
+                        >
+                          <Trans>Finish connecting in your browser.</Trans>
+                        </p>
+                      ) : (connected && syncQuery?.isFetching) || importing ? (
+                        <p
+                          className="text-muted-foreground -mt-2 flex items-center gap-1.5 px-4 pb-3 pl-15 text-xs"
+                          role="status"
+                        >
+                          <CircleNotch className="size-3 animate-spin" />
+                          <Trans>Importing your meetings…</Trans>
+                        </p>
+                      ) : result ? (
+                        <p
+                          className="text-muted-foreground -mt-2 px-4 pb-3 pl-15 text-xs"
+                          role="status"
+                        >
+                          {result.errors > 0 || result.conflicts > 0 ? (
+                            <Trans>
+                              Imported: {result.imported}. Unchanged:{" "}
+                              {result.matched}. Needs review:{" "}
+                              {result.conflicts}. Failed: {result.errors}.
+                            </Trans>
+                          ) : (
+                            <Trans>
+                              Last import: {result.imported} added,{" "}
+                              {result.matched} unchanged
+                            </Trans>
+                          )}
+                        </p>
+                      ) : null}
                       <AccordionContent className="px-4 pb-4 pl-15">
                         {connected ? (
                           <p className="text-muted-foreground text-xs">
@@ -755,25 +800,6 @@ export function MeetingImportScreen({
                             <Trans>No imports yet.</Trans>
                           </p>
                         ) : null}
-                        {result ? (
-                          <p
-                            className="text-muted-foreground mt-1 text-xs"
-                            role="status"
-                          >
-                            {result.errors > 0 || result.conflicts > 0 ? (
-                              <Trans>
-                                Imported: {result.imported}. Unchanged:{" "}
-                                {result.matched}. Needs review:{" "}
-                                {result.conflicts}. Failed: {result.errors}.
-                              </Trans>
-                            ) : (
-                              <Trans>
-                                Last import: {result.imported} added,{" "}
-                                {result.matched} unchanged
-                              </Trans>
-                            )}
-                          </p>
-                        ) : null}
                         {syncQuery?.data?.warnings.map((warning) => (
                           <p
                             key={warning}
@@ -783,14 +809,6 @@ export function MeetingImportScreen({
                             {warning}
                           </p>
                         ))}
-                        {error ? (
-                          <p
-                            className="text-destructive mt-1 text-xs"
-                            role="alert"
-                          >
-                            {error.message}
-                          </p>
-                        ) : null}
                       </AccordionContent>
                     </AccordionItem>
                   );

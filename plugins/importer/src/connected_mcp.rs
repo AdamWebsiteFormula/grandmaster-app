@@ -458,7 +458,7 @@ async fn receive_authorization_callback(
         Ok(_) => (
             "200 OK",
             format!("{provider_name} connected"),
-            "Your meeting history is being brought into Upshot. You can close this window.",
+            "Return to Upshot to follow the import. You can close this window.",
         ),
         Err(_) => (
             "400 Bad Request",

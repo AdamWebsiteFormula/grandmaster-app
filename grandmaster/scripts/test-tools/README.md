@@ -13,6 +13,7 @@ How the Oct 4 sessions tested every change in the real app before it went on the
 1. Build: `bash grandmaster/scripts/release.sh aarch64` (about 4 minutes).
 2. Install: `bash grandmaster/scripts/test-tools/install.sh ~/grandmaster-release/Upshot_1.0.0_aarch64.dmg`. It quits Upshot, verifies the signature and counts key-shaped strings (must be 0).
 3. Open on a test profile: `bash grandmaster/scripts/test-tools/test-profile.sh`. It copies the real data into a throwaway HOME, so renames, deletes and chats never touch Adam's notes.
+   A HOME override has no keychain: every saved secret fails ("A default keychain could not be found"), so Granola import, other connected imports and voiceprints cannot connect there. A keychain made inside the test HOME does not help (macOS shows "Keychain Not Found"). Test those in a second macOS user.
 4. Drive the app with the computer-use app_* tools (bundle id `com.websiteformula.upshot`): app_list_windows, app_screenshot, app_click by element index, app_type, app_key, app_zoom. They work in the background.
 5. Right-click menus are native menus the app_* tools refuse. Compile the helpers, check that Upshot is the top window at the point, then click with global events:
    - `swiftc -O -o /tmp/topwin topwin.swift && /tmp/topwin <x> <y>` must print Upshot.

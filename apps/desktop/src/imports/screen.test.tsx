@@ -268,6 +268,52 @@ describe("MeetingImportScreen", () => {
     ).toBeTruthy();
   });
 
+  // Fork: Oct 5 test. The browser said "Granola connected" but saving the
+  // access failed; the error sat in the collapsed panel, so the row looked
+  // untouched.
+  it("shows a failed connection in the row without opening it", async () => {
+    mockDetected(["granola"]);
+    mocks.connectConnectedImport.mockRejectedValue(
+      new Error("A default keychain could not be found."),
+    );
+
+    renderImports();
+
+    fireEvent.click(await screen.findByRole("button", { name: "Connect" }));
+
+    expect((await screen.findByRole("alert")).textContent).toBe(
+      "A default keychain could not be found.",
+    );
+  });
+
+  it("shows the import running in the row after connecting", async () => {
+    mockDetected(["granola"]);
+    let resolveConnect!: (value: unknown) => void;
+    mocks.connectConnectedImport.mockReturnValue(
+      new Promise((resolve) => {
+        resolveConnect = resolve;
+      }),
+    );
+
+    renderImports();
+
+    fireEvent.click(await screen.findByRole("button", { name: "Connect" }));
+    expect(
+      await screen.findByText("Finish connecting in your browser."),
+    ).toBeTruthy();
+
+    resolveConnect({
+      providerId: "granola",
+      clientId: "granola-client",
+      tokenJson: "{}",
+    });
+
+    expect(await screen.findByText("Importing your meetings…")).toBeTruthy();
+    expect(
+      await screen.findByText("Last import: 0 added, 0 unchanged"),
+    ).toBeTruthy();
+  });
+
   it("lets the user cancel an abandoned browser connection and retry", async () => {
     mockDetected(["granola"]);
     mocks.connectConnectedImport.mockImplementation(
