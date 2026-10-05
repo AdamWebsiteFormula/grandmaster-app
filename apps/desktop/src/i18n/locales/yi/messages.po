@@ -6787,8 +6787,13 @@ msgstr ""
 #: src/settings/profile/index.tsx
 #: src/settings/sync/index.tsx
 #: src/shared-notes/index.tsx
+#: src/sidebar/settings.tsx
 #: src/sidebar/toast/registry.tsx
 msgid "Sign in"
+msgstr ""
+
+#: src/sidebar/settings.tsx
+msgid "Sign in again to use Upshot AI and transcription."
 msgstr ""
 
 #: src/upshot-plan/upgrade-dialog.tsx
@@ -8640,6 +8645,10 @@ msgstr ""
 
 #: src/session/components/note-input/enhanced/enhance-error.tsx
 msgid "You're signed in"
+msgstr ""
+
+#: src/sidebar/settings.tsx
+msgid "You're signed out"
 msgstr ""
 
 #. placeholder {0}: invitation.workspaceName

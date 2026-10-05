@@ -6787,9 +6787,14 @@ msgstr "Showing total of {0} models."
 #: src/settings/profile/index.tsx
 #: src/settings/sync/index.tsx
 #: src/shared-notes/index.tsx
+#: src/sidebar/settings.tsx
 #: src/sidebar/toast/registry.tsx
 msgid "Sign in"
 msgstr "Sign in"
+
+#: src/sidebar/settings.tsx
+msgid "Sign in again to use Upshot AI and transcription."
+msgstr "Sign in again to use Upshot AI and transcription."
 
 #: src/upshot-plan/upgrade-dialog.tsx
 #~ msgid "Sign in and continue"
@@ -8641,6 +8646,10 @@ msgstr "You're on Upshot Pro"
 #: src/session/components/note-input/enhanced/enhance-error.tsx
 msgid "You're signed in"
 msgstr "You're signed in"
+
+#: src/sidebar/settings.tsx
+msgid "You're signed out"
+msgstr "You're signed out"
 
 #. placeholder {0}: invitation.workspaceName
 #: src/settings/team/invitation-toast.tsx

@@ -41,3 +41,13 @@ Known gap: many work accounts can't consent to an app from an unverified publish
 4. Build from a clean worktree, install, test sign-in and the gates on a test profile in light and dark. Publish Mac, Windows and Linux (Adam's OK).
 5. Worker deploy B: `npx wrangler deploy --var REQUIRE_ACCOUNT:1` (requirement on). Set it explicitly: `keep_vars` in wrangler.jsonc keeps deploy A's `0` otherwise. Then `curl -s -X POST -H "content-type: application/json" -d '{"messages":[{"role":"user","content":"hi"}]}' <Worker>/llm/chat/completions` must answer 401 `sign_in_required`, and a 1.0.0 app must show the download message in chat.
 6. Docs (README, GUIDE, ROADMAP, HOW-I-BUILT-THIS, Skool post, Loom script, live roadmap page).
+
+## Open items (found in Adam's in-app test, Oct 5)
+
+Each has a task chip in the account-requirement session; start it there, or paste the line into a new session.
+
+- [ ] Granola import: the browser says "Granola connected", but onboarding's Granola row still shows Connect (`plugins/importer/src/connected_mcp.rs`, `apps/desktop/src/onboarding/imports.tsx`). Not caused by sign-in.
+- [ ] Calendar step: "No calendars yet" on a fresh profile although Internet Accounts has a Google account with Calendars on (`apps/desktop/src/onboarding/calendar.tsx`). Check the Calendar permission for the new ad-hoc build first.
+- [ ] Microsoft shows "unverified" on its consent screen. Fix: Microsoft publisher verification (free; needs a Partner One ID and a verified domain).
+- [ ] Google's screen names `uexdqfhszkwnguehvxal.supabase.co`. Fix: Supabase custom domain, then Google brand verification.
+- [ ] Microsoft client secret expires Oct 4, 2028. Renew before then.

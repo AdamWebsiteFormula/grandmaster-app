@@ -94,8 +94,23 @@ vi.mock("~/auth/billing-context", () => ({
   }),
 }));
 
+const account = vi.hoisted(() => ({
+  openUpshotSignIn: vi.fn(),
+  signOutUpshot: vi.fn(async () => {}),
+  toastSuccess: vi.fn(),
+}));
+
 vi.mock("~/upshot-plan", () => ({
   useUpshotPlan: () => mocks.upshot,
+  openUpshotSignIn: account.openUpshotSignIn,
+}));
+
+vi.mock("~/upshot-plan/session", () => ({
+  signOutUpshot: account.signOutUpshot,
+}));
+
+vi.mock("@anlg/ui/components/ui/toast", () => ({
+  toast: { success: account.toastSuccess },
 }));
 
 vi.mock("~/auth", () => ({
@@ -216,10 +231,33 @@ describe("SettingsNav", () => {
     expect(screen.getByRole("button", { name: "Sign out" })).toBeTruthy();
   });
 
-  it("hides Sign out when no one is signed in", () => {
+  it("offers Sign in in the same place when no one is signed in", () => {
     render(<SettingsNav />);
 
     expect(screen.queryByRole("button", { name: "Sign out" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    expect(account.openUpshotSignIn).toHaveBeenCalled();
+  });
+
+  // Owner test, Oct 5: signing out needs a visible confirmation.
+  it("confirms the sign-out with a toast", async () => {
+    mocks.upshot = {
+      ...mocks.upshot,
+      isSignedIn: true,
+      email: "judge@example.com",
+    };
+    render(<SettingsNav />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    await vi.waitFor(() =>
+      expect(account.toastSuccess).toHaveBeenCalledWith(
+        "You're signed out",
+        expect.objectContaining({
+          description: "Sign in again to use Upshot AI and transcription.",
+        }),
+      ),
+    );
+    expect(account.signOutUpshot).toHaveBeenCalled();
   });
 
   // Owner test, Oct 4: the plan badge opens Plan, one click to upgrade.

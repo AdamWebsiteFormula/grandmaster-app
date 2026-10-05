@@ -9,6 +9,7 @@ import {
   X,
 } from "@anlg/ui/components/icons";
 import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
 import { CustomSidebarHeader } from "./custom-sidebar-header";
@@ -23,7 +24,7 @@ import { usePersonalContact } from "~/contacts/queries";
 import { scrollToSettingsSection, settingsNavPage } from "~/settings/sections";
 import { useOwnerUserId } from "~/shared/owner-user";
 import { type SettingsTab, useTabs } from "~/store/zustand/tabs";
-import { useUpshotPlan } from "~/upshot-plan";
+import { openUpshotSignIn, useUpshotPlan } from "~/upshot-plan";
 import { signOutUpshot } from "~/upshot-plan/session";
 
 export function SettingsNav() {
@@ -240,22 +241,34 @@ export function SettingsNav() {
       </div>
       {/* Fork: Sign out stays in view at the bottom of Settings, where
           Granola puts it; it was only at the end of Profile (owner test,
-          Oct 4; NN/g #6, recognition rather than recall). */}
-      {isSignedIn ? (
-        <div className="border-border border-t pt-2">
-          <button
-            type="button"
-            data-settings-sign-out
-            onClick={() => void signOutUpshot()}
-            className={cn([
-              "text-destructive hover:bg-sidebar-accent/50 flex w-full items-center gap-2 rounded-full px-3 py-2 text-left text-sm transition-colors",
-              "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset",
-            ])}
-          >
-            <Trans>Sign out</Trans>
-          </button>
-        </div>
-      ) : null}
+          Oct 4; NN/g #6, recognition rather than recall). Signed out, the
+          same place offers Sign in, and a toast confirms the sign-out
+          (owner test, Oct 5; NN/g #1, visibility of system status). */}
+      <div className="border-border border-t pt-2">
+        <button
+          type="button"
+          data-settings-sign-out={isSignedIn ? "" : undefined}
+          onClick={() => {
+            if (!isSignedIn) {
+              openUpshotSignIn();
+              return;
+            }
+            void signOutUpshot().then(() =>
+              toast.success(t`You're signed out`, {
+                id: "upshot-signed-out",
+                description: t`Sign in again to use Upshot AI and transcription.`,
+              }),
+            );
+          }}
+          className={cn([
+            "hover:bg-sidebar-accent/50 flex w-full items-center gap-2 rounded-full px-3 py-2 text-left text-sm transition-colors",
+            isSignedIn ? "text-destructive" : "text-foreground",
+            "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset",
+          ])}
+        >
+          {isSignedIn ? <Trans>Sign out</Trans> : <Trans>Sign in</Trans>}
+        </button>
+      </div>
     </div>
   );
 }
