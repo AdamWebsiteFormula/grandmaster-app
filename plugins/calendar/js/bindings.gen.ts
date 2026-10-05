@@ -9,6 +9,14 @@ export const commands = {
 async availableProviders() : Promise<CalendarProviderType[]> {
     return await TAURI_INVOKE("plugin:calendar|available_providers");
 },
+/**
+ * Fork: the Upshot account's Worker and session token, set by the app before
+ * each sync, so Google and Outlook calendars come from the sign-in
+ * (grandmaster/sops/calendar-from-sign-in.md). `None` clears it on sign-out.
+ */
+async setCloudSession(session: CloudSession | null) : Promise<void> {
+    await TAURI_INVOKE("plugin:calendar|set_cloud_session", { session });
+},
 async isProviderEnabled(provider: CalendarProviderType) : Promise<Result<boolean, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:calendar|is_provider_enabled", { provider }) };
@@ -269,6 +277,10 @@ raw: string }
 export type CalendarInventoryConnection = { connection_id: string; calendars: CalendarListItem[] }
 export type CalendarListItem = { provider: CalendarProviderType; id: string; title: string; source: string | null; color: string | null; is_primary: boolean | null; can_edit: boolean | null; raw: string }
 export type CalendarProviderType = "apple" | "google" | "outlook"
+/**
+ * Fork: where Google and Outlook calendars come from when signed in to Upshot.
+ */
+export type CloudSession = { api_base_url: string; access_token: string }
 export type ContactKind = "human" | "organization"
 export type CreateEventInput = { calendar_tracking_id: string; title: string; started_at: string; ended_at: string; is_all_day: boolean | null; location: string | null; notes: string | null; url: string | null }
 export type CreateHumanRequest = { id: string; owner_user_id: string; name: string; email: string }

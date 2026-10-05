@@ -3,6 +3,12 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 const pluginCalendar = vi.hoisted(() => ({
   listConnectionIds: vi.fn(),
   listCalendars: vi.fn(),
+  setCloudSession: vi.fn(),
+}));
+
+const upshot = vi.hoisted(() => ({
+  getUpshotAccessToken: vi.fn(),
+  upshotWorkerOrigin: vi.fn(),
 }));
 
 const storage = vi.hoisted(() => ({
@@ -18,8 +24,10 @@ vi.mock("@anlg/plugin-calendar", () => ({
   commands: {
     listConnectionIds: pluginCalendar.listConnectionIds,
     listCalendars: pluginCalendar.listCalendars,
+    setCloudSession: pluginCalendar.setCloudSession,
   },
 }));
+vi.mock("~/upshot-plan/session", () => upshot);
 
 vi.mock("./storage", () => storage);
 vi.mock("~/db/write-queue", () => writeQueue);
@@ -74,6 +82,42 @@ describe("calendar sync context", () => {
 
     expect(ctx.from).toBe(range.from);
     expect(ctx.to).toBe(range.to);
+  });
+
+  test("hands the Upshot Worker and token to the calendar plugin before discovery", async () => {
+    upshot.upshotWorkerOrigin.mockReturnValue("https://ai.example.com");
+    upshot.getUpshotAccessToken.mockResolvedValue("upshot-token");
+    pluginCalendar.listConnectionIds.mockResolvedValue({
+      status: "ok",
+      data: [],
+    });
+
+    await getProviderConnections();
+
+    expect(pluginCalendar.setCloudSession).toHaveBeenCalledWith({
+      api_base_url: "https://ai.example.com",
+      access_token: "upshot-token",
+    });
+    expect(
+      pluginCalendar.setCloudSession.mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      pluginCalendar.listConnectionIds.mock.invocationCallOrder[0],
+    );
+  });
+
+  test("clears the cloud session when signed out or the refresh fails", async () => {
+    upshot.upshotWorkerOrigin.mockReturnValue("https://ai.example.com");
+    pluginCalendar.listConnectionIds.mockResolvedValue({
+      status: "ok",
+      data: [],
+    });
+
+    upshot.getUpshotAccessToken.mockResolvedValue(null);
+    await getProviderConnections();
+    upshot.getUpshotAccessToken.mockRejectedValue(new Error("offline"));
+    await getProviderConnections();
+
+    expect(pluginCalendar.setCloudSession.mock.calls).toEqual([[null], [null]]);
   });
 
   test("surfaces connection discovery errors", async () => {

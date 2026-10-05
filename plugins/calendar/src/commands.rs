@@ -14,19 +14,46 @@ pub fn available_providers() -> Vec<CalendarProviderType> {
     anlg_calendar::available_providers()
 }
 
+/// Fork: the Upshot account's Worker and session token, set by the app before
+/// each sync, so Google and Outlook calendars come from the sign-in
+/// (grandmaster/sops/calendar-from-sign-in.md). `None` clears it on sign-out.
+#[tauri::command]
+#[specta::specta]
+pub fn set_cloud_session<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    session: Option<crate::CloudSession>,
+) {
+    let config = app.state::<crate::PluginConfig>();
+    *config.cloud.lock().unwrap_or_else(|e| e.into_inner()) =
+        session.filter(|s| !s.api_base_url.is_empty() && !s.access_token.is_empty());
+}
+
+fn cloud_session<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Option<crate::CloudSession> {
+    let config = app.state::<crate::PluginConfig>();
+    let cloud = config.cloud.lock().unwrap_or_else(|e| e.into_inner());
+    cloud.clone()
+}
+
+fn api_base_url<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> String {
+    cloud_session(app).map_or_else(
+        || app.state::<crate::PluginConfig>().api_base_url.clone(),
+        |s| s.api_base_url,
+    )
+}
+
 #[tauri::command]
 #[specta::specta]
 pub async fn is_provider_enabled<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     provider: CalendarProviderType,
 ) -> Result<bool, Error> {
-    let config = app.state::<crate::PluginConfig>();
+    let api_base_url = api_base_url(&app);
     let token = match provider {
         CalendarProviderType::Apple => None,
         _ => access_token(&app)?,
     };
     let apple = is_apple_authorized(&app).await?;
-    anlg_calendar::is_provider_enabled(&config.api_base_url, token.as_deref(), apple, provider)
+    anlg_calendar::is_provider_enabled(&api_base_url, token.as_deref(), apple, provider)
         .await
         .map_err(Into::into)
 }
@@ -36,10 +63,10 @@ pub async fn is_provider_enabled<R: tauri::Runtime>(
 pub async fn list_connection_ids<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Vec<anlg_calendar::ProviderConnectionIds>, Error> {
-    let config = app.state::<crate::PluginConfig>();
+    let api_base_url = api_base_url(&app);
     let token = access_token(&app)?;
     let apple = is_apple_authorized(&app).await?;
-    anlg_calendar::list_connection_ids(&config.api_base_url, token.as_deref(), apple)
+    anlg_calendar::list_connection_ids(&api_base_url, token.as_deref(), apple)
         .await
         .map_err(Into::into)
 }
@@ -51,12 +78,12 @@ pub async fn list_calendars<R: tauri::Runtime>(
     provider: CalendarProviderType,
     connection_id: String,
 ) -> Result<Vec<CalendarListItem>, Error> {
-    let config = app.state::<crate::PluginConfig>();
+    let api_base_url = api_base_url(&app);
     let token = match provider {
         CalendarProviderType::Apple => String::new(),
         _ => require_access_token(&app)?,
     };
-    anlg_calendar::list_calendars(&config.api_base_url, &token, provider, &connection_id)
+    anlg_calendar::list_calendars(&api_base_url, &token, provider, &connection_id)
         .await
         .map_err(Into::into)
 }
@@ -69,20 +96,14 @@ pub async fn list_events<R: tauri::Runtime>(
     connection_id: String,
     filter: EventFilter,
 ) -> Result<Vec<CalendarEvent>, Error> {
-    let config = app.state::<crate::PluginConfig>();
+    let api_base_url = api_base_url(&app);
     let token = match provider {
         CalendarProviderType::Apple => String::new(),
         _ => require_access_token(&app)?,
     };
-    anlg_calendar::list_events(
-        &config.api_base_url,
-        &token,
-        provider,
-        &connection_id,
-        filter,
-    )
-    .await
-    .map_err(Into::into)
+    anlg_calendar::list_events(&api_base_url, &token, provider, &connection_id, filter)
+        .await
+        .map_err(Into::into)
 }
 
 #[tauri::command]
@@ -184,6 +205,9 @@ contacts_command!(
 );
 
 fn access_token<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<Option<String>, Error> {
+    if let Some(session) = cloud_session(app) {
+        return Ok(Some(session.access_token));
+    }
     app.access_token()
         .map(|token| token.filter(|token| !token.is_empty()))
         .map_err(|error| Error::Auth(error.to_string()))

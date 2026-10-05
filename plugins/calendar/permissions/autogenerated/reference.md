@@ -5,6 +5,7 @@ Default permissions for the plugin
 #### This default permission set includes the following:
 
 - `allow-available-providers`
+- `allow-set-cloud-session`
 - `allow-is-provider-enabled`
 - `allow-list-connection-ids`
 - `allow-list-calendars`
@@ -424,6 +425,32 @@ Enables the set_calendar_enabled command without any pre-configured scope.
 <td>
 
 Denies the set_calendar_enabled command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`calendar:allow-set-cloud-session`
+
+</td>
+<td>
+
+Enables the set_cloud_session command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`calendar:deny-set-cloud-session`
+
+</td>
+<td>
+
+Denies the set_cloud_session command without any pre-configured scope.
 
 </td>
 </tr>

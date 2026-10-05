@@ -11,6 +11,14 @@ pub use events::*;
 
 pub(crate) struct PluginConfig {
     pub api_base_url: String,
+    pub cloud: std::sync::Mutex<Option<CloudSession>>,
+}
+
+/// Fork: where Google and Outlook calendars come from when signed in to Upshot.
+#[derive(Debug, Clone, serde::Deserialize, specta::Type)]
+pub struct CloudSession {
+    pub api_base_url: String,
+    pub access_token: String,
 }
 
 const PLUGIN_NAME: &str = "calendar";
@@ -20,6 +28,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::available_providers,
+            commands::set_cloud_session::<tauri::Wry>,
             commands::is_provider_enabled::<tauri::Wry>,
             commands::list_connection_ids::<tauri::Wry>,
             commands::list_calendars::<tauri::Wry>,
@@ -60,7 +69,10 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             anlg_calendar::start(runtime::TauriCalendarRuntime(app.app_handle().clone()));
 
             use tauri::Manager;
-            app.manage(PluginConfig { api_base_url });
+            app.manage(PluginConfig {
+                api_base_url,
+                cloud: Default::default(),
+            });
             Ok(())
         })
         .build()

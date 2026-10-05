@@ -1,5 +1,6 @@
 const COMMANDS: &[&str] = &[
     "available_providers",
+    "set_cloud_session",
     "is_provider_enabled",
     "list_connection_ids",
     "list_calendars",

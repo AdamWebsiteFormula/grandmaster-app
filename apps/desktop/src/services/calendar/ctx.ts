@@ -8,6 +8,10 @@ import type {
 import { applyCalendarInventory, loadEnabledCalendars } from "./storage";
 
 import { enqueueDatabaseWrite } from "~/db/write-queue";
+import {
+  getUpshotAccessToken,
+  upshotWorkerOrigin,
+} from "~/upshot-plan/session";
 
 export interface Ctx {
   provider: CalendarProviderType;
@@ -54,9 +58,21 @@ export async function createCtx(
   };
 }
 
+// Fork: Google and Outlook calendars come from the Upshot sign-in through the
+// Worker (grandmaster/sops/calendar-from-sign-in.md). Signed out or offline,
+// only calendars on this Mac sync.
+async function setCloudSession(): Promise<void> {
+  const origin = upshotWorkerOrigin();
+  const token = origin ? await getUpshotAccessToken().catch(() => null) : null;
+  await calendarCommands.setCloudSession(
+    origin && token ? { api_base_url: origin, access_token: token } : null,
+  );
+}
+
 export async function getProviderConnections(): Promise<
   ProviderConnectionIds[]
 > {
+  await setCloudSession();
   const result = await calendarCommands.listConnectionIds();
   if (result.status === "error") {
     throw new Error(`Failed to discover calendar connections: ${result.error}`);
