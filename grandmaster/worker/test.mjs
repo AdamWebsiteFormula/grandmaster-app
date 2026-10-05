@@ -13,6 +13,11 @@ import {
   verifyStripeSignature,
 } from "./src/billing.js";
 import { clearAccountCacheForTests } from "./src/auth.js";
+import {
+  clearCalendarCacheForTests,
+  decryptToken,
+  encryptToken,
+} from "./src/calendar.js";
 import worker from "./src/index.js";
 import {
   AUTO_MODEL,
@@ -1823,6 +1828,302 @@ test("oauth exchange: the code and verifier go to Supabase's PKCE token grant", 
     const bad = await exchange("stale-code-456");
     assert.equal(bad.status, 400);
     assert.equal((await bad.json()).error.message, "Sign-in didn't finish. Try again.");
+  } finally {
+    mock.restore();
+  }
+});
+
+// ---------- Calendar through the Upshot account (calendar.js) ----------
+
+const CAL_KEY = Buffer.from(new Uint8Array(32).fill(7)).toString("base64");
+const calendarEnv = {
+  ...accountEnv,
+  SUPABASE_SECRET_KEY: "sb_secret_test",
+  CALENDAR_TOKEN_KEY: CAL_KEY,
+  GOOGLE_CLIENT_ID: "g-client",
+  GOOGLE_CLIENT_SECRET: "g-secret",
+  MICROSOFT_CLIENT_ID: "m-client",
+  MICROSOFT_CLIENT_SECRET: "m-secret",
+};
+
+function calendarFetch(rows, extra = []) {
+  return mockFetch([
+    ["https://sb.test/auth/v1/user", supabaseUser],
+    [
+      "https://sb.test/rest/v1/calendar_connections",
+      (url, init) => {
+        if ((init.method ?? "GET") === "GET") return Response.json(rows);
+        if (init.method === "POST") rows.push(JSON.parse(init.body));
+        return new Response(null, { status: 204 });
+      },
+    ],
+    ...extra,
+  ]);
+}
+
+const calendarPost = (path, body) =>
+  worker.fetch(
+    new Request(`https://w${path}`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${GOOGLE_TOKEN}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(body),
+    }),
+    calendarEnv,
+  );
+
+test("calendar: refresh tokens are stored encrypted and round-trip", async () => {
+  const sealed = await encryptToken(calendarEnv, "1//refresh-secret");
+  assert.ok(!sealed.includes("refresh-secret"));
+  assert.equal(await decryptToken(calendarEnv, sealed), "1//refresh-secret");
+  assert.notEqual(await encryptToken(calendarEnv, "1//refresh-secret"), sealed);
+});
+
+test("calendar: routes need the Upshot session", async () => {
+  clearAccountCacheForTests();
+  const mock = calendarFetch([]);
+  try {
+    const response = await worker.fetch(
+      new Request("https://w/nango/connections"),
+      calendarEnv,
+    );
+    assert.equal(response.status, 401);
+  } finally {
+    mock.restore();
+  }
+});
+
+test("calendar: connections list the stored providers in the upstream shape", async () => {
+  clearAccountCacheForTests();
+  const rows = [
+    { provider: "google", refresh_token: "x", email: "pat@example.com" },
+    { provider: "azure", refresh_token: "y", email: "pat@example.com" },
+  ];
+  const mock = calendarFetch(rows);
+  try {
+    const response = await worker.fetch(
+      new Request("https://w/nango/connections", {
+        headers: { authorization: `Bearer ${GOOGLE_TOKEN}` },
+      }),
+      calendarEnv,
+    );
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), {
+      connections: [
+        { integration_id: "google-calendar", connection_id: "google-calendar" },
+        { integration_id: "outlook", connection_id: "outlook" },
+      ],
+    });
+    const rowRead = mock.calls.find((c) => c.url.includes("calendar_connections"));
+    assert.match(rowRead.url, /user_id=eq\.u-google/);
+    assert.equal(rowRead.init.headers.apikey, "sb_secret_test");
+  } finally {
+    mock.restore();
+  }
+});
+
+test("calendar: Google events go to the Calendar API with a refreshed token and mapped params", async () => {
+  clearAccountCacheForTests();
+  clearCalendarCacheForTests();
+  const rows = [
+    {
+      provider: "google",
+      refresh_token: await encryptToken(calendarEnv, "1//g-refresh"),
+      email: "pat@example.com",
+    },
+  ];
+  let refreshBody;
+  const mock = calendarFetch(rows, [
+    [
+      "https://oauth2.googleapis.com/token",
+      (url, init) => {
+        refreshBody = new URLSearchParams(init.body);
+        return Response.json({ access_token: "g-access", expires_in: 3600 });
+      },
+    ],
+    [
+      "https://www.googleapis.com/calendar/v3/",
+      () => Response.json({ kind: "calendar#events", items: [{ id: "e1" }] }),
+    ],
+  ]);
+  try {
+    const response = await calendarPost("/calendar/google/list-events", {
+      connection_id: "google-calendar",
+      calendar_id: "primary",
+      time_min: "2026-10-05T00:00:00Z",
+      time_max: "2026-10-12T00:00:00Z",
+      max_results: 250,
+      single_events: true,
+      order_by: "startTime",
+    });
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).items[0].id, "e1");
+    assert.equal(refreshBody.get("refresh_token"), "1//g-refresh");
+    assert.equal(refreshBody.get("client_secret"), "g-secret");
+    const api = mock.calls.find((c) => c.url.startsWith("https://www.googleapis.com/"));
+    const url = new URL(api.url);
+    assert.equal(url.pathname, "/calendar/v3/calendars/primary/events");
+    assert.equal(url.searchParams.get("timeMin"), "2026-10-05T00:00:00Z");
+    assert.equal(url.searchParams.get("singleEvents"), "true");
+    assert.equal(url.searchParams.get("orderBy"), "startTime");
+    assert.equal(url.searchParams.get("maxResults"), "250");
+    assert.equal(api.init.headers.authorization, "Bearer g-access");
+  } finally {
+    mock.restore();
+  }
+});
+
+test("calendar: Outlook uses calendarView with a time window, and keeps a rotated refresh token", async () => {
+  clearAccountCacheForTests();
+  clearCalendarCacheForTests();
+  const rows = [
+    {
+      provider: "azure",
+      refresh_token: await encryptToken(calendarEnv, "m-refresh-1"),
+      email: "pat@example.com",
+    },
+  ];
+  const mock = calendarFetch(rows, [
+    [
+      "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+      () =>
+        Response.json({
+          access_token: "m-access",
+          refresh_token: "m-refresh-2",
+          expires_in: 3600,
+        }),
+    ],
+    ["https://graph.microsoft.com/", () => Response.json({ value: [] })],
+  ]);
+  try {
+    const response = await calendarPost("/calendar/outlook/list-events", {
+      connection_id: "outlook",
+      calendar_id: "AAMk==",
+      time_min: "2026-10-05T00:00:00Z",
+      time_max: "2026-10-12T00:00:00Z",
+      max_results: 50,
+      order_by: "startTime",
+    });
+    assert.equal(response.status, 200);
+    const api = mock.calls.find((c) => c.url.startsWith("https://graph.microsoft.com/"));
+    assert.match(api.url, /\/me\/calendars\/AAMk%3D%3D\/calendarView\?startDateTime=/);
+    assert.match(api.url, /\$top=50/);
+    assert.match(api.url, /\$orderby=start%2FdateTime/);
+    const saved = rows.at(-1);
+    assert.equal(saved.provider, "azure");
+    assert.equal(await decryptToken(calendarEnv, saved.refresh_token), "m-refresh-2");
+  } finally {
+    mock.restore();
+  }
+});
+
+test("calendar: a revoked grant is 424 and the stored token is removed", async () => {
+  clearAccountCacheForTests();
+  clearCalendarCacheForTests();
+  const rows = [
+    {
+      provider: "google",
+      refresh_token: await encryptToken(calendarEnv, "1//revoked"),
+      email: null,
+    },
+  ];
+  const mock = calendarFetch(rows, [
+    [
+      "https://oauth2.googleapis.com/token",
+      () => Response.json({ error: "invalid_grant" }, { status: 400 }),
+    ],
+  ]);
+  try {
+    const response = await calendarPost("/calendar/google/list-calendars", {
+      connection_id: "google-calendar",
+    });
+    assert.equal(response.status, 424);
+    assert.equal((await response.json()).error.code, "calendar_reconnect");
+    assert.ok(mock.calls.some((c) => c.init?.method === "DELETE"));
+  } finally {
+    mock.restore();
+  }
+});
+
+test("calendar: bad input and mismatched connections are refused", async () => {
+  clearAccountCacheForTests();
+  const mock = calendarFetch([]);
+  try {
+    for (const [path, body] of [
+      ["/calendar/google/list-calendars", { connection_id: "outlook" }],
+      ["/calendar/google/list-events", { connection_id: "google-calendar" }],
+      ["/calendar/google/list-events", { connection_id: "google-calendar", calendar_id: "primary", time_min: "yesterday" }],
+      ["/calendar/outlook/list-events", { connection_id: "outlook", calendar_id: "x", order_by: "drop table" }],
+    ]) {
+      assert.equal((await calendarPost(path, body)).status, 400, path);
+    }
+  } finally {
+    mock.restore();
+  }
+});
+
+test("oauth: calendar=1 asks for read-only calendar access with a refresh token", async () => {
+  const challenge = "a".repeat(43);
+  const redirect = encodeURIComponent("http://127.0.0.1:51234/auth/callback");
+  const start = async (provider, extra = "") =>
+    new URL(
+      (
+        await worker.fetch(
+          new Request(
+            `https://w/auth/oauth/start?provider=${provider}&code_challenge=${challenge}&redirect_to=${redirect}${extra}`,
+          ),
+          accountEnv,
+        )
+      ).headers.get("location"),
+    ).searchParams;
+  const google = await start("google", "&calendar=1");
+  assert.equal(google.get("scopes"), "https://www.googleapis.com/auth/calendar.readonly");
+  assert.equal(google.get("access_type"), "offline");
+  assert.equal(google.get("prompt"), "consent");
+  assert.equal(google.get("include_granted_scopes"), "true");
+  assert.equal((await start("azure", "&calendar=1")).get("scopes"), "email offline_access Calendars.Read");
+  const plain = await start("google");
+  assert.equal(plain.get("scopes"), null);
+  assert.equal(plain.get("access_type"), null);
+});
+
+test("oauth exchange: a calendar grant keeps the refresh token server side only", async () => {
+  const rows = [];
+  const mock = calendarFetch(rows, [
+    [
+      "https://sb.test/auth/v1/token?grant_type=pkce",
+      () =>
+        Response.json({
+          access_token: "access",
+          refresh_token: "refresh",
+          expires_in: 3600,
+          provider_token: "g-access",
+          provider_refresh_token: "1//g-refresh",
+          user: { id: "u-google", email: "pat@example.com" },
+        }),
+    ],
+  ]);
+  const exchange = (extra) =>
+    worker.fetch(
+      new Request("https://w/auth/oauth/exchange", {
+        method: "POST",
+        body: JSON.stringify({ code: "good-code-123", code_verifier: "v".repeat(43), ...extra }),
+      }),
+      calendarEnv,
+    );
+  try {
+    const signIn = await exchange({ provider: "google" });
+    assert.equal(rows.length, 0, "plain sign-in stores nothing");
+    const connect = await exchange({ provider: "google", calendar: true });
+    const session = await connect.json();
+    assert.equal(signIn.status, 200);
+    assert.ok(!JSON.stringify(session).includes("1//g-refresh"));
+    assert.ok(!("provider_refresh_token" in session));
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].user_id, "u-google");
+    assert.equal(await decryptToken(calendarEnv, rows[0].refresh_token), "1//g-refresh");
   } finally {
     mock.restore();
   }

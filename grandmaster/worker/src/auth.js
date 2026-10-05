@@ -13,6 +13,10 @@
 // apikey = publishable key and Authorization: Bearer <access token>.
 
 import {
+  MICROSOFT_CALENDAR_SCOPES,
+  saveCalendarConnection,
+} from "./calendar.js";
+import {
   bearerToken,
   json,
   ok,
@@ -112,6 +116,7 @@ const USE_GOOGLE_OR_MICROSOFT = `Upshot now signs in with Google or Microsoft. D
 const NOT_FINISHED = "Sign-in didn't finish. Try again.";
 
 const OAUTH_PROVIDERS = new Set(["google", "azure"]);
+const GOOGLE_CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar.readonly";
 // RFC 7636 §4.2: base64url of a SHA-256 hash is 43 characters.
 const CODE_CHALLENGE = /^[A-Za-z0-9_-]{43,128}$/;
 const CODE_VERIFIER = /^[A-Za-z0-9._~-]{43,128}$/;
@@ -142,7 +147,24 @@ export async function handleOAuthStart(request, env, url) {
   target.searchParams.set("code_challenge_method", "s256");
   // Microsoft needs the email scope for Supabase to read the address
   // (supabase.com/docs/guides/auth/social-login/auth-azure).
-  if (provider === "azure") target.searchParams.set("scopes", "email");
+  // calendar=1 also asks to read the calendar, with a refresh token the
+  // Worker keeps (calendar.js). Google needs access_type=offline and
+  // prompt=consent for that (supabase.com/docs/guides/auth/social-login/
+  // auth-google, "Saving Google tokens").
+  const calendar = url.searchParams.get("calendar") === "1";
+  if (provider === "azure") {
+    target.searchParams.set(
+      "scopes",
+      calendar ? `email ${MICROSOFT_CALENDAR_SCOPES}` : "email",
+    );
+  } else if (calendar) {
+    target.searchParams.set("scopes", GOOGLE_CALENDAR_SCOPE);
+    target.searchParams.set("access_type", "offline");
+    target.searchParams.set("prompt", "consent");
+    // Keep the sign-in scopes granted earlier (incremental authorization:
+    // developers.google.com/identity/protocols/oauth2/web-server#incrementalAuth).
+    target.searchParams.set("include_granted_scopes", "true");
+  }
   return new Response(null, {
     status: 302,
     headers: { location: target.toString(), "cache-control": "no-store" },
@@ -172,6 +194,22 @@ export async function handleOAuthExchange(request, env) {
   if (!response.ok || !body.access_token) {
     if (response.status === 429) return json(429, TOO_MANY);
     return json(400, NOT_FINISHED);
+  }
+  // The calendar's refresh token stays here; the app never sees it.
+  const provider = input.provider;
+  if (
+    input.calendar === true &&
+    typeof body.provider_refresh_token === "string" &&
+    body.provider_refresh_token &&
+    OAUTH_PROVIDERS.has(provider) &&
+    body.user?.id
+  ) {
+    await saveCalendarConnection(env, {
+      userId: body.user.id,
+      provider,
+      email: body.user.email ?? null,
+      refreshToken: body.provider_refresh_token,
+    });
   }
   return ok(sessionPayload(body));
 }

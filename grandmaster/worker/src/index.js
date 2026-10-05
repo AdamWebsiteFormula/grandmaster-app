@@ -21,6 +21,7 @@ import {
   signInRequired,
 } from "./auth.js";
 import { handleBilling, handleDeleteAccount } from "./billing.js";
+import { handleCalendar } from "./calendar.js";
 import { json, userRateLimited } from "./http.js";
 import { handleStt } from "./stt.js";
 import {
@@ -74,6 +75,14 @@ export default {
     // Fork: account deletion (journey-account-settings P3).
     if (request.method === "POST" && url.pathname === "/account/delete") {
       return handleDeleteAccount(request, env);
+    }
+    // Fork: Google Calendar and Outlook through the Upshot account
+    // (calendar.js; grandmaster/sops/calendar-from-sign-in.md).
+    if (
+      url.pathname === "/nango/connections" ||
+      url.pathname.startsWith("/calendar/")
+    ) {
+      return handleCalendar(request, env, url.pathname);
     }
     if (url.pathname.startsWith("/billing/")) {
       return handleBilling(request, env, url.pathname);
