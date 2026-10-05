@@ -64,6 +64,9 @@ Sizes: S is up to a day, M is 2 to 5 days, L is 1 to 3 weeks, XL is more than 3 
 | Video recording, kept on your computer, free | L |
 | Cloud video storage for Pro, 10 GB per person (as Zoom Pro) | M |
 | A monthly cloud transcription limit (Pro 1,200 minutes, Free less); on-device transcription stays unlimited | S |
+| Automatic updates, so fixes arrive without a new download | M |
+| Save every note as plain Markdown files in a folder you pick, such as an Obsidian vault | S |
+| Your own actions: drop a prompt file in a folder and it becomes a one-click action on any note | M |
 
 ### Phase 3: Calendar, email and accounts
 
