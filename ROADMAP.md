@@ -60,6 +60,9 @@ Sizes: S is up to a day, M is 2 to 5 days, L is 1 to 3 weeks, XL is more than 3 
 | People and companies, with chat about a person | M |
 | Subfolders, pre-meeting briefs and transcript auto-delete | M |
 | Speaker names from Zoom, Meet and Teams | L |
+| Video recording, kept on your computer, free | L |
+| Cloud video storage for Pro, 10 GB per person (as Zoom Pro) | M |
+| A monthly cloud transcription limit (Pro 1,200 minutes, Free less); on-device transcription stays unlimited | S |
 
 ### Phase 3: Calendar, email and accounts
 
