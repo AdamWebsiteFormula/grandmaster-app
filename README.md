@@ -46,7 +46,6 @@ Built in about three days with Claude Code, using the B.L.A.S.T. method: a bluep
 - **Chat.** Ask from the Home composer, the Chat page (recents and recipes) or inside a note ("Say more", "Turn into an email"). **Draft follow-up email** sits in the note's bottom bar.
 - **Find and organize.** Folders, ⌘K (Ctrl+K) search across note contents, and locked notes that stay private: never sent to chat, MCP or export until you unlock them.
 - **Imports your Granola meetings** through Granola's official MCP connection (you sign in to Granola; no Upshot account needed).
-- **Answers questions about your meetings inside Glaido** (Mac) and other AI tools (built-in MCP server).
 - **Looks good everywhere.** Black and orange, Bricolage Grotesque titles with Geist text, Light, Dark or match your system (the default), and Settings in 8 pages.
 
 ## Pro
