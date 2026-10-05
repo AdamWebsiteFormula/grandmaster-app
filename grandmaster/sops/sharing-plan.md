@@ -248,7 +248,7 @@ Coordination: `sidebar/index.tsx` and the template files have uncommitted edits 
 
 | # | Step | Who | Size | Starts after |
 |---|---|---|---|---|
-| 1a.1 | Accounts: web address, email sender (DNS records, SMTP settings in Supabase), Google OAuth client (basic scopes only), Microsoft Entra app (work and personal accounts), redirect URLs in Supabase › Auth. Claude gives one step per message | Adam | S | decisions 1 to 3 |
+| 1a.1 | Accounts: web address, email sender (DNS records, SMTP settings in Supabase), Google OAuth client (basic scopes only), Microsoft Entra app (work and personal accounts), redirect URLs in Supabase › Auth. Claude gives one step per message | Adam | S | now (the domain comes first) |
 | 1a.2 | Database: save `subscriptions` as migration 0; port the 1a tables and functions; RLS trigger and tests; no Pro gate; apply to `upshot`; advisors clean | Claude | M | now |
 | 1a.3 | App: the Share popover from `session-sharing/` inside today's Share menu; supabase-js through the Worker; `upshot` scheme; personal workspace mirror; Pro gates off; comments, attachments, recaps and web editing stay hidden | Claude | M | 1a.2 |
 | 1a.4 | App: "Shared with me" in the sidebar, from `shared-notes/` and `sidebar/shared-notes.tsx`; offline cache; check at start, on focus and every 5 minutes (a 60-second pull would pass the Workers free limit at about 200 users) | Claude | S | 1a.3 |
@@ -294,7 +294,7 @@ Usage estimates. Assumptions are in brackets.
 
 | Monthly | Launch (up to 1,000 sharers) | 10,000 sharers |
 |---|---|---|
-| Supabase | $0 (Free), or $25 (Pro, recommended before 1b) | $25 |
+| Supabase | $0 (Free) until 1b, then $25 (Pro) | $25 |
 | Cloudflare Workers | $0, then $5 near 1,000 daily users | about $11 (29 million requests) |
 | Email (Resend) | $0 | $20 |
 | Web address | about $1 | about $1 |
@@ -302,20 +302,12 @@ Usage estimates. Assumptions are in brackets.
 
 AI and transcription costs are separate; the spend guard covers them. Sharing adds no AI cost in 1a and 1b.
 
-## 10. Decisions for Adam
+## 10. Decisions (Adam, Oct 4)
 
-1. Email sender.
-   - Resend (recommended): generally available. $0 up to 3,000 emails a month (100 a day). SMTP for Supabase Auth. Works with any DNS host.
-   - Cloudflare Email Service: same account as the Worker, and cheaper at volume ($0.35 per 1,000). But it is in public beta and needs Workers Paid.
-2. Web address for links and email.
-   - Buy an Upshot domain (recommended): email needs a verified sending domain, Microsoft publisher verification needs a verified domain, and links look like Upshot's. About $10 to $12 a year.
-   - Keep `upshot-ai.adam-694.workers.dev`: free, but no domain to send email from, and every link shows "adam-694".
-3. Supabase plan.
-   - Pro before 1b ships (recommended): daily backups, leaked-password protection, spend cap on by default. Move `upshot` to its own organization first, so `rascal-rally` does not add about $10 a month.
-   - Stay on Free: $0, but no backups, and the project pauses after a week without use.
-4. Email to people who do not use Upshot yet.
-   - Put the summary in the email, as Granola does (recommended). No web sign-in is needed in 1a, and owners can already send notes by email today.
-   - Send only a link. The note stays behind sign-in, but web sign-in moves from 1b into 1a (one more M).
+1. Email sender: Resend. It is generally available, costs $0 up to 3,000 emails a month (100 a day), and gives SMTP for Supabase Auth. Cloudflare Email Service was the other option; it is in public beta and needs Workers Paid.
+2. Web address: Adam buys an Upshot domain. Email needs a verified sending domain, Microsoft publisher verification needs a verified domain, and links look like Upshot's. The free `upshot-ai.adam-694.workers.dev` cannot send email and shows "adam-694" in every link.
+3. Supabase: Pro before 1b ships, for daily backups, leaked-password protection and the default spend cap. `upshot` moves to its own organization first, so `rascal-rally` adds no compute cost (about $10 a month).
+4. Email to people who do not use Upshot yet: the summary goes in the email, as Granola does. Web sign-in stays in 1b. A link-only email would have moved web sign-in into 1a.
 
 ## 11. How we test it
 
