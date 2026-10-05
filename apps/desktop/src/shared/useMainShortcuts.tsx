@@ -22,10 +22,24 @@ export function useMainShortcuts() {
   chatRef.current = chat;
 
   useMountEffect(() => {
+    // Fork: one Esc press is one step back, as the Back button is. In the
+    // app, one press reached this listener up to 19 times before its keyup
+    // (in-app trace, Oct 4), so Esc in Settings went back past the note to
+    // Home (Apple HIG, Keyboards: Esc dismisses the current view; NN/g #3).
+    let escapeDown = false;
+    const releaseEscape = (event: Event) => {
+      if (!(event instanceof KeyboardEvent) || event.key === "Escape") {
+        escapeDown = false;
+      }
+    };
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") {
         return;
       }
+      if (escapeDown || event.repeat) {
+        return;
+      }
+      escapeDown = true;
 
       const escapeContext = getEscapeShortcutContext(event.target);
       const hadOpenChat = chatRef.current.mode !== "FloatingClosed";
@@ -45,8 +59,12 @@ export function useMainShortcuts() {
     };
 
     window.addEventListener("keydown", handleKeyDown, { capture: true });
+    window.addEventListener("keyup", releaseEscape, { capture: true });
+    window.addEventListener("blur", releaseEscape);
     return () => {
       window.removeEventListener("keydown", handleKeyDown, { capture: true });
+      window.removeEventListener("keyup", releaseEscape, { capture: true });
+      window.removeEventListener("blur", releaseEscape);
     };
   });
 

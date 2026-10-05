@@ -81,8 +81,11 @@ function SettingsWithShortcuts() {
 const search = () =>
   screen.getByRole<HTMLInputElement>("textbox", { name: "Search settings" });
 
-async function pressEscape(target: HTMLElement) {
-  fireEvent.keyDown(target, { key: "Escape" });
+async function pressEscape(target: HTMLElement, keyDowns = 1) {
+  for (let i = 0; i < keyDowns; i += 1) {
+    fireEvent.keyDown(target, { key: "Escape" });
+  }
+  fireEvent.keyUp(target, { key: "Escape" });
   // The main Escape shortcut runs on the next tick.
   await act(async () => {
     vi.runAllTimers();
@@ -122,5 +125,42 @@ describe("Esc in Settings", () => {
 
     await pressEscape(search());
     expect(useTabs.getState().currentTab?.type).toBe("empty");
+  });
+});
+
+// In-app test, Oct 4: from a folder, the Back button in Settings returned to
+// the folder but Esc went Home. Esc goes back one step, as Back does (Apple
+// HIG, Keyboards: Esc cancels or dismisses; NN/g #3).
+describe("Esc in Settings opened from a folder", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    useTabs.getState().openNew({ type: "empty" });
+    useTabs.getState().openNew({ type: "folders" } as never);
+    // As the sidebar's Settings button opens it.
+    useTabs
+      .getState()
+      .openNew({ type: "settings", state: { tab: "app" } } as never);
+  });
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
+
+  it("returns to the folder, as Back does", async () => {
+    render(<SettingsWithShortcuts />);
+    expect(useTabs.getState().currentTab?.type).toBe("settings");
+
+    await pressEscape(document.body);
+
+    expect(useTabs.getState().currentTab?.type).toBe("folders");
+  });
+
+  // The app delivered one press as many keydowns before its keyup.
+  it("goes back one step when one press arrives as many keydowns", async () => {
+    render(<SettingsWithShortcuts />);
+
+    await pressEscape(document.body, 19);
+
+    expect(useTabs.getState().currentTab?.type).toBe("folders");
   });
 });
