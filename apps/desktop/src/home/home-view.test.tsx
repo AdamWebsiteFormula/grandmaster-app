@@ -153,7 +153,7 @@ describe("HomeView", () => {
     expect(screen.getAllByText("10:00 – 10:05 AM")).toHaveLength(2);
     expect(screen.getByText("12:00 – 12:05 PM")).toBeTruthy();
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Record" })[0]);
+    fireEvent.click(screen.getAllByRole("button", { name: "Start recording" })[0]);
     await vi.waitFor(() =>
       expect(mocks.openSessionAndListen).toHaveBeenCalledWith("session-1", {
         behavior: "current",

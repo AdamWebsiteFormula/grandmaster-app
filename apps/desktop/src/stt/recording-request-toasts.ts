@@ -10,7 +10,7 @@ import { useTabs } from "~/store/zustand/tabs";
 // NN/g #1 visibility of system status, #9 help users recover from errors).
 
 // Asks the note to start again through the same manual auto-start path that
-// ⌘N, New note and Coming up › Record use; no engine call of its own.
+// ⌘N, New note and Coming up › Start recording use; no engine call of its own.
 export function requestManualRecording(sessionId: string) {
   useTabs.getState().openNew({
     type: "sessions",

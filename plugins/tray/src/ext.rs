@@ -433,7 +433,7 @@ impl<'a, M: tauri::Manager<tauri::Wry>> Tray<'a, tauri::Wry, M> {
         }
 
         menu.append(&TrayOpen::build(app)?)?;
-        // Fork: Stop recording replaces the disabled New note while a
+        // Fork: Stop recording replaces the disabled Start recording while a
         // recording runs (journey-meeting P3; Apple HIG, The menu bar).
         if START_DISABLED.load(Ordering::SeqCst) {
             menu.append(&TrayStopRecording::build(app)?)?;

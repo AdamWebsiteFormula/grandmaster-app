@@ -5,13 +5,16 @@ use tauri::{
 
 use super::MenuItemHandler;
 
+// Fork: the menu bar extra says what the item does, "Start recording", so a
+// meeting already under way is one click from recording (OpenWhispr's tray
+// "Start meeting recording"; Granola docs "How transcription works").
 pub struct TrayStart;
 
 impl MenuItemHandler for TrayStart {
     const ID: &'static str = "anlg_tray_start";
 
     fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
-        let item = MenuItem::with_id(app, Self::ID, "New note", true, None::<&str>)?;
+        let item = MenuItem::with_id(app, Self::ID, "Start recording", true, None::<&str>)?;
         Ok(MenuItemKind::MenuItem(item))
     }
 
@@ -39,6 +42,6 @@ impl TrayStart {
         app: &AppHandle<tauri::Wry>,
         disabled: bool,
     ) -> Result<MenuItem<tauri::Wry>> {
-        MenuItem::with_id(app, Self::ID, "New note", !disabled, None::<&str>)
+        MenuItem::with_id(app, Self::ID, "Start recording", !disabled, None::<&str>)
     }
 }

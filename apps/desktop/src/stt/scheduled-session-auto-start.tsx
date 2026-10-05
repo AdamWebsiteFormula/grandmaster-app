@@ -20,7 +20,7 @@ import {
 } from "~/stt/scheduled-auto-start-state";
 import { useStartListeningState } from "~/stt/useStartListening";
 
-// Fork: a manual start (⌘N, New note, Coming up › Record, "Take notes") waits
+// Fork: a manual start (⌘N, New note, Coming up › Start recording, "Take notes") waits
 // this long for the transcription engine, then records anyway through the
 // header button's start path, which saves audio and shows the Configure toast
 // when no engine is ready (journey-meeting P1; Granola docs "How transcription

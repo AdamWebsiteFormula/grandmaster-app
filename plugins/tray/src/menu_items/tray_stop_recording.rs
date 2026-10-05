@@ -6,7 +6,7 @@ use tauri::{
 use super::MenuItemHandler;
 
 // Fork: while recording, the menu bar extra offers Stop recording in place of
-// the disabled New note (journey-meeting P3; Apple HIG, The menu bar: menu
+// the disabled Start recording (journey-meeting P3; Apple HIG, The menu bar: menu
 // bar extras expose key actions). It sends the main window's existing stop
 // request (stt/window-control.tsx); an empty session id means "the live one".
 pub struct TrayStopRecording;

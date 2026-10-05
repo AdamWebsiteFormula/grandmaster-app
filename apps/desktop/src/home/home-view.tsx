@@ -176,7 +176,7 @@ export function ComingUp({ days }: { days: ComingUpDay[] }) {
     current * DAYS_PER_PAGE,
     (current + 1) * DAYS_PER_PAGE,
   );
-  // The live meeting, or the next one, shows Record without hovering.
+  // The live meeting, or the next one, shows Start recording without hovering.
   const nextId = days.find((day) => day.events.length > 0)?.events[0]?.id;
 
   return (
@@ -387,7 +387,7 @@ function ComingUpEventRow({
         ])}
       >
         <RecordButton disabled={busy} onClick={() => openEvent(true)}>
-          <Trans>Record</Trans>
+          <Trans>Start recording</Trans>
         </RecordButton>
       </span>
     </li>
