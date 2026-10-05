@@ -514,13 +514,19 @@ describe("NoteInput tab selection", () => {
     ).not.toContain("note-meta-chips-host");
   });
 
-  it("puts the transcript toolbar above the transcript on the note page", () => {
+  // In-app test, Oct 4: the transcript hid the note's title. The title and
+  // chip row stay in place, as Granola keeps the note behind its transcript.
+  it("keeps the title and chips above the transcript toolbar on the note page", () => {
     renderNoteInput({
       currentTab: { type: "transcript" },
       showMetaChips: true,
     });
 
-    expect(screen.getByTestId("transcript-toolbar")).not.toBeNull();
-    expect(screen.queryByTestId("meta-chips")).toBeNull();
+    const chips = screen.getByTestId("meta-chips");
+    const toolbar = screen.getByTestId("transcript-toolbar");
+    expect(
+      chips.compareDocumentPosition(toolbar) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(document.querySelector("[data-note-title-anchor]")).not.toBeNull();
   });
 });

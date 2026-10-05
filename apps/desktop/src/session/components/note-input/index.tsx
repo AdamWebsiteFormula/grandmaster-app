@@ -2,6 +2,7 @@ import type { EditorView } from "prosemirror-view";
 import {
   forwardRef,
   type MouseEventHandler,
+  type ReactNode,
   type UIEventHandler,
   useCallback,
   useDeferredValue,
@@ -67,6 +68,8 @@ type NoteInputProps = {
   sessionMode?: SessionMode;
   transcriptEditMode?: boolean;
   onTranscriptEditModeChange?: (editMode: boolean) => void;
+  /** Note page: the audio player, drawn under the title on the transcript. */
+  transcriptAudioPlayer?: ReactNode;
 };
 
 export function shouldShowTranscriptTabSpinner(sessionMode: SessionMode) {
@@ -166,6 +169,7 @@ const NoteInputContent = forwardRef<
       sessionMode,
       transcriptEditMode = false,
       onTranscriptEditModeChange,
+      transcriptAudioPlayer,
     },
     ref,
   ) => {
@@ -500,7 +504,44 @@ const NoteInputContent = forwardRef<
               </div>
             )}
             {renderedCurrentTab.type === "transcript" && (
-              <div className="flex h-full min-h-0 flex-col">
+              <div
+                className={cn([
+                  "flex h-full min-h-0 flex-col",
+                  // Fork: the note's 680 px column, so the title, player and
+                  // transcript share one left edge. px-5 adds to the px-3
+                  // above for the note's 32 px gutter.
+                  showMetaChips && "mx-auto w-full max-w-[720px] px-5",
+                ])}
+              >
+                {showMetaChips && (
+                  // Fork: the title and chip row stay in the same place as
+                  // on the note, so opening the transcript keeps you in the
+                  // note and My notes / Summary are one click back (NN/g #1
+                  // and #4; Granola keeps the note in view behind its
+                  // transcript panel, Help Center "How transcription
+                  // works").
+                  <div className="shrink-0">
+                    <div className="note-meta-chips-host relative w-full">
+                      <div
+                        data-note-title-anchor
+                        style={{
+                          marginBottom: "var(--note-meta-chips-space, 3rem)",
+                        }}
+                      >
+                        <TitleInput tab={tab} variant="note" />
+                      </div>
+                      <NoteMetaChipsLayer key={renderedCurrentTab.type}>
+                        <NoteMetaChips
+                          sessionId={sessionId}
+                          editorTabs={editorTabs}
+                          currentTab={renderedCurrentTab}
+                          onSelectView={handleTabChange}
+                        />
+                      </NoteMetaChipsLayer>
+                    </div>
+                  </div>
+                )}
+                {transcriptAudioPlayer}
                 {showMetaChips && (
                   <TranscriptToolbar
                     sessionId={sessionId}

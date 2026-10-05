@@ -294,16 +294,6 @@ function TabContentNoteInner({
               <PendingProposalsBanner sessionId={sessionId} />
             </>
           ) : null}
-          {showTopAudioPlayer && !lockOverlay ? (
-            <div
-              data-session-top-audio-player
-              className="shrink-0 px-1 pt-1 pb-2"
-            >
-              <div className="border-border/70 bg-card/80 overflow-hidden rounded-[22px] border">
-                <AudioPlayer.Timeline contentClassName="py-1.5 pr-3 pl-1" />
-              </div>
-            </div>
-          ) : null}
           <div className="min-h-0 flex-1">
             {session ? (
               <NoteInput
@@ -319,6 +309,18 @@ function TabContentNoteInner({
                 sessionMode={sessionMode}
                 transcriptEditMode={transcriptEditMode}
                 onTranscriptEditModeChange={handleTranscriptEditModeChange}
+                transcriptAudioPlayer={
+                  showTopAudioPlayer && !lockOverlay ? (
+                    <div
+                      data-session-top-audio-player
+                      className="shrink-0 pt-1 pb-2"
+                    >
+                      <div className="border-border/70 bg-card/80 overflow-hidden rounded-[22px] border">
+                        <AudioPlayer.Timeline contentClassName="py-1.5 pr-3 pl-1" />
+                      </div>
+                    </div>
+                  ) : null
+                }
                 hideHeader
                 showMetaChips
               />
