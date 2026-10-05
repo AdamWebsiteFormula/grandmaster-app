@@ -188,7 +188,7 @@ Short URLs: `hc/` means `https://docs.granola.ai/help-center/`. `upd` means `htt
 | Upshot has, Granola does not | Granola evidence | Upshot code |
 |---|---|---|
 | Linux builds (AppImage and .deb), plus Mac and Windows | Granola desktop is macOS and Windows only (hc/ios/getting-started) | `.github/workflows/upshot-release.yaml`, `apps/desktop/flatpak/` |
-| Works with no account and no sign-in | Sign-in with Google, Microsoft or SSO is required (hc/signing-in-and-connecting-your-calendar) | `README.md` ("no key, no account"); `grandmaster/worker/src/index.js` |
+| Notes, folders and search work signed out (Oct 5: Upshot AI and transcription need Google or Microsoft sign-in, as Granola) | Sign-in with Google, Microsoft or SSO is required for everything (hc/signing-in-and-connecting-your-calendar) | `grandmaster/sops/sign-in-setup.md` |
 | Keeps your audio; click a word to hear it | "Audio or video recording and storage: not planned" (hc/feature-requests) | `apps/desktop/src/audio-player/`, `apps/desktop/src/services/audio-retention-policy.ts` |
 | Edit the transcript text | "Not currently possible to edit transcript sections" (hc/feature-requests) | `apps/desktop/src/session/components/note-input/transcript/renderer/segment.tsx:360` |
 | On-device transcription on Apple Silicon (Apple Speech, Parakeet) | Audio goes to Granola's transcription provider (hc/taking-notes/transcription) | `crates/transcribe-speechanalyzer`, `crates/transcribe-soniqo`, `apps/desktop/src/settings/ai/stt/select.tsx` |

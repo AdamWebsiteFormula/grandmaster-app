@@ -9,9 +9,9 @@ Upshot is a bot-free AI meeting notepad for Mac, Windows and Linux. I built it i
 | App shell | Tauri 2 (Rust) | A real desktop app for Mac, Windows and Linux, small and fast, with a web UI inside |
 | Interface | React 19, Tailwind 4, Bricolage Grotesque titles and Geist text | Fast to restyle; one design system |
 | Data | Local SQLite on your computer | No server to run, nothing to leak |
-| Transcription | Upshot transcription: Deepgram Nova 3 through the same Worker, on every computer; Apple Speech (macOS 26+) or Parakeet on device as a choice on Apple Silicon | Free, no key, works the moment you install, like Granola's cloud transcription; on-device for people who want audio to stay on their Mac |
-| Summaries and chat | Upshot AI: a Cloudflare Worker in front of OpenRouter | Works out of the box on Auto (Claude Sonnet 5.5 at medium effort), no key and no account; Pro picks this week's models from Anthropic, OpenAI and Google, like Granola |
-| Pro accounts and billing | Supabase Auth (email and password) and Stripe Checkout in the sandbox, both behind the same Worker | Real Pro you can test with card 4242 4242 4242 4242; no keys in the app |
+| Transcription | Upshot transcription: Deepgram Nova 3 through the same Worker, on every computer; Apple Speech (macOS 26+) or Parakeet on device as a choice on Apple Silicon | Free, no API key, works once you sign in with Google or Microsoft, like Granola's cloud transcription; on-device for people who want audio to stay on their Mac |
+| Summaries and chat | Upshot AI: a Cloudflare Worker in front of OpenRouter | Works out of the box on Auto (Claude Sonnet 5.5 at medium effort), no API key, after a free Google or Microsoft sign-in; Pro picks this week's models from Anthropic, OpenAI and Google, like Granola |
+| Accounts and billing | Supabase Auth (Google or Microsoft sign-in, as Granola; required for Upshot AI and transcription since Oct 5) and Stripe Checkout in the sandbox, both behind the same Worker | Real Pro you can test with card 4242 4242 4242 4242; no keys in the app |
 | AI tools access | Built-in MCP server (the bundled CLI) | Lets Glaido and other AI tools read your meetings |
 | Distribution | Ad-hoc signed DMG (not notarized), built by `grandmaster/scripts/release.sh` | One file to install |
 
@@ -41,7 +41,7 @@ Upshot is a bot-free AI meeting notepad for Mac, Windows and Linux. I built it i
 
 | Feature | What it does |
 |---|---|
-| Upshot AI | Summaries and chat with no key and no account, on Claude Sonnet 5.5 |
+| Upshot AI | Summaries and chat with no API key, on Claude Sonnet 5.5, after a free Google or Microsoft sign-in |
 | Pro | "Auto ⌄" in the chat box, like Granola; Pro picks this week's models, rebuilt from OpenRouter at launch, bundled fallback offline. $11 a month billed yearly or $14 monthly, Stripe sandbox, account deletion in Settings › Profile |
 | Capture health | Recording timer, You and Them sound meters, and a live warning when there's no sound from the other side |
 | Transcript you can hear | Speaker bubbles with times; click any word to hear it; the recording stays on your computer |

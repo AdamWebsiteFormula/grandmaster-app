@@ -53,7 +53,7 @@ Running cost: $0 at launch on free tiers. About $30 a month with Supabase Pro an
 3. **Invitation email.** Subject: "<Name> shared “<Title>” with you". People who use Upshot get "Open in Upshot". Others get the summary in the email and "Get Upshot" (decision 4).
 4. **Shared with me** in the sidebar. It lists notes others shared, newest first, each with the sharer and the date. A note opens read-only. Once synced, it opens offline too (ROADMAP.md 1a).
 5. **Settings › Privacy › Default link access.** Private (the default) or Anyone with the link. It sets where link access starts when a note is first shared. It changes no note that is already shared (Granola sharing-controls).
-6. **Sign in.** "Continue with Google", "Continue with Microsoft", and email with a 6-digit code. Upshot still works with no account. Sign-in is only for sharing, workspaces and Pro.
+6. **Sign in.** "Continue with Google", "Continue with Microsoft", and email with a 6-digit code. Since Oct 5, Google and Microsoft sign-in already exist and are required for Upshot AI and transcription (`sign-in-setup.md`); notes, folders and search work signed out. Email with a 6-digit code comes after a domain and Resend.
 
 ### 1b
 

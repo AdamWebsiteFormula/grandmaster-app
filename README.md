@@ -37,9 +37,9 @@ Built in about three days with Claude Code, using the B.L.A.S.T. method: a bluep
 
 ## What it does
 
-- **Works out of the box.** Summaries and chat run on Upshot AI right after install: no key, no account. Auto uses Claude Sonnet 5.5 at medium effort, through a Cloudflare Worker in front of OpenRouter.
+- **Works out of the box.** Summaries and chat run on Upshot AI right after you sign in with Google or Microsoft: no API key. Auto uses Claude Sonnet 5.5 at medium effort, through a Cloudflare Worker in front of OpenRouter.
 - **Records without a bot.** New note (⌘N on a Mac, Ctrl+N on Windows and Linux) records your mic and your call audio; Blank note (⇧⌘N or Ctrl+Shift+N) just opens a note. The recording bar shows a timer and You and Them sound meters, and warns you live when there is no sound from the other side. Stop, then Resume to keep going in the same note.
-- **Transcribes out of the box** with Upshot transcription (Deepgram Nova 3 through the Upshot proxy), on every computer. No key, no account. On Apple Silicon Macs you can switch to on-device Apple Speech or Parakeet in Settings › Transcription.
+- **Transcribes out of the box** with Upshot transcription (Deepgram Nova 3 through the Upshot proxy), on every computer. No API key; it needs the same free account. On Apple Silicon Macs you can switch to on-device Apple Speech or Parakeet in Settings › Transcription.
 - **Full transcript you can hear.** Speaker bubbles with timestamps. Click any word to hear that moment: your recording stays on your computer (Granola keeps no audio). Copy the transcript, or export notes, summary or transcript as PDF, text or Markdown.
 - **Notes the way you want them.** 9 built-in templates (general meeting, 1:1, sales call, interview and more). Generate summary works from typed notes too, even when nothing was recorded.
 - **Calendar (Mac).** Upshot reads the Google, Outlook and iCloud calendars on your Mac, several at once. Click **Add account** in Settings › Calendar to add one (it opens System Settings › Internet Accounts). Home shows what's coming up; you get meeting reminders and a "Take notes" prompt when a call starts. Auto-start is optional. Windows and Linux have no calendar in 1.0; Google and Outlook sign-in on every computer comes next.
@@ -51,11 +51,11 @@ Built in about three days with Claude Code, using the B.L.A.S.T. method: a bluep
 
 ## Pro
 
-Everything above is free, with no account. Pro adds one thing: pick the chat model instead of Auto. Click **Auto ⌄** in the chat box and choose from this week's models from Anthropic, OpenAI and Google. The list is rebuilt from OpenRouter's catalog at launch, with a bundled fallback.
+Everything above is free with a free account (Google or Microsoft sign-in, as in Granola). Notes, folders and search work without one. Pro adds one thing: pick the chat model instead of Auto. Click **Auto ⌄** in the chat box and choose from this week's models from Anthropic, OpenAI and Google. The list is rebuilt from OpenRouter's catalog at launch, with a bundled fallback.
 
 - Price: $11 a month billed $132 yearly, or $14 billed monthly. Settings › Plan › Upgrade to Pro.
 - Payments run in the Stripe sandbox for the contest: use card 4242 4242 4242 4242, any future date, any CVC. No real money is charged.
-- Accounts are email and password in Supabase Auth. Checkout and "Manage subscription" are Stripe Checkout and the Stripe customer portal, in your browser. Delete your account in Settings › Profile (this cancels the subscription and removes the account).
+- Accounts are Google or Microsoft sign-in through Supabase Auth (PKCE, in your browser), as Granola does; Upshot AI and transcription check the account on every request, with a limit per person. Checkout and "Manage subscription" are Stripe Checkout and the Stripe customer portal, in your browser. Delete your account in Settings › Profile (this cancels the subscription and removes the account).
 - Keys stay on the server. The app talks only to the Upshot AI Worker, which holds the OpenRouter, Stripe and Supabase keys as Cloudflare secrets and checks Pro on every picked-model request. Stripe webhooks (signature-checked) keep the plan current.
 
 ## Install
@@ -72,21 +72,21 @@ Everything above is free, with no account. Pro adds one thing: pick the chat mod
 1. Open the DMG and drag Upshot to Applications.
 2. Open Upshot. The app is not notarized yet, so macOS blocks it the first time. Open System Settings › Privacy & Security, scroll down, click **Open Anyway** next to Upshot, then confirm. macOS asks only once.
 3. Allow the microphone and system audio. Calendar and Accessibility are optional (Accessibility adds meeting details).
-4. Press ⌘N to record your first meeting. No key needed.
+4. Sign in with Google or Microsoft, then press ⌘N to record your first meeting. No API key needed.
 
 **Windows**
 
 1. Open `Upshot_1.0.0_x64-setup.exe`. The installer is not code-signed yet, so Windows shows "Windows protected your PC". Click **More info**, then **Run anyway** (Microsoft Defender SmartScreen).
 2. Finish the installer, then open Upshot from the Start menu.
-3. Press Ctrl+N to record. If Windows asks for the microphone, click **Allow**.
+3. Sign in with Google or Microsoft, then press Ctrl+N to record. If Windows asks for the microphone, click **Allow**.
 
 **Linux**
 
 - AppImage: make it executable, then run it: `chmod +x Upshot_1.0.0_amd64.AppImage && ./Upshot_1.0.0_amd64.AppImage` (docs.appimage.org).
 - Ubuntu or Debian: `sudo apt install ./Upshot_1.0.0_amd64.deb`, then open Upshot from your apps.
-- Press Ctrl+N to record.
+- Sign in with Google or Microsoft, then press Ctrl+N to record.
 
-Transcription and summaries work right after install on every computer: no key, no account.
+Transcription and summaries work right after you sign in, on every computer: no API key.
 
 How it was built: [grandmaster/HOW-I-BUILT-THIS.md](grandmaster/HOW-I-BUILT-THIS.md). Security reports: [SECURITY.md](SECURITY.md).
 
@@ -108,7 +108,7 @@ Everything stays on your computer except what is listed under "What leaves your 
 | Notes, transcripts, summaries, settings | A local SQLite database in the `anarlog` folder (the folder keeps the upstream name on purpose; do not rename it): `~/Library/Application Support/anarlog/` on a Mac, `%APPDATA%\anarlog\` on Windows, `~/.local/share/anarlog/` on Linux |
 | Meeting audio | The same folder, one `audio.mp3` per meeting. Kept until you change the retention setting (Settings › Meetings) |
 | AI keys | None on your computer. The Upshot AI and Deepgram keys live only on the Cloudflare Worker. Never in the repo, the build or the app |
-| Pro account (optional) | Your sign-in session in your system's credential store (on a Mac, the Keychain), and your last known plan cached in the app. Your email, plan status and Stripe customer ID in Supabase. Card details only at Stripe. Settings › Profile › Delete account removes the Stripe customer and the Supabase account |
+| Upshot account | Your sign-in session in your system's credential store (on a Mac, the Keychain), and your last known plan cached in the app. Your email and the name Google or Microsoft shares in Supabase; with Pro, also your plan status and Stripe customer ID. Card details only at Stripe. Settings › Profile › Delete account removes the Stripe customer and the Supabase account |
 | Transcription | Upshot transcription on every computer by default: Deepgram Nova 3 through the Upshot proxy. On Apple Silicon Macs you can pick on-device Apple Speech (macOS 26+) or Parakeet instead in Settings › Transcription; Apple Speech language files come from Apple |
 | Model list | Public catalogs (models.dev, OpenRouter), cached locally. No user data is sent |
 | Glaido connection (Mac, optional) | `~/Library/Application Support/Upshot/glaido/mcp.json`, pointing at the CLI inside the app |
@@ -117,9 +117,9 @@ Everything stays on your computer except what is listed under "What leaves your 
 
 - When you make a summary or use chat: the note text and transcript go through the Upshot AI proxy (a Cloudflare Worker that stores nothing; logging is off) to OpenRouter, which runs Claude Sonnet 5.5 on Auto, or the model a Pro user picked. A locked note is never sent to chat, MCP tools or webhooks until you unlock it.
 - While you record: audio streams through the Upshot proxy (the same Cloudflare Worker, which stores nothing) to Deepgram for transcription, with Deepgram's model improvement program opted out, so Deepgram keeps the audio "only for the duration necessary to process the request" (Deepgram docs). Granola also sends meeting audio to cloud transcription. On an Apple Silicon Mac, pick Apple Speech or Parakeet in Settings › Transcription to keep audio on the Mac.
-- Only if you get Pro: your email and Stripe customer ID are stored in Supabase, and Stripe handles the payment.
+- Your account: your email and the name Google or Microsoft shares are stored in Supabase. Only if you get Pro: your Stripe customer ID too, and Stripe handles the payment.
 - Only if you set one up: a webhook (Settings › Connectors › Webhooks) sends finished notes where you point it.
-- Nothing else: no telemetry, no crash reports, no cloud sync, no auto-updater. Free needs no account.
+- Nothing else: no telemetry, no crash reports, no cloud sync, no auto-updater. Notes, folders and search work signed out.
 
 **Delete your data:** delete a note in the app, or quit the app and delete the folder above.
 

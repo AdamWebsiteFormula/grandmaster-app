@@ -3,7 +3,7 @@
 // button in each plan's header, checkout in the browser, and "Manage
 // subscription" (docs.granola.ai/help-center/managing-your-account/subscriptions-and-billing;
 // granola-compare-oct3 section 8). Upshot has two plans: Free (everything,
-// no account) and Pro (pick the chat model). Payments run in the Stripe
+// with a free account for AI and transcription) and Pro (pick the chat model). Payments run in the Stripe
 // sandbox for the contest.
 //
 // Price: a big number over a small line (linear.app/pricing,

@@ -1,6 +1,6 @@
 # Upshot guide
 
-Upshot is a meeting notepad for Mac, Windows and Linux. It records your calls without a bot joining, then writes clear notes. It's free, with no account and no API key.
+Upshot is a meeting notepad for Mac, Windows and Linux. It records your calls without a bot joining, then writes clear notes. It's free. You sign in with Google or Microsoft, and you don't need an API key.
 
 **Download:** https://github.com/AdamWebsiteFormula/grandmaster-app/releases/latest (always the newest build)
 
@@ -37,7 +37,7 @@ Upshot is a meeting notepad for Mac, Windows and Linux. It records your calls wi
   - A 64-bit PC with Linux. Upshot is tested on Ubuntu 24.04.
 - An internet connection. Transcription and notes run on Upshot's servers. On a Mac with Apple silicon, you can transcribe on the Mac instead.
 
-You don't need an account or an API key.
+You need a Google or Microsoft account to sign in, as in Granola. You don't need an API key.
 
 ## 2. Download the right file
 
@@ -97,21 +97,22 @@ If the AppImage doesn't start on Ubuntu, install FUSE 2 first. On Ubuntu 24.04, 
 
 Upshot walks you through a short setup.
 
-1. **Start with permissions.**
+1. **Sign in to Upshot.** Click **Continue with Google** or **Continue with Microsoft**, then finish in your browser. If the browser asks to open Upshot, click **Open**. The free account turns on Upshot AI and Upshot transcription. Your notes stay on your computer.
+2. **Start with permissions.**
    1. Click **Help Upshot listen to you**, then allow the microphone.
    2. Click **Help Upshot listen to others**, then allow system audio. This lets Upshot hear the other people on your call.
    3. Optional: click **Help Upshot read meeting details**, then allow Accessibility. Upshot uses it to read meeting titles and names.
    4. Click **Continue**.
-2. **Set up transcription.** Upshot checks your Mac and gets transcription ready. When it's ready, click **Continue**.
-3. **Connect calendar.** Click **Connect calendar** and allow access, or click **Skip**.
-4. **Bring your meeting history.** This step shows only if Upshot finds another meeting notes app, such as Granola. Import your meetings, or click **Skip for now**.
-5. **Ready to go.** Click **Open Upshot**.
+3. **Set up transcription.** Upshot checks your Mac and gets transcription ready. When it's ready, click **Continue**.
+4. **Connect calendar.** Click **Connect calendar** and allow access, or click **Skip**.
+5. **Bring your meeting history.** This step shows only if Upshot finds another meeting notes app, such as Granola. Import your meetings, or click **Skip for now**.
+6. **Ready to go.** Click **Open Upshot**.
 
 If you click **Set up later**, Upshot can't record until both are on. You can turn them on later in **Settings** › **General**.
 
 ### Windows and Linux
 
-Setup is shorter. If Upshot finds another meeting notes app, it offers to import your meetings. Click **Skip for now** to skip it. Then click **Open Upshot**.
+Setup is shorter. First, sign in: click **Continue with Google** or **Continue with Microsoft**, then finish in your browser. If Upshot finds another meeting notes app, it offers to import your meetings. Click **Skip for now** to skip it. Then click **Open Upshot**.
 
 On Windows, make sure desktop apps can use the microphone: **Settings** › **Privacy & security** › **Microphone** › **Let desktop apps access your microphone**.
 
@@ -223,7 +224,7 @@ Everyone starts on Free. Free already gives you recording, transcripts, summarie
 Pro runs in Stripe's test mode, so nobody is charged. The prices show what Pro will cost: $11 a month billed yearly ($132), or $14 billed monthly.
 
 1. Go to **Settings** › **Plan**, then click **Upgrade to Pro**. Or click **Auto ⌄** in a chat box, then click **Upgrade to pick a model**.
-2. Enter an **Email** and a **Password** with 8 or more characters. Click **Create account and continue**. You don't need to confirm the email.
+2. If you're not signed in, click **Continue with Google** or **Continue with Microsoft**, finish in your browser, then click **Continue to checkout**.
 3. Checkout opens in your browser. Enter the test card `4242 4242 4242 4242`, any future date, any 3-digit CVC, and any name and ZIP code. Click **Subscribe**.
 4. Go back to Upshot. When the payment goes through, you see **You're on Upshot Pro**.
 5. Click **Auto ⌄** in any chat box and pick a model.
@@ -305,6 +306,12 @@ Uninstalling keeps your notes. To delete them too, delete the `anarlog` folder l
 - After a popup, Upshot waits until that app's microphone has been off for a minute before it asks again.
 - You can always press ⌘N (Ctrl+N) to record.
 
+**"Sign in to use Upshot AI" or "Sign in to use Upshot transcription".** Click **Sign in**, then **Continue with Google** or **Continue with Microsoft**. Upshot AI and Upshot transcription need a free account. Your notes, folders and search work without one.
+
+**The browser says sign-in finished, but Upshot still asks you to sign in.** Go back to Upshot and click **Continue with Google** or **Continue with Microsoft** again. Finish within 10 minutes; after that the sign-in expires.
+
+**Upshot 1.0.0 says "Sign in to use Upshot AI and transcription… Download the new Upshot", or the live transcript says Upshot "couldn't verify your account".** Your copy is older than sign-in. Download the new version from the [download page](https://github.com/AdamWebsiteFormula/grandmaster-app/releases/latest) and install it over the old one. Your notes stay.
+
 **"Upshot AI is busy. Try again in a minute."** Many people are using Upshot AI right now. Wait a minute, then try again.
 
 **"Upshot AI is out of credit for now. Try again later."** Upshot's AI budget ran out for now. Try again later.
@@ -320,13 +327,13 @@ Your notes, transcripts and recordings stay on your computer, in the `anarlog` f
 - Windows: `%APPDATA%\anarlog\`
 - Linux: `~/.local/share/anarlog/`
 
-While you record, audio passes through Upshot's proxy to Deepgram for the transcript, and nothing is stored. Summaries and chat send the note text through Upshot's proxy to OpenRouter. Pro keeps only your email and your Stripe customer ID. The [README](README.md) has the full details.
+While you record, audio passes through Upshot's proxy to Deepgram for the transcript, and nothing is stored. Summaries and chat send the note text through Upshot's proxy to OpenRouter. Your free account keeps your email and the name Google or Microsoft shares; Pro adds your Stripe customer ID. The [README](README.md) has the full details.
 
 ## 21. What's different from Granola
 
 - Upshot keeps your audio, so you can click any word to hear it. You can also edit the transcript.
 - It runs on Linux too.
-- It works with no account and no key. Transcription uses Deepgram Nova 3, and summaries use Claude Sonnet 5.5.
+- It works with no API key. Transcription uses Deepgram Nova 3, and summaries use Claude Sonnet 5.5.
 - It warns you during the call if it can't hear the other side.
 - On a Mac, it reads all your calendars at once: Google, Outlook and iCloud.
 - It can import your Granola meetings.

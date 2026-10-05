@@ -18,14 +18,13 @@ Granola's help center describes 106 features (counted on Oct 4, 2026).
 ## Where Upshot already goes further
 
 - Runs on Linux as well as Mac and Windows.
-- Works with no account and no sign-in.
 - Keeps your audio. Click any word in the transcript to hear it.
 - Lets you edit the transcript.
 - Transcribes on your Mac on Apple silicon, if you choose.
 - Reads Apple Calendar and iCloud calendars.
 - Lets Pro users pick this week's models from Anthropic, OpenAI and Google.
 - Keeps your full note history on the free plan, on your computer.
-- Includes a local MCP server, a CLI and webhooks, with no account.
+- Includes a local MCP server, a CLI and webhooks that work on your computer, even signed out.
 - Stops recording if a participant declines the meeting-chat notice.
 
 ## The plan
@@ -40,8 +39,9 @@ Sizes: S is up to a day, M is 2 to 5 days, L is 1 to 3 weeks, XL is more than 3 
 | 1a | Client recap link with proof: summary, transcript and the real audio, private by default, with an expiry | M |
 | 1a | "Shared with me" in the sidebar, readable offline | S |
 | 1a | Default link access for new notes, private unless you choose | S |
-| 1a | Sign in with Google or Microsoft | M |
-| 1a | A free account for hosted AI and transcription, with limits per person; notes, folders and search keep working without one | M |
+| 1a | Sign in with Google or Microsoft | Done (Oct 5) |
+| 1a | A free account for hosted AI and transcription, with limits per person; notes, folders and search keep working without one | Done (Oct 5) |
+| 1a | Continue with email (a 6-digit code), for people without Google or Microsoft | S |
 | 1b | Team workspaces with members, roles and invitations | M |
 | 1b | Workspace switcher and a team space beside My notes | M |
 | 1b | Shared folders with members and link access | L |

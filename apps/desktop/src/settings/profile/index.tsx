@@ -1,4 +1,4 @@
-// Fork: Settings › Profile, local and with no account, as Granola's Profile
+// Fork: Settings › Profile, local, with the Upshot account, as Granola's Profile
 // page (Account, Your company, Account management; granola-compare-oct3
 // section 8). It edits the same personal contact card as before.
 import { Trans, useLingui } from "@lingui/react/macro";

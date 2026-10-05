@@ -24,9 +24,9 @@ What Upshot is: a local-first Mac app (Tauri 2, Rust, React 19, Tailwind 4, pnpm
 | Stripe (sandbox) | L6 ~609 to ~935 | Paid tier and checkout | **Not applicable.** Upshot is free and open source; billing is hidden |
 | OpenRouter | CM ~196, L6 ~941 | AI calls with a hard credit cap per key; premium model first, then a cheaper one, plus rate limits | **Uses** as one provider and as the backup model catalog. Point users to OpenRouter's per-key credit limit |
 | Anthropic spend limits | CM ~193 | Hard cap on variable cost | **Should mention.** Tell users to cap their own key |
-| Resend | L6 ~960 | Welcome emails | Not applicable (no accounts, no email) |
+| Resend | L6 ~960 | Welcome emails | Later: email sign-in with a 6-digit code needs it (Oct 5 decision; `sign-in-setup.md`) |
 | Beehiiv | L6 ~204 | Email list | Not applicable |
-| Sign in with Google, magic link | L6 ~439, ~469 | Easy sign-in | Not applicable. Upshot has no sign-in, which is simpler. Say "no account needed" |
+| Sign in with Google, magic link | L6 ~439, ~469 | Easy sign-in | Done Oct 5: Google and Microsoft sign-in (PKCE in the browser), required for Upshot AI and transcription |
 | Sentry | CM ~398 | Error monitoring | **Deliberately not used.** Telemetry stays off: `release.sh` clears the Sentry and PostHog keys. Explain this as a privacy choice |
 | Vercel analytics, Supabase logs, Stripe dashboard | CM ~394 | Weekly health dashboards | Not applicable. Our version is the health-check list in section 4 |
 | Gitleaks, Semgrep, Trivy | CM ~316 | Off-the-shelf scanners in pre-commit | **Should use.** Gitleaks and Semgrep are installed on this Mac. Trivy is not |
