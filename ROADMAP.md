@@ -37,6 +37,7 @@ Sizes: S is up to a day, M is 2 to 5 days, L is 1 to 3 weeks, XL is more than 3 
 | Step | What | Size |
 |---|---|---|
 | 1a | Share a note by link or email, with a read-only web view | L |
+| 1a | Client recap link with proof: summary, transcript and the real audio, private by default, with an expiry | M |
 | 1a | "Shared with me" in the sidebar, readable offline | S |
 | 1a | Default link access for new notes, private unless you choose | S |
 | 1a | Sign in with Google or Microsoft | M |
@@ -67,13 +68,15 @@ Sizes: S is up to a day, M is 2 to 5 days, L is 1 to 3 weeks, XL is more than 3 
 | Automatic updates, so fixes arrive without a new download | M |
 | Save every note as plain Markdown files in a folder you pick, such as an Obsidian vault | S |
 | Your own actions: drop a prompt file in a folder and it becomes a one-click action on any note | M |
+| Promises across meetings: who owes whom what, with a morning reminder | M |
+| Never miss a recording: a check before each calendar meeting, and an alert when a call happened but nothing was captured | S |
 
 ### Phase 3: Calendar, email and accounts
 
 | What | Size |
 |---|---|
 | Google Calendar and Outlook by account, so Windows and Linux get reminders | M |
-| Follow-up emails: auto-draft, edit, send, or save to Gmail drafts | M |
+| Follow-up emails: auto-draft, edit, then send from your own Gmail or Outlook with an undo, or save as a draft | M |
 | Chat actions with a review step: email, Slack, calendar events | M |
 | Account switching, email changes and a referral program | M |
 
@@ -102,5 +105,16 @@ Sizes: S is up to a day, M is 2 to 5 days, L is 1 to 3 weeks, XL is more than 3 
 | Audit log and legal holds | L |
 | Signed and notarized builds with a managed-install guide | M |
 | SOC 2 Type II, DPA and HIPAA BAA | XL |
+
+## Ideas to consider later
+
+Not planned yet. Research notes in `grandmaster/sops/feature-research-oct5.md`.
+
+- A proposal draft from a discovery call, in your own template, with signing handed to PandaDoc or DocuSign.
+- A highlight reel of the key moments, cut from the real audio.
+- Notes sent where your work lives: Google Docs, task managers and Salesforce.
+- An audio recap read by an AI voice.
+- A video recap with highlights and voiceover, after video recording ships.
+- Social posts, reels and carousels from talks meant to be public, such as podcasts, interviews and webinars.
 
 Feature counts and comparisons come from Granola's public help center, read on Oct 4, 2026. Sizes are estimates.
