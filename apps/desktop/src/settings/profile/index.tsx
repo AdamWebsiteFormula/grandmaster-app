@@ -89,7 +89,7 @@ export function AccountSection() {
             {isSignedIn ? (
               (email ?? t`Upshot account`)
             ) : (
-              <Trans>You're on Free. No account needed.</Trans>
+              <Trans>Sign in to use Upshot AI and transcription.</Trans>
             )}
           </p>
         </div>

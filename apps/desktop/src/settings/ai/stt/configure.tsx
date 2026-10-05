@@ -74,7 +74,7 @@ function ProviderContext({ providerId }: { providerId: ProviderId }) {
               : providerId === "amazon_bedrock"
                 ? "Enter an OpenAI-compatible transcription gateway URL and its token. The gateway must expose `/audio/transcriptions` and translate file audio into Nova Sonic's AWS bidirectional stream. Native Bedrock endpoints and Bedrock API keys do not work here."
                 : providerId === "anarlog"
-                  ? "**Upshot transcription** streams your audio through Upshot to **Deepgram Nova 3** and stores nothing. No account or API key needed. On Apple Silicon Macs you can pick Soniqo or Apple Speech instead, so audio never leaves the Mac."
+                  ? "**Upshot transcription** streams your audio through Upshot to **Deepgram Nova 3** and stores nothing. It needs a free Upshot account, no API key. On Apple Silicon Macs you can pick Soniqo or Apple Speech instead, so audio never leaves the Mac."
                   : providerId === "deepgram"
                     ? `Use [Deepgram](https://deepgram.com) for transcriptions. \
     If you want to use a [Dedicated](https://developers.deepgram.com/reference/custom-endpoints#deepgram-dedicated-endpoints)

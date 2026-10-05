@@ -152,6 +152,17 @@ fn ui_content(deep_link: &DeepLink) -> (bool, &'static str, &'static str) {
                 "Returning to Upshot to finish connecting.",
             )
         }
+        // Fork: Google or Microsoft sends no code when the person cancels
+        // (or on an error), so the page must not say "Signed in".
+        DeepLink::AuthCallback(search)
+            if search.access_token.is_empty() && search.refresh_token.is_empty() =>
+        {
+            (
+                false,
+                "Sign-in did not finish",
+                "Close this tab and try again in Upshot.",
+            )
+        }
         DeepLink::AuthCallback(_) => (
             true,
             "Signed in successfully",
@@ -371,6 +382,18 @@ mod tests {
         );
         assert!(html.contains("anarlog-dev://focus"));
         assert!(!html.contains("code=should-ignore"));
+    }
+
+    #[test]
+    fn canceled_sign_in_never_says_signed_in() {
+        let html = render_html_from_callback(
+            "/auth/callback",
+            "error=access_denied&error_description=canceled",
+            "upshot",
+        );
+        assert!(html.contains("Sign-in did not finish"));
+        assert!(!html.contains("Signed in successfully"));
+        assert!(!html.contains("open-app"));
     }
 
     #[test]

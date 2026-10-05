@@ -16,6 +16,12 @@
       "namespace_id": "1001",
       "simple": { "limit": 60, "period": 60 },
     },
+    // Fork: per account, for Upshot AI and transcription (auth.js).
+    {
+      "name": "USER_RATE_LIMITER",
+      "namespace_id": "1002",
+      "simple": { "limit": 30, "period": 60 },
+    },
   ],
   // Brand images for Stripe Checkout and the billing pages, served at
   // /brand/*. developers.cloudflare.com/workers/static-assets/routing/worker-script/:

@@ -84,7 +84,7 @@ describe("Settings › Profile account", () => {
   it("signed out: offers Sign in", () => {
     render(<SettingsProfile />);
     expect(
-      screen.getByText("You're on Free. No account needed."),
+      screen.getByText("Sign in to use Upshot AI and transcription."),
     ).not.toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
     expect(mocks.openUpshotSignIn).toHaveBeenCalledOnce();

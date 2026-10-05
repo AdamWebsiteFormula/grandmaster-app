@@ -44,6 +44,22 @@ export function bearerToken(request) {
   return match ? match[1] : null;
 }
 
+/** The session token as "Bearer <t>" or, from the transcription client, "Token <t>". */
+export function sessionToken(request) {
+  const header = request.headers.get("authorization") ?? "";
+  const match = /^(?:Bearer|Token)\s+(\S{20,4096})$/i.exec(header);
+  return match ? match[1] : null;
+}
+
+/** Per-account limit (USER_RATE_LIMITER), next to the per-IP one. */
+export async function userRateLimited(env, bucket, userId) {
+  if (!env.USER_RATE_LIMITER) return false;
+  const { success } = await env.USER_RATE_LIMITER.limit({
+    key: `${bucket}:${userId}`,
+  });
+  return !success;
+}
+
 export async function rateLimited(request, env, bucket) {
   if (!env.RATE_LIMITER) return false;
   const ip = request.headers.get("cf-connecting-ip") ?? "unknown";

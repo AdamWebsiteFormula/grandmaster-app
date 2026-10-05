@@ -12,9 +12,16 @@
 //   accounts and Pro the ones listed in auth.js and billing.js.
 // Nothing in a request or response is logged.
 
-import { handleAuth } from "./auth.js";
+import {
+  accountRequired,
+  handleAuth,
+  handleOAuthExchange,
+  handleOAuthStart,
+  requireAccount,
+  signInRequired,
+} from "./auth.js";
 import { handleBilling, handleDeleteAccount } from "./billing.js";
-import { json } from "./http.js";
+import { json, userRateLimited } from "./http.js";
 import { handleStt } from "./stt.js";
 import {
   AUTO_MODEL,
@@ -57,6 +64,13 @@ export default {
     ) {
       return handleAuth(request, env, url.pathname);
     }
+    // Fork: Google or Microsoft sign-in (PKCE), as Granola (auth.js).
+    if (request.method === "GET" && url.pathname === "/auth/oauth/start") {
+      return handleOAuthStart(request, env, url);
+    }
+    if (request.method === "POST" && url.pathname === "/auth/oauth/exchange") {
+      return handleOAuthExchange(request, env);
+    }
     // Fork: account deletion (journey-account-settings P3).
     if (request.method === "POST" && url.pathname === "/account/delete") {
       return handleDeleteAccount(request, env);
@@ -90,6 +104,16 @@ export default {
     const { success } = await env.RATE_LIMITER.limit({ key: ip });
     if (!success) {
       return json(429, "Upshot AI is busy. Try again in a minute.");
+    }
+
+    // Fork: a free account is required (Adam, Oct 5), with a limit per
+    // person next to the per-IP one (OWASP LLM10:2025).
+    if (accountRequired(env)) {
+      const account = await requireAccount(request, env);
+      if (!account) return signInRequired();
+      if (await userRateLimited(env, "chat", account.id)) {
+        return json(429, "You're using Upshot AI a lot. Try again in a minute.");
+      }
     }
 
     const length = Number(request.headers.get("content-length") ?? 0);

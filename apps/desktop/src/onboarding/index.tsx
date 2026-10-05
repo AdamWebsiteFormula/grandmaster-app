@@ -23,7 +23,6 @@ import { OnboardingSection } from "./shared";
 import { TranscriptionSetupSection } from "./transcription";
 
 import { trackAnalyticsEvent } from "~/analytics";
-import { useAuth } from "~/auth";
 import { detectImportSources } from "~/imports/detection";
 import { StandaloneWindowShell } from "~/shared/window-shell";
 import { type Tab, useTabs } from "~/store/zustand/tabs";
@@ -87,9 +86,7 @@ function OnboardingScreenContent({
   headerDragRegion?: boolean;
 }) {
   const queryClient = useQueryClient();
-  const auth = useAuth();
   const [currentStep, setCurrentStep] = useState(getInitialStep);
-  const [didSkipLogin, setDidSkipLogin] = useState(false);
   const [didSkipImports, setDidSkipImports] = useState(false);
   const [didSkipCalendar, setDidSkipCalendar] = useState(false);
   const [didTranscriptionFail, setDidTranscriptionFail] = useState(false);
@@ -238,6 +235,24 @@ function OnboardingScreenContent({
             line (Butterick, Practical Typography, "Line length"). */}
         <div className="flex max-w-2xl flex-col gap-4 px-12 pb-16">
           <OnboardingSection
+            title={<Trans>Sign in to Upshot</Trans>}
+            description={
+              <Trans>
+                A free account turns on Upshot AI and Upshot transcription.
+                Your notes stay on this computer.
+              </Trans>
+            }
+            completedTitle={<Trans>Signed in</Trans>}
+            status={getStepStatus("login", currentStep, stepOptions)}
+            progress={getStepProgress("login", stepOptions)}
+            skippable={false}
+            onBack={backFor("login")}
+            onNext={goNext}
+          >
+            <LoginSection onContinue={goNext} />
+          </OnboardingSection>
+
+          <OnboardingSection
             title={<Trans>Start with permissions</Trans>}
             completedTitle={
               didSetUpPermissionsLater ? (
@@ -276,9 +291,7 @@ function OnboardingScreenContent({
             title={<Trans>Set up transcription</Trans>}
             description={
               // Fork: cloud by default on every computer (owner, Oct 3).
-              <Trans>
-                Upshot transcribes your meetings. No account and no API key.
-              </Trans>
+              <Trans>Upshot transcribes your meetings. No API key needed.</Trans>
             }
             completedTitle={
               didTranscriptionFail ? (
@@ -298,40 +311,6 @@ function OnboardingScreenContent({
             <TranscriptionSetupSection onContinue={continueTranscription} />
           </OnboardingSection>
 
-          <OnboardingSection
-            title={<Trans>Create account</Trans>}
-            description={
-              <Trans>
-                Sign in to unlock powerful AI models, sync across devices, and
-                personalization.
-              </Trans>
-            }
-            completedTitle={
-              auth.session ? (
-                <Trans>Signed in</Trans>
-              ) : didSkipLogin ? (
-                <Trans>Skipped</Trans>
-              ) : (
-                <Trans>Account</Trans>
-              )
-            }
-            status={getStepStatus("login", currentStep, stepOptions)}
-            progress={getStepProgress("login", stepOptions)}
-            onBack={backFor("login")}
-            onNext={goNext}
-            onSkip={() => {
-              setDidSkipLogin(true);
-              trackAnalyticsEvent("onboarding_login_skipped");
-              trackAnalyticsEvent("onboarding_step_skipped", {
-                step: "login",
-                platform: currentPlatform,
-              });
-              const next = getNextStep("login", stepOptions);
-              if (next) setCurrentStep(next);
-            }}
-          >
-            <LoginSection onContinue={goNext} />
-          </OnboardingSection>
 
           <OnboardingSection
             title={<Trans>Connect calendar</Trans>}

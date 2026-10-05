@@ -1,7 +1,9 @@
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { renderHook } from "@testing-library/react";
 import { generateText } from "ai";
-import { expect, it, vi } from "vitest";
+import { beforeEach, expect, it, vi } from "vitest";
+
+import { resetUpshotAccountForTests } from "~/upshot-plan/session";
 
 import { useLanguageModel, useLLMConnectionStatus } from "./useLLMConnection";
 
@@ -57,14 +59,23 @@ vi.mock("~/shared/config", () => ({
   }),
 }));
 
-// Fork: Upshot AI works signed out, like Granola's hosted "Auto".
-it("calls the Upshot AI Worker with no session, token or fingerprint", async () => {
+// Fork: Upshot AI needs a free account (Google or Microsoft), as Granola
+// does. Every test starts signed in unless it says otherwise.
+beforeEach(() => {
+  plan.isPro = false;
+  plan.signedIn = true;
+  plan.model = "Auto";
+  vi.mocked(tauriFetch).mockReset();
+  resetUpshotAccountForTests();
+});
+
+it("calls the Upshot AI Worker with the account token and no fingerprint", async () => {
   vi.mocked(tauriFetch).mockImplementation(async (input, init) => {
     expect(String(input)).toBe(
       "https://upshot-ai.example.workers.dev/llm/chat/completions",
     );
     const headers = new Headers(init?.headers);
-    expect(headers.get("Authorization") ?? "").not.toMatch(/Bearer \S/);
+    expect(headers.get("Authorization")).toBe("Bearer access-token-123");
     expect(headers.has("x-device-fingerprint")).toBe(false);
     return Response.json({
       id: "hosted",
@@ -94,6 +105,15 @@ it("calls the Upshot AI Worker with no session, token or fingerprint", async () 
     maxRetries: 0,
   });
   expect(completion.text).toBe("Hosted summary");
+});
+
+it("signed out, Auto asks to sign in and never reaches the Worker", async () => {
+  plan.signedIn = false;
+  const { result } = renderHook(() => useLanguageModel("enhance"));
+  await expect(
+    generateText({ model: result.current!, prompt: "Hi", maxRetries: 0 }),
+  ).rejects.toThrow("Sign in to use Upshot AI. It's free.");
+  expect(tauriFetch).not.toHaveBeenCalled();
 });
 
 it("shows the Worker's out-of-credit message", async () => {
@@ -143,25 +163,19 @@ it.each([
   const { result } = renderHook(() => useLanguageModel("chat"));
   await generateText({ model: result.current!, prompt: "Hi", maxRetries: 0 });
   expect(sent).toBe(expected);
-  plan.isPro = false;
-  plan.model = "Auto";
 });
 
-// Fork: a picked model (Pro) sends the account access token so the Worker
-// can check the plan; Auto never sends it, even when signed in.
+// Fork: every hosted request sends the account access token so the Worker
+// knows the account (and the plan, for a picked model). Auto included.
 it.each([
   ["openai/gpt-6.1-sol", "Bearer access-token-123"],
-  ["Auto", null],
+  ["Auto", "Bearer access-token-123"],
 ])("signed in, model %s sends Authorization %s", async (model, expected) => {
-  const { resetUpshotAccountForTests } = await import("~/upshot-plan/session");
-  resetUpshotAccountForTests();
   plan.isPro = true;
-  plan.signedIn = true;
   plan.model = model;
   let authorization: string | null = null;
   vi.mocked(tauriFetch).mockImplementation(async (_input, init) => {
-    const header = new Headers(init?.headers).get("Authorization");
-    authorization = header && /Bearer \S/.test(header) ? header : null;
+    authorization = new Headers(init?.headers).get("Authorization");
     return Response.json({
       id: "hosted",
       model: "auto",
@@ -179,8 +193,4 @@ it.each([
   const { result } = renderHook(() => useLanguageModel("chat"));
   await generateText({ model: result.current!, prompt: "Hi", maxRetries: 0 });
   expect(authorization).toBe(expected);
-  plan.isPro = false;
-  plan.signedIn = false;
-  plan.model = "Auto";
-  resetUpshotAccountForTests();
 });

@@ -28,6 +28,7 @@ import {
 import { subscribeThenDrainDeepLinks } from "~/shared/deeplink";
 import { useLatestRef } from "~/shared/hooks/useLatestRef";
 import { useTabs } from "~/store/zustand/tabs";
+import { finishUpshotSignIn, useUpshotSignIn } from "~/upshot-plan/sign-in";
 
 export function useDeeplinkHandler() {
   const auth = useAuth();
@@ -70,7 +71,13 @@ export function useDeeplinkHandler() {
     };
     const handleDeepLink = (payload: DeepLink) => {
       if (payload.to === "/auth/callback") {
-        const { access_token, refresh_token } = payload.search;
+        const { access_token, refresh_token, code } = payload.search;
+        // Fork: Google or Microsoft sign-in for the Upshot account comes
+        // back here with a PKCE code (upshot-plan/sign-in.tsx).
+        if (useUpshotSignIn.getState().waitingFor) {
+          void finishUpshotSignIn(code);
+          return;
+        }
         if (access_token && refresh_token) {
           authCallbackHandler(access_token, refresh_token);
         }

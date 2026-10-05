@@ -22,11 +22,7 @@ import {
   reasoningProviderOptions,
 } from "../reasoning-effort";
 import { streamOnlyGenerationMiddleware } from "../stream-only-generation";
-import {
-  pickUpshotModels,
-  resolveUpshotModelPick,
-  UPSHOT_AUTO_MODEL,
-} from "../upshot-models";
+import { pickUpshotModels, resolveUpshotModelPick } from "../upshot-models";
 
 import { useAuth } from "~/auth";
 import { useBillingAccess } from "~/auth/billing-context";
@@ -294,12 +290,11 @@ const createLanguageModel = (conn: LLMConnectionInfo): LanguageModelV3 => {
 const createProviderModel = (conn: LLMConnectionInfo): LanguageModelV3 => {
   switch (conn.providerId) {
     case "anarlog": {
-      // Fork: Auto sends no token or device fingerprint; the Worker reads
-      // only the messages. A picked model (Pro only) sends the signed-in
-      // user's access token so the Worker can check the plan.
+      // Fork: every request sends the signed-in user's access token (a free
+      // account is required, Adam, Oct 5); the Worker also checks Pro for
+      // a picked model. No device fingerprint is sent.
       const provider = createOpenRouter({
-        fetch:
-          conn.modelId === UPSHOT_AUTO_MODEL ? providerFetch : upshotAuthFetch,
+        fetch: upshotAuthFetch,
         baseURL: conn.baseUrl,
         apiKey: conn.apiKey,
       });

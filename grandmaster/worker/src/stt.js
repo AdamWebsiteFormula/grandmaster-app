@@ -17,7 +17,8 @@
 // WebSocket connections by making a fetch request ... with the Upgrade
 // header"); returning that response pipes frames without Worker CPU time.
 //
-// Abuse limits (OWASP LLM10:2025 Unbounded Consumption): per-IP rate limit,
+// Abuse limits (OWASP LLM10:2025 Unbounded Consumption): a free account
+// (Google or Microsoft), per-IP and per-account rate limits,
 // a Deepgram-only model allowlist, a query-param allowlist, mip_opt_out, and
 // no browser origins (browsers always send Origin; the app's Rust client
 // doesn't, and WebSockets skip CORS). Nothing is stored or logged.
@@ -25,7 +26,8 @@
 // Secret: DEEPGRAM_API_KEY (Cloudflare dashboard › Worker › Settings ›
 // Variables and Secrets). Without it every route answers a clear 503.
 
-import { json, rateLimited } from "./http.js";
+import { accountRequired, requireAccount, signInRequired } from "./auth.js";
+import { json, rateLimited, userRateLimited } from "./http.js";
 
 export const DEEPGRAM_LISTEN = "https://api.deepgram.com/v1/listen";
 export const DEFAULT_STT_MODEL = "nova-3";
@@ -151,6 +153,15 @@ export async function handleStt(request, env, url) {
   }
   if (await rateLimited(request, env, "stt")) {
     return json(429, "Upshot transcription is busy. Try again in a minute.");
+  }
+  // Fork: a free account is required (Adam, Oct 5). The app's client sends
+  // the session as Deepgram's "Token <key>"; it never reaches Deepgram.
+  if (accountRequired(env)) {
+    const account = await requireAccount(request, env);
+    if (!account) return signInRequired();
+    if (await userRateLimited(env, "stt", account.id)) {
+      return json(429, "Upshot transcription is busy. Try again in a minute.");
+    }
   }
   const authorization = `Token ${env.DEEPGRAM_API_KEY}`;
 

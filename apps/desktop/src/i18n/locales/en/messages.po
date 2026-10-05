@@ -329,8 +329,8 @@ msgid "7 days"
 msgstr "7 days"
 
 #: src/upshot-plan/upgrade-dialog.tsx
-msgid "8 or more characters"
-msgstr "8 or more characters"
+#~ msgid "8 or more characters"
+#~ msgstr "8 or more characters"
 
 #: src/automations/starters.tsx
 msgid "A dated Notion update with the meeting summary."
@@ -340,6 +340,11 @@ msgstr "A dated Notion update with the meeting summary."
 #: src/sidebar/folder-name-dialog.tsx
 msgid "A folder with this name already exists."
 msgstr "A folder with this name already exists."
+
+#: src/onboarding/index.tsx
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "A free account turns on Upshot AI and Upshot transcription. Your notes stay on this computer."
+msgstr "A free account turns on Upshot AI and Upshot transcription. Your notes stay on this computer."
 
 #: src/resource-sharing/share-dialog.tsx
 msgid "A guest can access one shared item for free. Add them to your Team when they need more."
@@ -416,7 +421,6 @@ msgstr "Access updated."
 msgid "Accessibility"
 msgstr "Accessibility"
 
-#: src/onboarding/index.tsx
 #: src/settings/general/account.tsx
 #: src/settings/profile/index.tsx
 #: src/sidebar/settings-nav-groups.ts
@@ -741,8 +745,8 @@ msgid "Allowed"
 msgstr "Allowed"
 
 #: src/upshot-plan/upgrade-dialog.tsx
-msgid "Already have an account? Sign in"
-msgstr "Already have an account? Sign in"
+#~ msgid "Already have an account? Sign in"
+#~ msgstr "Already have an account? Sign in"
 
 #: src/settings/plan.tsx
 msgid "Already have Pro? Sign in"
@@ -1104,9 +1108,14 @@ msgstr "Busiest day"
 msgid "Busy"
 msgstr "Busy"
 
+#: src/onboarding/account/index.tsx
 #: src/upshot-plan/upgrade-dialog.tsx
-msgid "By creating an account you agree to the"
-msgstr "By creating an account you agree to the"
+msgid "By continuing you agree to the"
+msgstr "By continuing you agree to the"
+
+#: src/upshot-plan/upgrade-dialog.tsx
+#~ msgid "By creating an account you agree to the"
+#~ msgstr "By creating an account you agree to the"
 
 #: src/settings/calendar/index.tsx
 #: src/settings/connectors/index.tsx
@@ -1174,6 +1183,7 @@ msgstr "Can't hear the other side. Check your computer's sound output."
 #: src/calendar/components/apple/permission.tsx
 #: src/folders/folder-editor.tsx
 #: src/imports/screen.tsx
+#: src/main/move-to-applications.ts
 #: src/resource-sharing/library.tsx
 #: src/session-sharing/comments.tsx
 #: src/session/components/folder-picker.tsx
@@ -1189,6 +1199,7 @@ msgstr "Can't hear the other side. Check your computer's sound output."
 #: src/shared/ui/destructive-confirmation-dialog.tsx
 #: src/sidebar/folder-name-dialog.tsx
 #: src/templates/auto-format-examples-dialog.tsx
+#: src/upshot-plan/sign-in.tsx
 #: src/upshot-plan/upgrade-dialog.tsx
 msgid "Cancel"
 msgstr "Cancel"
@@ -1339,8 +1350,8 @@ msgid "Checking this Mac…"
 msgstr "Checking this Mac…"
 
 #: src/onboarding/account/after-login.tsx
-msgid "Checking trial eligibility..."
-msgstr "Checking trial eligibility..."
+#~ msgid "Checking trial eligibility..."
+#~ msgstr "Checking trial eligibility..."
 
 #: src/settings/ai/stt/health.tsx
 msgid "Checking your API key…"
@@ -1905,6 +1916,7 @@ msgid "Context"
 msgstr "Context"
 
 #: src/imports/screen.tsx
+#: src/onboarding/account/index.tsx
 #: src/onboarding/calendar.tsx
 #: src/onboarding/permissions.tsx
 #: src/onboarding/transcription.tsx
@@ -1919,13 +1931,21 @@ msgstr "Continue to checkout"
 msgid "Continue to Team checkout"
 msgstr "Continue to Team checkout"
 
+#: src/upshot-plan/sign-in.tsx
+msgid "Continue with Google"
+msgstr "Continue with Google"
+
+#: src/upshot-plan/sign-in.tsx
+msgid "Continue with Microsoft"
+msgstr "Continue with Microsoft"
+
 #: src/onboarding/permissions.tsx
 msgid "Continue without meeting details"
 msgstr "Continue without meeting details"
 
 #: src/onboarding/account/after-login.tsx
-msgid "Continuing without trial"
-msgstr "Continuing without trial"
+#~ msgid "Continuing without trial"
+#~ msgstr "Continuing without trial"
 
 #: src/settings/general/meeting-settings.tsx
 msgid "Control recording without reopening Upshot."
@@ -2130,8 +2150,8 @@ msgid "Could not start the integration setup. Try again."
 msgstr "Could not start the integration setup. Try again."
 
 #: src/onboarding/account/after-login.tsx
-msgid "Could not start trial"
-msgstr "Could not start trial"
+#~ msgid "Could not start trial"
+#~ msgstr "Could not start trial"
 
 #: src/chat/components/input/use-dictation.ts
 msgid "Could not start voice input"
@@ -2318,12 +2338,12 @@ msgstr "Create a Team to share a library"
 
 #: src/onboarding/index.tsx
 #: src/upshot-plan/upgrade-dialog.tsx
-msgid "Create account"
-msgstr "Create account"
+#~ msgid "Create account"
+#~ msgstr "Create account"
 
 #: src/upshot-plan/upgrade-dialog.tsx
-msgid "Create account and continue"
-msgstr "Create account and continue"
+#~ msgid "Create account and continue"
+#~ msgstr "Create account and continue"
 
 #: src/settings/developers/glaido.tsx
 msgid "Create Glaido folder"
@@ -2346,8 +2366,8 @@ msgid "Create template"
 msgstr "Create template"
 
 #: src/upshot-plan/upgrade-dialog.tsx
-msgid "Create your Upshot account"
-msgstr "Create your Upshot account"
+#~ msgid "Create your Upshot account"
+#~ msgstr "Create your Upshot account"
 
 #: src/settings/stats/badge-collection.tsx
 msgid "Create your Upshot account. A place for your meetings to call home."
@@ -2820,8 +2840,8 @@ msgid "Edit transcript"
 msgstr "Edit transcript"
 
 #: src/onboarding/account/after-login.tsx
-msgid "Eligible for free trial"
-msgstr "Eligible for free trial"
+#~ msgid "Eligible for free trial"
+#~ msgstr "Eligible for free trial"
 
 #: src/crm/enrich-contact.tsx
 msgid "email"
@@ -2831,7 +2851,6 @@ msgstr "email"
 #: src/session-sharing/delivery-panel.tsx
 #: src/settings/general/account-profile.tsx
 #: src/settings/team/index.tsx
-#: src/upshot-plan/upgrade-dialog.tsx
 msgid "Email"
 msgstr "Email"
 
@@ -2844,8 +2863,8 @@ msgid "Email or name"
 msgstr "Email or name"
 
 #: src/upshot-plan/upgrade-dialog.tsx
-msgid "Email support"
-msgstr "Email support"
+#~ msgid "Email support"
+#~ msgstr "Email support"
 
 #: src/session-sharing/access-management.tsx
 #: src/session-sharing/invitation-management.ts
@@ -3149,6 +3168,14 @@ msgstr "Finish in your browser, then return to Upshot."
 msgid "Finish sign-in"
 msgstr "Finish sign-in"
 
+#: src/upshot-plan/sign-in.tsx
+msgid "Finish signing in with Google in your browser."
+msgstr "Finish signing in with Google in your browser."
+
+#: src/upshot-plan/sign-in.tsx
+msgid "Finish signing in with Microsoft in your browser."
+msgstr "Finish signing in with Microsoft in your browser."
+
 #: src/settings/ai/llm/subscriptions/connect.tsx
 msgid "Finishing connection…"
 msgstr "Finishing connection…"
@@ -3255,8 +3282,8 @@ msgid "Forever"
 msgstr "Forever"
 
 #: src/upshot-plan/upgrade-dialog.tsx
-msgid "Forgot password?"
-msgstr "Forgot password?"
+#~ msgid "Forgot password?"
+#~ msgstr "Forgot password?"
 
 #: src/chat/components/message/tool/generic.tsx
 msgid "Found related meetings"
@@ -3267,6 +3294,10 @@ msgstr "Found related meetings"
 #: src/sidebar/settings.tsx
 msgid "Free"
 msgstr "Free"
+
+#: src/settings/plan.tsx
+msgid "Free account"
+msgstr "Free account"
 
 #: src/templates/template-icon-picker.tsx
 msgid "Frequently used"
@@ -3329,7 +3360,6 @@ msgstr "Get more slots"
 msgid "Get Pro"
 msgstr "Get Pro"
 
-#: src/onboarding/account/before-login.tsx
 #: src/settings/general/account.tsx
 #: src/sidebar/automations.tsx
 msgid "Get started"
@@ -4536,8 +4566,8 @@ msgid "New template"
 msgstr "New template"
 
 #: src/upshot-plan/upgrade-dialog.tsx
-msgid "New to Upshot? Create an account"
-msgstr "New to Upshot? Create an account"
+#~ msgid "New to Upshot? Create an account"
+#~ msgstr "New to Upshot? Create an account"
 
 #: src/contacts/related-notes.tsx
 #: src/contacts/shared.tsx
@@ -4566,8 +4596,8 @@ msgid "next week"
 msgstr "next week"
 
 #: src/settings/plan.tsx
-msgid "No account needed"
-msgstr "No account needed"
+#~ msgid "No account needed"
+#~ msgstr "No account needed"
 
 #: src/settings/general/notification.tsx
 msgid "No apps found."
@@ -4841,7 +4871,6 @@ msgid "Not invited"
 msgstr "Not invited"
 
 #: src/billing/trial-payment-reminder-dialog.tsx
-#: src/main/move-to-applications.ts
 msgid "Not now"
 msgstr "Not now"
 
@@ -5122,7 +5151,6 @@ msgstr "Opening sign-in…"
 
 #: src/imports/screen.tsx
 #: src/session-sharing/index.tsx
-#: src/session/components/note-input/enhanced/enhance-error.tsx
 #: src/session/components/outer-header/overflow/misc.tsx
 #: src/settings/plan.tsx
 #: src/shared-notes/index.tsx
@@ -5203,8 +5231,8 @@ msgid "Participants"
 msgstr "Participants"
 
 #: src/upshot-plan/upgrade-dialog.tsx
-msgid "Password"
-msgstr "Password"
+#~ msgid "Password"
+#~ msgstr "Password"
 
 #: src/main/windows-title-bar.tsx
 msgid "Paste"
@@ -5453,6 +5481,7 @@ msgstr "Primary owner"
 msgid "Privacy"
 msgstr "Privacy"
 
+#: src/onboarding/account/index.tsx
 #: src/upshot-plan/upgrade-dialog.tsx
 msgid "privacy policy"
 msgstr "privacy policy"
@@ -5484,8 +5513,12 @@ msgid "Pro for every member, shared workspaces, roles, and centralized billing. 
 msgstr "Pro for every member, shared workspaces, roles, and centralized billing. $20 per person monthly or $200 yearly."
 
 #: src/upshot-plan/upgrade-dialog.tsx
-msgid "Pro needs an account so your plan follows you. Everything else stays free, with no account."
-msgstr "Pro needs an account so your plan follows you. Everything else stays free, with no account."
+msgid "Pro needs an account so your plan follows you."
+msgstr "Pro needs an account so your plan follows you."
+
+#: src/upshot-plan/upgrade-dialog.tsx
+#~ msgid "Pro needs an account so your plan follows you. Everything else stays free, with no account."
+#~ msgstr "Pro needs an account so your plan follows you. Everything else stays free, with no account."
 
 #: src/settings/general/billing.tsx
 msgid "Pro trial"
@@ -6690,8 +6723,8 @@ msgid "Show or hide the sidebar"
 msgstr "Show or hide the sidebar"
 
 #: src/upshot-plan/upgrade-dialog.tsx
-msgid "Show password"
-msgstr "Show password"
+#~ msgid "Show password"
+#~ msgstr "Show password"
 
 #: src/settings/ai/shared/model-combobox.tsx
 msgid "Show previews"
@@ -6746,6 +6779,7 @@ msgstr "Show your Google, Outlook, and iCloud events in Upshot."
 msgid "Showing total of {0} models."
 msgstr "Showing total of {0} models."
 
+#: src/chat/components/message/error.tsx
 #: src/resource-sharing/share-dialog.tsx
 #: src/session-sharing/index.tsx
 #: src/session/components/note-input/enhanced/enhance-error.tsx
@@ -6754,13 +6788,12 @@ msgstr "Showing total of {0} models."
 #: src/settings/sync/index.tsx
 #: src/shared-notes/index.tsx
 #: src/sidebar/toast/registry.tsx
-#: src/upshot-plan/upgrade-dialog.tsx
 msgid "Sign in"
 msgstr "Sign in"
 
 #: src/upshot-plan/upgrade-dialog.tsx
-msgid "Sign in and continue"
-msgstr "Sign in and continue"
+#~ msgid "Sign in and continue"
+#~ msgstr "Sign in and continue"
 
 #: src/settings/sync/index.tsx
 msgid "Sign in before enabling encrypted cloud sync"
@@ -6800,8 +6833,8 @@ msgid "Sign in to create a shared workspace for your team."
 msgstr "Sign in to create a shared workspace for your team."
 
 #: src/session/components/note-input/enhanced/enhance-error.tsx
-msgid "Sign in to generate this summary"
-msgstr "Sign in to generate this summary"
+#~ msgid "Sign in to generate this summary"
+#~ msgstr "Sign in to generate this summary"
 
 #: src/sidebar/toast/registry.tsx
 msgid "Sign in to get the most out of Upshot"
@@ -6820,9 +6853,10 @@ msgid "Sign in to share this note with others."
 msgstr "Sign in to share this note with others."
 
 #: src/onboarding/index.tsx
-msgid "Sign in to unlock powerful AI models, sync across devices, and personalization."
-msgstr "Sign in to unlock powerful AI models, sync across devices, and personalization."
+#~ msgid "Sign in to unlock powerful AI models, sync across devices, and personalization."
+#~ msgstr "Sign in to unlock powerful AI models, sync across devices, and personalization."
 
+#: src/onboarding/index.tsx
 #: src/settings/general/account.tsx
 #: src/settings/general/billing.tsx
 #: src/upshot-plan/upgrade-dialog.tsx
@@ -6833,9 +6867,17 @@ msgstr "Sign in to Upshot"
 msgid "Sign in to use cloud sync"
 msgstr "Sign in to use cloud sync"
 
+#: src/settings/profile/index.tsx
+msgid "Sign in to use Upshot AI and transcription."
+msgstr "Sign in to use Upshot AI and transcription."
+
 #: src/shared-notes/index.tsx
 msgid "Sign in to view this shared note"
 msgstr "Sign in to view this shared note"
+
+#: src/session/components/note-input/enhanced/enhance-error.tsx
+msgid "Sign in to write this summary"
+msgstr "Sign in to write this summary"
 
 #: src/instruction/index.tsx
 msgid "Sign in to your account"
@@ -6875,12 +6917,16 @@ msgstr "Sign out and sign in again to resume cloud sync."
 msgid "Sign out of Upshot?"
 msgstr "Sign out of Upshot?"
 
-#: src/onboarding/account/after-login.tsx
+#: src/onboarding/account/index.tsx
 #: src/onboarding/index.tsx
 #: src/settings/general/account.tsx
 #: src/settings/profile/index.tsx
 msgid "Signed in"
 msgstr "Signed in"
+
+#: src/onboarding/account/index.tsx
+msgid "Signed in as {email}"
+msgstr "Signed in as {email}"
 
 #: src/settings/general/account.tsx
 msgid "Signing out…"
@@ -6907,8 +6953,8 @@ msgid "Skip for now"
 msgstr "Skip for now"
 
 #: src/onboarding/index.tsx
-msgid "Skipped"
-msgstr "Skipped"
+#~ msgid "Skipped"
+#~ msgstr "Skipped"
 
 #: src/session-sharing/delivery-panel.tsx
 msgid "Slack"
@@ -7039,8 +7085,8 @@ msgid "Starting voice input"
 msgstr "Starting voice input"
 
 #: src/onboarding/account/after-login.tsx
-msgid "Starting your trial..."
-msgstr "Starting your trial..."
+#~ msgid "Starting your trial..."
+#~ msgstr "Starting your trial..."
 
 #: src/chat/components/input/index.tsx
 msgid "Starting…"
@@ -7715,8 +7761,8 @@ msgid "Trial"
 msgstr "Trial"
 
 #: src/onboarding/account/after-login.tsx
-msgid "Trial activated - {trialDays} days of Pro"
-msgstr "Trial activated - {trialDays} days of Pro"
+#~ msgid "Trial activated - {trialDays} days of Pro"
+#~ msgstr "Trial activated - {trialDays} days of Pro"
 
 #: src/settings/plan.tsx
 msgid "Trial, ends {date}"
@@ -7743,6 +7789,10 @@ msgstr "Try again"
 #: src/session/components/note-input/enhanced/config-error.tsx
 msgid "Try again in a minute to turn this transcript into a summary."
 msgstr "Try again in a minute to turn this transcript into a summary."
+
+#: src/session/components/note-input/enhanced/enhance-error.tsx
+msgid "Try again to write this summary."
+msgstr "Try again to write this summary."
 
 #: src/session/components/note-input/transcript/actions.ts
 msgid "Try again, or pick another model in Settings › Transcription."
@@ -8048,6 +8098,10 @@ msgstr "Upshot {0} is ready to install"
 msgid "Upshot account"
 msgstr "Upshot account"
 
+#: src/upshot-plan/upgrade-dialog.tsx
+msgid "Upshot AI and Upshot transcription need a free account. Your notes stay on this computer."
+msgstr "Upshot AI and Upshot transcription need a free account. Your notes stay on this computer."
+
 #: src/chat/transport/helpers.ts
 msgid "Upshot AI can't be reached. Check your internet connection, then click Retry."
 msgstr "Upshot AI can't be reached. Check your internet connection, then click Retry."
@@ -8067,6 +8121,10 @@ msgstr "Upshot AI is getting ready. Try again in a minute."
 #: src/session/components/note-input/enhanced/enhance-error.tsx
 msgid "Upshot AI is paused for now. Try again later."
 msgstr "Upshot AI is paused for now. Try again later."
+
+#: src/session/components/note-input/enhanced/enhance-error.tsx
+msgid "Upshot AI needs a free account. Sign in, then try again."
+msgstr "Upshot AI needs a free account. Sign in, then try again."
 
 #: src/onboarding/permissions.tsx
 msgid "Upshot can hear others"
@@ -8106,8 +8164,8 @@ msgid "Upshot CLI is ready to use"
 msgstr "Upshot CLI is ready to use"
 
 #: src/session/components/note-input/enhanced/enhance-error.tsx
-msgid "Upshot could not generate this summary because you were not signed in. Sign in, then try again."
-msgstr "Upshot could not generate this summary because you were not signed in. Sign in, then try again."
+#~ msgid "Upshot could not generate this summary because you were not signed in. Sign in, then try again."
+#~ msgstr "Upshot could not generate this summary because you were not signed in. Sign in, then try again."
 
 #: src/shared-notes/index.tsx
 msgid "Upshot could not read the local shared-note cache."
@@ -8198,8 +8256,12 @@ msgid "Upshot stops using {0} until you add a key again."
 msgstr "Upshot stops using {0} until you add a key again."
 
 #: src/onboarding/index.tsx
-msgid "Upshot transcribes your meetings. No account and no API key."
-msgstr "Upshot transcribes your meetings. No account and no API key."
+#~ msgid "Upshot transcribes your meetings. No account and no API key."
+#~ msgstr "Upshot transcribes your meetings. No account and no API key."
+
+#: src/onboarding/index.tsx
+msgid "Upshot transcribes your meetings. No API key needed."
+msgstr "Upshot transcribes your meetings. No API key needed."
 
 #: src/onboarding/transcription.tsx
 msgid "Upshot transcription"
@@ -8316,6 +8378,7 @@ msgid "Version history"
 msgstr "Version history"
 
 #: src/main/windows-title-bar.tsx
+#: src/session/components/note-input/meta-chips.tsx
 #: src/settings/team/invitation-toast.tsx
 msgid "View"
 msgstr "View"
@@ -8528,8 +8591,8 @@ msgid "You can't undo this."
 msgstr "You can't undo this."
 
 #: src/onboarding/account/after-login.tsx
-msgid "You have an active plan"
-msgstr "You have an active plan"
+#~ msgid "You have an active plan"
+#~ msgstr "You have an active plan"
 
 #: src/settings/team/index.tsx
 msgid "You will become the Primary owner of {workspaceName}, with control over its members, billing, and deletion. The current Primary owner will remain an Owner."
@@ -8560,12 +8623,12 @@ msgid "You're offline. Your summary stays as it is."
 msgstr "You're offline. Your summary stays as it is."
 
 #: src/onboarding/account/after-login.tsx
-msgid "You're on a Pro trial"
-msgstr "You're on a Pro trial"
+#~ msgid "You're on a Pro trial"
+#~ msgstr "You're on a Pro trial"
 
 #: src/settings/profile/index.tsx
-msgid "You're on Free. No account needed."
-msgstr "You're on Free. No account needed."
+#~ msgid "You're on Free. No account needed."
+#~ msgstr "You're on Free. No account needed."
 
 #: src/settings/general/billing.tsx
 msgid "You're on the <0>{planLabel}</0> plan"
@@ -8574,6 +8637,10 @@ msgstr "You're on the <0>{planLabel}</0> plan"
 #: src/upshot-plan/upgrade-dialog.tsx
 msgid "You're on Upshot Pro"
 msgstr "You're on Upshot Pro"
+
+#: src/session/components/note-input/enhanced/enhance-error.tsx
+msgid "You're signed in"
+msgstr "You're signed in"
 
 #. placeholder {0}: invitation.workspaceName
 #: src/settings/team/invitation-toast.tsx

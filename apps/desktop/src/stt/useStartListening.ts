@@ -33,9 +33,12 @@ import { getSessionEvent } from "~/session/utils";
 import { getBaseLanguageDisplayName } from "~/settings/general/language";
 import { useConfigValue } from "~/shared/config";
 import { useTabs } from "~/store/zustand/tabs";
+import { openUpshotSignIn } from "~/upshot-plan";
+import { getUpshotSttToken } from "~/upshot-plan/session";
 import {
   getLiveTranscriptionConfig,
   getTranscriptionLanguages,
+  isAnarlogCloudSttModel,
   requiresRetainedBatchAudio,
 } from "~/stt/capabilities";
 import {
@@ -107,6 +110,18 @@ export function useStartListeningState(
   const startListening = useCallback(async () => {
     if (!canStartLiveSession(sessionId)) {
       return;
+    }
+    // Fork: Upshot transcription needs a free account (Adam, Oct 5), so ask
+    // for sign-in before anything starts. The token goes to the Worker as
+    // the provider key. On-device engines and own keys need no account.
+    let apiKey = conn?.apiKey ?? "";
+    if (isAnarlogCloudSttModel(conn?.provider, conn?.model)) {
+      const token = await getUpshotSttToken();
+      if (!token) {
+        openUpshotSignIn("hosted");
+        return;
+      }
+      apiKey = token;
     }
     // Fork: ask for the microphone first, and record only after Allow
     // (ensureMicrophoneBeforeStart).
@@ -205,7 +220,7 @@ export function useStartListeningState(
           onboarding: false,
           model: conn?.model ?? "",
           base_url: conn?.baseUrl ?? "",
-          api_key: conn?.apiKey ?? "",
+          api_key: apiKey,
           keywords,
           mic_device: microphoneDevice || null,
           transcription_mode: liveTranscriptionConfig.transcriptionMode,

@@ -102,10 +102,39 @@ async function workerFetch<T>(
 
 // ---------- persistence ----------
 
+/**
+ * Fork: Upshot 1.0.0 signed in with email and password. Those sessions
+ * can't use Upshot AI now (Google or Microsoft only, as Granola), so drop
+ * them and show Sign in. Supabase puts the sign-in methods in the access
+ * token's app_metadata.providers. A token that doesn't decode is kept.
+ */
+export function isPasswordOnlySession(accessToken: string): boolean {
+  try {
+    const payload = accessToken.split(".")[1];
+    if (!payload) return false;
+    const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+    const providers = (
+      JSON.parse(json) as { app_metadata?: { providers?: unknown } }
+    ).app_metadata?.providers;
+    return (
+      Array.isArray(providers) &&
+      !providers.some((name) => name === "google" || name === "azure")
+    );
+  } catch {
+    return false;
+  }
+}
+
 function parseSession(raw: string | null): UpshotSession | null {
   if (!raw) return null;
   try {
     const value = JSON.parse(raw) as Partial<UpshotSession>;
+    if (
+      typeof value.access_token === "string" &&
+      isPasswordOnlySession(value.access_token)
+    ) {
+      return null;
+    }
     return typeof value.access_token === "string" &&
       typeof value.refresh_token === "string" &&
       typeof value.expires_at === "number"
@@ -190,6 +219,90 @@ export async function signInUpshot(
   useUpshotAccount.setState({ sessionEnded: false });
 }
 
+// ---------- Google and Microsoft sign-in ----------
+//
+// Fork: Upshot signs in only with Google or Microsoft, as Granola does
+// ("Granola only supports Google and Microsoft single sign on":
+// docs.granola.ai/help-center/getting-started/setting-up-granola-for-the-first-time).
+// OAuth for a desktop app follows RFC 8252: the system browser, PKCE, and a
+// loopback redirect to 127.0.0.1 (§7.3), served by the deeplink2 callback
+// server, so it works on Mac, Windows and Linux without a URL scheme.
+
+export type UpshotOAuthProvider = "google" | "azure";
+
+type PendingOAuth = { verifier: string };
+let pendingOAuth: PendingOAuth | null = null;
+
+function base64Url(bytes: Uint8Array): string {
+  let text = "";
+  for (const byte of bytes) text += String.fromCharCode(byte);
+  return btoa(text).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+/** RFC 7636: a 43-character verifier and its S256 challenge. */
+export async function createPkcePair(): Promise<{
+  verifier: string;
+  challenge: string;
+}> {
+  const verifier = base64Url(crypto.getRandomValues(new Uint8Array(32)));
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(verifier),
+  );
+  return { verifier, challenge: base64Url(new Uint8Array(digest)) };
+}
+
+/**
+ * Open Google or Microsoft sign-in in the browser. The browser comes back
+ * to the loopback server, which emits the code as an /auth/callback deep
+ * link; completeUpshotOAuth finishes it.
+ */
+export async function startUpshotOAuth(
+  provider: UpshotOAuthProvider,
+  deps: {
+    startCallbackServer: () => Promise<number>;
+    openUrl: (url: string) => Promise<void>;
+  },
+): Promise<void> {
+  const origin = upshotWorkerOrigin();
+  if (!origin) {
+    throw new UpshotRequestError("Sign-in is not available here.", 0);
+  }
+  const { verifier, challenge } = await createPkcePair();
+  const port = await deps.startCallbackServer();
+  const url = new URL(`${origin}/auth/oauth/start`);
+  url.searchParams.set("provider", provider);
+  url.searchParams.set("code_challenge", challenge);
+  url.searchParams.set("redirect_to", `http://127.0.0.1:${port}/auth/callback`);
+  pendingOAuth = { verifier };
+  await deps.openUrl(url.toString());
+}
+
+export function cancelUpshotOAuth(): void {
+  pendingOAuth = null;
+}
+
+export function isUpshotOAuthPending(): boolean {
+  return pendingOAuth !== null;
+}
+
+/**
+ * Swap the code from the browser for a session. Returns false when no
+ * sign-in is waiting (the same code also arrives a second time through the
+ * upshot:// link that brings the app to the front).
+ */
+export async function completeUpshotOAuth(code: string): Promise<boolean> {
+  const pending = pendingOAuth;
+  if (!pending) return false;
+  pendingOAuth = null;
+  const data = await workerFetch<WorkerSession>("/auth/oauth/exchange", {
+    body: { code, code_verifier: pending.verifier },
+  });
+  await saveSession(toSession(data, data.user?.email ?? ""));
+  useUpshotAccount.setState({ sessionEnded: false });
+  return true;
+}
+
 export async function signOutUpshot(): Promise<void> {
   useUpshotAccount.setState({ sessionEnded: false });
   await saveSession(null);
@@ -250,6 +363,22 @@ export async function getUpshotAccessToken(
   return (await refreshing).access_token;
 }
 
+/**
+ * The token Upshot transcription sends: fresh when possible, the saved one
+ * when offline (the recording still saves its audio), null when signed out
+ * or the session ended.
+ */
+export async function getUpshotSttToken(): Promise<string | null> {
+  try {
+    return await getUpshotAccessToken();
+  } catch (error) {
+    if (error instanceof UpshotRequestError && error.status === 401) {
+      return null;
+    }
+    return useUpshotAccount.getState().session?.access_token ?? null;
+  }
+}
+
 /** Call the Worker as the signed-in user. */
 export async function upshotAuthedRequest<T>(
   path: string,
@@ -260,22 +389,54 @@ export async function upshotAuthedRequest<T>(
   return workerFetch<T>(path, { ...init, token });
 }
 
+// Fork: Upshot AI and Upshot transcription need a free account (Adam,
+// Oct 5; Granola signs in at first launch).
+export const SIGN_IN_REQUIRED = "Sign in to use Upshot AI. It's free.";
+export const SIGN_IN_REQUIRED_STT =
+  "Sign in to use Upshot transcription. It's free.";
+export const SIGN_IN_REQUIRED_CODE = "sign_in_required";
+
+/** True for the Worker's or the app's "sign in first" error. */
+export function isSignInRequiredError(error: unknown): boolean {
+  if (error instanceof UpshotRequestError) {
+    return error.code === SIGN_IN_REQUIRED_CODE;
+  }
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  return message.startsWith("Sign in to use Upshot");
+}
+
+function signInRequiredResponse(): Response {
+  return new Response(
+    JSON.stringify({
+      error: { message: SIGN_IN_REQUIRED, code: SIGN_IN_REQUIRED_CODE },
+    }),
+    { status: 401, headers: { "content-type": "application/json" } },
+  );
+}
+
 /**
- * fetch for the Upshot AI LLM proxy when a Pro model is picked: adds
- * "Authorization: Bearer <access token>" so the Worker can check Pro.
- * Auto requests use plain providerFetch and carry no token.
+ * fetch for the Upshot AI LLM proxy: adds "Authorization: Bearer <access
+ * token>" so the Worker knows the account (and Pro for a picked model).
+ * Signed out, it answers like the Worker would, without a network call.
  */
 export const upshotAuthFetch: typeof fetch = async (input, init) => {
-  // A failed refresh sends the request without a token; the Worker then
-  // answers on Auto instead of failing the chat.
-  const token = await getUpshotAccessToken().catch(() => null);
-  const headers = new Headers(init?.headers);
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-  } else {
-    headers.delete("Authorization");
+  let token: string | null;
+  try {
+    token = await getUpshotAccessToken();
+  } catch (error) {
+    if (error instanceof UpshotRequestError && error.status === 401) {
+      return signInRequiredResponse();
+    }
+    // Offline: let the request fail the usual way ("can't be reached").
+    return providerFetch(input, init);
   }
-  return providerFetch(input, { ...init, headers });
+  if (!token) return signInRequiredResponse();
+  const headers = new Headers(init?.headers);
+  headers.set("Authorization", `Bearer ${token}`);
+  const response = await providerFetch(input, { ...init, headers });
+  // The Worker's own message also tells old apps to update; this app only
+  // needs to ask for sign-in.
+  return response.status === 401 ? signInRequiredResponse() : response;
 };
 
 /** Test helper: forget the in-memory session and load state. */

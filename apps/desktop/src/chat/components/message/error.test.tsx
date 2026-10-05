@@ -1,5 +1,8 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const signInMocks = vi.hoisted(() => ({ openSignIn: vi.fn() }));
+vi.mock("~/upshot-plan", () => ({ openUpshotSignIn: signInMocks.openSignIn }));
 
 vi.mock("@anlg/plugin-opener2", () => ({
   commands: { openUrl: vi.fn() },
@@ -21,6 +24,13 @@ vi.mock("~/env", () => ({
 }));
 
 import { ErrorMessage, getChatErrorText } from "./error";
+
+import {
+  resetUpshotAccountForTests,
+  SIGN_IN_REQUIRED,
+  UpshotRequestError,
+  useUpshotAccount,
+} from "~/upshot-plan/session";
 
 describe("ErrorMessage", () => {
   beforeEach(() => {
@@ -69,5 +79,73 @@ describe("ErrorMessage context length", () => {
     expect(screen.queryByText("Learn how to fix this")).toBeNull();
     screen.getByRole("button", { name: "Retry" }).click();
     expect(onRetry).toHaveBeenCalledOnce();
+  });
+});
+
+// Fork: Upshot AI needs a free account. Signed out, the sign-in error offers
+// Sign in, not a Retry that cannot work.
+describe("ErrorMessage sign-in required", () => {
+  beforeEach(() => {
+    cleanup();
+    signInMocks.openSignIn.mockClear();
+    resetUpshotAccountForTests();
+  });
+
+  it("signed out, shows Sign in instead of Retry and opens the dialog", () => {
+    const onRetry = vi.fn();
+    render(
+      <ErrorMessage
+        error={
+          new UpshotRequestError(SIGN_IN_REQUIRED, 401, "sign_in_required")
+        }
+        onRetry={onRetry}
+      />,
+    );
+
+    expect(screen.getByText(SIGN_IN_REQUIRED)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
+    screen.getByRole("button", { name: "Sign in" }).click();
+    expect(signInMocks.openSignIn).toHaveBeenCalledTimes(1);
+    expect(signInMocks.openSignIn).toHaveBeenCalledWith("hosted");
+    expect(onRetry).not.toHaveBeenCalled();
+  });
+
+  it("recognizes the sign-in error from its message alone", () => {
+    render(<ErrorMessage error={SIGN_IN_REQUIRED} onRetry={vi.fn()} />);
+
+    expect(screen.getByRole("button", { name: "Sign in" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
+  });
+
+  it("once signed in, brings Retry back", () => {
+    render(<ErrorMessage error={SIGN_IN_REQUIRED} onRetry={vi.fn()} />);
+    expect(screen.getByRole("button", { name: "Sign in" })).toBeTruthy();
+
+    act(() => {
+      useUpshotAccount.setState({
+        loaded: true,
+        session: {
+          access_token: "access",
+          refresh_token: "refresh",
+          expires_at: Date.now() / 1000 + 3600,
+          email: "judge@example.com",
+        },
+      });
+    });
+
+    expect(screen.queryByRole("button", { name: "Sign in" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
+  });
+
+  it("other errors keep Retry and show no Sign in", () => {
+    render(<ErrorMessage error={new Error("boom")} onRetry={vi.fn()} />);
+
+    expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Sign in" })).toBeNull();
+  });
+
+  it("signed out with no retry still offers Sign in", () => {
+    render(<ErrorMessage error={SIGN_IN_REQUIRED} />);
+    expect(screen.getByRole("button", { name: "Sign in" })).toBeTruthy();
   });
 });

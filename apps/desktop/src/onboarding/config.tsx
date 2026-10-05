@@ -10,18 +10,20 @@ export type OnboardingStep =
   | "imports"
   | "final";
 
-// Fork: no sign-in step (needs upstream services). The calendar step offers
-// only the local Apple Calendar; Granola connects the calendar during setup
+// Fork: sign-in comes first on every computer, as in Granola, with Google
+// or Microsoft (Adam, Oct 5). The calendar step offers only the local Apple
+// Calendar; Granola connects the calendar during setup
 // (docs.granola.ai/help-center/getting-started/setting-up-granola-for-the-first-time).
-// No AI key step either: Granola hosts its models, and so does Upshot AI.
+// No AI key step: Granola hosts its models, and so does Upshot AI.
 const STEPS_MACOS: OnboardingStep[] = [
+  "login",
   "permissions",
   "transcription",
   "calendar",
   "imports",
   "final",
 ];
-const STEPS_OTHER: OnboardingStep[] = ["imports", "final"];
+const STEPS_OTHER: OnboardingStep[] = ["login", "imports", "final"];
 
 // Fork: count only the steps that will show. With no meeting app found, the
 // imports step is left out, so "Step 3 of 5" never jumps to "Step 5 of 5"

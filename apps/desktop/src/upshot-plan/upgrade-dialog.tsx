@@ -1,20 +1,14 @@
-// Fork: the in-app account dialog for Upshot Pro. Sign up or sign in with
-// email and password, then Stripe Checkout opens in the browser, as in
+// Fork: the in-app account dialog. Sign in with Google or Microsoft (as
+// Granola), then, for Pro, Stripe Checkout opens in the browser, as in
 // Granola ("Complete checkout in the Stripe tab that opens":
 // docs.granola.ai/help-center/managing-your-account/subscriptions-and-billing).
-// Free features never ask for an account.
-//
-// Form: visible labels, not placeholders (NN/g, "Placeholders in form
-// fields are harmful"), the password rule shown up front (NN/g, password
-// creation), a Show password option (NN/g, "Stop password masking"), and a
-// visible Cancel, as HIG sheets have a dismiss button
+// Upshot AI and Upshot transcription need the free account (Adam, Oct 5).
+// A visible Cancel, as HIG sheets have a dismiss button
 // (developer.apple.com/design/human-interface-guidelines/sheets).
 import { Trans } from "@lingui/react/macro";
-import { type ReactNode, useId, useState } from "react";
+import { type ReactNode, useState } from "react";
 
-import { commands as openerCommands } from "@anlg/plugin-opener2";
 import { Button } from "@anlg/ui/components/ui/button";
-import { Checkbox } from "@anlg/ui/components/ui/checkbox";
 import {
   Dialog,
   DialogDescription,
@@ -22,21 +16,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@anlg/ui/components/ui/dialog";
-import { Input } from "@anlg/ui/components/ui/input";
 
 import {
-  type AccountMode,
   closeUpgradeDialog,
   isAlreadyPro,
   openPrivacyPolicy,
   refreshUpshotPlan,
-  signInUpshot,
   startCheckout,
   useUpgradeDialog,
   useUpshotAccount,
   useUpshotPro,
 } from "./index";
-import { UpshotRequestError } from "./session";
+import { stopWaitingForSignIn, UpshotSignInChoices } from "./sign-in";
 
 import {
   GlassDialogCancelButton,
@@ -53,9 +44,6 @@ export function TestCardNote() {
     </p>
   );
 }
-
-const PASSWORD_RESET_MAILTO =
-  "mailto:adam@websiteformula.co?subject=Upshot%20password%20reset";
 
 // Fork: a text link to the privacy policy, opened in the browser
 // (CalOPPA §22577(b): a text link that includes the word "privacy").
@@ -76,54 +64,48 @@ export function PrivacyPolicyLink({ children }: { children: ReactNode }) {
 export function UpshotUpgradeDialog() {
   const {
     open,
-    mode: openMode,
     interval,
     checkout,
     error,
     alreadyPro: openedAlreadyPro,
+    reason,
   } = useUpgradeDialog();
   const signedIn = useUpshotAccount((state) => !!state.session);
-  const [mode, setMode] = useState<AccountMode>(openMode);
   const [step, setStep] = useState<"form" | "browser">("form");
   const [alreadyPro, setAlreadyPro] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
   const [syncedOpen, setSyncedOpen] = useState(open);
   if (syncedOpen !== open) {
     setSyncedOpen(open);
     if (open) {
-      // Fork: "Sign in" opens on sign-in, Upgrade on sign-up (ux-audit-oct3 D,
-      // NN/g #2, #4).
-      setMode(openMode);
       setStep(openedAlreadyPro ? "browser" : "form");
       setAlreadyPro(openedAlreadyPro);
       setBusy(false);
       setMessage(error);
-      setPassword("");
     }
   }
 
-  const goToCheckout = async () => {
-    await startCheckout(interval);
-    setStep("browser");
+  // Fork: a plain "Sign in" closes itself once Google or Microsoft hands
+  // the session back (NN/g #1: the change is the confirmation).
+  const [syncedSignedIn, setSyncedSignedIn] = useState(signedIn);
+  if (syncedSignedIn !== signedIn) {
+    setSyncedSignedIn(signedIn);
+    if (signedIn && open && !checkout) closeUpgradeDialog();
+  }
+
+  const close = () => {
+    stopWaitingForSignIn();
+    closeUpgradeDialog();
   };
 
   const submit = async () => {
     setBusy(true);
     setMessage(null);
     try {
-      if (!signedIn) {
-        await signInUpshot(mode, email.trim(), password);
-        setPassword("");
-      }
-      if (checkout) {
-        await goToCheckout();
-      } else {
-        closeUpgradeDialog();
-      }
+      await startCheckout(interval);
+      setStep("browser");
     } catch (cause) {
       // Fork: already Pro after signing in (a second Mac) is a success:
       // show "You're on Upshot Pro", not a red error (journey-account-settings
@@ -133,13 +115,6 @@ export function UpshotUpgradeDialog() {
         setAlreadyPro(true);
         setStep("browser");
         return;
-      }
-      // Fork: an existing email switches the form to sign-in (ux-audit-oct3 D).
-      if (
-        cause instanceof UpshotRequestError &&
-        cause.code === "account_exists"
-      ) {
-        setMode("signin");
       }
       setMessage(cause instanceof Error ? cause.message : String(cause));
     } finally {
@@ -151,10 +126,9 @@ export function UpshotUpgradeDialog() {
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        // Fork: Esc or a click outside can't close the dialog mid sign-in,
-        // so checkout never opens after the user left (journey-account-
-        // settings P3; NN/g #3). Cancel is disabled while busy, too.
-        if (!next && !busy) closeUpgradeDialog();
+        // Fork: Esc or a click outside can't close the dialog mid checkout
+        // call (journey-account-settings P3; NN/g #3).
+        if (!next && !busy) close();
       }}
     >
       <GlassDialogContent className="max-w-[360px]">
@@ -165,15 +139,13 @@ export function UpshotUpgradeDialog() {
             className="flex flex-col gap-4"
             onSubmit={(event) => {
               event.preventDefault();
-              void submit();
+              if (signedIn) void submit();
             }}
           >
             <DialogHeader className="gap-1 text-left">
               <DialogTitle className="text-foreground text-base font-semibold">
                 {signedIn ? (
                   <Trans>Upgrade to Pro</Trans>
-                ) : mode === "signup" ? (
-                  <Trans>Create your Upshot account</Trans>
                 ) : (
                   <Trans>Sign in to Upshot</Trans>
                 )}
@@ -181,25 +153,23 @@ export function UpshotUpgradeDialog() {
               <DialogDescription className="text-muted-foreground text-sm">
                 {signedIn ? (
                   <Trans>Checkout opens in your browser.</Trans>
+                ) : checkout ? (
+                  <Trans>Pro needs an account so your plan follows you.</Trans>
+                ) : reason === "hosted" ? (
+                  <Trans>
+                    Upshot AI and Upshot transcription need a free account.
+                    Your notes stay on this computer.
+                  </Trans>
                 ) : (
                   <Trans>
-                    Pro needs an account so your plan follows you. Everything
-                    else stays free, with no account.
+                    A free account turns on Upshot AI and Upshot
+                    transcription. Your notes stay on this computer.
                   </Trans>
                 )}
               </DialogDescription>
             </DialogHeader>
 
-            {!signedIn ? (
-              <AccountFields
-                mode={mode}
-                email={email}
-                password={password}
-                busy={busy}
-                onEmail={setEmail}
-                onPassword={setPassword}
-              />
-            ) : null}
+            {!signedIn ? <UpshotSignInChoices /> : null}
 
             {message ? (
               <p role="alert" className="text-destructive text-xs">
@@ -207,10 +177,10 @@ export function UpshotUpgradeDialog() {
               </p>
             ) : null}
 
-            {!signedIn && mode === "signup" ? (
+            {!signedIn ? (
               <p className="text-muted-foreground text-xs">
                 {/* Two messages: the test Trans mock drops nested elements. */}
-                <Trans>By creating an account you agree to the</Trans>{" "}
+                <Trans>By continuing you agree to the</Trans>{" "}
                 <PrivacyPolicyLink>
                   <Trans>privacy policy</Trans>
                 </PrivacyPolicyLink>
@@ -218,14 +188,11 @@ export function UpshotUpgradeDialog() {
               </p>
             ) : null}
 
-            <DialogFooter className="flex flex-col gap-2 sm:flex-col sm:justify-normal sm:space-x-0">
-              <div className="flex gap-2">
-                <GlassDialogCancelButton
-                  disabled={busy}
-                  onClick={() => closeUpgradeDialog()}
-                >
-                  <Trans>Cancel</Trans>
-                </GlassDialogCancelButton>
+            <DialogFooter className="flex gap-2 sm:justify-normal sm:space-x-0">
+              <GlassDialogCancelButton disabled={busy} onClick={close}>
+                <Trans>Cancel</Trans>
+              </GlassDialogCancelButton>
+              {signedIn ? (
                 <Button
                   type="submit"
                   // Fork: the same text size as Cancel beside it, as the other
@@ -233,135 +200,14 @@ export function UpshotUpgradeDialog() {
                   className="h-8 flex-1 text-xs"
                   disabled={busy}
                 >
-                  {signedIn ? (
-                    <Trans>Continue to checkout</Trans>
-                  ) : mode === "signup" ? (
-                    checkout ? (
-                      <Trans>Create account and continue</Trans>
-                    ) : (
-                      <Trans>Create account</Trans>
-                    )
-                  ) : checkout ? (
-                    <Trans>Sign in and continue</Trans>
-                  ) : (
-                    <Trans>Sign in</Trans>
-                  )}
+                  <Trans>Continue to checkout</Trans>
                 </Button>
-              </div>
-              {!signedIn ? (
-                <button
-                  type="button"
-                  disabled={busy}
-                  // Fork: a 24px target (ux-audit-oct3 D, WCAG 2.5.8).
-                  className="text-muted-foreground hover:text-foreground min-h-6 py-1 text-xs transition-colors"
-                  onClick={() => {
-                    setMode(mode === "signup" ? "signin" : "signup");
-                    setMessage(null);
-                  }}
-                >
-                  {mode === "signup" ? (
-                    <Trans>Already have an account? Sign in</Trans>
-                  ) : (
-                    <Trans>New to Upshot? Create an account</Trans>
-                  )}
-                </button>
               ) : null}
             </DialogFooter>
           </form>
         )}
       </GlassDialogContent>
     </Dialog>
-  );
-}
-
-function AccountFields({
-  mode,
-  email,
-  password,
-  busy,
-  onEmail,
-  onPassword,
-}: {
-  mode: "signup" | "signin";
-  email: string;
-  password: string;
-  busy: boolean;
-  onEmail: (value: string) => void;
-  onPassword: (value: string) => void;
-}) {
-  const id = useId();
-  const [showPassword, setShowPassword] = useState(false);
-  const label = "text-foreground text-sm font-medium";
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor={`${id}-email`} className={label}>
-          <Trans>Email</Trans>
-        </label>
-        <Input
-          id={`${id}-email`}
-          autoFocus
-          type="email"
-          required
-          maxLength={254}
-          autoComplete="email"
-          value={email}
-          disabled={busy}
-          onChange={(event) => onEmail(event.target.value)}
-        />
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor={`${id}-password`} className={label}>
-          <Trans>Password</Trans>
-        </label>
-        <Input
-          id={`${id}-password`}
-          type={showPassword ? "text" : "password"}
-          required
-          minLength={8}
-          maxLength={72}
-          autoComplete={mode === "signup" ? "new-password" : "current-password"}
-          aria-describedby={mode === "signup" ? `${id}-hint` : undefined}
-          value={password}
-          disabled={busy}
-          onChange={(event) => onPassword(event.target.value)}
-        />
-        {mode === "signup" ? (
-          <p id={`${id}-hint`} className="text-muted-foreground text-xs">
-            <Trans>8 or more characters</Trans>
-          </p>
-        ) : (
-          // Fork: a way back in under the password field, as Apple and
-          // Google sign-in forms do (NN/g heuristic #9). No reset backend
-          // yet, so it emails support.
-          <p className="text-muted-foreground text-xs">
-            <Trans>Forgot password?</Trans>{" "}
-            <button
-              type="button"
-              className="text-muted-foreground hover:text-foreground cursor-pointer underline underline-offset-2 transition-colors"
-              onClick={() =>
-                void openerCommands.openUrl(PASSWORD_RESET_MAILTO, null)
-              }
-            >
-              <Trans>Email support</Trans>
-            </button>
-          </p>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        <Checkbox
-          id={`${id}-show`}
-          checked={showPassword}
-          disabled={busy}
-          onCheckedChange={(value) => setShowPassword(value === true)}
-          // Neutral, never the accent (design-system.md).
-          className="border-muted-foreground data-[state=checked]:border-foreground data-[state=checked]:bg-foreground data-[state=checked]:text-background size-4 cursor-pointer rounded shadow-none [&_svg]:size-3"
-        />
-        <label htmlFor={`${id}-show`} className="text-sm">
-          <Trans>Show password</Trans>
-        </label>
-      </div>
-    </div>
   );
 }
 

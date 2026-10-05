@@ -12,6 +12,7 @@ import {
   statusPayload,
   verifyStripeSignature,
 } from "./src/billing.js";
+import { clearAccountCacheForTests } from "./src/auth.js";
 import worker from "./src/index.js";
 import {
   AUTO_MODEL,
@@ -69,6 +70,8 @@ test("fetch handler forwards Auto and an allowlisted body", async () => {
     const env = {
       OPENROUTER_API_KEY: "test",
       RATE_LIMITER: { limit: async () => ({ success: true }) },
+    REQUIRE_ACCOUNT: "0",
+      REQUIRE_ACCOUNT: "0",
     };
     const body = JSON.stringify({
       model: "openai/gpt-6.1-sol",
@@ -100,6 +103,7 @@ test("error messages never ask for a key", async () => {
   const env = {
     OPENROUTER_API_KEY: "test",
     RATE_LIMITER: { limit: async () => ({ success: true }) },
+    REQUIRE_ACCOUNT: "0",
   };
   const realFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response("", { status: 402 });
@@ -125,6 +129,7 @@ test("provider errors become plain sentences, never raw JSON", async () => {
   const env = {
     OPENROUTER_API_KEY: "test",
     RATE_LIMITER: { limit: async () => ({ success: true }) },
+    REQUIRE_ACCOUNT: "0",
   };
   const realFetch = globalThis.fetch;
   const cases = [
@@ -166,6 +171,7 @@ const TOKEN = "eyJhbGciOiJIUzI1NiJ9.user-token.signature";
 const baseEnv = {
   OPENROUTER_API_KEY: "test",
   RATE_LIMITER: { limit: async () => ({ success: true }) },
+  REQUIRE_ACCOUNT: "0",
   SUPABASE_URL: "https://sb.test",
   SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test",
   SUPABASE_SECRET_KEY: "sb_secret_test",
@@ -974,19 +980,7 @@ test("webhook after account deletion is ignored, not retried", async () => {
   }
 });
 
-test("auth: wrong password and existing email get plain messages", async () => {
-  const signupBodies = [
-    [
-      422,
-      {
-        code: 422,
-        error_code: "user_already_exists",
-        msg: "User already registered",
-      },
-    ],
-    [200, { id: "fake", email: "judge@example.com", identities: [] }],
-  ];
-  let signupCall = 0;
+test("auth: wrong password gets a plain message; sign-up is gone", async () => {
   const mock = mockFetch([
     [
       "https://sb.test/auth/v1/token?grant_type=password",
@@ -998,13 +992,6 @@ test("auth: wrong password and existing email get plain messages", async () => {
           },
           { status: 400 },
         ),
-    ],
-    [
-      "https://sb.test/auth/v1/signup",
-      () => {
-        const [status, body] = signupBodies[signupCall++];
-        return Response.json(body, { status });
-      },
     ],
   ]);
   const post = (path) =>
@@ -1024,17 +1011,13 @@ test("auth: wrong password and existing email get plain messages", async () => {
     assert.deepEqual(await login.json(), {
       error: { message: "Wrong email or password." },
     });
-    for (let i = 0; i < signupBodies.length; i++) {
-      const signup = await post("/auth/signup");
-      assert.equal(signup.status, 409);
-      assert.deepEqual(await signup.json(), {
-        error: {
-          message:
-            "An account with this email already exists. Sign in instead.",
-          code: "account_exists",
-        },
-      });
-    }
+    // Fork: new accounts come only from Google or Microsoft.
+    const signup = await post("/auth/signup");
+    assert.equal(signup.status, 410);
+    const gone = await signup.json();
+    assert.equal(gone.error.code, "use_google_or_microsoft");
+    assert.match(gone.error.message, /releases\/latest/);
+    assert.ok(!mock.calls.some((call) => call.url.includes("/signup")));
   } finally {
     mock.restore();
   }
@@ -1097,7 +1080,8 @@ test("privacy policy: served from public/ with the CalOPPA items", async () => {
   assert.match(html, /<title>Upshot privacy policy<\/title>/);
   assert.match(html, /src="\/brand\/upshot-logo-orange-on-light.png"/);
   assert.match(html, /background:#fff/);
-  assert.match(html, /Effective October 4, 2026/);
+  assert.match(html, /Effective October 5, 2026/);
+  assert.match(html, /sign in with Google or Microsoft/);
   for (const heading of [
     "What leaves your computer, and who gets it",
     "Your choices and rights",
@@ -1331,74 +1315,6 @@ test("chat: a retired Pro model says to switch to Auto; Auto keeps the generic l
   }
 });
 
-test("auth: known Supabase error codes get fixed sentences, others the generic line", async () => {
-  const cases = [
-    [
-      422,
-      { error_code: "weak_password", msg: "Password is known to be weak" },
-      400,
-      "Choose a stronger password. This one is too easy to guess.",
-    ],
-    [
-      400,
-      {
-        error_code: "email_address_invalid",
-        msg: "Email address is invalid",
-      },
-      400,
-      "This email address can't be used. Try another one.",
-    ],
-    [
-      422,
-      { error_code: "signup_disabled", msg: "Signups not allowed" },
-      400,
-      "New accounts are paused right now. Try again later.",
-    ],
-    [
-      429,
-      {
-        error_code: "over_email_send_rate_limit",
-        msg: "email rate limit exceeded",
-      },
-      429,
-      "Too many sign-up emails were sent. Try again in an hour.",
-    ],
-    [
-      400,
-      { error_code: "validation_failed", msg: "Raw internal Supabase text" },
-      400,
-      "Could not create your account.",
-    ],
-    [
-      500,
-      { message: "upstream exploded" },
-      400,
-      "Could not create your account.",
-    ],
-  ];
-  let next;
-  const mock = mockFetch([["https://sb.test/auth/v1/signup", () => next()]]);
-  try {
-    for (const [supabaseStatus, body, status, message] of cases) {
-      next = () => Response.json(body, { status: supabaseStatus });
-      const response = await worker.fetch(
-        new Request("https://w/auth/signup", {
-          method: "POST",
-          body: JSON.stringify({
-            email: "judge@example.com",
-            password: "password123",
-          }),
-        }),
-        baseEnv,
-      );
-      assert.equal(response.status, status, body.error_code);
-      assert.deepEqual(await response.json(), { error: { message } });
-    }
-  } finally {
-    mock.restore();
-  }
-});
-
 test("rate limit: 60 requests a minute per IP", async () => {
   const { readFile } = await import("node:fs/promises");
   const config = await readFile(
@@ -1510,6 +1426,7 @@ test("webhook: a live subscription for a deleted account is canceled", async () 
 const sttEnv = {
   DEEPGRAM_API_KEY: "dg-test",
   RATE_LIMITER: { limit: async () => ({ success: true }) },
+  REQUIRE_ACCOUNT: "0",
 };
 
 async function withFetch(handler, run) {
@@ -1685,4 +1602,228 @@ test("stt: browsers, other paths, methods and body types are refused", async () 
       assert.equal(limited.status, 429);
     },
   );
+});
+
+// ---------- Free account required (Adam, Oct 5): Google or Microsoft ----------
+
+const GOOGLE_TOKEN = "eyJhbGciOiJIUzI1NiJ9.google-user.signature";
+const PASSWORD_TOKEN = "eyJhbGciOiJIUzI1NiJ9.password-user.signature";
+const accountEnv = {
+  OPENROUTER_API_KEY: "test",
+  DEEPGRAM_API_KEY: "dg-test",
+  RATE_LIMITER: { limit: async () => ({ success: true }) },
+  USER_RATE_LIMITER: { limit: async () => ({ success: true }) },
+  SUPABASE_URL: "https://sb.test",
+  SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test",
+};
+
+function supabaseUser(url, init) {
+  const auth = new Headers(init?.headers).get("authorization");
+  if (auth === `Bearer ${GOOGLE_TOKEN}`) {
+    return Response.json({
+      id: "u-google",
+      email: "pat@example.com",
+      app_metadata: { provider: "google", providers: ["google"] },
+    });
+  }
+  if (auth === `Bearer ${PASSWORD_TOKEN}`) {
+    return Response.json({
+      id: "u-password",
+      email: "pat@example.com",
+      app_metadata: { provider: "email", providers: ["email"] },
+    });
+  }
+  return Response.json({ msg: "invalid JWT" }, { status: 401 });
+}
+
+const accountChatRequest = (headers = {}) =>
+  new Request("https://w/llm/chat/completions", {
+    method: "POST",
+    headers: { "content-type": "application/json", ...headers },
+    body: JSON.stringify({ model: "Auto", messages: [{ role: "user", content: "hi" }] }),
+  });
+
+test("account: chat without a session is 401 with the download link, and costs nothing", async () => {
+  clearAccountCacheForTests();
+  const mock = mockFetch([["https://sb.test/auth/v1/user", supabaseUser]]);
+  try {
+    for (const headers of [{}, { authorization: "Bearer not-a-real-token-at-all-xx" }]) {
+      const response = await worker.fetch(accountChatRequest(headers), accountEnv);
+      assert.equal(response.status, 401);
+      const body = await response.json();
+      assert.equal(body.error.code, "sign_in_required");
+      assert.match(body.error.message, /^Sign in to use Upshot AI and transcription/);
+      assert.match(
+        body.error.message,
+        /https:\/\/github\.com\/AdamWebsiteFormula\/grandmaster-app\/releases\/latest/,
+      );
+    }
+    assert.ok(!mock.calls.some((call) => call.url.includes("openrouter")));
+  } finally {
+    mock.restore();
+  }
+});
+
+test("account: a password-only account is refused; Google or Microsoft is required", async () => {
+  clearAccountCacheForTests();
+  const mock = mockFetch([["https://sb.test/auth/v1/user", supabaseUser]]);
+  try {
+    const response = await worker.fetch(
+      accountChatRequest({ authorization: `Bearer ${PASSWORD_TOKEN}` }),
+      accountEnv,
+    );
+    assert.equal(response.status, 401);
+  } finally {
+    mock.restore();
+  }
+});
+
+test("account: a Google account reaches OpenRouter with the server key; Supabase is asked once a minute", async () => {
+  clearAccountCacheForTests();
+  const mock = mockFetch([
+    ["https://sb.test/auth/v1/user", supabaseUser],
+    ["https://openrouter.ai/", () => Response.json({ choices: [] })],
+  ]);
+  try {
+    for (let i = 0; i < 2; i++) {
+      const response = await worker.fetch(
+        accountChatRequest({ authorization: `Bearer ${GOOGLE_TOKEN}` }),
+        accountEnv,
+      );
+      assert.equal(response.status, 200);
+    }
+    const upstream = mock.calls.filter((call) => call.url.includes("openrouter"));
+    assert.equal(upstream.length, 2);
+    assert.equal(upstream[0].init.headers.authorization, "Bearer test");
+    assert.equal(
+      mock.calls.filter((call) => call.url.includes("/auth/v1/user")).length,
+      1,
+    );
+  } finally {
+    mock.restore();
+  }
+});
+
+test("account: the per-account limit answers 429 in plain words", async () => {
+  clearAccountCacheForTests();
+  const keys = [];
+  const env = {
+    ...accountEnv,
+    USER_RATE_LIMITER: {
+      limit: async ({ key }) => {
+        keys.push(key);
+        return { success: false };
+      },
+    },
+  };
+  const mock = mockFetch([["https://sb.test/auth/v1/user", supabaseUser]]);
+  try {
+    const response = await worker.fetch(
+      accountChatRequest({ authorization: `Bearer ${GOOGLE_TOKEN}` }),
+      env,
+    );
+    assert.equal(response.status, 429);
+    assert.match((await response.json()).error.message, /a lot/);
+    assert.deepEqual(keys, ["chat:u-google"]);
+  } finally {
+    mock.restore();
+  }
+});
+
+test("account: transcription takes the session as Token and never forwards it", async () => {
+  clearAccountCacheForTests();
+  await withFetch(
+    (url, init) => {
+      if (url.startsWith("https://sb.test/auth/v1/user")) return supabaseUser(url, init);
+      return Object.assign(new Response(null, { status: 200 }), { webSocket: {} });
+    },
+    async (calls) => {
+      const signedOut = await worker.fetch(
+        new Request("https://w/stt/listen?model=cloud", {
+          headers: { upgrade: "websocket" },
+        }),
+        accountEnv,
+      );
+      assert.equal(signedOut.status, 401);
+      assert.equal((await signedOut.json()).error.code, "sign_in_required");
+
+      await worker.fetch(
+        new Request("https://w/stt/listen?model=cloud", {
+          headers: { upgrade: "websocket", authorization: `Token ${GOOGLE_TOKEN}` },
+        }),
+        accountEnv,
+      );
+      const deepgram = calls.find((call) => call.url.startsWith("https://api.deepgram.com"));
+      assert.ok(deepgram);
+      assert.equal(deepgram.init.headers.authorization, "Token dg-test");
+    },
+  );
+});
+
+test("oauth start: only Google or Microsoft, a PKCE challenge and a loopback redirect", async () => {
+  const challenge = "a".repeat(43);
+  const start = (query) =>
+    worker.fetch(new Request(`https://w/auth/oauth/start?${query}`), accountEnv);
+  const good = await start(
+    `provider=azure&code_challenge=${challenge}&redirect_to=${encodeURIComponent("http://127.0.0.1:51234/auth/callback")}`,
+  );
+  assert.equal(good.status, 302);
+  const location = new URL(good.headers.get("location"));
+  assert.equal(location.origin + location.pathname, "https://sb.test/auth/v1/authorize");
+  assert.equal(location.searchParams.get("provider"), "azure");
+  assert.equal(location.searchParams.get("code_challenge"), challenge);
+  assert.equal(location.searchParams.get("code_challenge_method"), "s256");
+  assert.equal(location.searchParams.get("scopes"), "email");
+  assert.equal(
+    location.searchParams.get("redirect_to"),
+    "http://127.0.0.1:51234/auth/callback",
+  );
+  for (const query of [
+    `provider=github&code_challenge=${challenge}&redirect_to=${encodeURIComponent("http://127.0.0.1:5/auth/callback")}`,
+    `provider=google&code_challenge=short&redirect_to=${encodeURIComponent("http://127.0.0.1:51234/auth/callback")}`,
+    `provider=google&code_challenge=${challenge}&redirect_to=${encodeURIComponent("https://evil.example/auth/callback")}`,
+    `provider=google&code_challenge=${challenge}&redirect_to=${encodeURIComponent("http://127.0.0.1.evil.example:80/auth/callback")}`,
+  ]) {
+    assert.equal((await start(query)).status, 400, query);
+  }
+});
+
+test("oauth exchange: the code and verifier go to Supabase's PKCE token grant", async () => {
+  let sent;
+  const mock = mockFetch([
+    [
+      "https://sb.test/auth/v1/token?grant_type=pkce",
+      (url, init) => {
+        sent = JSON.parse(init.body);
+        return sent.auth_code === "good-code-123"
+          ? Response.json({
+              access_token: "access",
+              refresh_token: "refresh",
+              expires_in: 3600,
+              user: { id: "u-google", email: "pat@example.com" },
+            })
+          : Response.json({ error_code: "flow_state_not_found" }, { status: 404 });
+      },
+    ],
+  ]);
+  const exchange = (code) =>
+    worker.fetch(
+      new Request("https://w/auth/oauth/exchange", {
+        method: "POST",
+        body: JSON.stringify({ code, code_verifier: "v".repeat(43) }),
+      }),
+      accountEnv,
+    );
+  try {
+    const good = await exchange("good-code-123");
+    assert.equal(good.status, 200);
+    const session = await good.json();
+    assert.equal(session.user.email, "pat@example.com");
+    assert.deepEqual(sent, { auth_code: "good-code-123", code_verifier: "v".repeat(43) });
+    const bad = await exchange("stale-code-456");
+    assert.equal(bad.status, 400);
+    assert.equal((await bad.json()).error.message, "Sign-in didn't finish. Try again.");
+  } finally {
+    mock.restore();
+  }
 });

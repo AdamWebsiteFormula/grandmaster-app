@@ -1,5 +1,4 @@
 import { Trans } from "@lingui/react/macro";
-import { useMutation } from "@tanstack/react-query";
 
 import { ArrowsClockwise, WarningCircle } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
@@ -8,9 +7,13 @@ import { getEnhanceErrorKind, showModelNotReadyToast } from "./model-not-ready";
 
 import { useAITask } from "~/ai/contexts";
 import { useLanguageModel } from "~/ai/hooks";
-import { useAuth } from "~/auth";
 import { useEnhancedNote } from "~/session/queries";
 import { createTaskId } from "~/store/zustand/ai-task/task-configs";
+import { openUpshotSignIn } from "~/upshot-plan";
+import {
+  isSignInRequiredError,
+  useUpshotAccount,
+} from "~/upshot-plan/session";
 
 const NETWORK_ERROR_PATTERN =
   /failed to fetch|load failed|network|offline|internet|ENOTFOUND|ECONNREFUSED|ECONNRESET|EAI_AGAIN|could not connect|couldn't connect|unable to connect|dns/i;
@@ -34,12 +37,16 @@ export function EnhanceError({
   error: Error | undefined;
   isUnauthenticated: boolean;
 }) {
-  const auth = useAuth();
   const model = useLanguageModel("enhance");
   const generate = useAITask((state) => state.generate);
   const templateId = useEnhancedNote(enhancedNoteId)?.templateId || undefined;
-  const signInMutation = useMutation({ mutationFn: () => auth.signIn() });
+  const signedIn = useUpshotAccount((state) => !!state.session);
 
+  // Fork: Upshot AI needs a free account (Adam, Oct 5). Once signed in,
+  // the same card says so and offers Try again (NN/g #1).
+  const askedToSignIn = isUnauthenticated || isSignInRequiredError(error);
+  const needsSignIn = askedToSignIn && !signedIn;
+  const signedInSince = askedToSignIn && signedIn;
   const errorKind = getEnhanceErrorKind(error);
   const handleRetry = () => {
     if (!model) {
@@ -66,18 +73,21 @@ export function EnhanceError({
       />
       <div className="mb-6 flex max-w-md flex-col gap-2">
         <p className="text-base font-medium">
-          {isUnauthenticated ? (
-            <Trans>Sign in to generate this summary</Trans>
+          {needsSignIn ? (
+            <Trans>Sign in to write this summary</Trans>
+          ) : signedInSince ? (
+            <Trans>You're signed in</Trans>
           ) : (
             <Trans>Summary generation failed</Trans>
           )}
         </p>
         <p className="text-muted-foreground text-sm leading-relaxed">
-          {isUnauthenticated ? (
+          {needsSignIn ? (
             <Trans>
-              Upshot could not generate this summary because you were not signed
-              in. Sign in, then try again.
+              Upshot AI needs a free account. Sign in, then try again.
             </Trans>
+          ) : signedInSince ? (
+            <Trans>Try again to write this summary.</Trans>
           ) : errorKind === "too_long" ? (
             // Fork: Retry can't fix a 413, so say what can
             // (journey-meeting P3; NN/g #9).
@@ -99,25 +109,19 @@ export function EnhanceError({
             <Trans>Upshot couldn't write this summary. Try again.</Trans>
           )}
         </p>
-        {!isUnauthenticated && errorKind === "other" && error?.message ? (
+        {!askedToSignIn && errorKind === "other" && error?.message ? (
           <p className="text-muted-foreground text-xs break-words">
             {error.message}
           </p>
         ) : null}
       </div>
-      {errorKind === "too_long" &&
-      !isUnauthenticated ? null : isUnauthenticated ? (
+      {errorKind === "too_long" && !askedToSignIn ? null : needsSignIn ? (
         <Button
-          onClick={() => signInMutation.mutate()}
-          disabled={signInMutation.isPending}
+          onClick={() => openUpshotSignIn("hosted")}
           size="sm"
           variant="default"
         >
-          {signInMutation.isPending ? (
-            <Trans>Opening…</Trans>
-          ) : (
-            <Trans>Sign in</Trans>
-          )}
+          <Trans>Sign in</Trans>
         </Button>
       ) : (
         <Button

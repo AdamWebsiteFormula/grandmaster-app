@@ -626,7 +626,7 @@ describe("Settings › Plan", () => {
   // Fork: $0 and the Pro price start on one line (Apple HIG Layout).
   it("aligns both prices to the top of the row", () => {
     render(<SettingsPlan />);
-    const free = screen.getByText("No account needed").closest("td")!;
+    const free = screen.getByText("Free account").closest("td")!;
     const pro = free.nextElementSibling!;
     for (const cell of [free, pro]) {
       expect(cell.className).toContain("align-top");

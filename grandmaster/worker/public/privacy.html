@@ -59,7 +59,7 @@ footer{margin-top:48px;color:#737373;font-size:14px}
 <main>
 <img class="logo" src="/brand/upshot-logo-orange-on-light.png" alt="Upshot">
 <h1>Privacy policy</h1>
-<p class="meta">Effective October 4, 2026</p>
+<p class="meta">Effective October 5, 2026</p>
 
 <div class="summary">
 <p><strong>The short version</strong></p>
@@ -67,7 +67,7 @@ footer{margin-top:48px;color:#737373;font-size:14px}
 <li>Your recordings, transcripts and notes stay on your computer.</li>
 <li>When you make a summary or use chat, the text it needs goes to an AI model to write the answer.</li>
 <li>While you record, audio streams through the Upshot proxy, which stores nothing, to Deepgram for transcription. On an Apple Silicon Mac you can switch to on-device transcription, so audio never leaves your Mac.</li>
-<li>Upshot Free needs no account. Pro needs an email and password, and Stripe handles your card.</li>
+<li>Upshot AI and Upshot transcription need a free account: you sign in with Google or Microsoft. Notes, folders and search work without one. For Pro, Stripe handles your card.</li>
 <li>No ads, no analytics, no tracking. We don't sell or share your personal information.</li>
 </ul>
 </div>
@@ -92,14 +92,14 @@ footer{margin-top:48px;color:#737373;font-size:14px}
 <li>For a summary: the note, the transcript, the meeting title and time, and the names and job titles of the people in the meeting.</li>
 <li>For chat: your question, the conversation so far, and the notes, transcripts, calendar events (title, time, location) and contacts (name, email, phone, role, company) that chat looks up to answer it.</li>
 </ul>
-<p>This goes through the Upshot AI proxy, a Cloudflare Worker we run. The proxy passes your request on and doesn't store or log what you send; Its logging is turned off. It uses your IP address only to limit how many requests one address can make per minute. From the proxy, the text goes to <a href="https://openrouter.ai/privacy">OpenRouter</a>, which sends it to the company that runs the model: Anthropic for Auto, or Anthropic, OpenAI or Google (or a cloud provider that hosts their models) for a model a Pro user picks. They process it to write the answer, under their own privacy policies.</p>
+<p>This goes through the Upshot AI proxy, a Cloudflare Worker we run. The proxy passes your request on and doesn't store or log what you send; Its logging is turned off. It checks that you're signed in, and uses your IP address and account ID only to limit how many requests one address or account can make per minute. From the proxy, the text goes to <a href="https://openrouter.ai/privacy">OpenRouter</a>, which sends it to the company that runs the model: Anthropic for Auto, or Anthropic, OpenAI or Google (or a cloud provider that hosts their models) for a model a Pro user picks. They process it to write the answer, under their own privacy policies.</p>
 <p>A locked note is never sent to chat, connected tools or webhooks until you unlock it.</p>
-<p><strong>Transcription.</strong> While you record, Upshot streams the meeting audio through the Upshot transcription proxy, a Cloudflare Worker we run, to <a href="https://deepgram.com/privacy">Deepgram</a>, which turns the audio into text and sends the transcript back. The proxy passes the audio on and doesn't store or log it. It uses your IP address only for the per-minute limit. Upshot asks Deepgram to opt the audio out of its model improvement program, so Deepgram keeps it only as long as it needs to process it. On an Apple Silicon Mac you can pick on-device transcription in Settings › Transcription; then audio never leaves your Mac.</p>
-<p><strong>A Pro account.</strong> If you create an account:</p>
+<p><strong>Transcription.</strong> While you record, Upshot streams the meeting audio through the Upshot transcription proxy, a Cloudflare Worker we run, to <a href="https://deepgram.com/privacy">Deepgram</a>, which turns the audio into text and sends the transcript back. The proxy passes the audio on and doesn't store or log it. It checks that you're signed in, and uses your IP address and account ID only for the per-minute limits. Upshot asks Deepgram to opt the audio out of its model improvement program, so Deepgram keeps it only as long as it needs to process it. On an Apple Silicon Mac you can pick on-device transcription in Settings › Transcription; then audio never leaves your Mac.</p>
+<p><strong>Your account.</strong> When you sign in with Google or Microsoft:</p>
 <ul>
-<li><a href="https://supabase.com/privacy">Supabase</a> stores your email, a hashed password (never the password itself), and your plan: status, billing period, renewal date, and your Stripe customer and subscription IDs. The app keeps your sign-in session in your computer's credential store (the Keychain on a Mac).</li>
+<li>Google or Microsoft tells us your email address, name and profile picture link. Upshot never sees your Google or Microsoft password.</li>
+<li><a href="https://supabase.com/privacy">Supabase</a> stores that email, name and picture link, and, if you get Pro, your plan: status, billing period, renewal date, and your Stripe customer and subscription IDs. The app keeps your sign-in session in your computer's credential store (the Keychain on a Mac).</li>
 <li><a href="https://stripe.com/privacy">Stripe</a> handles payment on Stripe Checkout. Your card and billing details go only to Stripe, never to Upshot. Stripe tells us whether your subscription is active.</li>
-<li>Supabase may email you about your account, such as to confirm your address.</li>
 </ul>
 <p><strong>What you set up yourself.</strong> A webhook (Settings › Connectors › Webhooks) sends finished notes to the address you choose. The Glaido and MCP connection runs only on your computer.</p>
 <p><strong>Model list.</strong> Upshot downloads public model catalogs from models.dev and OpenRouter. It sends no data about you, just a normal web request.</p>
@@ -117,7 +117,7 @@ footer{margin-top:48px;color:#737373;font-size:14px}
 <ul>
 <li>To write summaries and chat answers you ask for.</li>
 <li>To transcribe your meetings.</li>
-<li>To run your Pro account and billing, which is our contract with you.</li>
+<li>To run your account, Pro and billing, which is our contract with you.</li>
 <li>To stop abuse of the AI proxy with the per-minute limit, which is our legitimate interest in keeping it running.</li>
 </ul>
 
@@ -126,7 +126,7 @@ footer{margin-top:48px;color:#737373;font-size:14px}
 <li>Notes, transcripts and audio: on your computer until you delete them.</li>
 <li>AI requests: the proxy keeps nothing once the answer is sent.</li>
 <li>Transcription audio: the proxy keeps nothing. Deepgram keeps it only as long as it needs to process it, under its own privacy policy.</li>
-<li>Pro account: until you delete it. Stripe may keep payment records it must keep by law.</li>
+<li>Your account: until you delete it. Stripe may keep payment records it must keep by law.</li>
 </ul>
 
 <h2>Your choices and rights</h2>

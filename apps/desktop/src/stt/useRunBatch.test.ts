@@ -22,8 +22,8 @@ const {
   useSessionParticipantsMock,
   useSTTConnectionMock,
   useAuthMock,
-  getSessionForRequestMock,
-  refreshSessionMock,
+  getUpshotSttTokenMock,
+  openUpshotSignInMock,
   useBillingAccessMock,
   useConfigValueMock,
   isSupportedLanguagesBatchMock,
@@ -44,8 +44,8 @@ const {
   useSessionParticipantsMock: vi.fn(),
   useSTTConnectionMock: vi.fn(),
   useAuthMock: vi.fn(),
-  getSessionForRequestMock: vi.fn(),
-  refreshSessionMock: vi.fn(),
+  getUpshotSttTokenMock: vi.fn(),
+  openUpshotSignInMock: vi.fn(),
   useBillingAccessMock: vi.fn(),
   useConfigValueMock: vi.fn(),
   isSupportedLanguagesBatchMock: vi.fn(),
@@ -93,6 +93,15 @@ vi.mock("@anlg/ui/components/ui/toast", () => ({
 
 vi.mock("~/auth", () => ({
   useAuth: useAuthMock,
+}));
+
+vi.mock("~/upshot-plan/session", () => ({
+  getUpshotSttToken: getUpshotSttTokenMock,
+  SIGN_IN_REQUIRED_STT: "Sign in to use Upshot transcription. It's free.",
+}));
+
+vi.mock("~/upshot-plan", () => ({
+  openUpshotSignIn: openUpshotSignInMock,
 }));
 
 vi.mock("~/auth/billing-context", () => ({
@@ -343,13 +352,8 @@ describe("useRunBatch", () => {
         access_token: "paid-token",
         user: { id: "user-1" },
       },
-      getSessionForRequest: getSessionForRequestMock,
-      refreshSession: refreshSessionMock,
     });
-    getSessionForRequestMock.mockResolvedValue({
-      access_token: "paid-token",
-    });
-    refreshSessionMock.mockResolvedValue(null);
+    getUpshotSttTokenMock.mockResolvedValue("upshot-token");
     useBillingAccessMock.mockReturnValue({
       isPaid: false,
     });
@@ -360,15 +364,22 @@ describe("useRunBatch", () => {
 
   test.each([
     { name: "a pre-aborted signal", cancelsDuringAuthPreflight: false },
-    { name: "a cancelled auth preflight", cancelsDuringAuthPreflight: true },
+    { name: "a cancelled sign-in preflight", cancelsDuringAuthPreflight: true },
   ])(
     "does not start a dictation transcription after $name",
     async ({ cancelsDuringAuthPreflight }) => {
       const abort = new AbortController();
-      let finish: ((value: null) => void) | undefined;
+      let finish: ((value: string | null) => void) | undefined;
       if (cancelsDuringAuthPreflight) {
-        useBillingAccessMock.mockReturnValue({ isPaid: true });
-        getSessionForRequestMock.mockReturnValueOnce(
+        useSTTConnectionMock.mockReturnValue({
+          conn: {
+            provider: "anarlog",
+            model: "cloud",
+            baseUrl: "https://api.test/stt",
+            apiKey: "",
+          },
+        });
+        getUpshotSttTokenMock.mockReturnValueOnce(
           new Promise((resolve) => {
             finish = resolve;
           }),
@@ -382,11 +393,9 @@ describe("useRunBatch", () => {
         name: "AbortError",
       });
       if (cancelsDuringAuthPreflight) {
-        await waitFor(() =>
-          expect(getSessionForRequestMock).toHaveBeenCalled(),
-        );
+        await waitFor(() => expect(getUpshotSttTokenMock).toHaveBeenCalled());
         abort.abort();
-        finish?.(null);
+        finish?.("upshot-token");
       }
       await rejected;
       expect(startTranscriptionMock).not.toHaveBeenCalled();
@@ -429,7 +438,7 @@ describe("useRunBatch", () => {
     );
     await rejected;
     expect(stopTranscriptionMock).toHaveBeenCalledWith("dictation");
-    expect(refreshSessionMock).not.toHaveBeenCalled();
+    expect(getUpshotSttTokenMock).toHaveBeenCalledOnce();
     expect(startTranscriptionMock).toHaveBeenCalledOnce();
     expect(saveBatchTranscriptMock).not.toHaveBeenCalled();
   });
@@ -1239,7 +1248,7 @@ describe("useRunBatch", () => {
     );
   });
 
-  test("uses a request-ready cloud token before transcription starts", async () => {
+  test("sends the Upshot account token to cloud transcription", async () => {
     useSTTConnectionMock.mockReturnValue({
       conn: {
         provider: "anarlog",
@@ -1247,10 +1256,6 @@ describe("useRunBatch", () => {
         baseUrl: "https://api.test/stt",
         apiKey: "stale-token",
       },
-    });
-    useBillingAccessMock.mockReturnValue({ isPaid: true });
-    getSessionForRequestMock.mockResolvedValue({
-      access_token: "request-ready-token",
     });
     startTranscriptionMock.mockResolvedValue(undefined);
 
@@ -1262,12 +1267,13 @@ describe("useRunBatch", () => {
 
     expect(startTranscriptionMock).toHaveBeenCalledTimes(1);
     expect(startTranscriptionMock).toHaveBeenCalledWith(
-      expect.objectContaining({ api_key: "request-ready-token" }),
+      expect.objectContaining({ api_key: "upshot-token" }),
       expect.any(Object),
     );
+    expect(openUpshotSignInMock).not.toHaveBeenCalled();
   });
 
-  test("falls back to the current cloud token when refresh is unavailable", async () => {
+  test("asks for sign-in and does not start when cloud transcription has no Upshot token", async () => {
     useSTTConnectionMock.mockReturnValue({
       conn: {
         provider: "anarlog",
@@ -1276,8 +1282,21 @@ describe("useRunBatch", () => {
         apiKey: "stale-token",
       },
     });
-    useBillingAccessMock.mockReturnValue({ isPaid: true });
-    getSessionForRequestMock.mockRejectedValue(new Error("offline"));
+    getUpshotSttTokenMock.mockResolvedValue(null);
+
+    const { result } = renderHook(() => useRunBatch("session-1"));
+
+    await act(async () => {
+      await expect(result.current("/tmp/session.wav")).rejects.toThrow(
+        "Sign in to use Upshot transcription. It's free.",
+      );
+    });
+
+    expect(openUpshotSignInMock).toHaveBeenCalledWith("hosted");
+    expect(startTranscriptionMock).not.toHaveBeenCalled();
+  });
+
+  test("does not look up an Upshot token for other providers", async () => {
     startTranscriptionMock.mockResolvedValue(undefined);
 
     const { result } = renderHook(() => useRunBatch("session-1"));
@@ -1286,69 +1305,103 @@ describe("useRunBatch", () => {
       await result.current("/tmp/session.wav");
     });
 
-    expect(startTranscriptionMock).toHaveBeenCalledTimes(1);
-    expect(startTranscriptionMock).toHaveBeenCalledWith(
-      expect.objectContaining({ api_key: "paid-token" }),
-      expect.any(Object),
-    );
+    expect(getUpshotSttTokenMock).not.toHaveBeenCalled();
+    expect(openUpshotSignInMock).not.toHaveBeenCalled();
   });
 
-  test("refreshes an expired cloud token and retries transcription once", async () => {
-    useSTTConnectionMock.mockReturnValue({
-      conn: {
-        provider: "anarlog",
-        model: "cloud",
-        baseUrl: "https://api.test/stt",
-        apiKey: "stale-token",
-      },
+  describe("cloud authentication retry", () => {
+    const authError = () =>
+      new Error(
+        "Authentication failed. Please check your API key in settings.",
+      );
+
+    beforeEach(() => {
+      useSTTConnectionMock.mockReturnValue({
+        conn: {
+          provider: "anarlog",
+          model: "cloud",
+          baseUrl: "https://api.test/stt",
+          apiKey: "stale-token",
+        },
+      });
     });
-    useAuthMock.mockReturnValue({
-      session: {
-        access_token: "stale-token",
-        user: { id: "user-1" },
-      },
-      getSessionForRequest: getSessionForRequestMock,
-      refreshSession: refreshSessionMock,
+
+    test("retries transcription once with a different Upshot token", async () => {
+      getUpshotSttTokenMock
+        .mockResolvedValueOnce("stale-upshot-token")
+        .mockResolvedValueOnce("fresh-upshot-token");
+      startTranscriptionMock
+        .mockImplementationOnce(async (_params, options) => {
+          options.handlePersist(
+            [{ text: "stale", start_ms: 0, end_ms: 100, channel: 0 }],
+            [],
+          );
+          throw authError();
+        })
+        .mockImplementationOnce(async (_params, options) => {
+          options.handlePersist(
+            [{ text: "fresh", start_ms: 0, end_ms: 100, channel: 0 }],
+            [],
+          );
+        });
+
+      const { result } = renderHook(() => useRunBatch("session-1"));
+
+      await act(async () => {
+        await result.current("/tmp/session.wav");
+      });
+
+      expect(getUpshotSttTokenMock).toHaveBeenCalledTimes(2);
+      expect(startTranscriptionMock).toHaveBeenCalledTimes(2);
+      expect(startTranscriptionMock).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ api_key: "stale-upshot-token" }),
+        expect.any(Object),
+      );
+      expect(startTranscriptionMock).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ api_key: "fresh-upshot-token" }),
+        expect.any(Object),
+      );
+      expect(saveBatchTranscriptMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          words: [expect.objectContaining({ text: "fresh" })],
+        }),
+      );
     });
-    getSessionForRequestMock.mockResolvedValue({
-      access_token: "stale-token",
-    });
-    refreshSessionMock.mockResolvedValue({ access_token: "fresh-token" });
-    startTranscriptionMock
-      .mockImplementationOnce(async (_params, options) => {
-        options.handlePersist(
-          [{ text: "stale", start_ms: 0, end_ms: 100, channel: 0 }],
-          [],
-        );
-        throw new Error(
-          "Authentication failed. Please check your API key in settings.",
-        );
-      })
-      .mockImplementationOnce(async (_params, options) => {
-        options.handlePersist(
-          [{ text: "fresh", start_ms: 0, end_ms: 100, channel: 0 }],
-          [],
+
+    test("does not retry when the Upshot token is unchanged", async () => {
+      getUpshotSttTokenMock.mockResolvedValue("same-token");
+      startTranscriptionMock.mockRejectedValue(authError());
+
+      const { result } = renderHook(() => useRunBatch("session-1"));
+
+      await act(async () => {
+        await expect(result.current("/tmp/session.wav")).rejects.toThrow(
+          "Authentication failed",
         );
       });
 
-    const { result } = renderHook(() => useRunBatch("session-1"));
-
-    await act(async () => {
-      await result.current("/tmp/session.wav");
+      expect(getUpshotSttTokenMock).toHaveBeenCalledTimes(2);
+      expect(startTranscriptionMock).toHaveBeenCalledTimes(1);
     });
 
-    expect(refreshSessionMock).toHaveBeenCalledTimes(1);
-    expect(startTranscriptionMock).toHaveBeenCalledTimes(2);
-    expect(startTranscriptionMock).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({ api_key: "fresh-token" }),
-      expect.any(Object),
-    );
-    expect(saveBatchTranscriptMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        words: [expect.objectContaining({ text: "fresh" })],
-      }),
-    );
+    test("does not retry when the Upshot token is gone", async () => {
+      getUpshotSttTokenMock
+        .mockResolvedValueOnce("stale-upshot-token")
+        .mockResolvedValueOnce(null);
+      startTranscriptionMock.mockRejectedValue(authError());
+
+      const { result } = renderHook(() => useRunBatch("session-1"));
+
+      await act(async () => {
+        await expect(result.current("/tmp/session.wav")).rejects.toThrow(
+          "Authentication failed",
+        );
+      });
+
+      expect(startTranscriptionMock).toHaveBeenCalledTimes(1);
+    });
   });
 });
 

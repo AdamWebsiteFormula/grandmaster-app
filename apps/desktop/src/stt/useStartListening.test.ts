@@ -82,6 +82,8 @@ const {
   idMock,
   openNewMock,
   emptyCaptureMock,
+  getUpshotSttTokenMock,
+  openUpshotSignInMock,
 } = vi.hoisted(() => ({
   emptyCaptureMock: vi.fn(),
   queueAutoEnhanceMock: vi.fn(),
@@ -145,6 +147,16 @@ const {
   flushCanonicalSessionEditorChangesMock: vi.fn(),
   idMock: vi.fn(() => "generated-id"),
   openNewMock: vi.fn(),
+  getUpshotSttTokenMock: vi.fn(),
+  openUpshotSignInMock: vi.fn(),
+}));
+
+vi.mock("~/upshot-plan/session", () => ({
+  getUpshotSttToken: getUpshotSttTokenMock,
+}));
+
+vi.mock("~/upshot-plan", () => ({
+  openUpshotSignIn: openUpshotSignInMock,
 }));
 
 vi.mock("@anlg/plugin-db", () => ({
@@ -539,6 +551,7 @@ describe("getPostCaptureAction", () => {
 describe("useStartListening", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getUpshotSttTokenMock.mockResolvedValue("upshot-token");
     getCaptureSnapshotMock.mockResolvedValue({
       status: "ok",
       data: { activeSessionId: null, finalizingSessionIds: [] },
@@ -1393,6 +1406,69 @@ describe("useStartListening", () => {
     ).toBeLessThan(
       deleteProcessedAudioForRetentionMock.mock.invocationCallOrder[0]!,
     );
+  });
+
+  describe("Upshot transcription account", () => {
+    const useCloudConnection = () =>
+      useSTTConnectionMock.mockReturnValue({
+        conn: {
+          provider: "anarlog",
+          model: "cloud",
+          baseUrl: "https://api.test/stt",
+          apiKey: "stale-token",
+        },
+      });
+
+    test("asks for sign-in and does not start when signed out", async () => {
+      useCloudConnection();
+      getUpshotSttTokenMock.mockResolvedValue(null);
+      const { result } = renderHook(() => useStartListening("session-1"));
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(openUpshotSignInMock).toHaveBeenCalledWith("hosted");
+      expect(startMock).not.toHaveBeenCalled();
+    });
+
+    test("starts with the Upshot token as the api key when signed in", async () => {
+      useCloudConnection();
+      const { result } = renderHook(() => useStartListening("session-1"));
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(openUpshotSignInMock).not.toHaveBeenCalled();
+      expect(startMock).toHaveBeenCalledTimes(1);
+      expect(startMock.mock.calls[0]?.[0]).toEqual(
+        expect.objectContaining({ api_key: "upshot-token" }),
+      );
+    });
+
+    test("never looks up an Upshot token for other providers", async () => {
+      useSTTConnectionMock.mockReturnValue({
+        conn: {
+          provider: "deepgram",
+          model: "nova-3",
+          baseUrl: "https://api.deepgram.com/v1/listen",
+          apiKey: "own-key",
+        },
+      });
+      const { result } = renderHook(() => useStartListening("session-1"));
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(getUpshotSttTokenMock).not.toHaveBeenCalled();
+      expect(openUpshotSignInMock).not.toHaveBeenCalled();
+      expect(startMock).toHaveBeenCalledTimes(1);
+      expect(startMock.mock.calls[0]?.[0]).toEqual(
+        expect.objectContaining({ api_key: "own-key" }),
+      );
+    });
   });
 
   test("refines complete multi-speaker Pro transcripts after stop", async () => {

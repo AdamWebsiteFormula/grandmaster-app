@@ -546,7 +546,7 @@ function PlanComparison({
                 {/* Fork: both prices start at the top, so $0 and $11 sit on
                     one line when Pro has an extra line (Apple HIG Layout). */}
                 <td className={cn([cell(freeCurrent, "middle"), "align-top"])}>
-                  <Price amount={t`$0`} line={t`No account needed`} />
+                  <Price amount={t`$0`} line={t`Free account`} />
                 </td>
                 <td className={cn([cell(isPro, "middle"), "align-top"])}>
                   {interval === "year" ? (

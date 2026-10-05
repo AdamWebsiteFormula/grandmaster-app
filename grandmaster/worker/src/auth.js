@@ -3,11 +3,23 @@
 // (supabase.com/docs/guides/api/api-keys: the publishable key may be public,
 // but Upshot keeps every key on the server anyway).
 //
-// Routes: POST /auth/signup, /auth/login, /auth/refresh.
+// Routes: POST /auth/login, /auth/refresh; GET /auth/oauth/start and
+// POST /auth/oauth/exchange (Google or Microsoft, PKCE). Fork: new accounts
+// come only from Google or Microsoft, as Granola ("Granola only supports
+// Google and Microsoft single sign on": docs.granola.ai setup guide), so
+// /auth/signup answers 410. Upshot AI and transcription need such an
+// account (requireAccount, below).
 // getUser(): supabase.com/docs/guides/auth/jwts, "GET /auth/v1/user" with
 // apikey = publishable key and Authorization: Bearer <access token>.
 
-import { bearerToken, json, ok, rateLimited, readSmallJson } from "./http.js";
+import {
+  bearerToken,
+  json,
+  ok,
+  rateLimited,
+  readSmallJson,
+  sessionToken,
+} from "./http.js";
 
 const EMAIL = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,63}$/;
 // bcrypt, which Supabase Auth uses, reads at most 72 bytes.
@@ -33,13 +45,10 @@ function authErrorMessage(body, fallback) {
 }
 
 // Fork: plain messages instead of raw Supabase errors (ux-audit-oct3 D,
-// NN/g #9). The code lets the app switch its dialog to sign-in.
-export const ACCOUNT_EXISTS =
-  "An account with this email already exists. Sign in instead.";
+// NN/g #9).
 export const WRONG_LOGIN = "Wrong email or password.";
 const TOO_MANY = "Too many tries. Wait a minute, then try again.";
 const CONFIRM_EMAIL = "Check your email to confirm your account, then sign in.";
-const SIGNUP_FAILED = "Could not create your account.";
 
 // Supabase Auth error codes (supabase.com/docs/guides/auth/debugging/error-codes)
 // to fixed sentences; any other code gets the generic line, never raw text.
@@ -55,38 +64,6 @@ function knownError(body) {
   return Object.hasOwn(KNOWN_ERRORS, body?.error_code ?? "")
     ? KNOWN_ERRORS[body.error_code]
     : null;
-}
-
-function accountExists() {
-  return new Response(
-    JSON.stringify({
-      error: { message: ACCOUNT_EXISTS, code: "account_exists" },
-    }),
-    {
-      status: 409,
-      headers: {
-        "content-type": "application/json",
-        "cache-control": "no-store",
-      },
-    },
-  );
-}
-
-/** Supabase says "User already registered" (error_code user_already_exists). */
-function isAlreadyRegistered(body) {
-  if (body?.error_code === "user_already_exists") return true;
-  const text = authErrorMessage(body, "");
-  return /already (been )?(registered|exists)/i.test(text);
-}
-
-/**
- * With email confirmation on, Supabase answers a signup for an existing
- * email with a user that has no identities instead of an error
- * (supabase.com/docs/reference/javascript/auth-signup).
- */
-function isObfuscatedExistingUser(body) {
-  const identities = body?.identities ?? body?.user?.identities;
-  return Array.isArray(identities) && identities.length === 0;
 }
 
 export function sessionPayload(body) {
@@ -126,8 +103,84 @@ async function gotrue(env, path, payload) {
   return { response, body };
 }
 
+export const DOWNLOAD_URL =
+  "https://github.com/AdamWebsiteFormula/grandmaster-app/releases/latest";
+// Shown by apps from before sign-in existed, too: Upshot 1.0.0 shows this
+// text in chat and under a failed summary, so it says where the new app is.
+export const SIGN_IN_REQUIRED = `Sign in to use Upshot AI and transcription. It's free. Don't see Sign in? Download the new Upshot: ${DOWNLOAD_URL}`;
+const USE_GOOGLE_OR_MICROSOFT = `Upshot now signs in with Google or Microsoft. Download the new Upshot: ${DOWNLOAD_URL}`;
+const NOT_FINISHED = "Sign-in didn't finish. Try again.";
+
+const OAUTH_PROVIDERS = new Set(["google", "azure"]);
+// RFC 7636 §4.2: base64url of a SHA-256 hash is 43 characters.
+const CODE_CHALLENGE = /^[A-Za-z0-9_-]{43,128}$/;
+const CODE_VERIFIER = /^[A-Za-z0-9._~-]{43,128}$/;
+// RFC 8252 §7.3: native apps get the code back on a loopback port.
+const LOOPBACK_REDIRECT = /^http:\/\/127\.0\.0\.1:\d{2,5}\/auth\/callback$/;
+
+/**
+ * GET /auth/oauth/start: send the browser to Supabase's authorize page.
+ * The app never holds the Supabase URL or key; it only knows this Worker.
+ */
+export async function handleOAuthStart(request, env, url) {
+  if (!configured(env)) return json(503, "Accounts are not available yet.");
+  if (await rateLimited(request, env, "auth")) return json(429, TOO_MANY);
+  const provider = url.searchParams.get("provider") ?? "";
+  const challenge = url.searchParams.get("code_challenge") ?? "";
+  const redirectTo = url.searchParams.get("redirect_to") ?? "";
+  if (
+    !OAUTH_PROVIDERS.has(provider) ||
+    !CODE_CHALLENGE.test(challenge) ||
+    !LOOPBACK_REDIRECT.test(redirectTo)
+  ) {
+    return json(400, "Invalid request");
+  }
+  const target = new URL(`${env.SUPABASE_URL}/auth/v1/authorize`);
+  target.searchParams.set("provider", provider);
+  target.searchParams.set("redirect_to", redirectTo);
+  target.searchParams.set("code_challenge", challenge);
+  target.searchParams.set("code_challenge_method", "s256");
+  // Microsoft needs the email scope for Supabase to read the address
+  // (supabase.com/docs/guides/auth/social-login/auth-azure).
+  if (provider === "azure") target.searchParams.set("scopes", "email");
+  return new Response(null, {
+    status: 302,
+    headers: { location: target.toString(), "cache-control": "no-store" },
+  });
+}
+
+/** POST /auth/oauth/exchange: the PKCE code and verifier for a session. */
+export async function handleOAuthExchange(request, env) {
+  if (!configured(env)) return json(503, "Accounts are not available yet.");
+  if (await rateLimited(request, env, "auth")) return json(429, TOO_MANY);
+  const input = await readSmallJson(request);
+  const code = input?.code;
+  const verifier = input?.code_verifier;
+  if (
+    typeof code !== "string" ||
+    code.length < 8 ||
+    code.length > 512 ||
+    typeof verifier !== "string" ||
+    !CODE_VERIFIER.test(verifier)
+  ) {
+    return json(400, "Invalid request");
+  }
+  const { response, body } = await gotrue(env, "token?grant_type=pkce", {
+    auth_code: code,
+    code_verifier: verifier,
+  });
+  if (!response.ok || !body.access_token) {
+    if (response.status === 429) return json(429, TOO_MANY);
+    return json(400, NOT_FINISHED);
+  }
+  return ok(sessionPayload(body));
+}
+
 export async function handleAuth(request, env, pathname) {
   if (!configured(env)) return json(503, "Accounts are not available yet.");
+  if (pathname === "/auth/signup") {
+    return json(410, USE_GOOGLE_OR_MICROSOFT, "use_google_or_microsoft");
+  }
   if (await rateLimited(request, env, "auth")) {
     return json(429, TOO_MANY);
   }
@@ -153,25 +206,6 @@ export async function handleAuth(request, env, pathname) {
   const parsed = credentials(input);
   if (parsed.error) return json(400, parsed.error);
 
-  if (pathname === "/auth/signup") {
-    const { response, body } = await gotrue(env, "signup", parsed);
-    if (!response.ok) {
-      const known = knownError(body);
-      if (known) return json(response.status === 429 ? 429 : 400, known);
-      if (response.status === 429) return json(429, TOO_MANY);
-      if (isAlreadyRegistered(body)) return accountExists();
-      return json(400, SIGNUP_FAILED);
-    }
-    if (!body.access_token && isObfuscatedExistingUser(body)) {
-      return accountExists();
-    }
-    // With email confirmation on, Supabase returns the user but no session.
-    if (!body.access_token) {
-      return json(409, CONFIRM_EMAIL);
-    }
-    return ok(sessionPayload(body));
-  }
-
   // /auth/login
   const { response, body } = await gotrue(
     env,
@@ -195,8 +229,7 @@ export async function handleAuth(request, env, pathname) {
 }
 
 /** The signed-in user for a request's Bearer token, or null. */
-export async function getUser(request, env) {
-  const token = bearerToken(request);
+export async function getUser(request, env, token = bearerToken(request)) {
   if (!token || !configured(env)) return null;
   const response = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
     headers: {
@@ -206,5 +239,60 @@ export async function getUser(request, env) {
   });
   if (!response.ok) return null;
   const user = await response.json().catch(() => null);
-  return user?.id ? { id: user.id, email: user.email ?? null, token } : null;
+  if (!user?.id) return null;
+  const providers = Array.isArray(user.app_metadata?.providers)
+    ? user.app_metadata.providers
+    : [user.app_metadata?.provider].filter(Boolean);
+  return { id: user.id, email: user.email ?? null, token, providers };
+}
+
+/** Google or Microsoft proved this account's email. */
+export function isProvenAccount(user) {
+  return Boolean(
+    user?.providers?.some((provider) => OAUTH_PROVIDERS.has(provider)),
+  );
+}
+
+// A short cache so each chat or transcription request doesn't wait on
+// Supabase. A token stays valid until it expires (about an hour), so 60 s
+// of caching never outlives it by much.
+const ACCOUNT_CACHE_MS = 60_000;
+const ACCOUNT_CACHE_MAX = 500;
+const accountCache = new Map();
+
+export function clearAccountCacheForTests() {
+  accountCache.clear();
+}
+
+/**
+ * The account behind the request, or null. Upshot AI sends "Bearer";
+ * the transcription client sends Deepgram's "Token" scheme.
+ */
+export async function requireAccount(request, env, now = Date.now()) {
+  const token = sessionToken(request);
+  if (!token) return null;
+  const cached = accountCache.get(token);
+  if (cached && cached.until > now) return cached.user;
+  const user = await getUser(request, env, token);
+  const proven = isProvenAccount(user) ? user : null;
+  if (proven) {
+    if (accountCache.size >= ACCOUNT_CACHE_MAX) {
+      accountCache.delete(accountCache.keys().next().value);
+    }
+    accountCache.set(token, { user: proven, until: now + ACCOUNT_CACHE_MS });
+  }
+  return proven;
+}
+
+/**
+ * Off only for the first deploy (wrangler deploy --var REQUIRE_ACCOUNT:0),
+ * before the new installers are out; on otherwise.
+ */
+export function accountRequired(env) {
+  return env.REQUIRE_ACCOUNT !== "0";
+}
+
+/** 401 with the sign-in message, for chat and transcription. */
+export function signInRequired() {
+  return json(401, SIGN_IN_REQUIRED, "sign_in_required");
 }

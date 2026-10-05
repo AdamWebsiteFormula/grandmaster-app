@@ -226,7 +226,11 @@ type UpgradeDialogState = {
   error: string | null;
   /** The Worker said this account already has Pro: open on that state. */
   alreadyPro: boolean;
+  /** Fork: "hosted" when Upshot AI or transcription asked for sign-in. */
+  reason: SignInReason;
 };
+
+export type SignInReason = "account" | "hosted";
 
 export const useUpgradeDialog = create<UpgradeDialogState>(() => ({
   open: false,
@@ -235,6 +239,7 @@ export const useUpgradeDialog = create<UpgradeDialogState>(() => ({
   checkout: true,
   error: null,
   alreadyPro: false,
+  reason: "account",
 }));
 
 /** The Worker's 409 for an account that already has Pro. */
@@ -242,8 +247,8 @@ export function isAlreadyPro(error: unknown): boolean {
   return error instanceof UpshotRequestError && error.code === "already_pro";
 }
 
-/** Open the account dialog to sign in or sign up only. */
-export function openUpshotSignIn(): void {
+/** Open the account dialog to sign in only. */
+export function openUpshotSignIn(reason: SignInReason = "account"): void {
   useUpgradeDialog.setState({
     open: true,
     mode: "signin",
@@ -251,6 +256,7 @@ export function openUpshotSignIn(): void {
     checkout: false,
     error: null,
     alreadyPro: false,
+    reason,
   });
 }
 
@@ -303,6 +309,7 @@ export async function openUpgrade(interval: PlanInterval = "month") {
       checkout: true,
       error: null,
       alreadyPro: false,
+      reason: "account",
     });
     return;
   }
@@ -320,6 +327,7 @@ export async function openUpgrade(interval: PlanInterval = "month") {
         checkout: true,
         error: null,
         alreadyPro: true,
+        reason: "account",
       });
       return;
     }
@@ -335,6 +343,7 @@ export async function openUpgrade(interval: PlanInterval = "month") {
       checkout: true,
       error: error instanceof Error ? error.message : String(error),
       alreadyPro: false,
+      reason: "account",
     });
   }
 }

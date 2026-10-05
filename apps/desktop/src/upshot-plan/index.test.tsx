@@ -24,6 +24,7 @@ vi.mock("@anlg/plugin-store2", () => ({
 
 import {
   openUpgrade,
+  openUpshotSignIn,
   refreshUpshotPlan,
   stopWaitingForCheckout,
   useUpgradeDialog,
@@ -363,5 +364,62 @@ describe("openUpgrade", () => {
       open: true,
       error: "You already have Upshot Pro.",
     });
+  });
+});
+
+describe("openUpshotSignIn", () => {
+  beforeEach(() => {
+    mocks.saved = null;
+    mocks.fetch.mockReset();
+    mocks.openUrl.mockClear();
+    resetUpshotAccountForTests();
+    localStorage.clear();
+    useUpgradeDialog.setState({ open: false, error: null, reason: "account" });
+  });
+
+  it("opens a plain sign-in with the account reason by default", () => {
+    openUpshotSignIn();
+    expect(useUpgradeDialog.getState()).toMatchObject({
+      open: true,
+      mode: "signin",
+      checkout: false,
+      reason: "account",
+      error: null,
+    });
+  });
+
+  it("remembers that Upshot AI asked for the sign-in", () => {
+    openUpshotSignIn("hosted");
+    expect(useUpgradeDialog.getState()).toMatchObject({
+      open: true,
+      checkout: false,
+      reason: "hosted",
+    });
+  });
+
+  it("Upgrade after a hosted sign-in goes back to the account reason", async () => {
+    openUpshotSignIn("hosted");
+    await openUpgrade("month");
+    expect(useUpgradeDialog.getState()).toMatchObject({
+      checkout: true,
+      reason: "account",
+    });
+  });
+
+  it("an old email-and-password session reads as signed out", async () => {
+    const encode = (value: object) =>
+      btoa(JSON.stringify(value)).replace(/=+$/, "");
+    mocks.saved = JSON.stringify({
+      access_token: `${encode({ alg: "HS256" })}.${encode({
+        app_metadata: { provider: "email", providers: ["email"] },
+      })}.sig`,
+      refresh_token: "refresh-1",
+      expires_at: Date.now() / 1000 + 3600,
+      email: "judge@example.com",
+    });
+    const { result } = renderHook(() => useUpshotPlan());
+    await waitFor(() => expect(useUpshotAccount.getState().loaded).toBe(true));
+    expect(result.current.isSignedIn).toBe(false);
+    expect(mocks.fetch).not.toHaveBeenCalled();
   });
 });

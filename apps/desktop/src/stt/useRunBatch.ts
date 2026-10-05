@@ -20,6 +20,11 @@ import { useSTTConnection } from "./useSTTConnection";
 
 import { useAuth } from "~/auth";
 import { useBillingAccess } from "~/auth/billing-context";
+import { openUpshotSignIn } from "~/upshot-plan";
+import {
+  getUpshotSttToken,
+  SIGN_IN_REQUIRED_STT,
+} from "~/upshot-plan/session";
 import { withCloudsyncActivity } from "~/db/cloudsync-activity";
 import { env } from "~/env";
 import {
@@ -368,16 +373,6 @@ export const useRunBatch = (sessionId: string) => {
             )
           : false;
       options?.signal?.throwIfAborted();
-      const requiresCloudSession =
-        billing.isPaid ||
-        (selectedTarget?.provider === "anarlog" &&
-          selectedTarget.model === "cloud");
-      const requestSession = requiresCloudSession
-        ? await auth.getSessionForRequest().catch(() => null)
-        : null;
-      options?.signal?.throwIfAborted();
-      const cloudAccessToken =
-        requestSession?.access_token ?? auth.session?.access_token;
       const fallbackTarget = getBatchFallbackTarget({
         apiBaseUrl: env.VITE_AI_API_URL ?? env.VITE_API_URL,
         currentPlatform,
@@ -406,10 +401,16 @@ export const useRunBatch = (sessionId: string) => {
         );
       }
 
-      // Fork: Upshot transcription works signed out; the Worker ignores
-      // any token.
+      // Fork: Upshot transcription sends the Upshot account token (a free
+      // account is required, Adam, Oct 5).
       if (target.provider === "anarlog" && target.model === "cloud") {
-        target = { ...target, apiKey: cloudAccessToken ?? "" };
+        const upshotToken = await getUpshotSttToken();
+        options?.signal?.throwIfAborted();
+        if (!upshotToken) {
+          openUpshotSignIn("hosted");
+          throw new Error(SIGN_IN_REQUIRED_STT);
+        }
+        target = { ...target, apiKey: upshotToken };
       }
 
       if (!shouldUseSelectedTarget && !options?.recovery && !options?.resume) {
@@ -585,15 +586,15 @@ export const useRunBatch = (sessionId: string) => {
                 throw error;
               }
 
-              const refreshedSession = await auth.refreshSession();
-              if (!refreshedSession?.access_token) {
+              const refreshedToken = await getUpshotSttToken();
+              if (!refreshedToken || refreshedToken === params.api_key) {
                 throw error;
               }
 
               if (!handlePersist) {
                 resetStagedTranscript();
               }
-              await run({ ...params, api_key: refreshedSession.access_token });
+              await run({ ...params, api_key: refreshedToken });
             }
           }
 
