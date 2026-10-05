@@ -5,10 +5,35 @@
 <p>
   <b>The bot-free AI meeting notepad for Mac, Windows and Linux.</b>
   <br />
-  Record, transcribe, and turn your meeting into clear notes with Upshot AI, out of the box.
+  It records your calls without a bot joining, then writes the notes for you.
+</p>
+
+<p>
+  <a href="https://github.com/AdamWebsiteFormula/grandmaster-app/releases/latest"><b>Download Upshot</b></a>
+  &nbsp;·&nbsp;
+  <a href="GUIDE.md">Guide</a>
+  &nbsp;·&nbsp;
+  <a href="ROADMAP.md">Roadmap</a>
+  &nbsp;·&nbsp;
+  <a href="grandmaster/HOW-I-BUILT-THIS.md">How I built it</a>
 </p>
 
 </div>
+
+## Why Upshot over Granola
+
+| | Upshot | Granola |
+|---|---|---|
+| Computers | Mac, Windows and Linux | Mac and Windows |
+| Your audio | Kept on your computer. Click any word to hear that moment | Not kept |
+| Transcript | You can edit it | Read only |
+| Calendars on a Mac | Google, Outlook and iCloud at once | The account you sign in with |
+| MCP, CLI and webhooks | Built in, local, on the free plan | Webhooks need a Business plan |
+| Free plan history | All your notes, stored on your computer | Limited meeting history |
+
+Comparisons come from Granola's public help center and pricing page, read on Oct 4, 2026.
+
+Built in about three days with Claude Code, using the B.L.A.S.T. method: a blueprint first, a gate test before any change, one SOP per workstream and a codified design system. [How I built it](grandmaster/HOW-I-BUILT-THIS.md).
 
 ## What it does
 
