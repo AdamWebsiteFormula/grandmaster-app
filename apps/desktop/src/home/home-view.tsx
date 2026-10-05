@@ -47,7 +47,10 @@ import {
 } from "./home-data";
 
 import { revealLockedNote } from "~/lock/notes";
-import { getOrCreateSessionForEventId } from "~/session/queries";
+import {
+  getOrCreateSessionForEventId,
+  sessionHasTranscript,
+} from "~/session/queries";
 import { usePermission } from "~/shared/hooks/usePermissions";
 import { useTimeFormat } from "~/shared/hooks/useTimeFormat";
 import { isMac, kbdLabel } from "~/shared/shortcut-label";
@@ -329,8 +332,14 @@ function ComingUpEventRow({
     if (busy) return;
     setBusy(true);
     void getOrCreateSessionForEventId(event.id, event.title || undefined)
-      .then((sessionId) => {
-        if (record) {
+      .then(async (sessionId) => {
+        // Fork: opening a meeting that has started records, as Granola does
+        // (Granola docs "How transcription works": opening a meeting from
+        // the home screen once its start time has passed). A note that
+        // already has a transcript only opens, so Resume stays a choice.
+        const listen =
+          record || (event.live && !(await sessionHasTranscript(sessionId)));
+        if (listen) {
           openSessionAndListen(sessionId, { behavior: "current" });
         } else {
           openNote(sessionId);

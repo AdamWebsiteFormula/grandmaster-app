@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
   openNew: vi.fn(),
   revealLockedNote: vi.fn(async () => true),
   getOrCreateSessionForEventId: vi.fn(async () => "session-1"),
+  sessionHasTranscript: vi.fn(async () => false),
   openSessionAndListen: vi.fn(),
   openNewNoteAndListen: vi.fn(),
   openCurrent: vi.fn(),
@@ -64,6 +65,7 @@ vi.mock("~/shared/ui/interactive-button", () => ({
 
 vi.mock("~/session/queries", () => ({
   getOrCreateSessionForEventId: mocks.getOrCreateSessionForEventId,
+  sessionHasTranscript: mocks.sessionHasTranscript,
 }));
 
 vi.mock("~/shared/hooks/useTimeFormat", () => ({
@@ -171,6 +173,46 @@ describe("HomeView", () => {
         id: "session-1",
       }),
     );
+  });
+
+  // Fork: Granola docs "How transcription works": opening a meeting once it
+  // has started records; a note with a transcript only opens.
+  it("records when a meeting that has started is opened", async () => {
+    mocks.comingUp.days = [
+      {
+        ...today(),
+        events: [meeting("event-1", "Standup", 3, 9, { live: true })],
+      },
+    ];
+    render(<HomeView />);
+
+    fireEvent.click(screen.getByText("Standup"));
+    await vi.waitFor(() =>
+      expect(mocks.openSessionAndListen).toHaveBeenCalledWith("session-1", {
+        behavior: "current",
+      }),
+    );
+    expect(mocks.openCurrent).not.toHaveBeenCalled();
+  });
+
+  it("only opens a started meeting whose note has a transcript", async () => {
+    mocks.sessionHasTranscript.mockResolvedValueOnce(true);
+    mocks.comingUp.days = [
+      {
+        ...today(),
+        events: [meeting("event-1", "Standup", 3, 9, { live: true })],
+      },
+    ];
+    render(<HomeView />);
+
+    fireEvent.click(screen.getByText("Standup"));
+    await vi.waitFor(() =>
+      expect(mocks.openCurrent).toHaveBeenCalledWith({
+        type: "sessions",
+        id: "session-1",
+      }),
+    );
+    expect(mocks.openSessionAndListen).not.toHaveBeenCalled();
   });
 
   // Fork: WCAG 2.2 SC 2.4.7, the row shows a ring for keyboard focus.

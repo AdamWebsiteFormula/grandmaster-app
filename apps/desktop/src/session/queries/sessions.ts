@@ -209,6 +209,29 @@ export function useUpdateSession(sessionId: string) {
   );
 }
 
+const SESSION_HAS_TRANSCRIPT_SQL = `
+  SELECT EXISTS (
+    SELECT 1
+    FROM transcripts
+    WHERE session_id = ?
+      AND deleted_at IS NULL
+      AND CASE
+        WHEN json_valid(words_json) THEN json_array_length(words_json)
+        ELSE 0
+      END > 0
+  ) AS has_transcript
+`;
+
+export async function sessionHasTranscript(
+  sessionId: string,
+): Promise<boolean> {
+  const rows = await liveQueryClient.execute<SessionTranscriptStateSqlRow>(
+    SESSION_HAS_TRANSCRIPT_SQL,
+    [sessionId],
+  );
+  return Boolean(rows[0]?.has_transcript);
+}
+
 export function useSessionTranscriptExistence(
   sessionId: string,
 ): boolean | null {
@@ -216,18 +239,7 @@ export function useSessionTranscriptExistence(
     SessionTranscriptStateSqlRow,
     boolean | null
   >({
-    sql: `
-      SELECT EXISTS (
-        SELECT 1
-        FROM transcripts
-        WHERE session_id = ?
-          AND deleted_at IS NULL
-          AND CASE
-            WHEN json_valid(words_json) THEN json_array_length(words_json)
-            ELSE 0
-          END > 0
-      ) AS has_transcript
-    `,
+    sql: SESSION_HAS_TRANSCRIPT_SQL,
     params: [sessionId],
     enabled: Boolean(sessionId),
     mapRows: (rows) => Boolean(rows[0]?.has_transcript),

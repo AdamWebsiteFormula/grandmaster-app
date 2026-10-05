@@ -46,6 +46,7 @@ export {
 export {
   loadSessionEvent,
   preloadSession,
+  sessionHasTranscript,
   updateSession,
   useSession,
   useSessionHasTranscript,
