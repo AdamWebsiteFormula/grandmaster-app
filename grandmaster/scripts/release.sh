@@ -60,7 +60,9 @@ echo "APP=$APP"
 # Oct 5 a cached desktop crate shipped the previous build's screens.
 # Fix: cargo clean -p desktop --release --target $TRIPLE, then rebuild.
 WANT=$(ls "$ROOT/apps/desktop/dist/assets" | grep -o '^_layout\.index-[A-Za-z0-9_-]*\.js' | head -1)
-if ! strings -n 12 "$APP/Contents/MacOS/upshot" | grep -qF "$WANT"; then
+# grep without -q reads all input: -q exits early, strings gets SIGPIPE and
+# pipefail reports a false STALE.
+if ! strings -n 12 "$APP/Contents/MacOS/upshot" | grep -F "$WANT" >/dev/null; then
   echo "STALE FRONTEND: $APP does not embed $WANT" >&2
   exit 1
 fi
