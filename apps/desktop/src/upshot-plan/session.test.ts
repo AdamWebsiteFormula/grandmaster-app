@@ -473,6 +473,10 @@ describe("Upshot account session", () => {
       expect(await completeUpshotOAuth("the-code")).toBe(true);
       const body = JSON.parse(mocks.fetch.mock.calls[0][1].body);
       expect(body).toMatchObject({ provider: "azure", calendar: true });
+      // Remembered, so Connect calendar asks Microsoft again even when the
+      // account was first made with email.
+      expect(useUpshotAccount.getState().session?.provider).toBe("azure");
+      expect(JSON.parse(mocks.saved!).provider).toBe("azure");
     });
 
     it("plain sign-in asks for no calendar and sends only the code", async () => {

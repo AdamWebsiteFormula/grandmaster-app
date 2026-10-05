@@ -23,6 +23,12 @@ export type UpshotSession = {
   /** Unix seconds. */
   expires_at: number;
   email: string;
+  /**
+   * Fork: the button this Mac signed in with. Supabase's app_metadata.provider
+   * is the account's first method (it can be "email" on a linked account), so
+   * Connect calendar uses this instead.
+   */
+  provider?: UpshotOAuthProvider;
 };
 
 type AccountState = {
@@ -175,6 +181,9 @@ function parseSession(raw: string | null): UpshotSession | null {
           refresh_token: value.refresh_token,
           expires_at: value.expires_at,
           email: typeof value.email === "string" ? value.email : "",
+          ...(value.provider === "google" || value.provider === "azure"
+            ? { provider: value.provider }
+            : {}),
         }
       : null;
   } catch {
@@ -229,12 +238,17 @@ type WorkerSession = {
   user: { id: string; email: string | null };
 };
 
-function toSession(data: WorkerSession, email: string): UpshotSession {
+function toSession(
+  data: WorkerSession,
+  email: string,
+  provider?: UpshotOAuthProvider,
+): UpshotSession {
   return {
     access_token: data.access_token,
     refresh_token: data.refresh_token,
     expires_at: data.expires_at,
     email: data.user?.email ?? email,
+    ...(provider ? { provider } : {}),
   };
 }
 
@@ -264,8 +278,9 @@ export type UpshotOAuthProvider = "google" | "azure";
 
 type PendingOAuth = {
   verifier: string;
-  /** Set for Connect calendar; the Worker keeps the calendar grant. */
-  calendar?: { provider: UpshotOAuthProvider };
+  provider: UpshotOAuthProvider;
+  /** Connect calendar: the Worker keeps the calendar grant. */
+  calendar: boolean;
 };
 let pendingOAuth: PendingOAuth | null = null;
 
@@ -314,9 +329,7 @@ export async function startUpshotOAuth(
   url.searchParams.set("code_challenge", challenge);
   url.searchParams.set("redirect_to", `http://127.0.0.1:${port}/auth/callback`);
   if (options.calendar) url.searchParams.set("calendar", "1");
-  pendingOAuth = options.calendar
-    ? { verifier, calendar: { provider } }
-    : { verifier };
+  pendingOAuth = { verifier, provider, calendar: options.calendar === true };
   await deps.openUrl(url.toString());
 }
 
@@ -344,12 +357,12 @@ export async function completeUpshotOAuth(code: string): Promise<boolean> {
       ? {
           code,
           code_verifier: pending.verifier,
-          provider: pending.calendar.provider,
+          provider: pending.provider,
           calendar: true,
         }
       : { code, code_verifier: pending.verifier },
   });
-  await saveSession(toSession(data, data.user?.email ?? ""));
+  await saveSession(toSession(data, data.user?.email ?? "", pending.provider));
   useUpshotAccount.setState({ sessionEnded: false });
   return true;
 }
@@ -378,7 +391,7 @@ async function refresh(session: UpshotSession): Promise<UpshotSession> {
     const data = await workerFetch<WorkerSession>("/auth/refresh", {
       body: { refresh_token: session.refresh_token },
     });
-    const next = toSession(data, session.email);
+    const next = toSession(data, session.email, session.provider);
     await saveSession(next);
     return next;
   } catch (error) {

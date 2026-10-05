@@ -39,12 +39,12 @@ const CALENDAR_PROVIDER: Record<UpshotOAuthProvider, CloudCalendarProvider> = {
  * has no Upshot Worker; callers then show only calendars on this Mac.
  */
 export function useCloudCalendar() {
-  const accessToken = useUpshotAccount(
-    (state) => state.session?.access_token ?? null,
-  );
+  const session = useUpshotAccount((state) => state.session);
+  // The button this Mac signed in with; older sessions fall back to the
+  // token's list of sign-in methods.
   const account =
-    accessToken && upshotWorkerOrigin()
-      ? upshotAccountProvider(accessToken)
+    session && upshotWorkerOrigin()
+      ? (session.provider ?? upshotAccountProvider(session.access_token))
       : null;
   const provider = account ? CALENDAR_PROVIDER[account] : null;
   const rows = useCalendarRows(provider ?? "google");

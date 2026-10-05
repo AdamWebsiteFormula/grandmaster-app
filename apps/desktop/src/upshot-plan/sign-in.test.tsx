@@ -199,6 +199,8 @@ describe("Upshot sign-in with Google or Microsoft", () => {
         refresh_token: "refresh-1",
         expires_at: expect.any(Number),
         email: "judge@example.com",
+        // Remembered for Connect calendar.
+        provider: "google",
       });
       expect(useUpshotAccount.getState().session?.email).toBe(
         "judge@example.com",
