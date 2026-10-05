@@ -56,6 +56,16 @@ pnpm -F desktop tauri build --target $TRIPLE --config "$CONF" ${EXTRA_CONF[@]+"$
 APP=$(ls -d "$CARGO_TARGET_DIR/$TRIPLE/release/bundle/macos/"*.app | head -1)
 echo "APP=$APP"
 
+# Stop if the binary embeds a different frontend than vite just built: on
+# Oct 5 a cached desktop crate shipped the previous build's screens.
+# Fix: cargo clean -p desktop --release --target $TRIPLE, then rebuild.
+WANT=$(ls "$ROOT/apps/desktop/dist/assets" | grep -o '^_layout\.index-[A-Za-z0-9_-]*\.js' | head -1)
+if ! strings -n 12 "$APP/Contents/MacOS/upshot" | grep -qF "$WANT"; then
+  echo "STALE FRONTEND: $APP does not embed $WANT" >&2
+  exit 1
+fi
+echo "frontend ok: $WANT"
+
 echo "== 3 ad-hoc sign inside out (no hardened runtime: ad-hoc has no team ID for library validation)"
 find "$APP/Contents/Frameworks" -name '*.dylib' -exec codesign --force --sign - {} \;
 MAIN="$(defaults read "$APP/Contents/Info.plist" CFBundleExecutable)"

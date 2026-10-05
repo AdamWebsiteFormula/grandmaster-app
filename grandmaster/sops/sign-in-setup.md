@@ -40,7 +40,7 @@ Known gap: many work accounts can't consent to an app from an unverified publish
 3. Worker deploy A: `npx wrangler deploy --var REQUIRE_ACCOUNT:0` (new routes, privacy page; nothing required yet). Old apps keep working.
 4. Build from a clean worktree, install, test sign-in and the gates on a test profile in light and dark. Publish Mac, Windows and Linux (Adam's OK).
 5. Worker deploy B: `npx wrangler deploy --var REQUIRE_ACCOUNT:1` (requirement on). Set it explicitly: `keep_vars` in wrangler.jsonc keeps deploy A's `0` otherwise. Then `curl -s -X POST -H "content-type: application/json" -d '{"messages":[{"role":"user","content":"hi"}]}' <Worker>/llm/chat/completions` must answer 401 `sign_in_required`, and a 1.0.0 app must show the download message in chat.
-6. Docs (README, GUIDE, ROADMAP, HOW-I-BUILT-THIS, Skool post, Loom script, live roadmap page).
+6. Docs (README, GUIDE, ROADMAP, HOW-I-BUILT-THIS, Skool post, Loom script, live roadmap page). ROADMAP and the live page also get a Phase 1 row: "Continue with email (6-digit code)", after the domain and Resend.
 
 ## Open items (found in Adam's in-app test, Oct 5)
 
@@ -51,3 +51,4 @@ Each has a task chip in the account-requirement session; start it there, or past
 - [ ] Microsoft shows "unverified" on its consent screen. Fix: Microsoft publisher verification (free; needs a Partner One ID and a verified domain).
 - [ ] Google's screen names `uexdqfhszkwnguehvxal.supabase.co`. Fix: Supabase custom domain, then Google brand verification.
 - [ ] Microsoft client secret expires Oct 4, 2028. Renew before then.
+- [ ] Add "Continue with email" with a 6-digit code (Adam chose this, Oct 5: Google and Microsoft now, email later, as Fireflies offers). Blocked on: Adam buys a domain and sets up Resend. Then: custom SMTP in Supabase, Email provider on with "Confirm email", the email template with `{{ .Token }}`, Worker `/auth/email/start` and `/auth/email/verify`, a code screen in `upshot-plan/sign-in.tsx`. Same as `sharing-plan.md` step 1a.7.
