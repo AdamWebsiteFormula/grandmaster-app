@@ -2,7 +2,9 @@
 
 ## Goal
 
-Signing in with Google or Microsoft also connects that calendar, as Granola does. No macOS Internet Accounts step. Works on Mac, Windows and Linux.
+The Google or Microsoft account you sign in with also gives Upshot its calendar, as Granola does. No macOS Internet Accounts step. Works on Mac, Windows and Linux.
+
+Update (Adam, Oct 5): calendar access is asked from a "Connect Google Calendar" / "Connect Outlook calendar" button (onboarding and Settings › Calendar), not at sign-in. This is Google's incremental authorization, and it keeps the unverified-app screen off sign-in until Google verifies the scope. App side: branch `calendar-connect`. Worker side: grandmaster 68af07921e (start with `calendar=1`; exchange sends `provider` and `calendar: true`).
 
 ## Sources
 
