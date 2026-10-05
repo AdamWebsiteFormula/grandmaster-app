@@ -431,6 +431,10 @@ const TitleInputInner = memo(
             id={`title-input-${sessionId}-${editorId}`}
             placeholder={untitled}
             type="text"
+            // Fork: no AutoFill bubble ("Fill code … From Mail") over the
+            // title, which takes focus when a note opens (in-app test, Oct 4;
+            // MDN, autocomplete="off").
+            autoComplete="off"
             onChange={(e) => {
               const value = e.target.value;
               editRevisionRef.current += 1;

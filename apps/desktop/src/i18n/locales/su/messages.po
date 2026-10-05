@@ -1035,6 +1035,10 @@ msgid "Based on captured meetings, including imported transcripts. Each meeting 
 msgstr ""
 
 #: src/settings/ai/stt/select.tsx
+msgid "Best for this computer"
+msgstr ""
+
+#: src/settings/ai/stt/select.tsx
 msgid "Best for this Mac"
 msgstr ""
 
@@ -7353,6 +7357,7 @@ msgid "template, format"
 msgstr ""
 
 #: src/sidebar/settings-nav-groups.ts
+#: src/templates/template-sidebar.tsx
 msgid "Templates"
 msgstr ""
 

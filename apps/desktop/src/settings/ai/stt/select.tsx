@@ -83,6 +83,7 @@ import { useAiProvidersState } from "~/settings/providers";
 import { useSetSettingValues } from "~/settings/queries";
 import { SETTING_CONTROL_CLASS } from "~/settings/setting-row";
 import { useConfigValues } from "~/shared/config";
+import { isMac } from "~/shared/shortcut-label";
 import { DestructiveConfirmationDialog } from "~/shared/ui/destructive-confirmation-dialog";
 import { SettingsAlertToast } from "~/shared/ui/settings-alert";
 import {
@@ -704,7 +705,12 @@ function getModelCategoryLabel(category?: ModelCategory) {
   }
 
   if (category === "hardware") {
-    return <Trans>Best for this Mac</Trans>;
+    // Fork: "this computer" off a Mac (NN/g heuristic #2, the user's words).
+    return isMac() ? (
+      <Trans>Best for this Mac</Trans>
+    ) : (
+      <Trans>Best for this computer</Trans>
+    );
   }
 
   return null;
