@@ -40,6 +40,7 @@ Sizes: S is up to a day, M is 2 to 5 days, L is 1 to 3 weeks, XL is more than 3 
 | 1a | "Shared with me" in the sidebar, readable offline | S |
 | 1a | Default link access for new notes, private unless you choose | S |
 | 1a | Sign in with Google or Microsoft | M |
+| 1a | A free account for hosted AI and transcription, with limits per person; notes, folders and search keep working without one | M |
 | 1b | Team workspaces with members, roles and invitations | M |
 | 1b | Workspace switcher and a team space beside My notes | M |
 | 1b | Shared folders with members and link access | L |
