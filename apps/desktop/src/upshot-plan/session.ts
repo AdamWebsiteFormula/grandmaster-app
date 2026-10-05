@@ -125,6 +125,38 @@ export function isPasswordOnlySession(accessToken: string): boolean {
   }
 }
 
+/**
+ * Fork: Google or Microsoft, the provider this account signed in with, so
+ * Connect calendar asks the same one (grandmaster/sops/calendar-from-sign-in.md).
+ * Supabase names it in the access token's app_metadata.provider.
+ */
+export function upshotAccountProvider(
+  accessToken: string,
+): UpshotOAuthProvider | null {
+  try {
+    const payload = accessToken.split(".")[1];
+    if (!payload) return null;
+    const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+    const appMetadata = (
+      JSON.parse(json) as {
+        app_metadata?: { provider?: unknown; providers?: unknown };
+      }
+    ).app_metadata;
+    const names = [
+      appMetadata?.provider,
+      ...(Array.isArray(appMetadata?.providers) ? appMetadata.providers : []),
+    ];
+    return (
+      names.find(
+        (name): name is UpshotOAuthProvider =>
+          name === "google" || name === "azure",
+      ) ?? null
+    );
+  } catch {
+    return null;
+  }
+}
+
 function parseSession(raw: string | null): UpshotSession | null {
   if (!raw) return null;
   try {
@@ -230,7 +262,11 @@ export async function signInUpshot(
 
 export type UpshotOAuthProvider = "google" | "azure";
 
-type PendingOAuth = { verifier: string };
+type PendingOAuth = {
+  verifier: string;
+  /** Set for Connect calendar; the Worker keeps the calendar grant. */
+  calendar?: { provider: UpshotOAuthProvider };
+};
 let pendingOAuth: PendingOAuth | null = null;
 
 function base64Url(bytes: Uint8Array): string {
@@ -263,6 +299,9 @@ export async function startUpshotOAuth(
     startCallbackServer: () => Promise<number>;
     openUrl: (url: string) => Promise<void>;
   },
+  // Fork: calendar access is asked later, from Connect calendar, not at
+  // sign-in (Google's incremental authorization; Adam, Oct 5).
+  options: { calendar?: boolean } = {},
 ): Promise<void> {
   const origin = upshotWorkerOrigin();
   if (!origin) {
@@ -274,7 +313,10 @@ export async function startUpshotOAuth(
   url.searchParams.set("provider", provider);
   url.searchParams.set("code_challenge", challenge);
   url.searchParams.set("redirect_to", `http://127.0.0.1:${port}/auth/callback`);
-  pendingOAuth = { verifier };
+  if (options.calendar) url.searchParams.set("calendar", "1");
+  pendingOAuth = options.calendar
+    ? { verifier, calendar: { provider } }
+    : { verifier };
   await deps.openUrl(url.toString());
 }
 
@@ -296,7 +338,16 @@ export async function completeUpshotOAuth(code: string): Promise<boolean> {
   if (!pending) return false;
   pendingOAuth = null;
   const data = await workerFetch<WorkerSession>("/auth/oauth/exchange", {
-    body: { code, code_verifier: pending.verifier },
+    // Fork: the Worker is stateless between start and exchange, so Connect
+    // calendar says what it asked for (grandmaster/worker calendar routes).
+    body: pending.calendar
+      ? {
+          code,
+          code_verifier: pending.verifier,
+          provider: pending.calendar.provider,
+          calendar: true,
+        }
+      : { code, code_verifier: pending.verifier },
   });
   await saveSession(toSession(data, data.user?.email ?? ""));
   useUpshotAccount.setState({ sessionEnded: false });

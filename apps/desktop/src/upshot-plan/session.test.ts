@@ -36,6 +36,7 @@ import {
   SIGN_IN_REQUIRED,
   startUpshotOAuth,
   signInUpshot,
+  upshotAccountProvider,
   signOutUpshot,
   upshotAuthedRequest,
   upshotAuthFetch,
@@ -446,6 +447,65 @@ describe("Upshot account session", () => {
       // The same code arrives again through the upshot:// link.
       expect(await completeUpshotOAuth("the-code")).toBe(false);
       expect(mocks.fetch).toHaveBeenCalledOnce();
+    });
+
+    it("Connect calendar asks for calendar=1 and says so at the exchange", async () => {
+      const openUrl = vi.fn(async (_url: string) => {});
+      await startUpshotOAuth(
+        "azure",
+        { startCallbackServer: async () => 4321, openUrl },
+        { calendar: true },
+      );
+      expect(
+        new URL(openUrl.mock.calls[0][0] as string).searchParams.get(
+          "calendar",
+        ),
+      ).toBe("1");
+      mocks.fetch.mockResolvedValue(
+        Response.json({
+          access_token: jwt(["azure"]),
+          refresh_token: "r",
+          expires_at: NOW + 3600,
+          user: { id: "u", email: "judge@example.com" },
+        }),
+      );
+
+      expect(await completeUpshotOAuth("the-code")).toBe(true);
+      const body = JSON.parse(mocks.fetch.mock.calls[0][1].body);
+      expect(body).toMatchObject({ provider: "azure", calendar: true });
+    });
+
+    it("plain sign-in asks for no calendar and sends only the code", async () => {
+      const openUrl = vi.fn(async (_url: string) => {});
+      await startUpshotOAuth("google", {
+        startCallbackServer: async () => 4321,
+        openUrl,
+      });
+      expect(
+        new URL(openUrl.mock.calls[0][0] as string).searchParams.has(
+          "calendar",
+        ),
+      ).toBe(false);
+      mocks.fetch.mockResolvedValue(
+        Response.json({
+          access_token: jwt(["google"]),
+          refresh_token: "r",
+          expires_at: NOW + 3600,
+          user: { id: "u", email: "judge@example.com" },
+        }),
+      );
+
+      await completeUpshotOAuth("the-code");
+      expect(
+        Object.keys(JSON.parse(mocks.fetch.mock.calls[0][1].body)).sort(),
+      ).toEqual(["code", "code_verifier"]);
+    });
+
+    it("names the account's provider from the token", () => {
+      expect(upshotAccountProvider(jwt(["google"]))).toBe("google");
+      expect(upshotAccountProvider(jwt(["azure", "email"]))).toBe("azure");
+      expect(upshotAccountProvider(jwt(["email"]))).toBeNull();
+      expect(upshotAccountProvider("not-a-token")).toBeNull();
     });
 
     it("completing with no sign-in waiting does nothing", async () => {

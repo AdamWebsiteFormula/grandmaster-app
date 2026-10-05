@@ -3,6 +3,7 @@
 // granola-compare-oct3 section 8). It reuses the calendar rows from this Mac
 // that the month view already reads; the month view stays one click away.
 import { Trans, useLingui } from "@lingui/react/macro";
+import { platform } from "@tauri-apps/plugin-os";
 import { useEffect, useId, useRef, useState } from "react";
 
 import {
@@ -22,7 +23,14 @@ import {
   openInternetAccounts,
 } from "~/calendar/components/apple/permission";
 import type { CalendarItem } from "~/calendar/components/calendar-selection";
+import {
+  CloudCalendarName,
+  ConnectCloudCalendarLabel,
+  useCloudCalendar,
+} from "~/calendar/components/cloud-connect";
 import { SyncProvider } from "~/calendar/components/context";
+import { useOAuthCalendarSelection } from "~/calendar/components/oauth/calendar-selection";
+import { PROVIDERS } from "~/calendar/components/shared";
 import { useTurnOnCalendarsByDefault } from "~/calendar/default-calendars";
 import { allowReconnectedCalendarConnections } from "~/services/calendar";
 import { WeekStartSelector } from "~/settings/general/week-start";
@@ -50,6 +58,24 @@ function SettingsCalendarContent() {
   // Fork: the first time calendars arrive on this Mac, they start on, as in
   // onboarding (Granola setup "Select all"), so Coming up isn't empty.
   useTurnOnCalendarsByDefault(isLoading);
+
+  // Fork: signed in, the account's Google or Outlook calendar is the first
+  // row, on every platform; calendars on this Mac follow, on a Mac only
+  // (grandmaster/sops/calendar-from-sign-in.md; Adam, Oct 5).
+  const cloud = useCloudCalendar();
+  const cloudProvider = cloud.provider;
+  const onMac = platform() === "macos";
+  const cloudSelection = useOAuthCalendarSelection(
+    PROVIDERS.find((item) => item.id === (cloud.provider ?? "google"))!,
+  );
+  const cloudGroups = cloud.connected ? cloudSelection.groups : [];
+  const visibleGroups = [
+    ...cloudGroups.map((group) => ({ ...group, cloud: true })),
+    ...(authorized && onMac
+      ? groups.map((group) => ({ ...group, cloud: false }))
+      : []),
+  ];
+  const showVisible = cloud.connected || (authorized && onMac);
 
   // Read the calendar list once access is there and nothing is loaded yet.
   const askedForSync = useRef(false);
@@ -82,90 +108,91 @@ function SettingsCalendarContent() {
           Mac, not only Apple's: Google, Exchange/Outlook, iCloud, Yahoo and
           CalDAV (owner, Oct 3; support.apple.com/guide/calendar/icl4308d6701). */}
       <SettingsGroup title={<Trans>Calendar accounts</Trans>}>
-        {/* Fork: one glyph per row (access, add account, month grid, week
-            start), and Allow access is the page's one orange button
-            (redline-oct3 Settings; design-system "The one accent"). */}
-        <SettingRow
-          icon={Key}
-          title={<Trans>Calendar access</Trans>}
-          description={
-            authorized ? (
-              // Fork: the serial comma (Apple Style Guide; NN/g #4).
+        {cloudProvider ? (
+          <SettingRow
+            icon={CalendarDots}
+            title={<CloudCalendarName provider={cloudProvider} />}
+            description={
+              cloud.error ? (
+                <span role="alert" className="text-destructive">
+                  {cloud.error}
+                </span>
+              ) : cloud.connected ? (
+                <Trans>Upshot shows its meetings and names your notes.</Trans>
+              ) : (
+                <Trans>
+                  Show your meetings and name your notes after them.
+                </Trans>
+              )
+            }
+            controlWidth="content"
+          >
+            {(labelProps) =>
+              cloud.connected ? (
+                <span className="text-muted-foreground flex items-center gap-1 text-xs">
+                  <Check className="size-3.5" aria-hidden />
+                  <Trans>Connected</Trans>
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  {cloud.waiting && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-3 text-sm"
+                      onClick={cloud.cancel}
+                    >
+                      <Trans>Cancel</Trans>
+                    </Button>
+                  )}
+                  {/* Fork: the page's one orange button while the account's
+                      calendar isn't connected (design-system "The one
+                      accent"). */}
+                  <Button
+                    aria-describedby={labelProps["aria-describedby"]}
+                    variant="default"
+                    size="sm"
+                    className="h-8 px-3 text-sm"
+                    disabled={cloud.waiting}
+                    onClick={cloud.connect}
+                  >
+                    <ConnectCloudCalendarLabel
+                      provider={cloudProvider}
+                      waiting={cloud.waiting}
+                    />
+                  </Button>
+                </span>
+              )
+            }
+          </SettingRow>
+        ) : !onMac ? (
+          <SettingRow
+            icon={CalendarDots}
+            title={<Trans>Google or Outlook calendar</Trans>}
+            description={
               <Trans>
-                Upshot reads your Google, Outlook, iCloud, and other calendars
-                on this Mac.
+                Sign in with Google or Microsoft to connect your calendar.
               </Trans>
-            ) : denied ? (
-              <Trans>
-                Turn on Upshot in System Settings › Privacy &amp; Security ›
-                Calendars.
-              </Trans>
-            ) : (
-              // Fork: say why before asking (Apple HIG, Privacy), and name
-              // the accounts it covers (Granola names Google and Outlook),
-              // with the serial comma (Apple Style Guide; NN/g #4).
-              <Trans>
-                Upshot needs calendar access to show meetings from your Google,
-                Outlook, and iCloud calendars and name your notes.
-              </Trans>
-            )
-          }
-          controlWidth="content"
-        >
-          {(labelProps) =>
-            authorized ? (
-              <span className="text-muted-foreground flex items-center gap-1 text-xs">
-                <Check className="size-3.5" aria-hidden />
-                <Trans>Allowed</Trans>
-              </span>
-            ) : (
-              // Fork: the Settings row-button size, as Plan's: h-8, text-sm
-              // (NN/g #4).
-              <Button
-                aria-describedby={labelProps["aria-describedby"]}
-                variant="default"
-                size="sm"
-                className="h-8 px-3 text-sm"
-                disabled={calendar.isPending}
-                onClick={allowAccess}
-              >
-                {denied ? (
-                  <Trans>Open System Settings</Trans>
-                ) : (
-                  <Trans>Allow access</Trans>
-                )}
-              </Button>
-            )
-          }
-        </SettingRow>
-        {/* Fork: adding Google or Outlook is always one click away, not only
-            from an empty list (owner, Oct 3). macOS adds calendar accounts in
-            Internet Accounts (Apple support icl4308d6701). */}
-        <SettingRow
-          icon={UserPlus}
-          title={<Trans>Add Google or Outlook</Trans>}
-          description={
-            <Trans>
-              Add the account in System Settings › Internet Accounts. Its
-              calendars show up here.
-            </Trans>
-          }
-          controlWidth="content"
-        >
-          {(labelProps) => (
-            // Fork: the same size as Allow access (NN/g #4).
-            <Button
-              aria-describedby={labelProps["aria-describedby"]}
-              variant="outline"
-              size="sm"
-              className="h-8 px-3 text-sm"
-              onClick={() => void openInternetAccounts()}
-            >
-              <Trans>Add account</Trans>
-              <ArrowUpRight className="size-3.5" aria-hidden />
-            </Button>
-          )}
-        </SettingRow>
+            }
+          >
+            {() => null}
+          </SettingRow>
+        ) : null}
+        {cloudProvider && cloud.connected && (
+          <TurnOnCloudCalendars
+            provider={cloudProvider}
+            isLoading={cloudSelection.isLoading}
+          />
+        )}
+        {onMac && (
+          <MacCalendarRows
+            cloudFirst={cloud.provider !== null}
+            authorized={authorized}
+            denied={denied}
+            isPending={calendar.isPending}
+            onAllowAccess={allowAccess}
+          />
+        )}
       </SettingsGroup>
 
       <SettingsGroup title={<Trans>Display</Trans>}>
@@ -197,7 +224,7 @@ function SettingsCalendarContent() {
 
       {/* Fork: the list waits for access; the Allow access row above already
           says what to do (redline-oct3 Settings). */}
-      {authorized ? (
+      {showVisible ? (
         <SettingsGroup
           title={<Trans>Visible calendars</Trans>}
           action={
@@ -205,28 +232,31 @@ function SettingsCalendarContent() {
               variant="ghost"
               size="sm"
               className="h-6 px-2 text-xs"
-              disabled={isLoading}
-              onClick={handleRefresh}
+              disabled={isLoading || cloudSelection.isLoading}
+              onClick={
+                cloud.connected ? cloudSelection.handleRefresh : handleRefresh
+              }
             >
               <Trans>Refresh</Trans>
             </Button>
           }
         >
-          {!hasCalendars && isLoading ? (
+          {visibleGroups.length === 0 &&
+          (isLoading || cloudSelection.isLoading) ? (
             <p role="status" className="text-muted-foreground text-sm">
               <Trans>Loading calendars…</Trans>
             </p>
-          ) : !hasCalendars ? (
+          ) : visibleGroups.length === 0 ? (
             // Fork: access is on but nothing came back; Add account above and
             // Refresh in the header are the next steps, so only the message
             // shows here (as onboarding does).
             <NoCalendarsYet showAddAccount={false} />
           ) : (
-            groups.flatMap((group) => [
-              ...(groups.length > 1
+            visibleGroups.flatMap((group) => [
+              ...(visibleGroups.length > 1
                 ? [
                     <p
-                      key={`source-${group.sourceName}`}
+                      key={`source-${group.cloud}-${group.sourceName}`}
                       className="text-muted-foreground text-xs font-medium"
                     >
                       {group.sourceName}
@@ -237,7 +267,11 @@ function SettingsCalendarContent() {
                 <VisibleCalendarRow
                   key={item.id}
                   calendar={item}
-                  onToggle={(enabled) => handleToggle(item, enabled)}
+                  onToggle={(enabled) =>
+                    group.cloud
+                      ? cloudSelection.handleToggle(item, enabled)
+                      : handleToggle(item, enabled)
+                  }
                 />
               )),
             ])
@@ -245,6 +279,128 @@ function SettingsCalendarContent() {
         </SettingsGroup>
       ) : null}
     </div>
+  );
+}
+
+// The account's calendars start on once, like the Mac's (default-calendars).
+function TurnOnCloudCalendars({
+  provider,
+  isLoading,
+}: {
+  provider: "google" | "outlook";
+  isLoading: boolean;
+}) {
+  useTurnOnCalendarsByDefault(isLoading, { provider });
+  return null;
+}
+
+function MacCalendarRows({
+  cloudFirst,
+  authorized,
+  denied,
+  isPending,
+  onAllowAccess,
+}: {
+  cloudFirst: boolean;
+  authorized: boolean;
+  denied: boolean;
+  isPending: boolean;
+  onAllowAccess: () => void;
+}) {
+  return (
+    <>
+      {/* Fork: one glyph per row (access, add account, month grid, week
+            start), and Allow access is the page's one orange button unless
+            the account's calendar row comes first (redline-oct3 Settings;
+            design-system "The one accent"). */}
+      <SettingRow
+        icon={Key}
+        title={
+          cloudFirst ? (
+            <Trans>Calendars on this Mac</Trans>
+          ) : (
+            <Trans>Calendar access</Trans>
+          )
+        }
+        description={
+          authorized ? (
+            // Fork: the serial comma (Apple Style Guide; NN/g #4).
+            <Trans>
+              Upshot reads your Google, Outlook, iCloud, and other calendars on
+              this Mac.
+            </Trans>
+          ) : denied ? (
+            <Trans>
+              Turn on Upshot in System Settings › Privacy &amp; Security ›
+              Calendars.
+            </Trans>
+          ) : (
+            // Fork: say why before asking (Apple HIG, Privacy), and name
+            // the accounts it covers (Granola names Google and Outlook),
+            // with the serial comma (Apple Style Guide; NN/g #4).
+            <Trans>
+              Upshot needs calendar access to show meetings from your Google,
+              Outlook, and iCloud calendars and name your notes.
+            </Trans>
+          )
+        }
+        controlWidth="content"
+      >
+        {(labelProps) =>
+          authorized ? (
+            <span className="text-muted-foreground flex items-center gap-1 text-xs">
+              <Check className="size-3.5" aria-hidden />
+              <Trans>Allowed</Trans>
+            </span>
+          ) : (
+            // Fork: the Settings row-button size, as Plan's: h-8, text-sm
+            // (NN/g #4).
+            <Button
+              aria-describedby={labelProps["aria-describedby"]}
+              variant={cloudFirst ? "outline" : "default"}
+              size="sm"
+              className="h-8 px-3 text-sm"
+              disabled={isPending}
+              onClick={onAllowAccess}
+            >
+              {denied ? (
+                <Trans>Open System Settings</Trans>
+              ) : (
+                <Trans>Allow access</Trans>
+              )}
+            </Button>
+          )
+        }
+      </SettingRow>
+      {/* Fork: adding Google or Outlook is always one click away, not only
+            from an empty list (owner, Oct 3). macOS adds calendar accounts in
+            Internet Accounts (Apple support icl4308d6701). */}
+      <SettingRow
+        icon={UserPlus}
+        title={<Trans>Add Google or Outlook</Trans>}
+        description={
+          <Trans>
+            Add the account in System Settings › Internet Accounts. Its
+            calendars show up here.
+          </Trans>
+        }
+        controlWidth="content"
+      >
+        {(labelProps) => (
+          // Fork: the same size as Allow access (NN/g #4).
+          <Button
+            aria-describedby={labelProps["aria-describedby"]}
+            variant="outline"
+            size="sm"
+            className="h-8 px-3 text-sm"
+            onClick={() => void openInternetAccounts()}
+          >
+            <Trans>Add account</Trans>
+            <ArrowUpRight className="size-3.5" aria-hidden />
+          </Button>
+        )}
+      </SettingRow>
+    </>
   );
 }
 

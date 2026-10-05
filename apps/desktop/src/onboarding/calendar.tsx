@@ -1,4 +1,5 @@
 import { Trans } from "@lingui/react/macro";
+import { platform } from "@tauri-apps/plugin-os";
 import { useEffect, useState } from "react";
 
 import { Button } from "@anlg/ui/components/ui/button";
@@ -16,6 +17,11 @@ import {
   type CalendarGroup,
   CalendarSelection,
 } from "~/calendar/components/calendar-selection";
+import {
+  CloudCalendarList,
+  ConnectCloudCalendarLabel,
+  useCloudCalendar,
+} from "~/calendar/components/cloud-connect";
 import { SyncProvider, useSync } from "~/calendar/components/context";
 import { useTurnOnCalendarsByDefault } from "~/calendar/default-calendars";
 import { useEnabledCalendars } from "~/calendar/hooks";
@@ -217,6 +223,118 @@ function CalendarSectionContent({
   );
 }
 
+// Fork: signed in, the account's Google or Outlook calendar comes first, on
+// every platform; calendars on this Mac are the second choice
+// (grandmaster/sops/calendar-from-sign-in.md; Adam, Oct 5).
+function CalendarStep({
+  onContinue,
+}: {
+  onContinue: (connected?: boolean) => void;
+}) {
+  const cloud = useCloudCalendar();
+  if (cloud.provider === null) {
+    return <CalendarSectionContent onContinue={onContinue} />;
+  }
+  return (
+    <CloudCalendarStep
+      cloud={{ ...cloud, provider: cloud.provider }}
+      onContinue={onContinue}
+    />
+  );
+}
+
+type CloudCalendar = ReturnType<typeof useCloudCalendar>;
+
+function CloudCalendarStep({
+  cloud,
+  onContinue,
+}: {
+  cloud: CloudCalendar & { provider: NonNullable<CloudCalendar["provider"]> };
+  onContinue: (connected?: boolean) => void;
+}) {
+  const calendar = usePermission("calendar");
+  const [useMacCalendars, setUseMacCalendars] = useState(false);
+  const enabledCalendars = useEnabledCalendars();
+  const hasConnectedCalendar = enabledCalendars.length > 0;
+  const showMac = useMacCalendars && calendar.status === "authorized";
+  const onMac = platform() === "macos";
+
+  return (
+    <div className="flex flex-col gap-4">
+      {cloud.connected ? (
+        <div className="flex flex-col gap-2">
+          <p className="text-muted-foreground text-sm">
+            <Trans>Turn off any calendar you don't meet from.</Trans>
+          </p>
+          <CloudCalendarList
+            provider={cloud.provider}
+            className="border-border bg-card rounded-xl border p-4"
+          />
+        </div>
+      ) : (
+        <div className="flex flex-col items-start gap-2">
+          {/* Fork: the step's one orange action. It asks for calendar access
+              here, in context (Apple HIG, Privacy; Google incremental
+              authorization). */}
+          <div className="flex items-center gap-2">
+            <OnboardingButton
+              onClick={cloud.connect}
+              disabled={cloud.waiting}
+              className="px-6"
+            >
+              <ConnectCloudCalendarLabel
+                provider={cloud.provider}
+                waiting={cloud.waiting}
+              />
+            </OnboardingButton>
+            {cloud.waiting && (
+              <OnboardingButton variant="ghost" onClick={cloud.cancel}>
+                <Trans>Cancel</Trans>
+              </OnboardingButton>
+            )}
+          </div>
+          {cloud.error ? (
+            <p role="alert" className="text-destructive text-sm">
+              {cloud.error}
+            </p>
+          ) : (
+            <p className="text-muted-foreground text-sm">
+              <Trans>
+                Upshot shows your meetings and names your notes after them.
+              </Trans>
+            </p>
+          )}
+        </div>
+      )}
+
+      {showMac ? (
+        <AppleCalendarList />
+      ) : (
+        onMac &&
+        !cloud.connected && (
+          <OnboardingButton
+            variant="secondary"
+            className="self-start"
+            disabled={calendar.isPending}
+            onClick={() => {
+              setUseMacCalendars(true);
+              if (calendar.status !== "authorized") calendar.request();
+            }}
+          >
+            <Trans>Use calendars on this Mac instead</Trans>
+          </OnboardingButton>
+        )
+      )}
+
+      {(cloud.connected || showMac || hasConnectedCalendar) && (
+        <OnboardingButton onClick={() => onContinue(hasConnectedCalendar)}>
+          <Trans>Continue</Trans>
+        </OnboardingButton>
+      )}
+    </div>
+  );
+}
+
 export function CalendarSection({
   onContinue,
 }: {
@@ -224,7 +342,7 @@ export function CalendarSection({
 }) {
   return (
     <SyncProvider>
-      <CalendarSectionContent onContinue={onContinue} />
+      <CalendarStep onContinue={onContinue} />
     </SyncProvider>
   );
 }

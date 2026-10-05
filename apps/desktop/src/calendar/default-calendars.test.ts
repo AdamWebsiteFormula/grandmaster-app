@@ -8,18 +8,24 @@ const mocks = vi.hoisted(() => ({
   setCalendarEnabled: vi.fn(async () => {}),
   setSettingValue: vi.fn(async () => {}),
   scheduleSync: vi.fn(),
+  rowsProvider: "" as string,
+  appliedKey: "" as string,
 }));
 
 vi.mock("~/calendar/components/context", () => ({
   useSync: () => ({ scheduleSync: mocks.scheduleSync }),
 }));
 vi.mock("~/calendar/queries", () => ({
-  useCalendarRows: () => mocks.rows,
+  useCalendarRows: (provider: string) => {
+    mocks.rowsProvider = provider;
+    return mocks.rows;
+  },
   setCalendarEnabled: mocks.setCalendarEnabled,
 }));
 vi.mock("~/settings/queries", () => ({
   useSettingsReady: () => mocks.settingsReady,
-  useStoredSettingValue: () => ({
+  useStoredSettingValue: (key: string) => ({
+    key: (mocks.appliedKey = key),
     value: mocks.applied,
     hasValue: mocks.applied !== undefined,
   }),
@@ -88,6 +94,21 @@ describe("default calendars", () => {
     ]);
     expect(mocks.setSettingValue).toHaveBeenCalledWith(
       "calendar_defaults_applied",
+      true,
+    );
+  });
+
+  it("calendars from the Upshot account use their own once-only flag", async () => {
+    mocks.rows = ROWS;
+    renderHook(() =>
+      useTurnOnCalendarsByDefault(false, { provider: "google" }),
+    );
+
+    await waitFor(() => expect(mocks.scheduleSync).toHaveBeenCalledTimes(1));
+    expect(mocks.rowsProvider).toBe("google");
+    expect(mocks.appliedKey).toBe("cloud_calendar_defaults_applied");
+    expect(mocks.setSettingValue).toHaveBeenCalledWith(
+      "cloud_calendar_defaults_applied",
       true,
     );
   });

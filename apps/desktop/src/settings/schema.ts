@@ -245,6 +245,13 @@ export const SETTING_DEFINITIONS = {
     path: ["calendar", "defaults_applied"],
     default: false as boolean,
   },
+  // Fork: the same, once, for the Google or Outlook calendar connected from
+  // the Upshot account (grandmaster/sops/calendar-from-sign-in.md).
+  cloud_calendar_defaults_applied: {
+    type: "boolean",
+    path: ["calendar", "cloud_defaults_applied"],
+    default: false as boolean,
+  },
   capture_meeting_chat: {
     type: "boolean",
     path: ["general", "capture_meeting_chat"],

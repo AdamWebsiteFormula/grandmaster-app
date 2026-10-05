@@ -36,27 +36,32 @@ const NOT_FINISHED = "Sign-in didn't finish. Try again.";
 
 export async function beginUpshotSignIn(
   provider: UpshotOAuthProvider,
+  options: { calendar?: boolean } = {},
 ): Promise<void> {
   useUpshotSignIn.setState({ waitingFor: provider, error: null });
   try {
-    await startUpshotOAuth(provider, {
-      startCallbackServer: async () => {
-        const result = await deeplink2Commands.startCallbackServer(
-          "upshot",
-          null,
-        );
-        if (result.status === "error") {
-          throw new UpshotRequestError(NOT_FINISHED, 0);
-        }
-        return result.data;
+    await startUpshotOAuth(
+      provider,
+      {
+        startCallbackServer: async () => {
+          const result = await deeplink2Commands.startCallbackServer(
+            "upshot",
+            null,
+          );
+          if (result.status === "error") {
+            throw new UpshotRequestError(NOT_FINISHED, 0);
+          }
+          return result.data;
+        },
+        openUrl: async (url) => {
+          const result = await openerCommands.openUrl(url, null);
+          if (result.status === "error") {
+            throw new UpshotRequestError("Could not open your browser.", 0);
+          }
+        },
       },
-      openUrl: async (url) => {
-        const result = await openerCommands.openUrl(url, null);
-        if (result.status === "error") {
-          throw new UpshotRequestError("Could not open your browser.", 0);
-        }
-      },
-    });
+      options,
+    );
   } catch (cause) {
     cancelUpshotOAuth();
     useUpshotSignIn.setState({

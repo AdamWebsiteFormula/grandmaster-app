@@ -16,6 +16,37 @@ const mocks = vi.hoisted(() => ({
   setSettingValue: vi.fn(async (_key: string, value: boolean) => {
     mocks.defaultsApplied = value;
   }),
+  platform: "macos",
+  cloud: {
+    provider: null as "google" | "outlook" | null,
+    connected: false,
+    waiting: false,
+    error: null as string | null,
+    connect: vi.fn(),
+    cancel: vi.fn(),
+  },
+  cloudGroups: [] as unknown[],
+  cloudToggle: vi.fn(async () => {}),
+}));
+
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
+vi.mock("~/calendar/components/cloud-connect", async () => {
+  const actual = await vi.importActual<
+    typeof import("~/calendar/components/cloud-connect")
+  >("~/calendar/components/cloud-connect");
+  return {
+    CloudCalendarName: actual.CloudCalendarName,
+    ConnectCloudCalendarLabel: actual.ConnectCloudCalendarLabel,
+    useCloudCalendar: () => mocks.cloud,
+  };
+});
+vi.mock("~/calendar/components/oauth/calendar-selection", () => ({
+  useOAuthCalendarSelection: () => ({
+    groups: mocks.cloudGroups,
+    handleRefresh: vi.fn(),
+    handleToggle: mocks.cloudToggle,
+    isLoading: false,
+  }),
 }));
 
 vi.mock("@anlg/ui/components/ui/toast", () => ({
@@ -88,7 +119,82 @@ describe("Settings › Calendar", () => {
     mocks.groups = ICLOUD;
     mocks.rows = [];
     mocks.defaultsApplied = false;
+    mocks.platform = "macos";
+    Object.assign(mocks.cloud, {
+      provider: null,
+      connected: false,
+      waiting: false,
+      error: null,
+    });
+    mocks.cloudGroups = [];
     vi.clearAllMocks();
+  });
+
+  describe("calendar from the Upshot account", () => {
+    it("signed in with Google, Connect Google Calendar is the one orange button", () => {
+      mocks.cloud.provider = "google";
+      mocks.status = "notDetermined";
+      render(<SettingsCalendar />);
+
+      const connect = screen.getByRole("button", {
+        name: "Connect Google Calendar",
+      });
+      fireEvent.click(connect);
+      expect(mocks.cloud.connect).toHaveBeenCalledOnce();
+      // Calendars on this Mac become the second choice.
+      expect(screen.getByText("Calendars on this Mac")).toBeTruthy();
+      expect(
+        screen.getByRole("button", { name: "Allow access" }).className,
+      ).not.toBe(connect.className);
+    });
+
+    it("connected, lists the account's calendars before the Mac's", () => {
+      mocks.cloud.provider = "google";
+      mocks.cloud.connected = true;
+      mocks.cloudGroups = [
+        {
+          sourceName: "adam@example.com",
+          calendars: [
+            { id: "g1", title: "Meetings", color: "#4285f4", enabled: true },
+          ],
+        },
+      ];
+      render(<SettingsCalendar />);
+
+      expect(screen.getByText("Connected")).toBeTruthy();
+      const names = screen
+        .getAllByTestId("visible-calendar")
+        .map((row) => row.textContent);
+      expect(names[0]).toBe("Meetings");
+      fireEvent.click(screen.getByRole("switch", { name: "Meetings" }));
+      expect(mocks.cloudToggle).toHaveBeenCalledWith(
+        expect.objectContaining({ id: "g1" }),
+        false,
+      );
+    });
+
+    it("on Windows, shows no Mac rows", () => {
+      mocks.platform = "windows";
+      mocks.cloud.provider = "outlook";
+      render(<SettingsCalendar />);
+
+      expect(
+        screen.getByRole("button", { name: "Connect Outlook calendar" }),
+      ).toBeTruthy();
+      expect(screen.queryByText(/Internet Accounts/)).toBeNull();
+      expect(screen.queryByRole("button", { name: "Allow access" })).toBeNull();
+    });
+
+    it("on Windows signed out, says to sign in", () => {
+      mocks.platform = "windows";
+      render(<SettingsCalendar />);
+
+      expect(
+        screen.getByText(
+          "Sign in with Google or Microsoft to connect your calendar.",
+        ),
+      ).toBeTruthy();
+    });
   });
 
   it("lists visible calendars with a color dot and a switch", () => {

@@ -55,12 +55,24 @@ export function getCalendarsToTurnOn(
 // calendars from an account added while the step is open.
 export function useTurnOnCalendarsByDefault(
   isLoading: boolean,
-  { turnOnNewCalendars = false }: { turnOnNewCalendars?: boolean } = {},
+  {
+    turnOnNewCalendars = false,
+    provider = "apple",
+  }: {
+    turnOnNewCalendars?: boolean;
+    provider?: "apple" | "google" | "outlook";
+  } = {},
 ) {
   const { scheduleSync } = useSync();
-  const rows = useCalendarRows("apple");
+  const rows = useCalendarRows(provider);
   const settingsReady = useSettingsReady();
-  const { value: applied } = useStoredSettingValue("calendar_defaults_applied");
+  // Fork: calendars from the Upshot account get their own once-only flag,
+  // so a Mac that already set up its own calendars still turns them on.
+  const appliedKey =
+    provider === "apple"
+      ? "calendar_defaults_applied"
+      : "cloud_calendar_defaults_applied";
+  const { value: applied } = useStoredSettingValue(appliedKey);
   const seenRef = useRef<Set<string> | null>(null);
 
   useEffect(() => {
@@ -76,11 +88,9 @@ export function useTurnOnCalendarsByDefault(
     for (const row of rows) seenRef.current.add(row.id);
 
     if (firstPass && applied !== true) {
-      void setSettingValue("calendar_defaults_applied", true).catch(
-        (error: unknown) => {
-          console.error("[calendar] failed to save calendar defaults", error);
-        },
-      );
+      void setSettingValue(appliedKey, true).catch((error: unknown) => {
+        console.error("[calendar] failed to save calendar defaults", error);
+      });
     }
     if (ids.length === 0) return;
     // Sync afterward so Coming up on Home picks up the events right away.
@@ -91,6 +101,7 @@ export function useTurnOnCalendarsByDefault(
       });
   }, [
     applied,
+    appliedKey,
     isLoading,
     rows,
     scheduleSync,
