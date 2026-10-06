@@ -46,7 +46,7 @@ Built in about three days with Claude Code, using the B.L.A.S.T. method: a bluep
 - **Chat.** Ask from the Home composer, the Chat page (recents and recipes) or inside a note ("Say more", "Turn into an email"). **Draft follow-up email** sits in the note's bottom bar.
 - **Find and organize.** Folders, ⌘K (Ctrl+K) search across note contents, and locked notes that stay private: never sent to chat, MCP or export until you unlock them.
 - **Imports your Granola meetings** through Granola's official MCP connection (you sign in to Granola; no Upshot account needed).
-- **Looks good everywhere.** Black and orange, Bricolage Grotesque titles with Geist text, Light, Dark or match your system (the default), and Settings in 8 pages.
+- **Looks good everywhere.** Black and orange, Outfit titles with Geist text, Light, Dark or match your system (the default), and Settings in 8 pages.
 
 ## Pro
 
@@ -142,6 +142,6 @@ Other apps: Plaud imports through its CLI, and most other notetakers through the
 
 Upshot is a fork of [Anarlog](https://github.com/fastrepl/anarlog) (desktop v1.4.28), by Fastrepl, Inc. Anarlog is MIT licensed. See [LICENSE](LICENSE).
 
-Fonts: Geist and Geist Mono (Vercel) and Bricolage Grotesque, all under the SIL Open Font License 1.1 (license files in `apps/desktop/public/fonts/`).
+Fonts: Geist and Geist Mono (Vercel) and Outfit (the Outfit Project Authors), all under the SIL Open Font License 1.1 (license files in `apps/desktop/public/fonts/`).
 
 The sync library in `crates/cloudsync` is [sqlite-sync](https://github.com/sqliteai/sqlite-sync), licensed under the Elastic License 2.0 (ELv2). It ships unmodified. See [LICENSE.enterprise](LICENSE.enterprise) and [NOTICE](NOTICE).

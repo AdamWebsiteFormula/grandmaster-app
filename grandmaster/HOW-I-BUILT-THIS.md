@@ -7,7 +7,7 @@ Upshot is a bot-free AI meeting notepad for Mac, Windows and Linux. I built it i
 | Layer | What | Why |
 |---|---|---|
 | App shell | Tauri 2 (Rust) | A real desktop app for Mac, Windows and Linux, small and fast, with a web UI inside |
-| Interface | React 19, Tailwind 4, Bricolage Grotesque titles and Geist text | Fast to restyle; one design system |
+| Interface | React 19, Tailwind 4, Outfit titles and Geist text | Fast to restyle; one design system |
 | Data | Local SQLite on your computer | No server to run, nothing to leak |
 | Transcription | Upshot transcription: Deepgram Nova 3 through the same Worker, on every computer; Apple Speech (macOS 26+) or Parakeet on device as a choice on Apple Silicon | Free, no API key, works once you sign in with Google or Microsoft, like Granola's cloud transcription; on-device for people who want audio to stay on their Mac |
 | Summaries and chat | Upshot AI: a Cloudflare Worker in front of OpenRouter | Works out of the box on Auto (Claude Sonnet 5.5 at medium effort), no API key, after a free Google or Microsoft sign-in; Pro picks this week's models from Anthropic, OpenAI and Google, like Granola |

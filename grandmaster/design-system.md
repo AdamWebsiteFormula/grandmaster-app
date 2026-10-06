@@ -67,7 +67,7 @@ Dark keeps the pure-black base; only the steps above it moved. The full audit, w
 
 Orange `#FF6A1F` = `hsl(20 100% 56%)`, sampled from `icons/stable/icon.png`. It is the only hue in the UI. Red is reserved for errors and recording-stop. Every other color is a neutral gray.
 
-Toggles, checkboxes and selected rows stay neutral (white "on" track, gray fills). They never use the accent.
+Checkboxes and selected rows stay neutral (gray fills). Switches are the one exception, as on macOS: a white thumb in both themes and an orange track when on (Apple HIG, Toggles; Adam's pick, Oct 5, after a picture review flagged the black dark-mode thumb).
 
 Data colors are the one exception: transcript speaker labels get distinct hues so people are easy to tell apart, at low chroma (OKLCH C 0.10) starting at a cool hue (220), so no speaker reads as the orange accent. The audio waveform and playhead stay neutral gray.
 
@@ -80,7 +80,7 @@ Adam picked orange on Oct 2 (the blueprint offered mint or violet). It matches t
 - Font: Geist. Variable `.woff2` files and the SIL OFL license live in `apps/desktop/public/fonts/`. `--font-sans` and `--font-mono` are set in `apps/desktop/src/styles/globals.css`.
 - Times and dates (clock times, ranges, durations, ages like "23h", timers, transcript timestamps) use Geist sans with `tabular-nums`, so digits line up without a second typeface. Changed Oct 3: Granola sets every time in its sans (Home rows, Coming up, Chat page Recents "23h"/"1d", transcript; Adam's Oct 3 Granola screenshots), and the Oct 3 fresh-eyes design review flagged mono times as reading like code. AM and PM may sit in small caps (`[font-variant-caps:all-small-caps]`).
 - Geist Mono is only for key chips (`Kbd`), code, logs and technical IDs.
-- Display font: Bricolage Grotesque (SIL OFL 1.1, `apps/desktop/public/fonts/bricolage/`), class `font-display`, weight 600, tracking -0.01em. Big titles only: page titles, the note title, the chat greeting, folder titles, "Coming up". Everything else stays Geist. Adam's pick on Oct 3 after the fresh-eyes review found no typographic voice; chosen over serif options so Upshot doesn't echo Granola's slab serif (Quadrant).
+- Display font: Outfit SemiBold, SIL OFL 1.1 (by the Outfit Project Authors, file at `apps/desktop/public/fonts/outfit/`), class `font-display`, weight 600, tracking -0.01em. Big titles only: page titles, the note title, the chat greeting, folder titles, "Coming up". Everything else stays Geist. Outfit replaced Bricolage Grotesque on Oct 6 at the owner's pick; chosen over serif options so Upshot doesn't echo Granola's slab serif (Quadrant).
 - One ratio: 1.2 (minor third) from a 16 px base. Set in the desktop `@theme` as `--text-*`, so every Tailwind `text-*` class follows it.
 - Fonts and `--text-*` are also set in an unlayered `:root` block in `apps/desktop/src/styles/globals.css`. Keep it: `@anlg/ui/globals.css` loads later and would reset them to Tailwind defaults.
 - Note text never auto-hyphenates (`hyphens: manual` in `packages/editor/src/styles/prosemirror/base.css`).

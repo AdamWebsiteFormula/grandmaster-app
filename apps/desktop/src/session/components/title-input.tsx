@@ -23,7 +23,7 @@ import { type Tab } from "~/store/zustand/tabs";
 type TitleVariant = "title" | "breadcrumb" | "note";
 
 // Fork: "note" is the title line above the chip row in My notes, set like the
-// Summary's first-line title (Bricolage display, 1.728rem), as Granola puts
+// Summary's first-line title (Outfit display, 1.728rem), as Granola puts
 // the title above its chips (granola-compare-oct3 §1, screen 04).
 const titleBoxClassName: Record<TitleVariant, string> = {
   breadcrumb: "h-5",

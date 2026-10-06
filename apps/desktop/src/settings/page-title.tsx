@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 
-// Fork: page titles use the display face (Bricolage Grotesque, owner's pick
-// Oct 3) at semibold with a slight negative track, as Granola sets its
-// Settings page titles in a display serif apart from the body. Section
-// titles, rows and body stay Geist.
+// Fork: page titles use the display face (Outfit, owner's pick Oct 6) at
+// semibold with a slight negative track, as Granola sets its Settings page
+// titles in a display serif apart from the body. Section titles, rows and
+// body stay Geist.
 const PAGE_TITLE_CLASS =
   "font-display text-xl leading-tight font-semibold tracking-[-0.01em]";
 

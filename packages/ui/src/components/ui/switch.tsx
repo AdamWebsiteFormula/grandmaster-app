@@ -5,11 +5,12 @@ import * as React from "react";
 import { cn } from "@anlg/utils";
 
 // Fork: the off track is the field-border gray (--input), 3:1 or more against
-// every surface a switch sits on in both themes (WCAG 2.2 SC 1.4.11; Apple HIG
-// Toggles: the thumb stays one color and the track fills when on). The thumb
-// is the background color in both states.
+// every surface a switch sits on in both themes (WCAG 2.2 SC 1.4.11). As on
+// macOS, the thumb is white in both themes and the track fills with the
+// accent color when on (Apple HIG, Toggles; owner's pick, Oct 5: the dark
+// thumb was black, unlike every Mac switch).
 const switchVariants = cva(
-  "peer focus-visible:ring-ring focus-visible:ring-offset-background data-[state=checked]:border-foreground data-[state=checked]:bg-foreground data-[state=unchecked]:border-input data-[state=unchecked]:bg-input rounded-pill inline-flex shrink-0 cursor-pointer items-center border-2 transition-colors [corner-shape:round] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
+  "peer focus-visible:ring-ring focus-visible:ring-offset-background data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=unchecked]:border-input data-[state=unchecked]:bg-input rounded-pill inline-flex shrink-0 cursor-pointer items-center border-2 transition-colors [corner-shape:round] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
   {
     variants: {
       size: {
@@ -25,7 +26,7 @@ const switchVariants = cva(
 );
 
 const thumbVariants = cva(
-  "bg-background rounded-pill pointer-events-none block shadow-lg ring-0 transition-transform [corner-shape:round]",
+  "rounded-pill pointer-events-none block bg-white shadow-lg ring-0 transition-transform [corner-shape:round]",
   {
     variants: {
       size: {

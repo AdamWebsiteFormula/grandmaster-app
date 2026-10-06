@@ -23,13 +23,13 @@
   font-style: normal;
   font-display: swap;
 }
-/* Bricolage Grotesque, SIL OFL 1.1 (public/fonts/bricolage/OFL.txt). Display
- * face for big titles only (owner's pick, Oct 3); body and UI stay Geist. */
+/* Outfit, SIL OFL 1.1 (public/fonts/outfit/OFL.txt). Display face for big
+ * titles only, at SemiBold (owner's pick, Oct 6; was Bricolage Grotesque);
+ * body and UI stay Geist. */
 @font-face {
-  font-family: "Bricolage Grotesque";
-  src: url("/fonts/bricolage/BricolageGrotesque.ttf") format("truetype");
-  font-weight: 200 800;
-  font-stretch: 75% 100%;
+  font-family: "Outfit";
+  src: url("/fonts/outfit/Outfit.ttf") format("truetype");
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
@@ -115,7 +115,7 @@ html[data-rounded-window] #root {
     sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --font-display:
-    "Bricolage Grotesque", "Geist", system-ui, -apple-system, sans-serif;
+    "Outfit", "Geist", system-ui, -apple-system, sans-serif;
   --font-hand: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
 
   /* One type ratio: 1.2 from a 16px base. See grandmaster/design-system.md. */

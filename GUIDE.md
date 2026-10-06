@@ -340,6 +340,6 @@ While you record, audio passes through Upshot's proxy to Deepgram for the transc
 
 ## 22. Credits
 
-Upshot is a fork of [Anarlog](https://github.com/fastrepl/anarlog) by Fastrepl (MIT). It ships [sqlite-sync](https://github.com/sqliteai/sqlite-sync) unmodified (Elastic License 2.0). Fonts: Geist and Bricolage Grotesque (SIL Open Font License).
+Upshot is a fork of [Anarlog](https://github.com/fastrepl/anarlog) by Fastrepl (MIT). It ships [sqlite-sync](https://github.com/sqliteai/sqlite-sync) unmodified (Elastic License 2.0). Fonts: Geist and Outfit (SIL Open Font License).
 
 Sources for these steps: Apple Support, "Safely open apps on your Mac"; AppImage documentation, "FUSE"; Upshot's own screens. The steps follow Google's developer documentation style guide for procedures.
