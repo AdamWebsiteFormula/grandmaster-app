@@ -47,7 +47,7 @@ Known gap: many work accounts can't consent to an app from an unverified publish
 Each has a task chip in the account-requirement session; start it there, or paste the line into a new session.
 
 - [ ] Granola import: the browser says "Granola connected", but onboarding's Granola row still shows Connect (`plugins/importer/src/connected_mcp.rs`, `apps/desktop/src/onboarding/imports.tsx`). Not caused by sign-in.
-- [ ] Calendar step: "No calendars yet" on a fresh profile although Internet Accounts has a Google account with Calendars on (`apps/desktop/src/onboarding/calendar.tsx`). Check the Calendar permission for the new ad-hoc build first.
+- [x] Calendar step: "No calendars yet" did not reproduce on the current build (Oct 6: the Settings grant and a fresh profile each loaded 21 calendars); the old Apple-only step it described is gone.
 - [ ] Microsoft shows "unverified" on its consent screen. Fix: Microsoft publisher verification (free; needs a Partner One ID and a verified domain).
 - [x] Google's screen names the app: done Oct 6 (Google returns to upshotnotes.com; brand verification approved and published, "Upshot" with the logo).
 - [ ] Microsoft client secret expires Oct 4, 2028. Renew before then.
@@ -55,12 +55,11 @@ Each has a task chip in the account-requirement session; start it there, or past
 
 ## Release gate: Connect calendar (do not skip)
 
-Before the `calendar-connect` branch merges or ships in any installer:
-1. Google Auth Platform › Data Access: calendar.readonly is listed (Adam removed it on Oct 6 so the brand review could go first).
-2. Record the demo video Google asks for: sign in, click Connect Google Calendar, Google's consent screen with the app name, then the calendar events showing in Upshot.
-3. Verification Center: submit the sensitive-scope review with that video and this justification: "Upshot reads calendar events to name meeting notes, list attendees and remind the user before meetings. Read-only; never written or shared."
-Until Google approves, people who click Connect Google Calendar see the unverified-app screen, and Google caps it at 100 users.
-4. The Worker switch (live since Oct 6, version 84a61901): `CALENDAR_GOOGLE` and `CALENDAR_OUTLOOK` are "0" in `grandmaster/worker/wrangler.jsonc`, so the app shows a "coming soon" note and nobody can start a calendar connect. After Google approves, set `CALENDAR_GOOGLE` to "1" and deploy; Outlook goes to "1" after Microsoft publisher verification.
+Connect calendar is in the app since Oct 6 (d2db15b9a0) behind the Worker switch. While a provider is off, the app shows its row with "Coming soon" and no Connect, and `/auth/oauth/start?calendar=1` answers 404 `calendar_unavailable`, so nobody sees an unverified-app screen.
+
+- `CALENDAR_GOOGLE` stays "0" (`grandmaster/worker/wrangler.jsonc`) until Google approves the sensitive-scope review: calendar.readonly in Data Access, then a demo video (only Upshot and the browser on screen: sign in, Connect Google Calendar, Google's consent screen with "Upshot", the events showing in Upshot), then submit in the Verification Center with this justification: "Upshot reads calendar events to name meeting notes, list attendees and remind the user before meetings. Read-only; never written or shared."
+- `CALENDAR_OUTLOOK` stays "0" until Microsoft publisher verification passes.
+- To turn one on: set it to "1" in wrangler.jsonc and deploy with Adam's OK. Installed apps pick it up within 5 minutes; no new download.
 
 ## Upshot's own name on Google's sign-in screen (Adam, Oct 5-6)
 
