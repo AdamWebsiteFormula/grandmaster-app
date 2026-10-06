@@ -61,8 +61,8 @@ Free plan note: Supabase pauses free projects after inactivity; sign-ins and tok
 
 Steps:
 1. Done: domain `upshotnotes.com` on Cloudflare.
-2. Adam: Google client › Authorized redirect URIs: add `https://upshotnotes.com/auth/google/callback` (keep the Supabase one).
-3. Adam: Worker secrets (`npx wrangler secret put <NAME>` in `grandmaster/worker`): GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET. Claude generates OAUTH_STATE_KEY and CALENDAR_TOKEN_KEY (`openssl rand -base64 32 | npx wrangler secret put …`) without printing them.
-4. Adam's OK: apply `grandmaster/supabase/migrations/20261005170000_calendar_connections.sql`, then deploy (wrangler.jsonc adds the `upshotnotes.com` custom domain and PUBLIC_ORIGIN). Check `https://upshotnotes.com/`, `/privacy`, a Google sign-in in the app, and a curl 401 on chat.
+2. Done Oct 6: Google client › Authorized redirect URIs: add `https://upshotnotes.com/auth/google/callback` (keep the Supabase one).
+3. Done Oct 6: Worker secrets (`npx wrangler secret put <NAME>` in `grandmaster/worker`): GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET. Claude generates OAUTH_STATE_KEY and CALENDAR_TOKEN_KEY (`openssl rand -base64 32 | npx wrangler secret put …`) without printing them.
+4. Done Oct 6 (version d6ef976b; Adam ran the SQL; live check: / and /privacy 200, chat 401 signed out, Google sign-in via upshotnotes.com into the existing account, chat answers): apply `grandmaster/supabase/migrations/20261005170000_calendar_connections.sql`, then deploy (wrangler.jsonc adds the `upshotnotes.com` custom domain and PUBLIC_ORIGIN). Check `https://upshotnotes.com/`, `/privacy`, a Google sign-in in the app, and a curl 401 on chat.
 5. Adam: Google Search Console › add `upshotnotes.com` (DNS TXT at Cloudflare). Google Auth Platform › Branding: logo, home page `https://upshotnotes.com`, privacy `https://upshotnotes.com/privacy`, authorized domain `upshotnotes.com`. Verification Center: submit brand verification. Data Access: add `calendar.readonly`; enable the Google Calendar API; submit sensitive-scope verification (needs a demo video).
 6. Adam: Azure › API permissions: add Microsoft Graph delegated `Calendars.Read` and `offline_access`.
