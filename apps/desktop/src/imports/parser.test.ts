@@ -36,6 +36,32 @@ describe("meeting export parser", () => {
     });
   });
 
+  // Fork: the record Upshot builds from Granola's MCP (Oct 5, 2026).
+  it("reads a Granola meeting and falls back when its date does not parse", () => {
+    const [meeting] = parseMeetingExport({
+      path: "mcp://granola/m-1.json",
+      name: "m-1.json",
+      content: JSON.stringify({
+        id: "m-1",
+        title: "Strategy call",
+        date: "Oct 5, 2026 12:00 PM BST",
+        created_at: "2026-10-05T11:02:13.890Z",
+        summary: "# Plan\n\n- Ship it",
+        attendees: [{ name: "Ann Lee", email: "ann@acme.com" }],
+        transcript: "Microphone: Hello.\n\nSystem audio (Ann Lee): Hi.",
+      }),
+    });
+
+    expect(meeting).toMatchObject({
+      externalId: "m-1",
+      title: "Strategy call",
+      startedAt: "2026-10-05T11:02:13.890Z",
+      attendees: [{ name: "Ann Lee", email: "ann@acme.com" }],
+    });
+    expect(meeting?.noteMarkdown).toContain("Ship it");
+    expect(meeting?.transcript.length).toBeGreaterThan(0);
+  });
+
   it("parses captions and preserves speaker labels", () => {
     const [meeting] = parseMeetingExport({
       path: "/tmp/meeting.vtt",

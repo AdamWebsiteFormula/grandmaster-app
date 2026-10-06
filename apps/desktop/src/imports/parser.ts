@@ -158,21 +158,21 @@ function normalizeMeeting(value: unknown, fallbackTitle: string) {
         "conversationId",
         "uuid",
       ]),
-      startedAt: toIsoDate(
-        firstValue(record, [
-          "started_at",
-          "startedAt",
-          "start_time",
-          "startTime",
-          "meeting_date",
-          "meetingDate",
-          "recording_date",
-          "recordingDate",
-          "date",
-          "created_at",
-          "createdAt",
-        ]),
-      ),
+      // Fork: Granola's date reads "Oct 5, 2026 12:00 PM BST"; when a zone
+      // name does not parse, use the next date field (created_at).
+      startedAt: firstIsoDate(record, [
+        "started_at",
+        "startedAt",
+        "start_time",
+        "startTime",
+        "meeting_date",
+        "meetingDate",
+        "recording_date",
+        "recordingDate",
+        "date",
+        "created_at",
+        "createdAt",
+      ]),
       endedAt: toIsoDate(
         firstValue(record, ["ended_at", "endedAt", "end_time", "endTime"]),
       ),
@@ -511,6 +511,14 @@ function asRecord(value: unknown): JsonRecord | null {
   return value != null && typeof value === "object" && !Array.isArray(value)
     ? (value as JsonRecord)
     : null;
+}
+
+function firstIsoDate(record: JsonRecord, keys: string[]) {
+  for (const key of keys) {
+    const date = toIsoDate(firstValue(record, [key]));
+    if (date) return date;
+  }
+  return "";
 }
 
 function toIsoDate(value: unknown) {
