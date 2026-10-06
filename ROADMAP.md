@@ -70,6 +70,7 @@ Sizes: S is up to a day, M is 2 to 5 days, L is 1 to 3 weeks, XL is more than 3 
 | Your own actions: drop a prompt file in a folder and it becomes a one-click action on any note | M |
 | Promises across meetings: who owes whom what, with a morning reminder | M |
 | Never miss a recording: a check before each calendar meeting, and an alert when a call happened but nothing was captured | S |
+| Social posts, reels and carousels from talks meant to be public, such as podcasts, interviews and webinars | M |
 
 ### Phase 3: Calendar, email and accounts
 
@@ -115,6 +116,5 @@ Not planned yet. Research notes in `grandmaster/sops/feature-research-oct5.md`.
 - Notes sent where your work lives: Google Docs, task managers and Salesforce.
 - An audio recap read by an AI voice.
 - A video recap with highlights and voiceover, after video recording ships.
-- Social posts, reels and carousels from talks meant to be public, such as podcasts, interviews and webinars.
 
 Feature counts and comparisons come from Granola's public help center, read on Oct 4, 2026. Sizes are estimates.
