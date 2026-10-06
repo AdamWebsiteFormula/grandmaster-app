@@ -17,7 +17,7 @@ import {
   House,
   Lock,
   MagnifyingGlass,
-  NotePencil,
+  Microphone,
   Users,
   X,
   type Icon,
@@ -211,7 +211,8 @@ export function OpenNoteDialog({
         label: t`Record meeting`,
         hint: shortcutLabel(["mod", "N"]),
         groupLabel: t`Go to`,
-        icon: NotePencil,
+        // Fork: the mic the Home button shows for the same command (NN/g #4).
+        icon: Microphone,
         requiresPro: false,
         destination: { type: "empty" },
         run: newNoteAndListen,

@@ -132,6 +132,11 @@ function HeaderViewEnhancedInactive({
           <Sparkle aria-hidden />
         )}
         <span className="min-w-0 truncate">{viewTitle}</span>
+        {/* Fork: the menu arrow's space is kept while this segment is not
+            selected, so the segment keeps its width and the chips beside
+            it do not move when you switch views (picture review, Oct 6:
+            16 pt shift; Apple HIG, Segmented controls). */}
+        <CaretDown aria-hidden className="invisible !size-3" />
       </button>
     );
   }

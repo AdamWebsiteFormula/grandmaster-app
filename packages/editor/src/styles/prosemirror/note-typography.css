@@ -88,6 +88,10 @@
   font-family: var(--font-display, inherit);
   font-weight: 600;
   letter-spacing: -0.01em;
+  /* Fork: no heading padding, so the title and the chip row sit where they
+   * do on My notes and the transcript (probe, Oct 6: 3.5 px above and below
+   * moved them 3 pt and 7 pt; NN/g #4). */
+  padding-block: 0;
 }
 
 /* Summary section headings at body scale, semibold, with air above

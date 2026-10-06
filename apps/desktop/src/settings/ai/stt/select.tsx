@@ -286,147 +286,156 @@ export function SelectProviderAndModel() {
       <SettingsSectionTitle className="flex min-h-6 items-center">
         <Trans>Model being used</Trans>
       </SettingsSectionTitle>
-      {/* Fork: small Provider and Model labels over the two pickers, in
+      {/* Fork: Provider and Model sit in a card, as every other Settings
+          section does (picture review, Oct 6; Apple HIG, Settings: group
+          related controls). */}
+      <div className="border-border bg-card dark:bg-muted flex flex-col gap-2 rounded-xl border p-4">
+        {/* Fork: small Provider and Model labels over the two pickers, in
           place of a bare "/" between them (backlog item 7; NN/g heuristic
           6, recognition over recall). The pickers keep their own names. */}
-      <div
-        aria-hidden="true"
-        className="text-muted-foreground -mb-1 flex flex-row gap-4 text-xs"
-      >
-        <span className="min-w-0 flex-2">{t`Provider`}</span>
-        <span className="min-w-0 flex-3">{t`Model`}</span>
-      </div>
-      <div className="flex flex-row items-center gap-4">
-        <div className="min-w-0 flex-2" data-stt-provider-selector>
-          <Select value={visibleProvider} onValueChange={handleProviderChange}>
-            <SelectTrigger
-              aria-label={t`Transcription provider`}
-              className={SETTING_CONTROL_CLASS}
+        <div
+          aria-hidden="true"
+          className="text-muted-foreground -mb-1 flex flex-row gap-4 text-xs"
+        >
+          <span className="min-w-0 flex-2">{t`Provider`}</span>
+          <span className="min-w-0 flex-3">{t`Model`}</span>
+        </div>
+        <div className="flex flex-row items-center gap-4">
+          <div className="min-w-0 flex-2" data-stt-provider-selector>
+            <Select
+              value={visibleProvider}
+              onValueChange={handleProviderChange}
             >
-              <SelectValue placeholder={t`Select a provider`} />
-            </SelectTrigger>
-            <SelectContent>
-              {providerOptions.length === 0 && (
-                <div className="text-muted-foreground px-2 py-3 text-center text-sm">
-                  <Trans>No providers found.</Trans>
-                </div>
-              )}
-              {providerOptions.map((provider) => {
-                const configured =
-                  configuredProviders[provider.id]?.configured ?? false;
-                const requiresPro = requiresEntitlement(
-                  provider.requirements,
-                  "pro",
-                );
-                const locked = requiresPro && !billing.isPaid;
-                return (
-                  <SelectItem
-                    key={provider.id}
-                    value={provider.id}
-                    disabled={provider.disabled || locked}
-                    className={cn([
-                      "data-disabled:text-muted-foreground data-disabled:!opacity-100",
-                      !configured && !locked && "text-muted-foreground",
-                    ])}
-                  >
-                    <div className="flex flex-col gap-0.5">
-                      <div className="flex items-center gap-2">
-                        <ProviderIconSlot>{provider.icon}</ProviderIconSlot>
-                        <span>{provider.displayName}</span>
-                        {requiresPro ? (
-                          <span className="border-border text-muted-foreground rounded-full border px-2 py-0.5 text-xs">
-                            <Trans>Pro</Trans>
+              <SelectTrigger
+                aria-label={t`Transcription provider`}
+                className={SETTING_CONTROL_CLASS}
+              >
+                <SelectValue placeholder={t`Select a provider`} />
+              </SelectTrigger>
+              <SelectContent>
+                {providerOptions.length === 0 && (
+                  <div className="text-muted-foreground px-2 py-3 text-center text-sm">
+                    <Trans>No providers found.</Trans>
+                  </div>
+                )}
+                {providerOptions.map((provider) => {
+                  const configured =
+                    configuredProviders[provider.id]?.configured ?? false;
+                  const requiresPro = requiresEntitlement(
+                    provider.requirements,
+                    "pro",
+                  );
+                  const locked = requiresPro && !billing.isPaid;
+                  return (
+                    <SelectItem
+                      key={provider.id}
+                      value={provider.id}
+                      disabled={provider.disabled || locked}
+                      className={cn([
+                        "data-disabled:text-muted-foreground data-disabled:!opacity-100",
+                        !configured && !locked && "text-muted-foreground",
+                      ])}
+                    >
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-2">
+                          <ProviderIconSlot>{provider.icon}</ProviderIconSlot>
+                          <span>{provider.displayName}</span>
+                          {requiresPro ? (
+                            <span className="border-border text-muted-foreground rounded-full border px-2 py-0.5 text-xs">
+                              <Trans>Pro</Trans>
+                            </span>
+                          ) : null}
+                        </div>
+                        {locked ? (
+                          <span className="text-muted-foreground text-xs">
+                            <Trans>Upgrade to Pro to use this provider.</Trans>
+                          </span>
+                        ) : "description" in provider &&
+                          provider.description ? (
+                          <span className="text-muted-foreground text-xs">
+                            {provider.description}
                           </span>
                         ) : null}
                       </div>
-                      {locked ? (
-                        <span className="text-muted-foreground text-xs">
-                          <Trans>Upgrade to Pro to use this provider.</Trans>
-                        </span>
-                      ) : "description" in provider && provider.description ? (
-                        <span className="text-muted-foreground text-xs">
-                          {provider.description}
-                        </span>
-                      ) : null}
-                    </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {visibleProvider === "local_file" ? (
-          <div className="min-w-0 flex-3">
-            <LocalFileModel healthStatus={health.status} />
-          </div>
-        ) : visibleProvider === "custom" || visibleProvider === "nvidia" ? (
-          <div className="min-w-0 flex-3">
-            <Input
-              value={displayedSttModel || ""}
-              onChange={(event) => handleModelChange(event.target.value)}
-              aria-label={t`Model ID`}
-              className="text-xs"
-              placeholder={t`Enter a model ID`}
-            />
-          </div>
-        ) : (
-          <div className="min-w-0 flex-3">
-            <Select
-              value={displayedSttModel || ""}
-              onValueChange={handleModelValueChange}
-              open={modelMenuOpen}
-              onOpenChange={setModelMenuOpen}
-              disabled={selectedModels.length === 0}
-            >
-              <SelectTrigger
-                aria-label={t`Transcription model`}
-                className={cn([
-                  SETTING_CONTROL_CLASS,
-                  "gap-2 text-left",
-                  "[&>span]:!flex [&>span]:w-full [&>span]:min-w-0 [&>span]:items-center [&>span]:justify-start [&>span]:gap-2 [&>span]:overflow-visible [&>span]:[-webkit-line-clamp:unset]",
-                ])}
-              >
-                <SelectValue placeholder={t`Select a model`}>
-                  {selectedModel ? (
-                    <ModelSelectedValue model={selectedModel} />
-                  ) : undefined}
-                </SelectValue>
-                {/* Fork: no unlabeled check here; the spinner and the
-                    alert toast report checking and failure (NN/g Icon
-                    Usability; WCAG 2.2 SC 1.1.1). */}
-                {isConfigured && <HealthStatusIndicator />}
-              </SelectTrigger>
-              <SelectContent align="end">
-                {selectedModels.map((model, i) => {
-                  const prevCategory =
-                    i > 0 ? selectedModels[i - 1].category : null;
-                  const showHeader =
-                    model.category && model.category !== prevCategory;
-                  const categoryLabel = showHeader
-                    ? getModelCategoryLabel(model.category)
-                    : null;
-                  return (
-                    <span key={model.id}>
-                      {categoryLabel && (
-                        <div className="text-muted-foreground px-2 pt-2 pb-1 text-xs font-medium">
-                          {categoryLabel}
-                        </div>
-                      )}
-                      <ModelSelectItem
-                        model={model}
-                        onRequestDelete={() => {
-                          setModelMenuOpen(false);
-                          setModelToDelete(model);
-                        }}
-                      />
-                    </span>
+                    </SelectItem>
                   );
                 })}
               </SelectContent>
             </Select>
           </div>
-        )}
+
+          {visibleProvider === "local_file" ? (
+            <div className="min-w-0 flex-3">
+              <LocalFileModel healthStatus={health.status} />
+            </div>
+          ) : visibleProvider === "custom" || visibleProvider === "nvidia" ? (
+            <div className="min-w-0 flex-3">
+              <Input
+                value={displayedSttModel || ""}
+                onChange={(event) => handleModelChange(event.target.value)}
+                aria-label={t`Model ID`}
+                className="text-xs"
+                placeholder={t`Enter a model ID`}
+              />
+            </div>
+          ) : (
+            <div className="min-w-0 flex-3">
+              <Select
+                value={displayedSttModel || ""}
+                onValueChange={handleModelValueChange}
+                open={modelMenuOpen}
+                onOpenChange={setModelMenuOpen}
+                disabled={selectedModels.length === 0}
+              >
+                <SelectTrigger
+                  aria-label={t`Transcription model`}
+                  className={cn([
+                    SETTING_CONTROL_CLASS,
+                    "gap-2 text-left",
+                    "[&>span]:!flex [&>span]:w-full [&>span]:min-w-0 [&>span]:items-center [&>span]:justify-start [&>span]:gap-2 [&>span]:overflow-visible [&>span]:[-webkit-line-clamp:unset]",
+                  ])}
+                >
+                  <SelectValue placeholder={t`Select a model`}>
+                    {selectedModel ? (
+                      <ModelSelectedValue model={selectedModel} />
+                    ) : undefined}
+                  </SelectValue>
+                  {/* Fork: no unlabeled check here; the spinner and the
+                    alert toast report checking and failure (NN/g Icon
+                    Usability; WCAG 2.2 SC 1.1.1). */}
+                  {isConfigured && <HealthStatusIndicator />}
+                </SelectTrigger>
+                <SelectContent align="end">
+                  {selectedModels.map((model, i) => {
+                    const prevCategory =
+                      i > 0 ? selectedModels[i - 1].category : null;
+                    const showHeader =
+                      model.category && model.category !== prevCategory;
+                    const categoryLabel = showHeader
+                      ? getModelCategoryLabel(model.category)
+                      : null;
+                    return (
+                      <span key={model.id}>
+                        {categoryLabel && (
+                          <div className="text-muted-foreground px-2 pt-2 pb-1 text-xs font-medium">
+                            {categoryLabel}
+                          </div>
+                        )}
+                        <ModelSelectItem
+                          model={model}
+                          onRequestDelete={() => {
+                            setModelMenuOpen(false);
+                            setModelToDelete(model);
+                          }}
+                        />
+                      </span>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
       </div>
       <DeleteLocalModelDialog
         model={modelToDelete}

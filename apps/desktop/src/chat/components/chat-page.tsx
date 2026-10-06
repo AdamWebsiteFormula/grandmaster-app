@@ -160,7 +160,9 @@ export function ChatPage() {
       data-tauri-drag-region
       className="scrollbar-soft h-full overflow-y-auto"
     >
-      <div className="mx-auto flex w-full max-w-[560px] flex-col gap-8 px-8 pt-24 pb-10">
+      {/* Fork: the Home column (640 px, 576 px inside its gutters), so Chat,
+          Home and notes share one width (picture review, Oct 6; NN/g #4). */}
+      <div className="mx-auto flex w-full max-w-[640px] flex-col gap-8 px-8 pt-24 pb-10">
         {chatOpen ? null : (
           <h1 className="text-foreground font-display text-center text-2xl font-semibold tracking-[-0.01em] text-balance">
             {firstName ? t`Hi ${firstName}, ask anything` : t`Ask anything`}

@@ -97,6 +97,28 @@ interface AudioPlayerContextValue {
 
 const AudioPlayerContext = createContext<AudioPlayerContextValue | null>(null);
 
+// Fork: the waveform follows the theme. Unplayed bars use the secondary text
+// gray and the played part the main text color; the fixed #3a3a3a measured
+// 1.69:1 on the dark player (picture review, Oct 6; WCAG 2.2 SC 1.4.11).
+function waveformColors() {
+  const styles = getComputedStyle(document.documentElement);
+  const token = (name: string, fallback: string) => {
+    const value = styles.getPropertyValue(name).trim();
+    return value ? `hsl(${value})` : fallback;
+  };
+  const wave = token("--muted-foreground", "#8a8a8a");
+  const progress = token("--foreground", "#171717");
+  return {
+    waveColor: wave,
+    progressColor: progress,
+    cursorColor: progress,
+    splitChannels: [
+      { waveColor: wave, progressColor: progress, overlay: true },
+      { waveColor: wave, progressColor: progress, overlay: true },
+    ],
+  };
+}
+
 export function useAudioPlayer() {
   const context = useContext(AudioPlayerContext);
   if (!context) {
@@ -181,9 +203,7 @@ export function AudioPlayerProvider({
       container,
       media,
       height: 24,
-      waveColor: "#3a3a3a",
-      progressColor: "#a3a3a3",
-      cursorColor: "#e5e5e5",
+      ...waveformColors(),
       cursorWidth: 2,
       barWidth: 3,
       barGap: 2,
@@ -191,10 +211,14 @@ export function AudioPlayerProvider({
       barHeight: 1,
       dragToSeek: true,
       normalize: true,
-      splitChannels: [
-        { waveColor: "#3a3a3a", progressColor: "#a3a3a3", overlay: true },
-        { waveColor: "#3a3a3a", progressColor: "#a3a3a3", overlay: true },
-      ],
+    });
+    // The canvas cannot read CSS variables, so repaint on a theme switch.
+    const themeObserver = new MutationObserver(() => {
+      ws.setOptions(waveformColors());
+    });
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "data-theme", "style"],
     });
     const audioContext = configureCenteredPlayback(media);
     audioContextRef.current = audioContext;
@@ -280,6 +304,7 @@ export function AudioPlayerProvider({
     }).catch(() => {});
 
     return () => {
+      themeObserver.disconnect();
       loadController.abort();
       stopRequestedRef.current = false;
       if (audioContextRef.current === audioContext) {

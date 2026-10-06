@@ -21,8 +21,10 @@ export function FolderNotes({ folderPath }: { folderPath: string }) {
           <Trans>Notes</Trans>
         </h4>
         {/* Fork: an empty state that says how to fill it (NN/g empty
-            states, nngroup.com/articles/empty-state-interface-design). */}
-        <div className="border-border flex flex-col items-center gap-1 rounded-xl border border-dashed px-6 py-8 text-center">
+            states, nngroup.com/articles/empty-state-interface-design). No
+            dashed outline: it read as a drop target, and Granola's empty
+            states have none (picture review, Oct 6). */}
+        <div className="flex flex-col items-center gap-1 px-6 py-8 text-center">
           <p className="text-foreground text-sm font-medium">
             <Trans>No notes in this folder yet</Trans>
           </p>

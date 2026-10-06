@@ -361,12 +361,13 @@ function NoteAskField({
         // Fork: ⌘ J on a Mac, Ctrl+J elsewhere (Apple HIG, Keyboards;
         // Microsoft Writing Style Guide, Keys and keyboard shortcuts).
         aria-keyshortcuts={ariaKeyShortcut(["mod", "J"])}
-        className="placeholder:text-muted-foreground text-foreground h-full min-w-[6.5rem] flex-1 bg-transparent text-sm focus:outline-none"
+        className="placeholder:text-muted-foreground text-foreground h-full min-w-[5rem] flex-1 bg-transparent text-sm focus:outline-none"
       />
       {/* Fork: in the 576 px note bar, ⌘ J hides below 28rem and the Draft
-          chip drops to its icon below 24rem, so nothing spills out of the
-          bar (in-app test, Oct 6). */}
-      <Kbd className="shrink-0 @max-[28rem]/ask:hidden">
+          chip below 21rem, so nothing spills out of the bar (in-app probe,
+          Oct 6). `!` because @anlg/ui's later stylesheet re-shows them with
+          its own inline-flex. */}
+      <Kbd className="shrink-0 @max-[28rem]/ask:hidden!">
         {kbdLabel(["mod", "J"])}
       </Kbd>
       {/* Fork: pick the model before you type, as on Home, in the chat, and
@@ -405,10 +406,14 @@ function FollowUpEmailChip() {
               queueChatPrompt(t`Draft a follow-up email to the participants`);
               chat.sendEvent({ type: "OPEN" });
             }}
-            className={barChipClassName}
+            // Fork: below 21rem the chip hides instead of dropping to a bare
+            // envelope, which read as a send button beside the field
+            // (picture review, Oct 6; NN/g "Icon Usability"). Chat's
+            // recipes keep the same prompt one click away.
+            className={cn([barChipClassName, "@max-[21rem]/ask:hidden!"])}
           >
             <Envelope aria-hidden className="text-muted-foreground size-3.5" />
-            <span className="truncate @max-[24rem]/ask:sr-only">{label}</span>
+            <span className="truncate">{label}</span>
           </button>
         </TooltipTrigger>
         <TooltipContent side="top">{label}</TooltipContent>

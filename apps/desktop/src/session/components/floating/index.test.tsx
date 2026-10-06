@@ -274,7 +274,7 @@ describe("FloatingActionButton (note bar)", () => {
     const input = screen.getByRole("textbox", { name: "Ask anything" });
     expect(input.getAttribute("placeholder")).toBe("Ask anything");
     expect(input.className).toContain("flex-1");
-    expect(input.className).toContain("min-w-[6.5rem]");
+    expect(input.className).toContain("min-w-[5rem]");
     expect(input.closest("form")?.className).toContain("flex-1");
     expect(screen.getByText("⌘ J")).not.toBeNull();
   });
@@ -493,7 +493,7 @@ describe("FloatingActionButton (note bar)", () => {
     );
   });
 
-  it("drops the follow-up chip to its icon when the Ask field narrows, never clipping it", () => {
+  it("hides the follow-up chip when the Ask field narrows, never clipping it", () => {
     hoisted.canResume = true;
     hoisted.rawNote = "Launch review";
     renderBar({ allowListening: true });
@@ -503,10 +503,12 @@ describe("FloatingActionButton (note bar)", () => {
     const label = screen.getByText("Draft follow-up email", {
       selector: "span",
     });
-    // ⌘ J gives way first, then the chip label (redline3 S3).
-    expect(label.className).toContain("@max-[24rem]/ask:sr-only");
+    // ⌘ J gives way first, then the whole chip (no bare envelope; Oct 6).
+    expect(label.closest("button")!.className).toContain(
+      "@max-[21rem]/ask:hidden!",
+    );
     expect(screen.getByText("⌘ J").className).toContain(
-      "@max-[28rem]/ask:hidden",
+      "@max-[28rem]/ask:hidden!",
     );
   });
 

@@ -290,7 +290,10 @@ function SectionItem({
         </div>
       )}
 
-      <div className="flex flex-col gap-1 pr-9">
+      {/* Fork: the 36 px strip is for the section menu, which read-only
+          built-in templates do not show, so their sections use the full
+          width (picture review, Oct 6: 24 pt left, 60 pt right margins). */}
+      <div className={cn(["flex flex-col gap-1", !disabled && "pr-9"])}>
         <Input
           disabled={disabled}
           value={item.title}
