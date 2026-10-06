@@ -60,6 +60,7 @@ Before the `calendar-connect` branch merges or ships in any installer:
 2. Record the demo video Google asks for: sign in, click Connect Google Calendar, Google's consent screen with the app name, then the calendar events showing in Upshot.
 3. Verification Center: submit the sensitive-scope review with that video and this justification: "Upshot reads calendar events to name meeting notes, list attendees and remind the user before meetings. Read-only; never written or shared."
 Until Google approves, people who click Connect Google Calendar see the unverified-app screen, and Google caps it at 100 users.
+4. The Worker switch (live since Oct 6, version 84a61901): `CALENDAR_GOOGLE` and `CALENDAR_OUTLOOK` are "0" in `grandmaster/worker/wrangler.jsonc`, so the app shows a "coming soon" note and nobody can start a calendar connect. After Google approves, set `CALENDAR_GOOGLE` to "1" and deploy; Outlook goes to "1" after Microsoft publisher verification.
 
 ## Upshot's own name on Google's sign-in screen (Adam, Oct 5-6)
 
