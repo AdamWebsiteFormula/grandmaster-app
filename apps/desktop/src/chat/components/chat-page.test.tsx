@@ -127,7 +127,7 @@ describe("ChatPage", () => {
     render(<ChatPage />);
 
     expect(screen.getByRole("heading", { name: "Ask anything" })).toBeTruthy();
-    expect(screen.queryByRole("heading", { name: "Recents" })).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Recent" })).toBeNull();
     expect(screen.queryByText("Your chats show up here")).toBeNull();
   });
 
@@ -135,7 +135,7 @@ describe("ChatPage", () => {
     mocks.groups = [group(1, 23), group(2, 30)];
     render(<ChatPage />);
 
-    expect(screen.getByRole("heading", { name: "Recents" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Recent" })).toBeTruthy();
     const row = screen.getByRole("button", { name: /Chat 1/ });
     expect(row.textContent).toContain("23h");
     expect(
@@ -162,7 +162,7 @@ describe("ChatPage", () => {
 
     expect(screen.getAllByRole("button", { name: /^Chat \d/ })).toHaveLength(3);
     const recents = screen
-      .getByRole("heading", { name: "Recents" })
+      .getByRole("heading", { name: "Recent" })
       .closest("section")!;
     const seeAll = within(recents).getByRole("button", { name: "See all" });
     // Right-aligned on the heading row, as Granola's Chat page Recents.
@@ -253,7 +253,7 @@ describe("ChatPage", () => {
     expect(
       conversation.closest("[data-chat-page-conversation]"),
     ).not.toBeNull();
-    expect(screen.queryByRole("heading", { name: "Recents" })).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Recent" })).toBeNull();
 
     fireEvent.click(conversation);
     expect(mocks.chat.sendEvent).toHaveBeenCalledWith({ type: "CLOSE" });
@@ -266,7 +266,7 @@ describe("ChatPage", () => {
 
     expect(screen.queryByRole("textbox", { name: "Ask anything" })).toBeNull();
     expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
-    expect(screen.getByRole("heading", { name: "Recents" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Recent" })).toBeTruthy();
     expect(screen.getByRole("group", { name: "Recipes" })).toBeTruthy();
   });
 

@@ -226,7 +226,9 @@ export function ChatPage() {
                 id="chat-recents"
                 className="text-muted-foreground text-sm font-medium"
               >
-                <Trans>Recents</Trans>
+                {/* Fork: "Recent", the word Search uses (picture review,
+                    Oct 6; NN/g #4). */}
+                <Trans>Recent</Trans>
               </h2>
               {groups.length > CHAT_RECENTS_LIMIT ? (
                 <button

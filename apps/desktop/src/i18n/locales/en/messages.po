@@ -5630,6 +5630,7 @@ msgstr "Reasoning models think through the transcript before writing."
 msgid "received"
 msgstr "received"
 
+#: src/chat/components/chat-page.tsx
 #: src/shared/open-note-dialog.tsx
 msgid "Recent"
 msgstr "Recent"
@@ -5643,8 +5644,8 @@ msgid "Recent CloudSync entries from the app log."
 msgstr "Recent CloudSync entries from the app log."
 
 #: src/chat/components/chat-page.tsx
-msgid "Recents"
-msgstr "Recents"
+#~ msgid "Recents"
+#~ msgstr "Recents"
 
 #: src/chat/components/chat-page.tsx
 #: src/chat/components/content.tsx

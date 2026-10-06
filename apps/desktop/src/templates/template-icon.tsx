@@ -244,12 +244,20 @@ export function TemplateIconGlyph({
   }
 
   const Icon = TEMPLATE_ICON_COMPONENTS[normalized.value] ?? Notebook;
+  // Fork: an icon left at the default gray (#9ca3af, 2.4:1 on the sidebar)
+  // takes the secondary text color instead, as the sidebar's other icons do
+  // (picture review, Oct 6; WCAG 2.2 SC 1.4.11 asks 3:1). Picked colors stay.
+  const tinted = normalized.color.toLowerCase() !== DEFAULT_TEMPLATE_ICON.color;
   return (
     <Icon
       aria-hidden
-      className={cn(["shrink-0", className])}
-      color={normalized.color}
-      style={{ color: normalized.color }}
+      className={cn([
+        "shrink-0",
+        !tinted && "text-muted-foreground",
+        className,
+      ])}
+      color={tinted ? normalized.color : "currentColor"}
+      style={tinted ? { color: normalized.color } : undefined}
     />
   );
 }
