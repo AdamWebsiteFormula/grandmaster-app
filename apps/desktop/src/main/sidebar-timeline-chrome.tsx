@@ -1,8 +1,9 @@
+import { useLingui } from "@lingui/react/macro";
 import { memo, type ReactNode } from "react";
 
 import {
   MagnifyingGlass,
-  NotePencil,
+  Microphone,
   Sidebar,
   SidebarSimple,
 } from "@anlg/ui/components/icons";
@@ -101,13 +102,19 @@ export function SidebarNoteActions({
   onNewNote: () => void;
   onSearch: () => void;
 }) {
+  const { t } = useLingui();
   return (
     <>
-      <LeftSurfaceChromeButton ariaLabel="Search" onClick={onSearch}>
+      <LeftSurfaceChromeButton ariaLabel={t`Search`} onClick={onSearch}>
         <MagnifyingGlass size={15} />
       </LeftSurfaceChromeButton>
-      <LeftSurfaceChromeButton ariaLabel="New note" onClick={onNewNote}>
-        <NotePencil size={15} />
+      {/* Fork: it records, as the Home button does, so it says so and shows
+          a mic (owner's pick, Oct 6; Apple HIG Buttons). */}
+      <LeftSurfaceChromeButton
+        ariaLabel={t`Record meeting`}
+        onClick={onNewNote}
+      >
+        <Microphone size={15} />
       </LeftSurfaceChromeButton>
       {/* Fork: the sort/group filter only applied to the sidebar timeline,
           which is hidden (sidebar/index.tsx). */}

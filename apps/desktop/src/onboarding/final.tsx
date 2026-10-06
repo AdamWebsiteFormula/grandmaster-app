@@ -32,8 +32,8 @@ export function FinalDescription() {
 
   return (
     <Trans>
-      After you open Upshot, click New note or press {newNoteShortcut} to record
-      your first meeting.
+      After you open Upshot, click Record meeting or press {newNoteShortcut} to
+      record your first meeting.
     </Trans>
   );
 }

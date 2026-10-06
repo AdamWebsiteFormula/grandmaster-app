@@ -121,7 +121,7 @@ On Windows, make sure desktop apps can use the microphone: **Settings** › **Pr
 1. Join your call in Zoom, Google Meet, Microsoft Teams, Slack or any other app.
 2. Start recording in one of these ways:
    - Click **Take notes** on the popup that shows when the call starts. See [The meeting popup](#7-the-meeting-popup).
-   - Click the orange **New note** button at the top right.
+   - Click the orange **Record meeting** button at the top right.
    - Press ⌘N on a Mac, or Ctrl+N on Windows and Linux.
 3. Optional: type notes as you talk. Upshot uses them to shape the summary.
 4. Watch the recording bar at the bottom. **You** moves when you talk. **Them** moves when the other people talk.
@@ -254,7 +254,7 @@ Open Settings from the sidebar. On a Mac, you can also press ⌘,.
 
 | Action | Mac | Windows and Linux |
 |---|---|---|
-| New note and start recording | ⌘N | Ctrl+N |
+| Record meeting | ⌘N | Ctrl+N |
 | Blank note, no recording | ⇧⌘N | Ctrl+Shift+N |
 | Search notes and settings | ⌘K | Ctrl+K |
 | Ask about this note | ⌘J | Ctrl+J |

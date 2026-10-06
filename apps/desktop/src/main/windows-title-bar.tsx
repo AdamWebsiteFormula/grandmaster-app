@@ -135,7 +135,7 @@ export function WindowsTitleBar({
               as Windows 11 Notepad's menus. */}
           <TitleBarMenu label={t`File`} onPointerDown={rememberEditTarget}>
             <DropdownMenuItem onSelect={newNoteAndListen}>
-              {t`New note`}
+              {t`Record meeting`}
               <DropdownMenuShortcut>Ctrl+N</DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={createNewNote}>

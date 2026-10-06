@@ -111,7 +111,7 @@ vi.mock("~/shared/open-note-dialog", () => ({
 }));
 
 vi.mock("~/shared/new-note-button", () => ({
-  NewNoteButton: () => <button type="button">New note</button>,
+  NewNoteButton: () => <button type="button">Record meeting</button>,
 }));
 
 vi.mock("~/shared/useNewNote", () => ({
@@ -159,7 +159,7 @@ describe("ClassicMainBody", () => {
     // Fork (Granola 101): Search lives in the sidebar nav and "New note" is
     // the labeled top-right button, so the chrome row keeps only the toggle.
     expect(screen.queryByRole("button", { name: "Search" })).toBeNull();
-    const newNoteButtons = screen.getAllByRole("button", { name: "New note" });
+    const newNoteButtons = screen.getAllByRole("button", { name: "Record meeting" });
     expect(newNoteButtons).toHaveLength(1);
     fireEvent.click(newNoteButtons[0]);
 

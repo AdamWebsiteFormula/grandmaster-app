@@ -1,6 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 
-import { Plus } from "@anlg/ui/components/icons";
+import { Microphone } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
 import { shortcutLabel } from "~/shared/shortcut-label";
@@ -35,7 +35,7 @@ export function NewNoteButton({
       title={
         recording
           ? t`Go to the note being recorded`
-          : t`New note and start recording (${newNoteShortcut})`
+          : t`Record meeting (${newNoteShortcut})`
       }
       className={cn([
         recording
@@ -52,8 +52,10 @@ export function NewNoteButton({
         <Trans>Back to recording</Trans>
       ) : (
         <>
-          <Plus className="size-3.5" weight="bold" />
-          <Trans>New note</Trans>
+          {/* Fork: "Record meeting" with a mic, since the button starts
+              recording; "New note" did not say so (owner's pick, Oct 6: Apple HIG Buttons, start with a verb; NN/g, say what will happen). */}
+          <Microphone className="size-3.5" />
+          <Trans>Record meeting</Trans>
         </>
       )}
     </button>

@@ -170,9 +170,9 @@ it("auto-joins the hosted demo and optionally attaches a completion callback", (
   );
 });
 
-it("points to New note on Home and says what leaves the computer", () => {
+it("points to Record meeting on Home and says what leaves the computer", () => {
   const mac = welcomeNoteMarkdown("macos");
-  expect(mac).toContain("on Home, click **New note** at the top right");
+  expect(mac).toContain("on Home, click **Record meeting** at the top right");
   expect(mac).toContain("press **⌘N**");
   expect(mac).toContain(
     "Recordings, notes, and transcripts are stored on this Mac.",

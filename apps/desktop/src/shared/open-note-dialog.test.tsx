@@ -213,7 +213,7 @@ describe("OpenNoteDialog", () => {
     expect(mocks.openCurrent).toHaveBeenCalledWith({ type: "chat" });
 
     // Fork: NN/g #4, the rows do what their ⌘N and ⇧⌘N hints do.
-    fireEvent.click(screen.getByRole("option", { name: /New note/ }));
+    fireEvent.click(screen.getByRole("option", { name: /Record meeting/ }));
     expect(mocks.newNoteAndListen).toHaveBeenCalledOnce();
     expect(mocks.newNote).not.toHaveBeenCalled();
 
@@ -233,7 +233,7 @@ describe("OpenNoteDialog", () => {
     render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
 
     expect(
-      screen.getByRole("option", { name: /New note/ }).textContent,
+      screen.getByRole("option", { name: /Record meeting/ }).textContent,
     ).toContain("Ctrl+N");
     expect(
       screen.getByRole("option", { name: /Blank note/ }).textContent,

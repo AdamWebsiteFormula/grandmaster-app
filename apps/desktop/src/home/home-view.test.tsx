@@ -506,7 +506,7 @@ describe("HomeView", () => {
     expect(
       screen.getByRole("button", { name: /^Blank note\s*⇧ ⌘ N$/ }),
     ).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /New note/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Record meeting/ })).toBeNull();
     expect(screen.queryByRole("heading", { name: "Notes" })).toBeNull();
   });
 

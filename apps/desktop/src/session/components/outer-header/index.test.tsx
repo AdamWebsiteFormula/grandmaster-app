@@ -482,7 +482,7 @@ describe("OuterHeader", () => {
     expect(screen.getByRole("button", { name: "More" })).not.toBeNull();
     expect(screen.getByRole("button", { name: "Share" })).not.toBeNull();
     // Fork: no New note on the note page (redline-oct3, H2).
-    expect(screen.queryByRole("button", { name: "New note" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Record meeting" })).toBeNull();
   });
 
   // Fork: the audio-saved note moved into ⋯ › Recording, so the header

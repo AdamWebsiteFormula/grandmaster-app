@@ -30,7 +30,7 @@ describe("NewNoteButton", () => {
   it("creates a note and starts recording", () => {
     render(<NewNoteButton />);
 
-    fireEvent.click(screen.getByRole("button", { name: "New note" }));
+    fireEvent.click(screen.getByRole("button", { name: "Record meeting" }));
 
     expect(mocks.newNoteAndListen).toHaveBeenCalledTimes(1);
   });
@@ -65,7 +65,7 @@ describe("NewNoteButton", () => {
     render(<NewNoteButton />);
 
     expect(screen.getByRole("button").getAttribute("title")).toBe(
-      "New note and start recording (⌘N)",
+      "Record meeting (⌘N)",
     );
   });
 
@@ -75,7 +75,7 @@ describe("NewNoteButton", () => {
     render(<NewNoteButton />);
 
     expect(screen.getByRole("button").getAttribute("title")).toBe(
-      "New note and start recording (Ctrl+N)",
+      "Record meeting (Ctrl+N)",
     );
   });
 });

@@ -38,7 +38,7 @@ Built in about three days with Claude Code, using the B.L.A.S.T. method: a bluep
 ## What it does
 
 - **Works out of the box.** Summaries and chat run on Upshot AI right after you sign in with Google or Microsoft: no API key. Auto uses Claude Sonnet 5.5 at medium effort, through a Cloudflare Worker in front of OpenRouter.
-- **Records without a bot.** New note (⌘N on a Mac, Ctrl+N on Windows and Linux) records your mic and your call audio; Blank note (⇧⌘N or Ctrl+Shift+N) just opens a note. The recording bar shows a timer and You and Them sound meters, and warns you live when there is no sound from the other side. Stop, then Resume to keep going in the same note.
+- **Records without a bot.** Record meeting (⌘N on a Mac, Ctrl+N on Windows and Linux) records your mic and your call audio; Blank note (⇧⌘N or Ctrl+Shift+N) just opens a note. The recording bar shows a timer and You and Them sound meters, and warns you live when there is no sound from the other side. Stop, then Resume to keep going in the same note.
 - **Transcribes out of the box** with Upshot transcription (Deepgram Nova 3 through the Upshot proxy), on every computer. No API key; it needs the same free account. On Apple Silicon Macs you can switch to on-device Apple Speech or Parakeet in Settings › Transcription.
 - **Full transcript you can hear.** Speaker bubbles with timestamps. Click any word to hear that moment: your recording stays on your computer (Granola keeps no audio). Copy the transcript, or export notes, summary or transcript as PDF, text or Markdown.
 - **Notes the way you want them.** 9 built-in templates (general meeting, 1:1, sales call, interview and more). Generate summary works from typed notes too, even when nothing was recorded.

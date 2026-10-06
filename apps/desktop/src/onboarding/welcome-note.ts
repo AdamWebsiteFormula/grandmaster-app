@@ -30,7 +30,7 @@ export function welcomeNoteMarkdown(currentPlatform: string = platform()) {
   return `Upshot takes notes for your meetings. No bot joins your call.
 
 
-**Record:** on Home, click **New note** at the top right, or press **${newNoteKey}**. Upshot starts listening right away. It hears you through your microphone and the other people through your ${device}'s sound.
+**Record:** on Home, click **Record meeting** at the top right, or press **${newNoteKey}**. Upshot starts listening right away. It hears you through your microphone and the other people through your ${device}'s sound.
 
 
 **Take notes:** jot a few words while you talk, or nothing at all.

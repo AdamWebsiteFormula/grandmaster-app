@@ -40,7 +40,7 @@ export function KeyboardShortcutsDialog() {
     {
       title: t`Notes`,
       rows: [
-        [t`New note and start recording`, "⌘ N"],
+        [t`Record meeting`, "⌘ N"],
         [t`Blank note`, "⇧ ⌘ N"],
         [t`Search notes`, "⌘ K"],
         [t`Ask Upshot AI`, "⌘ J"],

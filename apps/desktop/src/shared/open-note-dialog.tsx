@@ -208,7 +208,7 @@ export function OpenNoteDialog({
       // and keyboard shortcuts).
       {
         id: "new-note",
-        label: t`New note`,
+        label: t`Record meeting`,
         hint: shortcutLabel(["mod", "N"]),
         groupLabel: t`Go to`,
         icon: NotePencil,

@@ -662,7 +662,11 @@ msgid "After the meeting summary is ready"
 msgstr ""
 
 #: src/onboarding/final.tsx
-msgid "After you open Upshot, click New note or press {newNoteShortcut} to record your first meeting."
+#~ msgid "After you open Upshot, click New note or press {newNoteShortcut} to record your first meeting."
+#~ msgstr ""
+
+#: src/onboarding/final.tsx
+msgid "After you open Upshot, click Record meeting or press {newNoteShortcut} to record your first meeting."
 msgstr ""
 
 #: src/settings/developers/skills.tsx
@@ -4590,16 +4594,16 @@ msgstr ""
 #: src/main/windows-title-bar.tsx
 #: src/shared/new-note-button.tsx
 #: src/shared/open-note-dialog.tsx
-msgid "New note"
-msgstr ""
+#~ msgid "New note"
+#~ msgstr ""
 
 #: src/shared/keyboard-shortcuts-dialog.tsx
-msgid "New note and start recording"
-msgstr ""
+#~ msgid "New note and start recording"
+#~ msgstr ""
 
 #: src/shared/new-note-button.tsx
-msgid "New note and start recording ({newNoteShortcut})"
-msgstr ""
+#~ msgid "New note and start recording ({newNoteShortcut})"
+#~ msgstr ""
 
 #. placeholder {0}: workspaceConfirmation?.name
 #: src/folders/folder-editor.tsx
@@ -5752,6 +5756,18 @@ msgstr ""
 msgid "Record any call without a bot, and get clear notes from the newest AI models."
 msgstr ""
 
+#: src/main/sidebar-timeline-chrome.tsx
+#: src/main/windows-title-bar.tsx
+#: src/shared/keyboard-shortcuts-dialog.tsx
+#: src/shared/new-note-button.tsx
+#: src/shared/open-note-dialog.tsx
+msgid "Record meeting"
+msgstr ""
+
+#: src/shared/new-note-button.tsx
+msgid "Record meeting ({newNoteShortcut})"
+msgstr ""
+
 #: src/settings/general/permissions.tsx
 msgid "Record other participants in meetings."
 msgstr ""
@@ -6308,6 +6324,7 @@ msgstr ""
 msgid "Scroll to top"
 msgstr ""
 
+#: src/main/sidebar-timeline-chrome.tsx
 #: src/settings/automations/starter-config.tsx
 #: src/sidebar/home-nav.tsx
 #: src/sidebar/settings.tsx

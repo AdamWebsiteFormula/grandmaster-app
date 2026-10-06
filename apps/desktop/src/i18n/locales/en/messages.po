@@ -662,8 +662,12 @@ msgid "After the meeting summary is ready"
 msgstr "After the meeting summary is ready"
 
 #: src/onboarding/final.tsx
-msgid "After you open Upshot, click New note or press {newNoteShortcut} to record your first meeting."
-msgstr "After you open Upshot, click New note or press {newNoteShortcut} to record your first meeting."
+#~ msgid "After you open Upshot, click New note or press {newNoteShortcut} to record your first meeting."
+#~ msgstr "After you open Upshot, click New note or press {newNoteShortcut} to record your first meeting."
+
+#: src/onboarding/final.tsx
+msgid "After you open Upshot, click Record meeting or press {newNoteShortcut} to record your first meeting."
+msgstr "After you open Upshot, click Record meeting or press {newNoteShortcut} to record your first meeting."
 
 #: src/settings/developers/skills.tsx
 msgid "Agent skills"
@@ -4590,16 +4594,16 @@ msgstr "New meetings are imported automatically while Upshot is running."
 #: src/main/windows-title-bar.tsx
 #: src/shared/new-note-button.tsx
 #: src/shared/open-note-dialog.tsx
-msgid "New note"
-msgstr "New note"
+#~ msgid "New note"
+#~ msgstr "New note"
 
 #: src/shared/keyboard-shortcuts-dialog.tsx
-msgid "New note and start recording"
-msgstr "New note and start recording"
+#~ msgid "New note and start recording"
+#~ msgstr "New note and start recording"
 
 #: src/shared/new-note-button.tsx
-msgid "New note and start recording ({newNoteShortcut})"
-msgstr "New note and start recording ({newNoteShortcut})"
+#~ msgid "New note and start recording ({newNoteShortcut})"
+#~ msgstr "New note and start recording ({newNoteShortcut})"
 
 #. placeholder {0}: workspaceConfirmation?.name
 #: src/folders/folder-editor.tsx
@@ -5752,6 +5756,18 @@ msgstr "Record and transcribe your meetings"
 msgid "Record any call without a bot, and get clear notes from the newest AI models."
 msgstr "Record any call without a bot, and get clear notes from the newest AI models."
 
+#: src/main/sidebar-timeline-chrome.tsx
+#: src/main/windows-title-bar.tsx
+#: src/shared/keyboard-shortcuts-dialog.tsx
+#: src/shared/new-note-button.tsx
+#: src/shared/open-note-dialog.tsx
+msgid "Record meeting"
+msgstr "Record meeting"
+
+#: src/shared/new-note-button.tsx
+msgid "Record meeting ({newNoteShortcut})"
+msgstr "Record meeting ({newNoteShortcut})"
+
 #: src/settings/general/permissions.tsx
 msgid "Record other participants in meetings."
 msgstr "Record other participants in meetings."
@@ -6308,6 +6324,7 @@ msgstr "Scroll to bottom"
 msgid "Scroll to top"
 msgstr "Scroll to top"
 
+#: src/main/sidebar-timeline-chrome.tsx
 #: src/settings/automations/starter-config.tsx
 #: src/sidebar/home-nav.tsx
 #: src/sidebar/settings.tsx

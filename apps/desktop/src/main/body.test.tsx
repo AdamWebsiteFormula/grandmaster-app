@@ -114,7 +114,7 @@ vi.mock("~/shared/open-note-dialog", () => ({
 }));
 
 vi.mock("~/shared/new-note-button", () => ({
-  NewNoteButton: () => <button type="button">New note</button>,
+  NewNoteButton: () => <button type="button">Record meeting</button>,
 }));
 
 vi.mock("~/shared/useNewNote", () => ({
@@ -231,7 +231,7 @@ describe("ClassicMainBody", () => {
 
     render(<ClassicMainBody />);
 
-    expect(screen.queryByRole("button", { name: "New note" }) !== null).toBe(
+    expect(screen.queryByRole("button", { name: "Record meeting" }) !== null).toBe(
       visible,
     );
   });

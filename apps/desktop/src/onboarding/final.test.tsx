@@ -176,7 +176,7 @@ it("says how to record the first meeting, with no community links", () => {
   // Fork: it names this step's real button, Open Upshot (NN/g #2).
   expect(
     screen.getByText(
-      "After you open Upshot, click New note or press ⌘N to record your first meeting.",
+      "After you open Upshot, click Record meeting or press ⌘N to record your first meeting.",
     ),
   ).toBeTruthy();
 });
@@ -188,7 +188,7 @@ it.each(["windows", "linux"])(
     mocks.platform = os;
     render(<FinalDescription />);
     expect(
-      screen.getByText(/click New note or press Ctrl\+N to record/),
+      screen.getByText(/click Record meeting or press Ctrl\+N to record/),
     ).toBeTruthy();
     expect(screen.queryByText(/⌘/)).toBeNull();
     cleanup();
