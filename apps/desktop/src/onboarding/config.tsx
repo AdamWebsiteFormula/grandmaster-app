@@ -28,12 +28,30 @@ const STEPS_OTHER: OnboardingStep[] = ["login", "imports", "final"];
 // Fork: count only the steps that will show. With no meeting app found, the
 // imports step is left out, so "Step 3 of 5" never jumps to "Step 5 of 5"
 // (NN/g #1; journey-first-run P3).
-export type OnboardingStepOptions = { hideImports?: boolean };
+export type OnboardingStepOptions = {
+  hideImports?: boolean;
+  /** The account has a Google or Outlook calendar (on or coming soon). */
+  cloudCalendar?: boolean;
+};
+
+// Fork: Windows and Linux have no Apple Calendar, so they get the calendar
+// step only once signed in with Google or Microsoft (calendar-from-sign-in.md).
+const STEPS_OTHER_WITH_CALENDAR: OnboardingStep[] = [
+  "login",
+  "calendar",
+  "imports",
+  "final",
+];
 
 export function getOnboardingSteps(
   options: OnboardingStepOptions = {},
 ): OnboardingStep[] {
-  const steps = platform() === "macos" ? STEPS_MACOS : STEPS_OTHER;
+  const steps =
+    platform() === "macos"
+      ? STEPS_MACOS
+      : options.cloudCalendar
+        ? STEPS_OTHER_WITH_CALENDAR
+        : STEPS_OTHER;
   return options.hideImports
     ? steps.filter((step) => step !== "imports")
     : steps;

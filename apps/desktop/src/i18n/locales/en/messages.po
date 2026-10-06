@@ -519,7 +519,6 @@ msgid "Add a trigger, then stack actions like Zapier."
 msgstr "Add a trigger, then stack actions like Zapier."
 
 #: src/calendar/components/apple/permission.tsx
-#: src/onboarding/calendar.tsx
 #: src/settings/calendar/index.tsx
 msgid "Add account"
 msgstr "Add account"
@@ -1688,6 +1687,11 @@ msgstr "Collected badges stay yours on this device, even when you delete a note 
 msgid "Combine metadata, summary, notes, and transcript."
 msgstr "Combine metadata, summary, notes, and transcript."
 
+#: src/onboarding/calendar.tsx
+#: src/settings/calendar/index.tsx
+msgid "Coming soon"
+msgstr "Coming soon"
+
 #: src/home/home-view.tsx
 msgid "Coming up"
 msgstr "Coming up"
@@ -1800,7 +1804,6 @@ msgid "Connect a CRM to look up your contacts from Upshot. Connections are manag
 msgstr "Connect a CRM to look up your contacts from Upshot. Connections are managed through your Upshot account."
 
 #: src/home/home-view.tsx
-#: src/onboarding/calendar.tsx
 #: src/onboarding/index.tsx
 msgid "Connect calendar"
 msgstr "Connect calendar"
@@ -8591,8 +8594,8 @@ msgid "Workflow"
 msgstr "Workflow"
 
 #: src/onboarding/calendar.tsx
-msgid "Works with Google, Outlook, and iCloud calendars. Add an account in System Settings › Internet Accounts."
-msgstr "Works with Google, Outlook, and iCloud calendars. Add an account in System Settings › Internet Accounts."
+#~ msgid "Works with Google, Outlook, and iCloud calendars. Add an account in System Settings › Internet Accounts."
+#~ msgstr "Works with Google, Outlook, and iCloud calendars. Add an account in System Settings › Internet Accounts."
 
 #: src/sidebar/settings-nav-groups.ts
 msgid "Workspace"

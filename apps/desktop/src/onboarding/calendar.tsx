@@ -9,11 +9,7 @@ import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 import { OnboardingButton } from "./shared";
 
 import { useAppleCalendarSelection } from "~/calendar/components/apple/calendar-selection";
-import {
-  NoCalendarsYet,
-  openInternetAccounts,
-  TroubleShootingLink,
-} from "~/calendar/components/apple/permission";
+import { NoCalendarsYet } from "~/calendar/components/apple/permission";
 import {
   type CalendarGroup,
   CalendarSelection,
@@ -27,12 +23,7 @@ import { SyncProvider, useSync } from "~/calendar/components/context";
 import { PROVIDERS } from "~/calendar/components/shared";
 import { useTurnOnCalendarsByDefault } from "~/calendar/default-calendars";
 import { useEnabledCalendars } from "~/calendar/hooks";
-import { useCalendarRows } from "~/calendar/queries";
 import { usePermission } from "~/shared/hooks/usePermissions";
-
-// Fork: calendars from this Mac only, no upstream cloud sign-in. Google,
-// Outlook, iCloud and any other account added to macOS all show up here
-// (support.apple.com/guide/calendar/icl4308d6701; owner, Oct 3).
 
 function getCalendarSelectionKey(groups: CalendarGroup[]) {
   return groups.length === 0
@@ -78,187 +69,30 @@ function AppleCalendarList() {
         disableHoverTone
         className="border-border bg-card rounded-xl border p-4"
         emptyState={
-          // The main button below is Add account, so it isn't repeated here.
-          <NoCalendarsYet
-            onRefresh={handleRefresh}
-            isLoading={isLoading}
-            showAddAccount={false}
-          />
+          // Fork: access is on but Apple Calendar has no accounts yet: say
+          // how to add Google or Outlook to the Mac (Apple support
+          // icl4308d6701), with Refresh.
+          <NoCalendarsYet onRefresh={handleRefresh} isLoading={isLoading} />
         }
       />
     </div>
   );
 }
 
-function AppleCalendarProvider({
-  isAuthorized,
-  isPending,
-  onRequest,
-  onTroubleshoot,
-}: {
-  isAuthorized: boolean;
-  isPending: boolean;
-  onRequest: () => void;
-  onTroubleshoot: () => void;
-}) {
-  return (
-    <>
-      {isAuthorized && (
-        <div className="order-1 w-full basis-full">
-          <AppleCalendarList />
-        </div>
-      )}
-
-      {/* Fork: Connect calendar is the step's one orange action, sized to
-          its label like every other step's button (design-system.md: one
-          accent per screen; NN/g #4). */}
-      <div className="order-2 flex">
-        <OnboardingButton
-          variant={isAuthorized ? "secondary" : "primary"}
-          onClick={() => {
-            if (isAuthorized) {
-              void openInternetAccounts();
-              return;
-            }
-
-            onTroubleshoot();
-            onRequest();
-          }}
-          disabled={isPending}
-          className="flex items-center gap-3 px-6"
-        >
-          <img
-            src="/assets/apple-calendar.png"
-            alt=""
-            aria-hidden="true"
-            className="size-6 rounded-[4px] object-cover"
-          />
-          {/* Fork: once access is on, the next useful step is adding a Google
-              or Outlook account (Apple support icl4308d6701; journey-first-run
-              P2). The Privacy pane would show Upshot already on. */}
-          {isAuthorized ? (
-            <Trans>Add account</Trans>
-          ) : (
-            <Trans>Connect calendar</Trans>
-          )}
-        </OnboardingButton>
-      </div>
-    </>
-  );
-}
-
-function CalendarSectionContent({
-  onContinue,
-}: {
-  onContinue: (connected?: boolean) => void;
-}) {
-  const calendar = usePermission("calendar");
-  const isAuthorized = calendar.status === "authorized";
-  const [showTroubleshooting, setShowTroubleshooting] = useState(false);
-  const enabledCalendars = useEnabledCalendars();
-  const hasConnectedCalendar = enabledCalendars.length > 0;
-  // Fork: when access is on and the list is empty, the empty state already
-  // explains Internet Accounts and the main button says Add account, so
-  // skip the repeat.
-  const appleCalendarCount = useCalendarRows("apple").length;
-  const showAccountsHint = !isAuthorized || appleCalendarCount > 0;
-
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-stretch gap-3">
-        <AppleCalendarProvider
-          isAuthorized={isAuthorized}
-          isPending={calendar.isPending}
-          onRequest={calendar.request}
-          onTroubleshoot={() => setShowTroubleshooting(true)}
-        />
-      </div>
-
-      {showAccountsHint && (
-        <div className="flex flex-col items-start gap-2">
-          {/* Fork: say up front that Google, Outlook and iCloud all work, so
-              no one reads "Apple only" (owner, Oct 3; Granola names Google
-              and Outlook, docs.granola.ai syncing-your-calendars). The
-              serial comma follows the Apple Style Guide (NN/g #4). */}
-          <p className="text-muted-foreground text-sm">
-            <Trans>
-              Works with Google, Outlook, and iCloud calendars. Add an account
-              in System Settings › Internet Accounts.
-            </Trans>
-          </p>
-          {/* Fork: Apple's way to add Google or Outlook to Calendar
-              (support.apple.com/guide/calendar/icl4308d6701). With access on,
-              the main button already says Add account. */}
-          {!isAuthorized && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 px-3"
-              onClick={() => void openInternetAccounts()}
-            >
-              <Trans>Add account</Trans>
-            </Button>
-          )}
-        </div>
-      )}
-
-      {/* Fork: Continue always shows once access is on, so the step never
-          dead-ends on a list of switches (journey-first-run P1, NN/g #3).
-          It reports whether any calendar is on, so the step says "Calendar
-          skipped" instead of "connected" (NN/g #1). */}
-      {(isAuthorized || hasConnectedCalendar) && (
-        <OnboardingButton onClick={() => onContinue(hasConnectedCalendar)}>
-          <Trans>Continue</Trans>
-        </OnboardingButton>
-      )}
-
-      {showTroubleshooting && !isAuthorized && (
-        <TroubleShootingLink
-          onRequest={calendar.request}
-          onReset={calendar.reset}
-          onOpen={calendar.open}
-          isPending={calendar.isPending}
-          className="text-muted-foreground text-sm"
-        />
-      )}
-    </div>
-  );
-}
-
-// Fork: signed in, the account's Google or Outlook calendar comes first, on
-// every platform; calendars on this Mac are the second choice
-// (grandmaster/sops/calendar-from-sign-in.md; Adam, Oct 5).
+// Fork: one neutral step with each calendar as an equal row, its own name
+// and logo and a Connect button, as Notion Calendar ("Add calendar account":
+// Google, iCloud, Microsoft Outlook) and Calendly ("Connect" next to each
+// calendar type) list them (Adam, Oct 6). Apple Calendar is a peer, not a
+// fallback. Until the Worker turns the account's Google Calendar or Outlook
+// calendar on (grandmaster/sops/calendar-from-sign-in.md), its row says
+// "Coming soon" with no Connect, so no one meets an unverified-app screen
+// before Google and Microsoft approve Upshot (Adam, Oct 6).
 function CalendarStep({
   onContinue,
 }: {
   onContinue: (connected?: boolean) => void;
 }) {
   const cloud = useCloudCalendar();
-  if (cloud.provider === null) {
-    return <CalendarSectionContent onContinue={onContinue} />;
-  }
-  return (
-    <CloudCalendarStep
-      cloud={{ ...cloud, provider: cloud.provider }}
-      onContinue={onContinue}
-    />
-  );
-}
-
-type CloudCalendar = ReturnType<typeof useCloudCalendar>;
-
-// Fork: one neutral step with each calendar as an equal row, its own name
-// and logo and a Connect button, as Notion Calendar ("Add calendar account":
-// Google, iCloud, Microsoft Outlook) and Calendly ("Connect" next to each
-// calendar type) list them (Adam, Oct 6). Apple Calendar is a peer, not a
-// fallback.
-function CloudCalendarStep({
-  cloud,
-  onContinue,
-}: {
-  cloud: CloudCalendar & { provider: NonNullable<CloudCalendar["provider"]> };
-  onContinue: (connected?: boolean) => void;
-}) {
   const calendar = usePermission("calendar");
   const [askedApple, setAskedApple] = useState(false);
   const enabledCalendars = useEnabledCalendars();
@@ -266,21 +100,26 @@ function CloudCalendarStep({
   const onMac = platform() === "macos";
   const appleConnected = onMac && calendar.status === "authorized";
   const appleDenied = askedApple && calendar.status === "denied";
-  const cloudConfig = PROVIDERS.find((item) => item.id === cloud.provider)!;
+  const cloudConfig = cloud.provider
+    ? PROVIDERS.find((item) => item.id === cloud.provider)
+    : undefined;
   const appleConfig = PROVIDERS.find((item) => item.id === "apple")!;
 
   return (
     <div className="flex flex-col gap-4">
       <div className="border-border bg-card divide-border flex flex-col divide-y rounded-xl border">
-        <CalendarAccountRow
-          icon={cloudConfig.icon}
-          name={<CloudCalendarName provider={cloud.provider} />}
-          connected={cloud.connected}
-          waiting={cloud.waiting}
-          error={cloud.error}
-          onConnect={cloud.connect}
-          onCancel={cloud.cancel}
-        />
+        {cloud.provider && (
+          <CalendarAccountRow
+            icon={cloudConfig?.icon}
+            name={<CloudCalendarName provider={cloud.provider} />}
+            connected={cloud.connected}
+            comingSoon={!cloud.available}
+            waiting={cloud.waiting}
+            error={cloud.error}
+            onConnect={cloud.connect}
+            onCancel={cloud.cancel}
+          />
+        )}
         {onMac && (
           <CalendarAccountRow
             icon={appleConfig.icon}
@@ -310,19 +149,23 @@ function CloudCalendarStep({
         )}
       </div>
 
-      {(cloud.connected || appleConnected) && (
-        <p className="text-muted-foreground text-sm">
-          <Trans>Turn off any calendar you don't meet from.</Trans>
-        </p>
-      )}
-      {cloud.connected && (
-        <CloudCalendarList
-          provider={cloud.provider}
-          className="border-border bg-card rounded-xl border p-4"
-        />
+      {cloud.provider && cloud.connected && (
+        <div className="flex flex-col gap-2">
+          <p className="text-muted-foreground text-sm">
+            <Trans>Turn off any calendar you don't meet from.</Trans>
+          </p>
+          <CloudCalendarList
+            provider={cloud.provider}
+            className="border-border bg-card rounded-xl border p-4"
+          />
+        </div>
       )}
       {appleConnected && <AppleCalendarList />}
 
+      {/* Fork: Continue shows once any calendar is connected, so the step
+          never dead-ends on a list of switches (journey-first-run P1). It
+          reports whether any calendar is on, so the step says "Calendar
+          skipped" instead of "connected" (NN/g #1). */}
       {(cloud.connected || appleConnected || hasConnectedCalendar) && (
         <OnboardingButton onClick={() => onContinue(hasConnectedCalendar)}>
           <Trans>Continue</Trans>
@@ -336,6 +179,7 @@ function CalendarAccountRow({
   icon,
   name,
   connected,
+  comingSoon = false,
   waiting,
   error,
   connectLabel,
@@ -345,6 +189,7 @@ function CalendarAccountRow({
   icon: React.ReactNode;
   name: React.ReactNode;
   connected: boolean;
+  comingSoon?: boolean;
   waiting: boolean;
   error: React.ReactNode;
   connectLabel?: React.ReactNode;
@@ -365,6 +210,10 @@ function CalendarAccountRow({
             <Check className="size-3.5" aria-hidden />
             <Trans>Connected</Trans>
           </span>
+        ) : comingSoon ? (
+          <span className="text-muted-foreground text-xs">
+            <Trans>Coming soon</Trans>
+          </span>
         ) : (
           <span className="flex items-center gap-2">
             {waiting && onCancel && (
@@ -384,7 +233,7 @@ function CalendarAccountRow({
               disabled={waiting}
               onClick={onConnect}
             >
-              {waiting ? (
+              {waiting && onCancel ? (
                 <Trans>Finish in your browser…</Trans>
               ) : (
                 (connectLabel ?? <Trans>Connect</Trans>)

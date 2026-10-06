@@ -1,31 +1,42 @@
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  cloud: {
+    provider: "google" as "google" | "outlook" | null,
+    available: true,
+    connected: false,
+    waiting: false,
+    error: null as string | null,
+    connect: vi.fn(),
+    cancel: vi.fn(),
+  },
   permission: {
-    status: "denied" as string,
+    status: "neverRequested" as string,
     isPending: false,
     request: vi.fn(),
     reset: vi.fn(),
     open: vi.fn(),
   },
   enabled: [] as unknown[],
-  rows: [] as unknown[],
-  openInternetAccounts: vi.fn(),
-  setCalendarEnabled: vi.fn(),
-  scheduleSync: vi.fn(),
+  platform: "macos",
   handleRefresh: vi.fn(),
-  isLoading: false,
-  groups: [] as unknown[],
   emptyStateProps: null as null | Record<string, unknown>,
 }));
 
+vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
+vi.mock("~/calendar/components/cloud-connect", async () => {
+  const actual = await vi.importActual<
+    typeof import("~/calendar/components/cloud-connect")
+  >("~/calendar/components/cloud-connect");
+  return {
+    CloudCalendarName: actual.CloudCalendarName,
+    useCloudCalendar: () => mocks.cloud,
+    CloudCalendarList: ({ provider }: { provider: string }) => (
+      <p>{`${provider} calendar list`}</p>
+    ),
+  };
+});
 vi.mock("~/shared/hooks/usePermissions", () => ({
   usePermission: () => mocks.permission,
 }));
@@ -36,37 +47,34 @@ vi.mock("~/calendar/components/context", () => ({
   SyncProvider: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
   ),
-  useSync: () => ({ scheduleSync: mocks.scheduleSync }),
+  useSync: () => ({ scheduleSync: vi.fn() }),
 }));
 vi.mock("~/calendar/components/apple/calendar-selection", () => ({
   useAppleCalendarSelection: () => ({
-    groups: mocks.groups,
+    groups: [],
     handleRefresh: mocks.handleRefresh,
     handleToggle: vi.fn(),
-    isLoading: mocks.isLoading,
+    isLoading: false,
   }),
 }));
-vi.mock("~/calendar/queries", () => ({
-  useCalendarRows: () => mocks.rows,
-  setCalendarEnabled: mocks.setCalendarEnabled,
+vi.mock("~/calendar/default-calendars", () => ({
+  useTurnOnCalendarsByDefault: () => 0,
 }));
-vi.mock("~/settings/queries", () => ({
-  useSettingsReady: () => true,
-  useStoredSettingValue: () => ({ value: false, hasValue: false }),
-  setSettingValue: vi.fn(async () => {}),
+vi.mock("~/calendar/queries", () => ({
+  useCalendarRows: () => [],
 }));
 vi.mock("~/calendar/components/apple/permission", () => ({
-  TroubleShootingLink: () => <p>Troubleshooting</p>,
+  TroubleShootingLink: () => null,
   NoCalendarsYet: (props: Record<string, unknown>) => {
     mocks.emptyStateProps = props;
     return <p>No calendars yet</p>;
   },
-  openInternetAccounts: mocks.openInternetAccounts,
+  openInternetAccounts: vi.fn(),
 }));
 vi.mock("~/calendar/components/calendar-selection", () => ({
-  CalendarSelection: ({ emptyState }: { emptyState: React.ReactNode }) => (
+  CalendarSelection: ({ emptyState }: { emptyState?: React.ReactNode }) => (
     <div>
-      <p>Calendar list</p>
+      <p>Mac calendar list</p>
       {emptyState}
     </div>
   ),
@@ -75,167 +83,154 @@ vi.mock("~/calendar/components/calendar-selection", () => ({
 import { CalendarSection } from "./calendar";
 
 beforeEach(() => {
-  mocks.permission.status = "denied";
-  mocks.enabled = [];
-  mocks.rows = [];
-  mocks.groups = [];
-  mocks.isLoading = false;
-  mocks.emptyStateProps = null;
   vi.clearAllMocks();
-  mocks.setCalendarEnabled.mockResolvedValue(undefined);
+  Object.assign(mocks.cloud, {
+    provider: "google",
+    available: true,
+    connected: false,
+    waiting: false,
+    error: null,
+  });
+  mocks.permission.status = "neverRequested";
+  mocks.enabled = [];
+  mocks.platform = "macos";
 });
 
 afterEach(() => {
   cleanup();
 });
 
-it("offers the calendars on this Mac, with no cloud sign-in", () => {
+it("signed in with Google, Google Calendar and Apple Calendar are equal rows", () => {
   render(<CalendarSection onContinue={vi.fn()} />);
 
-  expect(screen.getByRole("button", { name: "Connect calendar" })).toBeTruthy();
-  expect(screen.getAllByRole("button")).toHaveLength(2);
-  expect(screen.queryByText(/Google Calendar/)).toBeNull();
-  expect(screen.queryByText(/Connect Outlook/)).toBeNull();
-  expect(screen.queryByText(/Sign in/)).toBeNull();
-  // Owner feedback, Oct 3: say Google, Outlook, and iCloud work, not Apple
-  // only (serial comma, Apple Style Guide).
-  expect(
-    screen.getByText(
-      "Works with Google, Outlook, and iCloud calendars. Add an account in System Settings › Internet Accounts.",
-    ),
-  ).toBeTruthy();
-  expect(screen.queryByText(/Apple Calendar/)).toBeNull();
-});
-
-it("asks macOS for calendar permission when clicked", () => {
-  render(<CalendarSection onContinue={vi.fn()} />);
-  fireEvent.click(screen.getByRole("button", { name: "Connect calendar" }));
-
-  expect(mocks.permission.request).toHaveBeenCalledTimes(1);
-});
-
-it("shows the calendar list and Continue once a calendar is on", () => {
-  mocks.permission.status = "authorized";
-  mocks.enabled = [{ id: "work" }];
-  const onContinue = vi.fn();
-  render(<CalendarSection onContinue={onContinue} />);
-
-  expect(screen.getByText("Calendar list")).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-  expect(onContinue).toHaveBeenCalledTimes(1);
-});
-
-it("says Add account once access is on, and opens Internet Accounts", () => {
-  mocks.permission.status = "authorized";
-  render(<CalendarSection onContinue={vi.fn()} />);
-
-  expect(screen.queryByRole("button", { name: "Connect calendar" })).toBeNull();
-  expect(screen.queryByText("Open Calendar settings")).toBeNull();
-  const buttons = screen.getAllByRole("button", { name: "Add account" });
-  expect(buttons).toHaveLength(1);
-  fireEvent.click(buttons[0]!);
-  expect(mocks.openInternetAccounts).toHaveBeenCalledTimes(1);
-  expect(mocks.permission.open).not.toHaveBeenCalled();
-});
-
-it("always shows Continue once access is on, even with every calendar off", () => {
-  mocks.permission.status = "authorized";
-  const onContinue = vi.fn();
-  render(<CalendarSection onContinue={onContinue} />);
-
-  fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-  expect(onContinue).toHaveBeenCalledTimes(1);
-});
-
-it("has no Continue before access is allowed", () => {
-  render(<CalendarSection onContinue={vi.fn()} />);
+  expect(screen.getByText("Google Calendar")).toBeTruthy();
+  expect(screen.getByText("Apple Calendar")).toBeTruthy();
+  const [google, apple] = screen.getAllByRole("button", { name: "Connect" });
+  expect(google.className).toBe(apple.className);
+  // No "instead" choice and no Internet Accounts detour.
+  expect(screen.queryByText(/instead/)).toBeNull();
+  expect(screen.queryByText(/Internet Accounts/)).toBeNull();
   expect(screen.queryByRole("button", { name: "Continue" })).toBeNull();
+
+  fireEvent.click(google);
+  expect(mocks.cloud.connect).toHaveBeenCalledOnce();
+  fireEvent.click(apple);
+  expect(mocks.permission.request).toHaveBeenCalledOnce();
 });
 
-it("uses the shared empty state without a second Add account", () => {
-  mocks.permission.status = "authorized";
+it("names Outlook for a Microsoft account", () => {
+  mocks.cloud.provider = "outlook";
   render(<CalendarSection onContinue={vi.fn()} />);
 
-  expect(screen.getByText("No calendars yet")).toBeTruthy();
-  expect(mocks.emptyStateProps).toMatchObject({ showAddAccount: false });
+  expect(screen.getByText("Outlook calendar")).toBeTruthy();
 });
 
-it("turns on every calendar except feeds the first time they arrive", async () => {
-  mocks.permission.status = "authorized";
-  mocks.rows = [
-    { id: "work", name: "Work", source: "iCloud", enabled: false },
-    { id: "bday", name: "Birthdays", source: "Other", enabled: false },
-    { id: "hol", name: "US Holidays", source: "Other", enabled: false },
-    { id: "sub", name: "Team", source: "Subscribed Calendars", enabled: false },
-    { id: "siri", name: "Siri Suggestions", source: "Other", enabled: false },
-    { id: "home", name: "Home", source: "iCloud", enabled: false },
-  ];
-  render(<CalendarSection onContinue={vi.fn()} />);
-
-  await waitFor(() => expect(mocks.scheduleSync).toHaveBeenCalledTimes(2));
-  expect(mocks.setCalendarEnabled.mock.calls).toEqual([
-    ["work", true],
-    ["home", true],
-  ]);
-  expect(
-    screen.getByText("Turn off any calendar you don't meet from."),
-  ).toBeTruthy();
-});
-
-it("leaves calendars alone when one is already on, or while syncing", () => {
-  mocks.permission.status = "authorized";
-  mocks.rows = [
-    { id: "work", name: "Work", source: "iCloud", enabled: true },
-    { id: "home", name: "Home", source: "iCloud", enabled: false },
-  ];
-  render(<CalendarSection onContinue={vi.fn()} />);
-  expect(mocks.setCalendarEnabled).not.toHaveBeenCalled();
-  cleanup();
-
-  mocks.rows = [{ id: "work", name: "Work", source: "iCloud", enabled: false }];
-  mocks.isLoading = true;
-  render(<CalendarSection onContinue={vi.fn()} />);
-  expect(mocks.setCalendarEnabled).not.toHaveBeenCalled();
-});
-
-it("re-syncs calendars when the window gets focus back", () => {
-  mocks.permission.status = "authorized";
-  render(<CalendarSection onContinue={vi.fn()} />);
-
-  window.dispatchEvent(new Event("focus"));
-  expect(mocks.handleRefresh).toHaveBeenCalledTimes(1);
-});
-
-it("opens Internet Accounts from under the accounts line", () => {
-  render(<CalendarSection onContinue={vi.fn()} />);
-  const add = screen.getByRole("button", { name: "Add account" });
-  expect(add.className).toContain("border-input");
-  fireEvent.click(add);
-  expect(mocks.openInternetAccounts).toHaveBeenCalledTimes(1);
-});
-
-it("keeps the accounts line and one Add account once calendars are listed", () => {
-  mocks.permission.status = "authorized";
-  mocks.rows = [{ id: "work", name: "Work", source: "Google", enabled: true }];
+it("while the browser is open, says so and offers Cancel", () => {
+  mocks.cloud.waiting = true;
   render(<CalendarSection onContinue={vi.fn()} />);
 
   expect(
-    screen.getByText(/^Works with Google, Outlook, and iCloud calendars\./),
-  ).toBeTruthy();
-  const buttons = screen.getAllByRole("button", { name: "Add account" });
-  expect(buttons).toHaveLength(1);
-  fireEvent.click(buttons[0]!);
-  expect(mocks.openInternetAccounts).toHaveBeenCalledTimes(1);
+    screen
+      .getByRole("button", { name: "Finish in your browser…" })
+      .hasAttribute("disabled"),
+  ).toBe(true);
+  fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+  expect(mocks.cloud.cancel).toHaveBeenCalledOnce();
 });
 
-it("hides the accounts line when access is on and no calendars came back", () => {
-  mocks.permission.status = "authorized";
+it("shows why it failed", () => {
+  mocks.cloud.error = "Sign-in didn't finish. Try again.";
   render(<CalendarSection onContinue={vi.fn()} />);
-  expect(
-    screen.queryByText(/^Works with Google, Outlook, and iCloud/),
-  ).toBeNull();
-  // Only the main button offers it; the empty state doesn't repeat it.
-  expect(screen.getAllByRole("button", { name: "Add account" })).toHaveLength(
-    1,
+
+  expect(screen.getByRole("alert").textContent).toBe(
+    "Sign-in didn't finish. Try again.",
   );
+});
+
+it("once connected, says so, lists the calendars and continues", () => {
+  mocks.cloud.connected = true;
+  mocks.enabled = [{ id: "cal-1", provider: "google" }];
+  const onContinue = vi.fn();
+  render(<CalendarSection onContinue={onContinue} />);
+
+  expect(screen.getByText("Connected")).toBeTruthy();
+  expect(screen.getByText("google calendar list")).toBeTruthy();
+  // Apple Calendar can still be added next to it.
+  expect(screen.getByRole("button", { name: "Connect" })).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+  expect(onContinue).toHaveBeenCalledWith(true);
+});
+
+it("Apple Calendar denied points to System Settings", () => {
+  mocks.permission.status = "denied";
+  render(<CalendarSection onContinue={vi.fn()} />);
+
+  const apple = screen.getAllByRole("button", { name: "Connect" })[1];
+  fireEvent.click(apple);
+  expect(mocks.permission.open).toHaveBeenCalledOnce();
+});
+
+it("on Windows and Linux, there is no Apple Calendar row", () => {
+  mocks.platform = "windows";
+  render(<CalendarSection onContinue={vi.fn()} />);
+
+  expect(screen.queryByText("Apple Calendar")).toBeNull();
+  expect(screen.getAllByRole("button", { name: "Connect" })).toHaveLength(1);
+});
+
+describe("with the account's calendar switched off (before Google's review)", () => {
+  beforeEach(() => {
+    mocks.cloud.available = false;
+  });
+
+  it("says Google Calendar is coming soon, with no Connect for it", () => {
+    render(<CalendarSection onContinue={vi.fn()} />);
+
+    expect(screen.getByText("Google Calendar")).toBeTruthy();
+    expect(screen.getByText("Coming soon")).toBeTruthy();
+    // Only Apple Calendar can connect, so no one reaches Google's
+    // unverified-app screen.
+    expect(screen.getAllByRole("button", { name: "Connect" })).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: "Continue" })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Connect" }));
+    expect(mocks.permission.request).toHaveBeenCalledOnce();
+    expect(mocks.cloud.connect).not.toHaveBeenCalled();
+  });
+
+  it("on Windows, shows the coming-soon row and nothing to connect", () => {
+    mocks.platform = "windows";
+    render(<CalendarSection onContinue={vi.fn()} />);
+
+    expect(screen.getByText("Coming soon")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Connect" })).toBeNull();
+  });
+
+  it("once allowed, lists the Mac's calendars and continues", () => {
+    mocks.permission.status = "authorized";
+    const onContinue = vi.fn();
+    render(<CalendarSection onContinue={onContinue} />);
+
+    expect(screen.getByText("Connected")).toBeTruthy();
+    expect(screen.getByText("Mac calendar list")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    expect(onContinue).toHaveBeenCalledWith(false);
+  });
+
+  it("with no accounts on the Mac, the empty list says how to add one", () => {
+    mocks.permission.status = "authorized";
+    render(<CalendarSection onContinue={vi.fn()} />);
+
+    expect(screen.getByText("No calendars yet")).toBeTruthy();
+    // The empty state keeps its Add account button: nothing else offers it.
+    expect(mocks.emptyStateProps?.showAddAccount).toBeUndefined();
+  });
+
+  it("re-reads the Mac's calendars when the window gets focus back", () => {
+    mocks.permission.status = "authorized";
+    render(<CalendarSection onContinue={vi.fn()} />);
+
+    window.dispatchEvent(new Event("focus"));
+    expect(mocks.handleRefresh).toHaveBeenCalledOnce();
+  });
 });

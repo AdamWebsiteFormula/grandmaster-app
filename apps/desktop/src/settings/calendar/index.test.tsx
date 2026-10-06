@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => ({
   platform: "macos",
   cloud: {
     provider: null as "google" | "outlook" | null,
+    available: true,
     connected: false,
     waiting: false,
     error: null as string | null,
@@ -26,10 +27,15 @@ const mocks = vi.hoisted(() => ({
     cancel: vi.fn(),
   },
   cloudGroups: [] as unknown[],
+  signedIn: false,
   cloudToggle: vi.fn(async () => {}),
 }));
 
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
+vi.mock("~/upshot-plan/session", () => ({
+  useUpshotAccount: (select: (state: { session: object | null }) => unknown) =>
+    select({ session: mocks.signedIn ? {} : null }),
+}));
 vi.mock("~/calendar/components/cloud-connect", async () => {
   const actual = await vi.importActual<
     typeof import("~/calendar/components/cloud-connect")
@@ -122,11 +128,13 @@ describe("Settings › Calendar", () => {
     mocks.platform = "macos";
     Object.assign(mocks.cloud, {
       provider: null,
+      available: true,
       connected: false,
       waiting: false,
       error: null,
     });
     mocks.cloudGroups = [];
+    mocks.signedIn = false;
     vi.clearAllMocks();
   });
 
@@ -182,6 +190,29 @@ describe("Settings › Calendar", () => {
       expect(screen.getByRole("button", { name: "Connect" })).toBeTruthy();
       expect(screen.queryByText(/Internet Accounts/)).toBeNull();
       expect(screen.queryByRole("button", { name: "Allow access" })).toBeNull();
+    });
+
+    it("with the calendar switched off, says Coming soon instead of Connect", () => {
+      mocks.platform = "windows";
+      mocks.signedIn = true;
+      mocks.cloud.provider = "google";
+      mocks.cloud.available = false;
+      render(<SettingsCalendar />);
+
+      expect(screen.getByText("Google Calendar")).toBeTruthy();
+      expect(screen.getByText("Coming soon")).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Connect" })).toBeNull();
+      expect(screen.queryByText(/Sign in with Google/)).toBeNull();
+    });
+
+    it("on a Mac with the calendar switched off, keeps Add account for Apple Calendar", () => {
+      mocks.signedIn = true;
+      mocks.cloud.provider = "google";
+      mocks.cloud.available = false;
+      render(<SettingsCalendar />);
+
+      expect(screen.getByText("Coming soon")).toBeTruthy();
+      expect(screen.getByRole("button", { name: /Add account/ })).toBeTruthy();
     });
 
     it("on Windows signed out, says to sign in", () => {

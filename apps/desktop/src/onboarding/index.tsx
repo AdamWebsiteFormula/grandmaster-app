@@ -23,6 +23,7 @@ import { OnboardingSection } from "./shared";
 import { TranscriptionSetupSection } from "./transcription";
 
 import { trackAnalyticsEvent } from "~/analytics";
+import { useCloudCalendarAccount } from "~/calendar/components/cloud-connect";
 import { detectImportSources } from "~/imports/detection";
 import { StandaloneWindowShell } from "~/shared/window-shell";
 import { type Tab, useTabs } from "~/store/zustand/tabs";
@@ -104,7 +105,8 @@ function OnboardingScreenContent({
   });
   const hideImports =
     importSources.data?.length === 0 && currentStep !== "imports";
-  const stepOptions: OnboardingStepOptions = { hideImports };
+  const cloudCalendar = useCloudCalendarAccount() !== null;
+  const stepOptions: OnboardingStepOptions = { hideImports, cloudCalendar };
 
   const goNext = useCallback(() => {
     trackAnalyticsEvent("onboarding_step_completed", {

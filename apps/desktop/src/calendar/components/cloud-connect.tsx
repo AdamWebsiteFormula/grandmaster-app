@@ -5,12 +5,14 @@
 // #incrementalAuth; Adam, Oct 5). Granola connects the calendar of the
 // account you sign in with (docs.granola.ai syncing-your-calendars).
 import { Trans } from "@lingui/react/macro";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 import { useSync } from "./context";
 import { useOAuthCalendarSelection } from "./oauth/calendar-selection";
 import { PROVIDERS } from "./shared";
 
+import { providerFetch } from "~/ai/provider-fetch";
 import { CalendarSelection } from "~/calendar/components/calendar-selection";
 import { useTurnOnCalendarsByDefault } from "~/calendar/default-calendars";
 import { useCalendarRows } from "~/calendar/queries";
@@ -33,20 +35,69 @@ const CALENDAR_PROVIDER: Record<UpshotOAuthProvider, CloudCalendarProvider> = {
   azure: "outlook",
 };
 
+type CalendarProviders = Record<CloudCalendarProvider, boolean>;
+const ALL_OFF: CalendarProviders = { google: false, outlook: false };
+
 /**
- * The signed-in account's calendar: which one, whether it is connected, and
- * the Connect action. `provider` is null when signed out or when the build
- * has no Upshot Worker; callers then show only calendars on this Mac.
+ * Fork: which account calendars the Worker has turned on. Google Calendar
+ * stays off until Google's sensitive-scope review passes, and Outlook until
+ * Microsoft's publisher verification, so no one meets an unverified-app
+ * screen (Adam, Oct 6). Off when the fetch fails.
  */
-export function useCloudCalendar() {
+export function useCalendarProviders(signedIn: boolean): CalendarProviders {
+  const origin = upshotWorkerOrigin();
+  const { data } = useQuery({
+    queryKey: ["calendar-providers", origin],
+    // Only when signed in: the calendar comes from the account.
+    enabled: origin !== null && signedIn,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+    queryFn: async (): Promise<CalendarProviders> => {
+      const response = await providerFetch(`${origin}/calendar/providers`);
+      if (!response.ok) return ALL_OFF;
+      const body = (await response.json().catch(() => null)) as Partial<
+        Record<string, unknown>
+      > | null;
+      return { google: body?.google === true, outlook: body?.outlook === true };
+    },
+  });
+  return data ?? ALL_OFF;
+}
+
+/**
+ * The signed-in account and its calendar. `available` is false while the
+ * Worker keeps that calendar off; the row then says "Coming soon" (Adam,
+ * Oct 6), as Mokapen marks integrations "(coming soon)".
+ */
+export function useCloudCalendarAccount(): {
+  account: UpshotOAuthProvider;
+  provider: CloudCalendarProvider;
+  available: boolean;
+} | null {
   const session = useUpshotAccount((state) => state.session);
+  const providers = useCalendarProviders(session !== null);
   // The button this Mac signed in with; older sessions fall back to the
   // token's list of sign-in methods.
   const account =
     session && upshotWorkerOrigin()
       ? (session.provider ?? upshotAccountProvider(session.access_token))
       : null;
-  const provider = account ? CALENDAR_PROVIDER[account] : null;
+  if (!account) return null;
+  const provider = CALENDAR_PROVIDER[account];
+  return { account, provider, available: providers[provider] };
+}
+
+/**
+ * The signed-in account's calendar: which one, whether it is connected, and
+ * the Connect action. `provider` is null when signed out, when the build
+ * has no Upshot Worker, or while the Worker keeps that calendar off; callers
+ * then show only calendars on this Mac.
+ */
+export function useCloudCalendar() {
+  const cloudAccount = useCloudCalendarAccount();
+  const account = cloudAccount?.available ? cloudAccount.account : null;
+  const provider = cloudAccount?.provider ?? null;
+  const available = cloudAccount?.available ?? false;
   const rows = useCalendarRows(provider ?? "google");
   const waitingFor = useUpshotSignIn((state) => state.waitingFor);
   const error = useUpshotSignIn((state) => state.error);
@@ -65,7 +116,8 @@ export function useCloudCalendar() {
 
   return {
     provider,
-    connected: provider !== null && rows.length > 0,
+    available,
+    connected: available && rows.length > 0,
     waiting,
     error: attempt === "done" ? error : null,
     connect: () => {

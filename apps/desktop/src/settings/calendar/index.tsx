@@ -37,6 +37,7 @@ import { SettingsPageTitle } from "~/settings/page-title";
 import { SettingRow, SettingsGroup } from "~/settings/setting-row";
 import { usePermission } from "~/shared/hooks/usePermissions";
 import { useTabs } from "~/store/zustand/tabs";
+import { useUpshotAccount } from "~/upshot-plan/session";
 
 export function SettingsCalendar() {
   return (
@@ -63,6 +64,7 @@ function SettingsCalendarContent() {
   // (grandmaster/sops/calendar-from-sign-in.md; Adam, Oct 5).
   const cloud = useCloudCalendar();
   const cloudProvider = cloud.provider;
+  const signedIn = useUpshotAccount((state) => state.session !== null);
   const onMac = platform() === "macos";
   const cloudSelection = useOAuthCalendarSelection(
     PROVIDERS.find((item) => item.id === (cloud.provider ?? "google"))!,
@@ -106,93 +108,101 @@ function SettingsCalendarContent() {
       {/* Fork: a neutral title. Upshot reads every calendar account on this
           Mac, not only Apple's: Google, Exchange/Outlook, iCloud, Yahoo and
           CalDAV (owner, Oct 3; support.apple.com/guide/calendar/icl4308d6701). */}
-      <SettingsGroup title={<Trans>Calendar accounts</Trans>}>
-        {cloudProvider ? (
-          <SettingRow
-            icon={CalendarDots}
-            title={<CloudCalendarName provider={cloudProvider} />}
-            description={
-              cloud.error ? (
-                <span role="alert" className="text-destructive">
-                  {cloud.error}
-                </span>
-              ) : cloud.connected ? (
-                <Trans>Upshot shows its meetings and names your notes.</Trans>
-              ) : (
-                <Trans>
-                  Show your meetings and name your notes after them.
-                </Trans>
-              )
-            }
-            controlWidth="content"
-          >
-            {(labelProps) =>
-              cloud.connected ? (
-                <span className="text-muted-foreground flex items-center gap-1 text-xs">
-                  <Check className="size-3.5" aria-hidden />
-                  <Trans>Connected</Trans>
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  {cloud.waiting && (
+      {(cloudProvider || onMac || !signedIn) && (
+        <SettingsGroup title={<Trans>Calendar accounts</Trans>}>
+          {cloudProvider ? (
+            <SettingRow
+              icon={CalendarDots}
+              title={<CloudCalendarName provider={cloudProvider} />}
+              description={
+                cloud.error ? (
+                  <span role="alert" className="text-destructive">
+                    {cloud.error}
+                  </span>
+                ) : cloud.connected ? (
+                  <Trans>Upshot shows its meetings and names your notes.</Trans>
+                ) : (
+                  <Trans>
+                    Show your meetings and name your notes after them.
+                  </Trans>
+                )
+              }
+              controlWidth="content"
+            >
+              {(labelProps) =>
+                cloud.connected ? (
+                  <span className="text-muted-foreground flex items-center gap-1 text-xs">
+                    <Check className="size-3.5" aria-hidden />
+                    <Trans>Connected</Trans>
+                  </span>
+                ) : !cloud.available ? (
+                  // Fork: before Google's and Microsoft's reviews, no
+                  // Connect (Adam, Oct 6).
+                  <span className="text-muted-foreground text-xs">
+                    <Trans>Coming soon</Trans>
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    {cloud.waiting && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-3 text-sm"
+                        onClick={cloud.cancel}
+                      >
+                        <Trans>Cancel</Trans>
+                      </Button>
+                    )}
+                    {/* Fork: Connect next to each calendar, all alike, as
+                      Calendly lists them (Adam, Oct 6). */}
                     <Button
-                      variant="ghost"
+                      aria-describedby={labelProps["aria-describedby"]}
+                      variant="outline"
                       size="sm"
                       className="h-8 px-3 text-sm"
-                      onClick={cloud.cancel}
+                      disabled={cloud.waiting}
+                      onClick={cloud.connect}
                     >
-                      <Trans>Cancel</Trans>
+                      {cloud.waiting ? (
+                        <Trans>Finish in your browser…</Trans>
+                      ) : (
+                        <Trans>Connect</Trans>
+                      )}
                     </Button>
-                  )}
-                  {/* Fork: Connect next to each calendar, all alike, as
-                      Calendly lists them (Adam, Oct 6). */}
-                  <Button
-                    aria-describedby={labelProps["aria-describedby"]}
-                    variant="outline"
-                    size="sm"
-                    className="h-8 px-3 text-sm"
-                    disabled={cloud.waiting}
-                    onClick={cloud.connect}
-                  >
-                    {cloud.waiting ? (
-                      <Trans>Finish in your browser…</Trans>
-                    ) : (
-                      <Trans>Connect</Trans>
-                    )}
-                  </Button>
-                </span>
-              )
-            }
-          </SettingRow>
-        ) : !onMac ? (
-          <SettingRow
-            icon={CalendarDots}
-            title={<Trans>Google or Outlook calendar</Trans>}
-            description={
-              <Trans>
-                Sign in with Google or Microsoft to connect your calendar.
-              </Trans>
-            }
-          >
-            {() => null}
-          </SettingRow>
-        ) : null}
-        {cloudProvider && cloud.connected && (
-          <TurnOnCloudCalendars
-            provider={cloudProvider}
-            isLoading={cloudSelection.isLoading}
-          />
-        )}
-        {onMac && (
-          <MacCalendarRows
-            cloudFirst={cloud.provider !== null}
-            authorized={authorized}
-            denied={denied}
-            isPending={calendar.isPending}
-            onAllowAccess={allowAccess}
-          />
-        )}
-      </SettingsGroup>
+                  </span>
+                )
+              }
+            </SettingRow>
+          ) : !onMac && !signedIn ? (
+            <SettingRow
+              icon={CalendarDots}
+              title={<Trans>Google or Outlook calendar</Trans>}
+              description={
+                <Trans>
+                  Sign in with Google or Microsoft to connect your calendar.
+                </Trans>
+              }
+            >
+              {() => null}
+            </SettingRow>
+          ) : null}
+          {cloudProvider && cloud.connected && (
+            <TurnOnCloudCalendars
+              provider={cloudProvider}
+              isLoading={cloudSelection.isLoading}
+            />
+          )}
+          {onMac && (
+            <MacCalendarRows
+              cloudFirst={cloudProvider !== null && cloud.available}
+              authorized={authorized}
+              denied={denied}
+              isPending={calendar.isPending}
+              onAllowAccess={allowAccess}
+            />
+          )}
+        </SettingsGroup>
+      )}
 
       <SettingsGroup title={<Trans>Display</Trans>}>
         <WeekStartSelector />
