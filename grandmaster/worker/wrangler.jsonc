@@ -41,6 +41,12 @@
     { "pattern": "upshotnotes.com", "custom_domain": true },
     { "pattern": "www.upshotnotes.com", "custom_domain": true },
   ],
-  "vars": { "PUBLIC_ORIGIN": "https://upshotnotes.com" },
+  // Calendar switches (calendar.js): "1" only after Google's sensitive-scope
+  // review (Google) or Microsoft's publisher verification (Outlook).
+  "vars": {
+    "PUBLIC_ORIGIN": "https://upshotnotes.com",
+    "CALENDAR_GOOGLE": "0",
+    "CALENDAR_OUTLOOK": "0",
+  },
   "observability": { "enabled": false },
 }

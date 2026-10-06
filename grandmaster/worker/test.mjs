@@ -1839,6 +1839,8 @@ test("oauth exchange: the code and verifier go to Supabase's PKCE token grant", 
 const CAL_KEY = Buffer.from(new Uint8Array(32).fill(7)).toString("base64");
 const calendarEnv = {
   ...accountEnv,
+  CALENDAR_GOOGLE: "1",
+  CALENDAR_OUTLOOK: "1",
   SUPABASE_SECRET_KEY: "sb_secret_test",
   CALENDAR_TOKEN_KEY: CAL_KEY,
   GOOGLE_CLIENT_ID: "g-client",
@@ -2075,7 +2077,7 @@ test("oauth: calendar=1 asks for read-only calendar access with a refresh token"
           new Request(
             `https://w/auth/oauth/start?provider=${provider}&code_challenge=${challenge}&redirect_to=${redirect}${extra}`,
           ),
-          accountEnv,
+          { ...accountEnv, CALENDAR_GOOGLE: "1", CALENDAR_OUTLOOK: "1" },
         )
       ).headers.get("location"),
     ).searchParams;
@@ -2293,4 +2295,33 @@ test("home page: describes Upshot and links the privacy policy (Google brand rev
   assert.match(html, /releases\/latest/);
   const config = await readFile(new URL("./wrangler.jsonc", import.meta.url), "utf8");
   assert.match(config, /"PUBLIC_ORIGIN": "https:\/\/upshotnotes\.com"/);
+});
+
+
+test("calendar switch: providers are off unless their var is 1, and off means no consent screen", async () => {
+  const off = await worker.fetch(new Request("https://w/calendar/providers"), accountEnv);
+  assert.equal(off.status, 200);
+  assert.deepEqual(await off.json(), { google: false, outlook: false });
+  assert.match(off.headers.get("cache-control"), /max-age=300/);
+  const on = await worker.fetch(new Request("https://w/calendar/providers"), {
+    ...accountEnv,
+    CALENDAR_GOOGLE: "1",
+  });
+  assert.deepEqual(await on.json(), { google: true, outlook: false });
+
+  const challenge = "a".repeat(43);
+  const redirect = encodeURIComponent("http://127.0.0.1:51234/auth/callback");
+  for (const provider of ["google", "azure"]) {
+    const blocked = await worker.fetch(
+      new Request(`https://w/auth/oauth/start?provider=${provider}&code_challenge=${challenge}&redirect_to=${redirect}&calendar=1`),
+      accountEnv,
+    );
+    assert.equal(blocked.status, 404, provider);
+    assert.equal((await blocked.json()).error.code, "calendar_unavailable");
+    const signIn = await worker.fetch(
+      new Request(`https://w/auth/oauth/start?provider=${provider}&code_challenge=${challenge}&redirect_to=${redirect}`),
+      accountEnv,
+    );
+    assert.equal(signIn.status, 302, "plain sign-in is never blocked");
+  }
 });

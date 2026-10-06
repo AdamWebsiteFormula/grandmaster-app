@@ -13,6 +13,7 @@
 // apikey = publishable key and Authorization: Bearer <access token>.
 
 import {
+  calendarProviderEnabled,
   MICROSOFT_CALENDAR_SCOPES,
   saveCalendarConnection,
 } from "./calendar.js";
@@ -355,6 +356,11 @@ export async function handleOAuthStart(request, env, url) {
     return json(400, "Invalid request");
   }
   const calendar = url.searchParams.get("calendar") === "1";
+  // Switched-off calendars never reach Google's or Microsoft's consent
+  // screen, even from an old or modified app (calendar.js).
+  if (calendar && !calendarProviderEnabled(env, provider)) {
+    return json(404, "Calendar connection isn't available yet.", "calendar_unavailable");
+  }
   if (provider === "google" && googleViaWorker(env)) {
     return startGoogleViaWorker(env, { challenge, redirectTo, calendar });
   }

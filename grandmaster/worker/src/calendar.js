@@ -43,6 +43,33 @@ export const MICROSOFT_CALENDAR_SCOPES = "offline_access Calendars.Read";
 
 const RECONNECT = "Connect your calendar again in Settings › Calendar.";
 
+// ---------- on/off per provider ----------
+//
+// Fork (Adam, Oct 6): Connect calendar ships switched off, so nobody sees
+// Google's unverified-app screen before its sensitive-scope review, or
+// Microsoft's before publisher verification. Turn one on with a Worker var
+// (CALENDAR_GOOGLE=1, CALENDAR_OUTLOOK=1); installed apps read
+// GET /calendar/providers and show the button with no new download.
+
+export function calendarProviderEnabled(env, provider) {
+  return provider === "google"
+    ? env.CALENDAR_GOOGLE === "1"
+    : provider === "azure"
+      ? env.CALENDAR_OUTLOOK === "1"
+      : false;
+}
+
+/** GET /calendar/providers: no sign-in needed; cached for 5 minutes. */
+export function calendarProviders(env) {
+  return Response.json(
+    {
+      google: calendarProviderEnabled(env, "google"),
+      outlook: calendarProviderEnabled(env, "azure"),
+    },
+    { headers: { "cache-control": "public, max-age=300" } },
+  );
+}
+
 // ---------- token encryption ----------
 
 function bytesFromBase64(text) {

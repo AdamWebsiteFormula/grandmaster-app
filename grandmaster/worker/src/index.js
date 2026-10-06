@@ -23,7 +23,7 @@ import {
   signInRequired,
 } from "./auth.js";
 import { handleBilling, handleDeleteAccount } from "./billing.js";
-import { handleCalendar } from "./calendar.js";
+import { calendarProviders, handleCalendar } from "./calendar.js";
 import { json, userRateLimited } from "./http.js";
 import { handleStt } from "./stt.js";
 import {
@@ -83,6 +83,9 @@ export default {
     }
     // Fork: Google Calendar and Outlook through the Upshot account
     // (calendar.js; grandmaster/sops/calendar-from-sign-in.md).
+    if (request.method === "GET" && url.pathname === "/calendar/providers") {
+      return calendarProviders(env);
+    }
     if (
       url.pathname === "/nango/connections" ||
       url.pathname.startsWith("/calendar/")
