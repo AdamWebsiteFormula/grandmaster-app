@@ -110,11 +110,11 @@ export function FloatingActionButton(props: {
       <div
         data-note-bar-stack
         className={cn([
-          // Fork: as wide as the note text column (680 px, 32 px gutters;
+          // Fork: as wide as the note text column (576 px, 32 px gutters;
           // note-input px-8), so the Ask field takes the leftover width, as
           // in Granola's bar; 16 px above the panel bottom (redline4-oct3;
           // Apple HIG Layout margins).
-          "pointer-events-none absolute bottom-4 left-1/2 z-30 flex w-[min(680px,calc(100%-4rem))] -translate-x-1/2 flex-col-reverse items-center",
+          "pointer-events-none absolute bottom-4 left-1/2 z-30 flex w-[min(576px,calc(100%-4rem))] -translate-x-1/2 flex-col-reverse items-center",
           !showAsk && "w-auto",
           // The recording bar sits bottom left, so while it shows the note
           // bar moves to the bottom right and narrows beside it, leaving
@@ -363,7 +363,10 @@ function NoteAskField({
         aria-keyshortcuts={ariaKeyShortcut(["mod", "J"])}
         className="placeholder:text-muted-foreground text-foreground h-full min-w-[6.5rem] flex-1 bg-transparent text-sm focus:outline-none"
       />
-      <Kbd className="shrink-0 @max-[22rem]/ask:hidden">
+      {/* Fork: in the 576 px note bar, ⌘ J hides below 28rem and the Draft
+          chip drops to its icon below 24rem, so nothing spills out of the
+          bar (in-app test, Oct 6). */}
+      <Kbd className="shrink-0 @max-[28rem]/ask:hidden">
         {kbdLabel(["mod", "J"])}
       </Kbd>
       {/* Fork: pick the model before you type, as on Home, in the chat, and
@@ -405,7 +408,7 @@ function FollowUpEmailChip() {
             className={barChipClassName}
           >
             <Envelope aria-hidden className="text-muted-foreground size-3.5" />
-            <span className="truncate @max-[19rem]/ask:sr-only">{label}</span>
+            <span className="truncate @max-[24rem]/ask:sr-only">{label}</span>
           </button>
         </TooltipTrigger>
         <TooltipContent side="top">{label}</TooltipContent>

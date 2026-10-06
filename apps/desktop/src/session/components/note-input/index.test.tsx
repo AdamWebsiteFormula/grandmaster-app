@@ -450,12 +450,12 @@ describe("NoteInput tab selection", () => {
   );
 
   // granola-compare-oct3 §1: centered column and the chip row under the title.
-  it("sets the note in a centered 680 px column with the chip row", () => {
+  it("sets the note in a centered 576 px column with the chip row", () => {
     renderNoteInput({ showMetaChips: true });
 
     const column = document.querySelector("[data-note-column]")!;
     expect(column.className).toContain("mx-auto");
-    expect(column.className).toContain("max-w-[680px]");
+    expect(column.className).toContain("max-w-[576px]");
     expect(column.className).toContain("note-meta-chips-host");
     expect(column.contains(screen.getByTestId("meta-chips"))).toBe(true);
     expect(column.contains(screen.getByTestId("raw-editor"))).toBe(true);

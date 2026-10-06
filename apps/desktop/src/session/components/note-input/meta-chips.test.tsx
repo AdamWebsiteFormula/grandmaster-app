@@ -95,7 +95,9 @@ function renderChips({
 
 function chipLabels() {
   const row = document.querySelector("[data-note-meta-chips]")!;
-  return Array.from(row.querySelectorAll(":scope > button")).map(
+  return Array.from(
+    row.querySelectorAll(":scope > button, :scope > div > button"),
+  ).map(
     (button) =>
       button.getAttribute("aria-label") ??
       (button.textContent ?? "").replace(/\s+/g, " ").trim(),
@@ -131,6 +133,11 @@ describe("NoteMetaChips", () => {
       screen.getByRole("button", { name: "Template summary-1" }).dataset
         .variant,
     ).toBe("chip");
+    // Backlog item 1: the two views are one segmented control.
+    const view = screen.getByRole("group", { name: "View" });
+    expect(
+      view.contains(screen.getByRole("button", { name: "My notes" })),
+    ).toBe(true);
   });
 
   it("uses the meeting start for the date and drops a zero attendee count", () => {

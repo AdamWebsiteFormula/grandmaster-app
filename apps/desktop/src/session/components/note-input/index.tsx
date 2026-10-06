@@ -405,7 +405,7 @@ const NoteInputContent = forwardRef<
               "pt-2",
               // Fork: the note column sits 32 px inside the panel, the same
               // gutter as Home's column (HOME_COLUMN_CLASS px-8; the -mx-2
-              // above cancels the surface's px-2), then centers at 680 px
+              // above cancels the surface's px-2), then centers at 576 px
               // (redline4-oct3; design-system.md "nothing touches edges").
               // The gutter is here, not on the column, so the absolute chip
               // row (inset-x-0) still lines up with the title. pb-28 lets the
@@ -418,15 +418,16 @@ const NoteInputContent = forwardRef<
             ])}
           >
             {isEditableTab && (
-              // Fork: a centered reading column, as Granola sets its notes
-              // (about 620-680 px; Baymard and Butterick put comfortable lines
-              // at 45-75 characters). granola-compare-oct3 §1, P1.
+              // Fork: a centered reading column, 576 px like Home's, so the
+              // left edge holds when a note opens and lines stay near 72
+              // characters (Baymard and Butterick: 45-75; NN/g #4; owner's
+              // pick, Oct 5, was 680 px).
               <div
                 data-note-column
                 className={cn([
-                  "relative mx-auto w-full max-w-[680px]",
-                  // Fork: Bricolage Grotesque for the note title only; the
-                  // summary, chips and body stay Geist (owner's pick, Oct 3).
+                  "relative mx-auto w-full max-w-[576px]",
+                  // Fork: Outfit for the note title only; the
+                  // summary, chips and body stay Geist (owner's pick, Oct 6).
                   // `!` wins over the editor's unlayered title rule.
                   "[&_.note-title-editor>h1:first-child]:font-display! [&_.note-title-editor>h1:first-child]:font-semibold! [&_.note-title-editor>h1:first-child]:tracking-[-0.01em]!",
                   showMetaChips && "note-meta-chips-host",
@@ -507,10 +508,10 @@ const NoteInputContent = forwardRef<
               <div
                 className={cn([
                   "flex h-full min-h-0 flex-col",
-                  // Fork: the note's 680 px column, so the title, player and
+                  // Fork: the note's 576 px column, so the title, player and
                   // transcript share one left edge. px-5 adds to the px-3
                   // above for the note's 32 px gutter.
-                  showMetaChips && "mx-auto w-full max-w-[720px] px-5",
+                  showMetaChips && "mx-auto w-full max-w-[616px] px-5",
                 ])}
               >
                 {showMetaChips && (

@@ -72,7 +72,7 @@ export function TranscriptToolbar({
       role="toolbar"
       aria-label={t`Transcript`}
       data-transcript-toolbar
-      className="mx-auto mb-2 flex h-8 w-full max-w-[680px] shrink-0 items-center gap-1"
+      className="mx-auto mb-2 flex h-8 w-full max-w-[576px] shrink-0 items-center gap-1"
     >
       <div className="flex-1" />
       {/* Fork: Resume lives in the note's bottom bar (redline3 S3), so the

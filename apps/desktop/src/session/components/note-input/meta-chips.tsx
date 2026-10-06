@@ -108,6 +108,20 @@ export function NoteMetaChipsLayer({ children }: { children: ReactNode }) {
   );
 }
 
+// Fork: My notes and the summary are one segmented control, as Granola's
+// notes/enhanced switch is, so the view choice no longer looks like the
+// date and folder chips beside it (backlog item 1; NN/g "Tabs, Used
+// Right"; Apple HIG, Segmented controls). Same look as the Plan page's
+// Monthly/Yearly control, kept at the 24 px chip height, with a 16 px gap
+// before the metadata chips.
+const NOTE_VIEW_SEGMENT_CLASS = cn([
+  "bg-accent mr-2.5 flex items-center gap-0.5 rounded-md p-0.5",
+  "[&>button]:h-5 [&>button]:rounded-[5px] [&>button]:border-transparent [&>button]:bg-transparent",
+  "[&>button[aria-pressed=true]]:bg-card [&>button[aria-pressed=true]]:border-input [&>button[aria-pressed=true]]:text-foreground",
+  "[&>button[aria-current=page]]:bg-card [&>button[aria-current=page]]:border-input",
+  "dark:[&>button[aria-pressed=true]]:bg-sidebar-accent dark:[&>button[aria-current=page]]:bg-sidebar-accent",
+]);
+
 export function NoteMetaChips({
   sessionId,
   editorTabs,
@@ -160,66 +174,72 @@ export function NoteMetaChips({
       data-note-meta-chips
       className="flex flex-wrap items-center gap-1.5"
     >
-      {showNotesToggle ? (
-        // Fork: a tooltip naming what the chip does next, as Granola's
-        // notes toggle shows (redline2-oct3, R2). The chip says "My notes"
-        // in words beside the icon, like its neighbors (NN/g "Icon
-        // Usability": labels beat icon-only).
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                aria-label={t`My notes`}
-                aria-pressed={rawActive}
-                onClick={handleNotesToggle}
-                className={noteChipClassName(rawActive)}
-              >
-                <TextAlignLeft aria-hidden />
-                <span className="min-w-0 truncate">{t`My notes`}</span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              {rawActive ? t`Show summary` : t`Show my notes`}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      ) : null}
-      {enhancedTabs.map((view, index) => {
-        const isActive =
-          currentTab.type === "enhanced" && currentTab.id === view.id;
-        const canRemove = view.id !== primaryEnhancedId;
-        return (
-          <HeaderViewEnhanced
-            key={`enhanced-${view.id}`}
-            variant="chip"
-            sessionId={sessionId}
-            enhancedNoteId={view.id}
-            isActive={isActive}
-            canRemove={canRemove}
-            onRemove={
-              canRemove
-                ? () => {
-                    const previousView = enhancedTabs[index - 1];
-                    if (isActive && previousView) {
-                      onSelectView(previousView);
+      <div
+        role={showNotesToggle ? "group" : undefined}
+        aria-label={showNotesToggle ? t`View` : undefined}
+        className={showNotesToggle ? NOTE_VIEW_SEGMENT_CLASS : "contents"}
+      >
+        {showNotesToggle ? (
+          // Fork: a tooltip naming what the chip does next, as Granola's
+          // notes toggle shows (redline2-oct3, R2). The chip says "My notes"
+          // in words beside the icon, like its neighbors (NN/g "Icon
+          // Usability": labels beat icon-only).
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-label={t`My notes`}
+                  aria-pressed={rawActive}
+                  onClick={handleNotesToggle}
+                  className={noteChipClassName(rawActive)}
+                >
+                  <TextAlignLeft aria-hidden />
+                  <span className="min-w-0 truncate">{t`My notes`}</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {rawActive ? t`Show summary` : t`Show my notes`}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : null}
+        {enhancedTabs.map((view, index) => {
+          const isActive =
+            currentTab.type === "enhanced" && currentTab.id === view.id;
+          const canRemove = view.id !== primaryEnhancedId;
+          return (
+            <HeaderViewEnhanced
+              key={`enhanced-${view.id}`}
+              variant="chip"
+              sessionId={sessionId}
+              enhancedNoteId={view.id}
+              isActive={isActive}
+              canRemove={canRemove}
+              onRemove={
+                canRemove
+                  ? () => {
+                      const previousView = enhancedTabs[index - 1];
+                      if (isActive && previousView) {
+                        onSelectView(previousView);
+                      }
+                      void deleteEnhancedNote(view.id).catch((error) => {
+                        console.error(
+                          "[note-meta-chips] failed to remove summary",
+                          error,
+                        );
+                      });
                     }
-                    void deleteEnhancedNote(view.id).catch((error) => {
-                      console.error(
-                        "[note-meta-chips] failed to remove summary",
-                        error,
-                      );
-                    });
-                  }
-                : undefined
-            }
-            onSelectNote={(enhancedNoteId) =>
-              onSelectView({ type: "enhanced", id: enhancedNoteId })
-            }
-            onClick={() => onSelectView(view)}
-          />
-        );
-      })}
+                  : undefined
+              }
+              onSelectNote={(enhancedNoteId) =>
+                onSelectView({ type: "enhanced", id: enhancedNoteId })
+              }
+              onClick={() => onSelectView(view)}
+            />
+          );
+        })}
+      </div>
       <DateAttendeesChip sessionId={sessionId} />
       <FolderPicker sessionId={sessionId} variant="chip" />
     </div>

@@ -1183,6 +1183,7 @@ msgstr ""
 #: src/calendar/components/apple/permission.tsx
 #: src/folders/folder-editor.tsx
 #: src/imports/screen.tsx
+#: src/main/move-to-applications.ts
 #: src/resource-sharing/library.tsx
 #: src/session-sharing/comments.tsx
 #: src/session/components/folder-picker.tsx
@@ -4878,7 +4879,6 @@ msgid "Not invited"
 msgstr ""
 
 #: src/billing/trial-payment-reminder-dialog.tsx
-#: src/main/move-to-applications.ts
 msgid "Not now"
 msgstr ""
 
@@ -5695,8 +5695,8 @@ msgid "Reconnect Slack"
 msgstr ""
 
 #: src/home/home-view.tsx
-msgid "Record"
-msgstr ""
+#~ msgid "Record"
+#~ msgstr ""
 
 #: src/settings/plan.tsx
 msgid "Record and transcribe your meetings"
@@ -8391,6 +8391,7 @@ msgid "Version history"
 msgstr ""
 
 #: src/main/windows-title-bar.tsx
+#: src/session/components/note-input/meta-chips.tsx
 #: src/settings/team/invitation-toast.tsx
 msgid "View"
 msgstr ""

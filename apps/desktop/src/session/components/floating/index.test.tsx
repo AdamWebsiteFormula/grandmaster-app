@@ -270,7 +270,7 @@ describe("FloatingActionButton (note bar)", () => {
     const stack = document.querySelector("[data-note-bar-stack]")!;
     // Was a 150 px slot around a 196 px pill ("Ask anythi…").
     expect(stack.className).not.toContain("w-[150px]");
-    expect(stack.className).toContain("w-[min(680px,calc(100%-4rem))]");
+    expect(stack.className).toContain("w-[min(576px,calc(100%-4rem))]");
     const input = screen.getByRole("textbox", { name: "Ask anything" });
     expect(input.getAttribute("placeholder")).toBe("Ask anything");
     expect(input.className).toContain("flex-1");
@@ -504,9 +504,9 @@ describe("FloatingActionButton (note bar)", () => {
       selector: "span",
     });
     // ⌘ J gives way first, then the chip label (redline3 S3).
-    expect(label.className).toContain("@max-[19rem]/ask:sr-only");
+    expect(label.className).toContain("@max-[24rem]/ask:sr-only");
     expect(screen.getByText("⌘ J").className).toContain(
-      "@max-[22rem]/ask:hidden",
+      "@max-[28rem]/ask:hidden",
     );
   });
 
