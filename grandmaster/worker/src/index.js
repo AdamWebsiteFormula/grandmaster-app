@@ -14,7 +14,9 @@
 
 import {
   accountRequired,
+  GOOGLE_CALLBACK_PATH,
   handleAuth,
+  handleGoogleCallback,
   handleOAuthExchange,
   handleOAuthStart,
   requireAccount,
@@ -71,6 +73,9 @@ export default {
     }
     if (request.method === "POST" && url.pathname === "/auth/oauth/exchange") {
       return handleOAuthExchange(request, env);
+    }
+    if (request.method === "GET" && url.pathname === GOOGLE_CALLBACK_PATH) {
+      return handleGoogleCallback(request, env, url);
     }
     // Fork: account deletion (journey-account-settings P3).
     if (request.method === "POST" && url.pathname === "/account/delete") {

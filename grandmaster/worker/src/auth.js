@@ -123,6 +123,220 @@ const CODE_VERIFIER = /^[A-Za-z0-9._~-]{43,128}$/;
 // RFC 8252 §7.3: native apps get the code back on a loopback port.
 const LOOPBACK_REDIRECT = /^http:\/\/127\.0\.0\.1:\d{2,5}\/auth\/callback$/;
 
+// ---------- Google sign-in that returns to Upshot's own domain ----------
+//
+// Fork (Adam, Oct 5): Google's screen named the Supabase project
+// ("Sign in to <ref>.supabase.co") because Google returned to Supabase.
+// Supabase's custom domain is a paid add-on, so Google returns to this
+// Worker at PUBLIC_ORIGIN instead. The Worker swaps Google's code for an ID
+// token and signs in to Supabase with it (grant_type=id_token,
+// supabase.com/docs/reference/javascript/auth-signinwithidtoken), then hands
+// the app a sealed one-time code that only the app's PKCE verifier opens
+// (RFC 7636). Without GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
+// OAUTH_STATE_KEY and PUBLIC_ORIGIN it falls back to the Supabase flow.
+
+const GOOGLE_AUTHORIZE = "https://accounts.google.com/o/oauth2/v2/auth";
+const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
+export const GOOGLE_CALLBACK_PATH = "/auth/google/callback";
+const STATE_SECONDS = 600;
+const HANDOFF_SECONDS = 300;
+const HANDOFF_PREFIX = "u1.";
+
+export function googleViaWorker(env) {
+  return Boolean(
+    env.GOOGLE_CLIENT_ID &&
+      env.GOOGLE_CLIENT_SECRET &&
+      env.OAUTH_STATE_KEY &&
+      env.PUBLIC_ORIGIN,
+  );
+}
+
+function b64url(bytes) {
+  let text = "";
+  for (const byte of bytes) text += String.fromCharCode(byte);
+  return btoa(text).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function fromB64url(text) {
+  const padded = text.replace(/-/g, "+").replace(/_/g, "/");
+  return Uint8Array.from(atob(padded), (c) => c.charCodeAt(0));
+}
+
+async function stateKey(env) {
+  const raw = Uint8Array.from(atob(env.OAUTH_STATE_KEY), (c) => c.charCodeAt(0));
+  if (raw.length !== 32) throw new Error("OAUTH_STATE_KEY must be 32 bytes");
+  return crypto.subtle.importKey("raw", raw, "AES-GCM", false, [
+    "encrypt",
+    "decrypt",
+  ]);
+}
+
+/** AES-GCM seal: tamper-proof and unreadable outside this Worker. */
+export async function seal(env, value) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const sealed = new Uint8Array(
+    await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv },
+      await stateKey(env),
+      new TextEncoder().encode(JSON.stringify(value)),
+    ),
+  );
+  const out = new Uint8Array(iv.length + sealed.length);
+  out.set(iv);
+  out.set(sealed, iv.length);
+  return b64url(out);
+}
+
+/** The sealed value, or null when forged, broken or expired. */
+export async function unseal(env, text, now = Date.now()) {
+  try {
+    const bytes = fromB64url(text);
+    const plain = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: bytes.slice(0, 12) },
+      await stateKey(env),
+      bytes.slice(12),
+    );
+    const value = JSON.parse(new TextDecoder().decode(plain));
+    return typeof value?.exp === "number" && value.exp * 1000 > now
+      ? value
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+async function sha256(text) {
+  return new Uint8Array(
+    await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)),
+  );
+}
+
+function hex(bytes) {
+  return [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function redirect(location) {
+  return new Response(null, {
+    status: 302,
+    headers: { location, "cache-control": "no-store" },
+  });
+}
+
+async function startGoogleViaWorker(env, { challenge, redirectTo, calendar }) {
+  const nonce = b64url(crypto.getRandomValues(new Uint8Array(32)));
+  const state = await seal(env, {
+    r: redirectTo,
+    c: challenge,
+    k: calendar,
+    n: nonce,
+    exp: Math.floor(Date.now() / 1000) + STATE_SECONDS,
+  });
+  const target = new URL(GOOGLE_AUTHORIZE);
+  target.searchParams.set("client_id", env.GOOGLE_CLIENT_ID);
+  target.searchParams.set(
+    "redirect_uri",
+    `${env.PUBLIC_ORIGIN}${GOOGLE_CALLBACK_PATH}`,
+  );
+  target.searchParams.set("response_type", "code");
+  target.searchParams.set(
+    "scope",
+    calendar ? `openid email profile ${GOOGLE_CALENDAR_SCOPE}` : "openid email profile",
+  );
+  target.searchParams.set("state", state);
+  // Supabase compares the SHA-256 of the raw nonce with the ID token's.
+  target.searchParams.set("nonce", hex(await sha256(nonce)));
+  if (calendar) {
+    target.searchParams.set("access_type", "offline");
+    target.searchParams.set("prompt", "consent");
+    target.searchParams.set("include_granted_scopes", "true");
+  } else {
+    target.searchParams.set("prompt", "select_account");
+  }
+  return redirect(target.toString());
+}
+
+function expiredPage() {
+  return new Response(
+    `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Upshot</title><body style="font:16px -apple-system,system-ui,sans-serif;max-width:480px;margin:96px auto;padding:0 24px;color:#1c1b19"><h1 style="font-size:24px">Sign-in expired</h1><p>Go back to Upshot and click Continue with Google again.</p></body>`,
+    {
+      status: 400,
+      headers: {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-store",
+      },
+    },
+  );
+}
+
+/** GET /auth/google/callback: Google comes back here. */
+export async function handleGoogleCallback(request, env, url) {
+  if (!googleViaWorker(env) || !configured(env)) return json(404, "Not found");
+  if (await rateLimited(request, env, "auth")) return json(429, TOO_MANY);
+  const state = await unseal(env, url.searchParams.get("state") ?? "");
+  if (!state || !LOOPBACK_REDIRECT.test(state.r ?? "")) return expiredPage();
+  const back = new URL(state.r);
+  const code = url.searchParams.get("code");
+  if (!code) {
+    // Canceled at Google: the app shows "Sign-in didn't finish."
+    back.searchParams.set("error", "access_denied");
+    return redirect(back.toString());
+  }
+
+  const tokenResponse = await fetch(GOOGLE_TOKEN_URL, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      code,
+      client_id: env.GOOGLE_CLIENT_ID,
+      client_secret: env.GOOGLE_CLIENT_SECRET,
+      redirect_uri: `${env.PUBLIC_ORIGIN}${GOOGLE_CALLBACK_PATH}`,
+      grant_type: "authorization_code",
+    }),
+  });
+  const google = await tokenResponse.json().catch(() => ({}));
+  if (!tokenResponse.ok || typeof google.id_token !== "string") {
+    console.error("google token exchange failed", tokenResponse.status);
+    back.searchParams.set("error", "server_error");
+    return redirect(back.toString());
+  }
+
+  const { response, body } = await gotrue(env, "token?grant_type=id_token", {
+    provider: "google",
+    id_token: google.id_token,
+    nonce: state.n,
+  });
+  if (!response.ok || !body.access_token) {
+    console.error("supabase id_token sign-in failed", response.status);
+    back.searchParams.set("error", "server_error");
+    return redirect(back.toString());
+  }
+
+  if (state.k && typeof google.refresh_token === "string" && body.user?.id) {
+    await saveCalendarConnection(env, {
+      userId: body.user.id,
+      provider: "google",
+      email: body.user.email ?? null,
+      refreshToken: google.refresh_token,
+    });
+  }
+
+  const handoff = await seal(env, {
+    s: sessionPayload(body),
+    c: state.c,
+    exp: Math.floor(Date.now() / 1000) + HANDOFF_SECONDS,
+  });
+  back.searchParams.set("code", `${HANDOFF_PREFIX}${handoff}`);
+  return redirect(back.toString());
+}
+
+/** The session in a sealed hand-off code, if the verifier matches. */
+async function openHandoff(env, code, verifier) {
+  if (!googleViaWorker(env)) return null;
+  const value = await unseal(env, code.slice(HANDOFF_PREFIX.length));
+  if (!value?.s?.access_token || typeof value.c !== "string") return null;
+  return b64url(await sha256(verifier)) === value.c ? value.s : null;
+}
+
 /**
  * GET /auth/oauth/start: send the browser to Supabase's authorize page.
  * The app never holds the Supabase URL or key; it only knows this Worker.
@@ -140,6 +354,10 @@ export async function handleOAuthStart(request, env, url) {
   ) {
     return json(400, "Invalid request");
   }
+  const calendar = url.searchParams.get("calendar") === "1";
+  if (provider === "google" && googleViaWorker(env)) {
+    return startGoogleViaWorker(env, { challenge, redirectTo, calendar });
+  }
   const target = new URL(`${env.SUPABASE_URL}/auth/v1/authorize`);
   target.searchParams.set("provider", provider);
   target.searchParams.set("redirect_to", redirectTo);
@@ -151,7 +369,6 @@ export async function handleOAuthStart(request, env, url) {
   // Worker keeps (calendar.js). Google needs access_type=offline and
   // prompt=consent for that (supabase.com/docs/guides/auth/social-login/
   // auth-google, "Saving Google tokens").
-  const calendar = url.searchParams.get("calendar") === "1";
   if (provider === "azure") {
     target.searchParams.set(
       "scopes",
@@ -175,17 +392,21 @@ export async function handleOAuthStart(request, env, url) {
 export async function handleOAuthExchange(request, env) {
   if (!configured(env)) return json(503, "Accounts are not available yet.");
   if (await rateLimited(request, env, "auth")) return json(429, TOO_MANY);
-  const input = await readSmallJson(request);
+  const input = await readSmallJson(request, 16_384);
   const code = input?.code;
   const verifier = input?.code_verifier;
   if (
     typeof code !== "string" ||
     code.length < 8 ||
-    code.length > 512 ||
+    code.length > 12_000 ||
     typeof verifier !== "string" ||
     !CODE_VERIFIER.test(verifier)
   ) {
     return json(400, "Invalid request");
+  }
+  if (code.startsWith(HANDOFF_PREFIX)) {
+    const session = await openHandoff(env, code, verifier);
+    return session ? ok(session) : json(400, NOT_FINISHED);
   }
   const { response, body } = await gotrue(env, "token?grant_type=pkce", {
     auth_code: code,

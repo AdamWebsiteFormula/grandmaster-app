@@ -59,7 +59,7 @@ footer{margin-top:48px;color:#737373;font-size:14px}
 <main>
 <img class="logo" src="/brand/upshot-logo-orange-on-light.png" alt="Upshot">
 <h1>Privacy policy</h1>
-<p class="meta">Effective October 5, 2026</p>
+<p class="meta">Effective October 6, 2026</p>
 
 <div class="summary">
 <p><strong>The short version</strong></p>
@@ -101,6 +101,14 @@ footer{margin-top:48px;color:#737373;font-size:14px}
 <li><a href="https://supabase.com/privacy">Supabase</a> stores that email, name and picture link, and, if you get Pro, your plan: status, billing period, renewal date, and your Stripe customer and subscription IDs. The app keeps your sign-in session in your computer's credential store (the Keychain on a Mac).</li>
 <li><a href="https://stripe.com/privacy">Stripe</a> handles payment on Stripe Checkout. Your card and billing details go only to Stripe, never to Upshot. Stripe tells us whether your subscription is active.</li>
 </ul>
+<p><strong>Your calendar, if you connect it.</strong> When you click Connect Google Calendar or Connect Outlook calendar, Google or Microsoft gives Upshot read-only access to your calendars:</p>
+<ul>
+<li>Upshot's Cloudflare Worker keeps a refresh token from Google or Microsoft, encrypted, in Supabase, so your calendar keeps syncing. Upshot never receives your Google or Microsoft password.</li>
+<li>When Upshot syncs, the Worker fetches your calendars and events and passes them to the app. The Worker doesn't store or log them. Events are saved only on your computer, to name your notes, list attendees and remind you before meetings.</li>
+<li>Upshot never changes, creates or deletes calendar events, and never shares calendar data with anyone else or uses it for ads or to train AI models.</li>
+<li>Upshot's use and transfer of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use requirements.</li>
+<li>To disconnect, remove Upshot at <a href="https://myaccount.google.com/connections">myaccount.google.com/connections</a> or <a href="https://account.live.com/consent/Manage">account.live.com/consent/Manage</a>, or delete your Upshot account. The stored token is deleted with your account.</li>
+</ul>
 <p><strong>What you set up yourself.</strong> A webhook (Settings › Connectors › Webhooks) sends finished notes to the address you choose. The Glaido and MCP connection runs only on your computer.</p>
 <p><strong>Model list.</strong> Upshot downloads public model catalogs from models.dev and OpenRouter. It sends no data about you, just a normal web request.</p>
 <p><strong>Hosting.</strong> The proxy and this page run on <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a>, which handles the network traffic.</p>
@@ -126,6 +134,7 @@ footer{margin-top:48px;color:#737373;font-size:14px}
 <li>Notes, transcripts and audio: on your computer until you delete them.</li>
 <li>AI requests: the proxy keeps nothing once the answer is sent.</li>
 <li>Transcription audio: the proxy keeps nothing. Deepgram keeps it only as long as it needs to process it, under its own privacy policy.</li>
+<li>A calendar connection: until you delete your account, or until Google or Microsoft tells Upshot the access was removed.</li>
 <li>Your account: until you delete it. Stripe may keep payment records it must keep by law.</li>
 </ul>
 

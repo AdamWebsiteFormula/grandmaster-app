@@ -52,3 +52,17 @@ Each has a task chip in the account-requirement session; start it there, or past
 - [ ] Google's screen names `uexdqfhszkwnguehvxal.supabase.co`. Fix: Supabase custom domain, then Google brand verification.
 - [ ] Microsoft client secret expires Oct 4, 2028. Renew before then.
 - [ ] Add "Continue with email" with a 6-digit code (Adam chose this, Oct 5: Google and Microsoft now, email later, as Fireflies offers). Blocked on: Adam buys a domain and sets up Resend. Then: custom SMTP in Supabase, Email provider on with "Confirm email", the email template with `{{ .Token }}`, Worker `/auth/email/start` and `/auth/email/verify`, a code screen in `upshot-plan/sign-in.tsx`. Same as `sharing-plan.md` step 1a.7.
+
+## Upshot's own name on Google's sign-in screen (Adam, Oct 5-6)
+
+Adam declined Supabase's paid custom domain ($25 Pro + $10 add-on a month). Instead the Worker handles Google's return on `upshotnotes.com` (bought Oct 6 on Cloudflare): Google → `https://upshotnotes.com/auth/google/callback` → the Worker swaps the code (Google client secret), signs in to Supabase with `grant_type=id_token` (raw nonce to Supabase, its SHA-256 to Google), and hands the app a sealed one-time code (`u1.…`, AES-GCM, OAUTH_STATE_KEY) that only the app's PKCE verifier opens at `/auth/oauth/exchange`. The app is unchanged. Microsoft stays on the Supabase flow (its screen already says "Upshot"). Without the Worker secrets, Google falls back to the Supabase flow.
+
+Free plan note: Supabase pauses free projects after inactivity; sign-ins and token refreshes count as activity. If sign-in ever stops after a quiet week, un-pause the project in the Supabase dashboard.
+
+Steps:
+1. Done: domain `upshotnotes.com` on Cloudflare.
+2. Adam: Google client › Authorized redirect URIs: add `https://upshotnotes.com/auth/google/callback` (keep the Supabase one).
+3. Adam: Worker secrets (`npx wrangler secret put <NAME>` in `grandmaster/worker`): GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET. Claude generates OAUTH_STATE_KEY and CALENDAR_TOKEN_KEY (`openssl rand -base64 32 | npx wrangler secret put …`) without printing them.
+4. Adam's OK: apply `grandmaster/supabase/migrations/20261005170000_calendar_connections.sql`, then deploy (wrangler.jsonc adds the `upshotnotes.com` custom domain and PUBLIC_ORIGIN). Check `https://upshotnotes.com/`, `/privacy`, a Google sign-in in the app, and a curl 401 on chat.
+5. Adam: Google Search Console › add `upshotnotes.com` (DNS TXT at Cloudflare). Google Auth Platform › Branding: logo, home page `https://upshotnotes.com`, privacy `https://upshotnotes.com/privacy`, authorized domain `upshotnotes.com`. Verification Center: submit brand verification. Data Access: add `calendar.readonly`; enable the Google Calendar API; submit sensitive-scope verification (needs a demo video).
+6. Adam: Azure › API permissions: add Microsoft Graph delegated `Calendars.Read` and `offline_access`.

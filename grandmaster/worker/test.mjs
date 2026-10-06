@@ -1085,7 +1085,8 @@ test("privacy policy: served from public/ with the CalOPPA items", async () => {
   assert.match(html, /<title>Upshot privacy policy<\/title>/);
   assert.match(html, /src="\/brand\/upshot-logo-orange-on-light.png"/);
   assert.match(html, /background:#fff/);
-  assert.match(html, /Effective October 5, 2026/);
+  assert.match(html, /Effective October 6, 2026/);
+  assert.match(html, /Limited Use requirements/);
   assert.match(html, /sign in with Google or Microsoft/);
   for (const heading of [
     "What leaves your computer, and who gets it",
@@ -2127,4 +2128,169 @@ test("oauth exchange: a calendar grant keeps the refresh token server side only"
   } finally {
     mock.restore();
   }
+});
+
+// ---------- Google sign-in that returns to upshotnotes.com ----------
+
+const STATE_KEY = Buffer.from(new Uint8Array(32).fill(9)).toString("base64");
+const googleEnv = {
+  ...calendarEnv,
+  OAUTH_STATE_KEY: STATE_KEY,
+  PUBLIC_ORIGIN: "https://upshotnotes.com",
+};
+const LOOPBACK = "http://127.0.0.1:51234/auth/callback";
+
+async function pkce() {
+  const verifier = "v".repeat(10) + "x".repeat(33);
+  const digest = new Uint8Array(
+    await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier)),
+  );
+  const challenge = Buffer.from(digest).toString("base64url");
+  return { verifier, challenge };
+}
+
+async function googleStart(challenge, extra = "") {
+  const response = await worker.fetch(
+    new Request(
+      `https://w/auth/oauth/start?provider=google&code_challenge=${challenge}&redirect_to=${encodeURIComponent(LOOPBACK)}${extra}`,
+    ),
+    googleEnv,
+  );
+  assert.equal(response.status, 302);
+  return new URL(response.headers.get("location"));
+}
+
+test("google: sign-in goes to Google with Upshot's own callback, not Supabase's", async () => {
+  const { challenge } = await pkce();
+  const to = await googleStart(challenge);
+  assert.equal(to.origin + to.pathname, "https://accounts.google.com/o/oauth2/v2/auth");
+  assert.equal(to.searchParams.get("redirect_uri"), "https://upshotnotes.com/auth/google/callback");
+  assert.equal(to.searchParams.get("client_id"), "g-client");
+  assert.equal(to.searchParams.get("scope"), "openid email profile");
+  assert.equal(to.searchParams.get("access_type"), null);
+  assert.match(to.searchParams.get("nonce"), /^[0-9a-f]{64}$/);
+  const state = to.searchParams.get("state");
+  assert.ok(!state.includes("127.0.0.1"), "state is sealed");
+  const cal = await googleStart(challenge, "&calendar=1");
+  assert.match(cal.searchParams.get("scope"), /calendar\.readonly/);
+  assert.equal(cal.searchParams.get("access_type"), "offline");
+  assert.equal(cal.searchParams.get("include_granted_scopes"), "true");
+});
+
+test("google: callback signs in to Supabase with the ID token and only the app's verifier opens the hand-off", async () => {
+  clearAccountCacheForTests();
+  const rows = [];
+  const { verifier, challenge } = await pkce();
+  const to = await googleStart(challenge, "&calendar=1");
+  let supabaseBody;
+  const mock = calendarFetch(rows, [
+    [
+      "https://oauth2.googleapis.com/token",
+      (url, init) => {
+        const form = new URLSearchParams(init.body);
+        assert.equal(form.get("redirect_uri"), "https://upshotnotes.com/auth/google/callback");
+        assert.equal(form.get("client_secret"), "g-secret");
+        return Response.json({
+          id_token: "google.id.token",
+          access_token: "g-access",
+          refresh_token: "1//g-refresh",
+          expires_in: 3600,
+        });
+      },
+    ],
+    [
+      "https://sb.test/auth/v1/token?grant_type=id_token",
+      (url, init) => {
+        supabaseBody = JSON.parse(init.body);
+        return Response.json({
+          access_token: "sb-access",
+          refresh_token: "sb-refresh",
+          expires_in: 3600,
+          user: { id: "u-google", email: "pat@example.com" },
+        });
+      },
+    ],
+  ]);
+  try {
+    const callback = await worker.fetch(
+      new Request(
+        `https://upshotnotes.com/auth/google/callback?code=g-code&state=${encodeURIComponent(to.searchParams.get("state"))}`,
+      ),
+      googleEnv,
+    );
+    assert.equal(callback.status, 302);
+    const back = new URL(callback.headers.get("location"));
+    assert.equal(back.origin + back.pathname, LOOPBACK);
+    const code = back.searchParams.get("code");
+    assert.ok(code.startsWith("u1."));
+    assert.ok(!code.includes("sb-access"), "the hand-off is sealed");
+    assert.equal(supabaseBody.provider, "google");
+    assert.equal(supabaseBody.id_token, "google.id.token");
+    // Google got the SHA-256 of the raw nonce Supabase receives.
+    const hashed = Buffer.from(
+      await crypto.subtle.digest("SHA-256", new TextEncoder().encode(supabaseBody.nonce)),
+    ).toString("hex");
+    assert.equal(hashed, to.searchParams.get("nonce"));
+    assert.equal(rows.length, 1, "calendar refresh token kept server side");
+
+    const exchange = (v) =>
+      worker.fetch(
+        new Request("https://w/auth/oauth/exchange", {
+          method: "POST",
+          body: JSON.stringify({ code, code_verifier: v }),
+        }),
+        googleEnv,
+      );
+    const wrong = await exchange("w".repeat(43));
+    assert.equal(wrong.status, 400);
+    const good = await exchange(verifier);
+    assert.equal(good.status, 200);
+    const session = await good.json();
+    assert.equal(session.access_token, "sb-access");
+    assert.equal(session.user.email, "pat@example.com");
+    assert.ok(!JSON.stringify(session).includes("1//g-refresh"));
+  } finally {
+    mock.restore();
+  }
+});
+
+test("google: a canceled sign-in goes back to the app without a code; a forged state is refused", async () => {
+  const { challenge } = await pkce();
+  const to = await googleStart(challenge);
+  const canceled = await worker.fetch(
+    new Request(
+      `https://upshotnotes.com/auth/google/callback?error=access_denied&state=${encodeURIComponent(to.searchParams.get("state"))}`,
+    ),
+    googleEnv,
+  );
+  const back = new URL(canceled.headers.get("location"));
+  assert.equal(back.searchParams.get("code"), null);
+  assert.equal(back.searchParams.get("error"), "access_denied");
+  const forged = await worker.fetch(
+    new Request("https://upshotnotes.com/auth/google/callback?code=x&state=AAAA"),
+    googleEnv,
+  );
+  assert.equal(forged.status, 400);
+  assert.match(await forged.text(), /Sign-in expired/);
+});
+
+test("google: without the Worker secrets, sign-in still uses the Supabase flow", async () => {
+  const { challenge } = await pkce();
+  const response = await worker.fetch(
+    new Request(
+      `https://w/auth/oauth/start?provider=google&code_challenge=${challenge}&redirect_to=${encodeURIComponent(LOOPBACK)}`,
+    ),
+    accountEnv,
+  );
+  assert.match(response.headers.get("location"), /^https:\/\/sb\.test\/auth\/v1\/authorize/);
+});
+
+test("home page: describes Upshot and links the privacy policy (Google brand review)", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const html = await readFile(new URL("./public/index.html", import.meta.url), "utf8");
+  assert.match(html, /<title>Upshot<\/title>/);
+  assert.match(html, /href="\/privacy"/);
+  assert.match(html, /releases\/latest/);
+  const config = await readFile(new URL("./wrangler.jsonc", import.meta.url), "utf8");
+  assert.match(config, /"PUBLIC_ORIGIN": "https:\/\/upshotnotes\.com"/);
 });

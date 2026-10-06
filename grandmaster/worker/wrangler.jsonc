@@ -31,5 +31,10 @@
   // "auto-trailing-slash" serves privacy.html at /privacy
   // (developers.cloudflare.com/workers/static-assets/routing/advanced/html-handling/).
   "assets": { "directory": "./public", "binding": "ASSETS" },
+  // Fork: Upshot's own domain (Adam, Oct 6). Google sign-in returns to
+  // PUBLIC_ORIGIN/auth/google/callback (auth.js); / and /privacy are the
+  // home page and privacy policy Google's brand review checks.
+  "routes": [{ "pattern": "upshotnotes.com", "custom_domain": true }],
+  "vars": { "PUBLIC_ORIGIN": "https://upshotnotes.com" },
   "observability": { "enabled": false },
 }
