@@ -82,6 +82,12 @@
  * and sets the variable (8 px above, the row, 16 px below). */
 .note-meta-chips-host .note-typography.note-title-editor > h1:first-child {
   margin-bottom: var(--note-meta-chips-space, 3rem);
+  /* Fork: the note page title is in the display face, the same as on My
+   * notes, so switching views changes nothing (picture review, Oct 6: the
+   * app's variant class did not reach this heading; NN/g #4). */
+  font-family: var(--font-display, inherit);
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 /* Summary section headings at body scale, semibold, with air above

@@ -553,9 +553,15 @@ export function ClassicMainBody() {
             <ResizableHandle
               className={cn([
                 "z-10 cursor-ew-resize !bg-transparent after:w-2",
+                // Fork: Settings and the other fixed sidebars keep the
+                // handle's 4 px, only without dragging, so the page does not
+                // shift 4 pt when Settings opens (picture review, Oct 6;
+                // NN/g #4).
                 showLeftSidebarPanel && canResizeLeftSidebarPanel
                   ? "w-1"
-                  : "pointer-events-none w-0 after:w-0",
+                  : showLeftSidebarPanel
+                    ? "pointer-events-none w-1 after:w-0"
+                    : "pointer-events-none w-0 after:w-0",
               ])}
               onDragging={
                 canResizeLeftSidebarPanel
