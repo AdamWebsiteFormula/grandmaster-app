@@ -34,7 +34,13 @@
   // Fork: Upshot's own domain (Adam, Oct 6). Google sign-in returns to
   // PUBLIC_ORIGIN/auth/google/callback (auth.js); / and /privacy are the
   // home page and privacy policy Google's brand review checks.
-  "routes": [{ "pattern": "upshotnotes.com", "custom_domain": true }],
+  // www serves the same pages; each page names upshotnotes.com as its
+  // canonical address (developers.google.com/search/docs/crawling-indexing/
+  // consolidate-duplicate-urls).
+  "routes": [
+    { "pattern": "upshotnotes.com", "custom_domain": true },
+    { "pattern": "www.upshotnotes.com", "custom_domain": true },
+  ],
   "vars": { "PUBLIC_ORIGIN": "https://upshotnotes.com" },
   "observability": { "enabled": false },
 }
