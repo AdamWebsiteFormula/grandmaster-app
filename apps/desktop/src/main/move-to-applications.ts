@@ -44,7 +44,9 @@ export async function promptMoveToApplications(): Promise<void> {
       title: t`Move Upshot to Applications`,
       kind: "warning",
       okLabel: t`Move`,
-      cancelLabel: t`Not now`,
+      // Fork: "Cancel", so Esc dismisses it (Apple HIG, Alerts: title the
+      // button that cancels "Cancel"; NSAlert gives Esc to that title).
+      cancelLabel: t`Cancel`,
     },
   );
   if (!move) return;

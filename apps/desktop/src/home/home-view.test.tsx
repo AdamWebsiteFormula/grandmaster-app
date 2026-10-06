@@ -255,6 +255,22 @@ describe("HomeView", () => {
     expect(screen.queryByText("Meeting 4")).toBeNull();
   });
 
+  it("shows no page arrows when every day fits on one page", () => {
+    mocks.comingUp.days = [
+      today(),
+      {
+        dayMs: day(4),
+        isToday: false,
+        events: [meeting("e4", "Meeting 4", 4, 9)],
+      },
+    ];
+    render(<HomeView />);
+
+    expect(screen.getByText("Meeting 4")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Earlier days" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Later days" })).toBeNull();
+  });
+
   it("shows one quiet line when the week is empty, with no Start recording", () => {
     render(<HomeView />);
 

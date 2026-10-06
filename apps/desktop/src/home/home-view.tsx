@@ -68,7 +68,7 @@ import { useTabs } from "~/store/zustand/tabs";
 // with its right edge.
 export const HOME_COLUMN_CLASS = "mx-auto w-full max-w-[640px] px-8";
 
-// Fork: Bricolage Grotesque for big titles only; rows stay in Geist.
+// Fork: Outfit for big titles only; rows stay in Geist.
 const DISPLAY_TITLE_CLASS =
   "font-display text-foreground font-semibold tracking-[-0.01em]";
 
@@ -193,7 +193,9 @@ export function ComingUp({ days }: { days: ComingUpDay[] }) {
         >
           <Trans>Coming up</Trans>
         </h2>
-        {hasEvents ? (
+        {/* Fork: no arrows when everything fits on one page; two dimmed
+            arrows that do nothing are noise (in-app review, Oct 5; NN/g #8). */}
+        {hasEvents && pages > 1 ? (
           <div className="flex items-center gap-1">
             <PageButton
               label={t`Earlier days`}

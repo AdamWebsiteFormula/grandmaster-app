@@ -69,7 +69,7 @@ describe("move to Applications (journey-first-run P3)", () => {
     expect(mocks.ask.mock.calls[0]![1]).toMatchObject({
       title: "Move Upshot to Applications",
       okLabel: "Move",
-      cancelLabel: "Not now",
+      cancelLabel: "Cancel",
     });
     expect(mocks.openPath).toHaveBeenCalledWith("/Applications", null);
     expect(mocks.revealItemInDir).toHaveBeenCalledWith(
@@ -78,7 +78,7 @@ describe("move to Applications (journey-first-run P3)", () => {
     expect(mocks.exit).toHaveBeenCalledWith(0);
   });
 
-  it("Not now keeps Upshot running", async () => {
+  it("Cancel keeps Upshot running", async () => {
     mocks.resourceDir.mockResolvedValue(
       "/private/var/folders/x/T/AppTranslocation/ABC/d/Upshot.app/Contents/Resources",
     );

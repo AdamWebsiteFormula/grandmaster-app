@@ -533,7 +533,10 @@ export function OpenNoteDialog({
           onSelect={() => handleSelectPage(page)}
           className={cn([
             "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5",
-            "text-muted-foreground text-sm",
+            // Fork: results in the primary text color, as Spotlight lists
+            // them; gray read as disabled (picture review, Oct 5; Apple HIG,
+            // Color: secondary label only for less important text).
+            "text-foreground text-sm",
             // Fork: the selected row gets the selected gray of the sidebar's
             // active row (light 90%, was the 94% hover gray Adam did not see
             // on Oct 4) and foreground text, so the keyboard position is easy
@@ -680,7 +683,7 @@ export function OpenNoteDialog({
                           onSelect={() => handleSelect(session)}
                           className={cn([
                             "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5",
-                            "text-muted-foreground text-sm",
+                            "text-foreground text-sm",
                             "data-[selected=true]:bg-sidebar-accent data-[selected=true]:text-foreground dark:data-[selected=true]:bg-[hsl(0_0%_22%)]",
                             "transition-colors",
                           ])}
@@ -715,7 +718,7 @@ export function OpenNoteDialog({
                           onSelect={() => handleSelect(note)}
                           className={cn([
                             "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5",
-                            "text-muted-foreground text-sm",
+                            "text-foreground text-sm",
                             "data-[selected=true]:bg-sidebar-accent data-[selected=true]:text-foreground dark:data-[selected=true]:bg-[hsl(0_0%_22%)]",
                             "transition-colors",
                           ])}
@@ -756,7 +759,7 @@ export function OpenNoteDialog({
                           onSelect={() => handleSelect(note)}
                           className={cn([
                             "flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2.5",
-                            "text-muted-foreground text-sm",
+                            "text-foreground text-sm",
                             "data-[selected=true]:bg-sidebar-accent data-[selected=true]:text-foreground dark:data-[selected=true]:bg-[hsl(0_0%_22%)]",
                             "transition-colors",
                           ])}
