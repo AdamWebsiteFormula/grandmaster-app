@@ -243,8 +243,10 @@ function ProfileForm({
                 id={memoId}
                 aria-describedby={`${memoId}-hint`}
                 value={field.state.value}
-                // Fork: the same fill as the fields above (NN/g #4).
-                className="bg-card dark:bg-input/30"
+                // Fork: the same fill as the fields above (NN/g #4); no
+                // resize grip, it grows with its text as Mac text views do
+                // (picture review, Oct 6; Apple HIG, Text views).
+                className="bg-card dark:bg-input/30 resize-none [field-sizing:content]"
                 onChange={(event) => field.handleChange(event.target.value)}
                 onBlur={field.handleBlur}
                 rows={3}

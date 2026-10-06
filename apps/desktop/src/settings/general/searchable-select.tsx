@@ -90,7 +90,9 @@ export function SearchableSelect({
           aria-labelledby={ariaLabelledBy}
           aria-describedby={ariaDescribedBy}
           className={cn([
-            "bg-card justify-between px-3 font-normal shadow-none focus-visible:ring-0",
+            // Fork: 32 pt like every other Settings control (picture review,
+            // Oct 6: these were 36 pt; Apple HIG, Pop-up buttons).
+            "bg-card h-8 justify-between px-3 font-normal shadow-none focus-visible:ring-0",
             className,
           ])}
         >

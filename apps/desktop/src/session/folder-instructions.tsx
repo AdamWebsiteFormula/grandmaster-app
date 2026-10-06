@@ -32,7 +32,9 @@ export function FolderInstructionsField({
       placeholder={t`Add context for this folder`}
       rows={rows}
       className={cn([
-        "border-input placeholder:text-muted-foreground w-full resize-none rounded-md border bg-transparent",
+        // Fork: the house field fill, as Settings and Templates fields (picture
+        // review, Oct 6: it used the page color; NN/g #4).
+        "border-input placeholder:text-muted-foreground bg-card dark:bg-input/30 w-full resize-none rounded-md border",
         "focus-visible:ring-ring focus-visible:ring-1 focus-visible:outline-hidden",
         rows > 2
           ? "px-3 py-2.5 text-sm leading-5"

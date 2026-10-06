@@ -349,7 +349,7 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
           {auth?.session?.user.id && availableWorkspaces.length > 0 ? (
             <div className="flex items-start justify-between gap-4">
               <div className="flex flex-col gap-1.5">
-                <h4 className="text-sm font-medium">
+                <h4 className="text-muted-foreground text-sm font-medium">
                   <Trans>Team folder</Trans>
                 </h4>
                 <p className="text-muted-foreground text-xs">
@@ -395,7 +395,7 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
           ) : null}
 
           <div className="flex flex-col gap-1.5">
-            <h4 className="text-sm font-medium">
+            <h4 className="text-muted-foreground text-sm font-medium">
               <Trans>Context</Trans>
             </h4>
             <p className="text-muted-foreground text-xs">
@@ -405,7 +405,7 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <h4 className="text-sm font-medium">
+            <h4 className="text-muted-foreground text-sm font-medium">
               <Trans>Materials</Trans>
             </h4>
             <input

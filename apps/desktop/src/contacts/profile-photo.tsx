@@ -170,6 +170,9 @@ export function ProfilePhoto({
           <Button
             variant="outline"
             type="button"
+            // Fork: 32 pt like the other Settings buttons (picture review,
+            // Oct 6).
+            className="h-8 px-3"
             onClick={() => {
               migrated.current = true;
               save.mutate(null);

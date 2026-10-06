@@ -84,7 +84,10 @@ export function HomeView() {
     // bottom padding keeps the last row clear of the pinned composer.
     <div
       data-tauri-drag-region
-      className="scrollbar-soft h-full overflow-y-auto"
+      // Fork: with always-on scroll bars, the gutter is kept on both sides so
+      // the centered column lines up with Record meeting above it (picture
+      // review, Oct 6: 3 pt off; Apple HIG, Layout).
+      className="scrollbar-soft h-full overflow-y-auto [scrollbar-gutter:stable_both-edges]"
     >
       {/* Fork: 8 px rhythm, mt-8 between sections; the notes list gets
           24 px more so past notes do not read as Coming up rows
@@ -590,7 +593,10 @@ export function RecentNotes({
   return (
     <section aria-labelledby={headingId} className="flex flex-col">
       {compactHeading ? (
-        <h4 id={headingId} className="mb-1.5 text-sm font-medium">
+        <h4
+          id={headingId}
+          className="text-muted-foreground mb-1.5 text-sm font-medium"
+        >
           <Trans>Notes</Trans>
         </h4>
       ) : (

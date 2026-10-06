@@ -321,7 +321,9 @@ function SectionItem({
             // read-only: white in light, dark:bg-input/30 in dark, a
             // border-input edge (settings/setting-row.tsx
             // SETTING_CONTROL_CLASS; NN/g #4; Apple HIG Text fields).
-            "bg-card dark:bg-input/30 min-h-[100px] w-full resize-y rounded-xl border p-3 text-sm transition-colors",
+            // Fork: no resize grip; it grows with its text, as Mac text views
+            // do (picture review, Oct 6; Apple HIG, Text views).
+            "bg-card dark:bg-input/30 min-h-[100px] w-full resize-none rounded-xl border p-3 text-sm transition-colors [field-sizing:content]",
             "focus-visible:outline-hidden",
             isFocused
               ? "ring-primary/20 border-primary ring-2"
