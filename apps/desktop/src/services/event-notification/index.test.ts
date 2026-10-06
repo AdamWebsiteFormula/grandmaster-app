@@ -38,8 +38,8 @@ describe("checkEventNotifications", () => {
   });
 
   test.each([
-    ["an ISO timestamp", "2026-05-15T12:02:00.000Z"],
-    ["a timezone-naive Graph timestamp as UTC", "2026-05-15T12:02:00.0000000"],
+    ["an ISO timestamp", "2026-05-15T12:01:00.000Z"],
+    ["a timezone-naive Graph timestamp as UTC", "2026-05-15T12:01:00.0000000"],
   ])("notifies an upcoming event from %s", async (_name, startedAt) => {
     mocks.execute.mockResolvedValueOnce([
       {
@@ -58,9 +58,61 @@ describe("checkEventNotifications", () => {
     expect(mocks.showNotification).toHaveBeenCalledWith(
       expect.objectContaining({
         source: { type: "calendar_event", event_id: "event-1" },
-        message: "Starting in 2 minutes",
+        message: "Starting in 1 minute",
         action_label: "Take notes",
-        start_time: new Date("2026-05-15T12:02:00.000Z").getTime() / 1000,
+        start_time: new Date("2026-05-15T12:01:00.000Z").getTime() / 1000,
+      }),
+    );
+  });
+
+  // Granola reminds one minute before (docs.granola.ai/help-center/taking-notes/notifications).
+  test("waits until one minute before the meeting", async () => {
+    mocks.execute.mockResolvedValueOnce([
+      {
+        id: "event-1",
+        started_at: "2026-05-15T12:02:00.000Z",
+        tracking_id_event: "tracking-1",
+        recurrence_series_id: "",
+        title: "Design Review",
+        is_all_day: 0,
+        meeting_link: "https://meet.google.com/abc-defg-hij",
+      },
+    ]);
+
+    await checkEventNotifications(true, new Map());
+
+    expect(mocks.showNotification).not.toHaveBeenCalled();
+  });
+
+  test("still reminds in the first minute when the check runs late", async () => {
+    mocks.execute.mockResolvedValueOnce([
+      {
+        id: "event-1",
+        started_at: "2026-05-15T11:59:30.000Z",
+        tracking_id_event: "tracking-1",
+        recurrence_series_id: "",
+        title: "Design Review",
+        is_all_day: 0,
+        meeting_link: "https://meet.google.com/abc-defg-hij",
+      },
+      {
+        id: "event-2",
+        started_at: "2026-05-15T11:58:30.000Z",
+        tracking_id_event: "tracking-2",
+        recurrence_series_id: "",
+        title: "Earlier call",
+        is_all_day: 0,
+        meeting_link: "https://meet.google.com/abc-defg-hij",
+      },
+    ]);
+
+    await checkEventNotifications(true, new Map());
+
+    expect(mocks.showNotification).toHaveBeenCalledTimes(1);
+    expect(mocks.showNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: { type: "calendar_event", event_id: "event-1" },
+        message: "Starting now",
       }),
     );
   });
@@ -80,7 +132,7 @@ describe("checkEventNotifications", () => {
     mocks.execute.mockResolvedValueOnce([
       {
         id: "event-1",
-        started_at: "2026-05-15T12:02:00.000Z",
+        started_at: "2026-05-15T12:01:00.000Z",
         tracking_id_event: "tracking-1",
         recurrence_series_id: "",
         title: "Design Review",
@@ -97,7 +149,7 @@ describe("checkEventNotifications", () => {
     mocks.execute.mockResolvedValueOnce([
       {
         id: "event-1",
-        started_at: "2026-05-15T12:02:00.000Z",
+        started_at: "2026-05-15T12:01:00.000Z",
         tracking_id_event: "tracking-1",
         recurrence_series_id: "",
         title: "Company holiday",
@@ -112,7 +164,7 @@ describe("checkEventNotifications", () => {
 
   const meeting = (overrides: Record<string, unknown> = {}) => ({
     id: "event-1",
-    started_at: "2026-05-15T12:02:00.000Z",
+    started_at: "2026-05-15T12:01:00.000Z",
     ended_at: "2026-05-15T12:32:00.000Z",
     tracking_id_event: "tracking-1",
     recurrence_series_id: "",
