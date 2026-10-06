@@ -7139,6 +7139,10 @@ msgstr ""
 msgid "Starting microphone…"
 msgstr "Iniciando micrófono…"
 
+#: src/services/event-notification/index.ts
+msgid "Starting now"
+msgstr ""
+
 #: src/settings/ai/stt/health.tsx
 msgid "Starting the on-device model…"
 msgstr ""
