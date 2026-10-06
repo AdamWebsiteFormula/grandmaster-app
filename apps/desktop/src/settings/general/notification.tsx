@@ -418,8 +418,10 @@ export function NotificationSettingsView() {
                                         className={cn([
                                           // Fork: a field border like the
                                           // delay select above, 3:1 or more
-                                          // (WCAG 2.2 SC 1.4.11).
-                                          "border-input flex min-h-[38px] w-full cursor-text flex-wrap items-center gap-2 rounded-lg border p-2",
+                                          // (WCAG 2.2 SC 1.4.11), and the
+                                          // field fill (picture review,
+                                          // Oct 6: dark fill was the card's).
+                                          "border-input bg-card dark:bg-input/30 flex min-h-[38px] w-full cursor-text flex-wrap items-center gap-2 rounded-lg border p-2",
                                           "focus-visible:ring-ring focus-visible:ring-1 focus-visible:outline-hidden",
                                         ])}
                                         onKeyDown={(event) => {

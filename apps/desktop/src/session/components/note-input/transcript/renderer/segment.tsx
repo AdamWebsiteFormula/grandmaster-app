@@ -129,8 +129,12 @@ export const SegmentRenderer = memo(
         data-transcript-offset-ms={offsetMs}
         data-transcript-selected={selected ? "true" : undefined}
         data-transcript-self={isSelf ? "true" : undefined}
+        // Fork: -mx-2 puts the bubbles on the column edges that the player
+        // and the bar use; the selection fill still reaches 8 pt past them
+        // (picture review, Oct 6: bubbles ended 8 pt short; Apple HIG,
+        // Layout).
         className={cn([
-          "flex flex-col rounded-lg px-2 transition-colors",
+          "-mx-2 flex flex-col rounded-lg px-2 transition-colors",
           isSelf ? "items-end" : "items-start",
           selectMode ? "cursor-pointer" : null,
           "data-[transcript-selected=true]:bg-primary/10 data-[transcript-selected=true]:ring-primary/30 data-[transcript-selected=true]:ring-1 data-[transcript-selected=true]:ring-inset",

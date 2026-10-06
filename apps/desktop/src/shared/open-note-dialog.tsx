@@ -5,7 +5,9 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -505,6 +507,28 @@ export function OpenNoteDialog({
   );
 
   const isQueryEmpty = !query.trim();
+
+  // Fork: new results start at the top, where the first result is
+  // selected, as Spotlight does (picture review, Oct 6: after typing, the
+  // list kept a scroll of about two rows and hid the first result and its
+  // heading; Apple HIG, Searching).
+  const listRef = useRef<HTMLDivElement>(null);
+  const resultsKey = [
+    query,
+    filteredPages.length,
+    filteredRecentSessions.length,
+    filteredOtherNotes.length,
+  ].join("|");
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    list.scrollTop = 0;
+    const frame = requestAnimationFrame(() => {
+      list.scrollTop = 0;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [resultsKey]);
+
   const pageGroup = filteredPages.length > 0 && (
     <CommandPrimitive.Group
       className={
@@ -643,7 +667,10 @@ export function OpenNoteDialog({
               </button>
             </div>
 
-            <CommandPrimitive.List className="max-h-80 overflow-y-auto p-2">
+            <CommandPrimitive.List
+              ref={listRef}
+              className="max-h-80 overflow-y-auto p-2"
+            >
               {!hasAnyResults ? (
                 <CommandPrimitive.Empty className="text-muted-foreground py-6 text-center text-sm">
                   {isSearchPending ? (

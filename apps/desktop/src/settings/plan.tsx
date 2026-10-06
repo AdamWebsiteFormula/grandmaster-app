@@ -734,7 +734,7 @@ function IntervalToggle({
           aria-pressed={value === option.id}
           onClick={() => onChange(option.id)}
           className={cn([
-            "flex-1 gap-1.5 px-3 py-1.5 text-sm",
+            "h-7 flex-1 gap-1.5 px-3 py-0 text-sm",
             SEGMENT_BASE_CLASS,
             value === option.id ? SEGMENT_SELECTED_CLASS : SEGMENT_IDLE_CLASS,
           ])}

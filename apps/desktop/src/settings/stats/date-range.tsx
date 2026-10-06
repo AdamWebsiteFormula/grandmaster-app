@@ -42,7 +42,7 @@ export function DateRangeFilter({
           aria-pressed={value === option.id}
           onClick={() => onChange(option.id)}
           className={cn([
-            "px-3 py-1.5 text-xs",
+            "h-7 px-3 py-0 text-xs",
             SEGMENT_BASE_CLASS,
             value === option.id ? SEGMENT_SELECTED_CLASS : SEGMENT_IDLE_CLASS,
           ])}

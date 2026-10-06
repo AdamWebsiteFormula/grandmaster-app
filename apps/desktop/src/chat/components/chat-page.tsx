@@ -238,7 +238,9 @@ export function ChatPage() {
                   aria-expanded={showAll}
                   aria-controls="chat-recents-list"
                   onClick={() => setShowAll((current) => !current)}
-                  className="text-muted-foreground hover:text-foreground focus-visible:ring-ring cursor-pointer rounded-md px-1 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-hidden"
+                  // Fork: -mr-1 puts the words on the column edge with the
+                  // row times (picture review, Oct 6: 4 pt short).
+                  className="text-muted-foreground hover:text-foreground focus-visible:ring-ring -mr-1 cursor-pointer rounded-md px-1 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-hidden"
                 >
                   {showAll ? <Trans>Show less</Trans> : <Trans>See all</Trans>}
                 </button>

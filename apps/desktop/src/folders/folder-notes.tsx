@@ -16,7 +16,7 @@ export function FolderNotes({ folderPath }: { folderPath: string }) {
 
   if (!notes.hasNotes) {
     return (
-      <section aria-labelledby="folder-notes" className="flex flex-col gap-1.5">
+      <section aria-labelledby="folder-notes" className="flex flex-col gap-2">
         <h4 id="folder-notes" className="text-muted-foreground text-sm font-medium">
           <Trans>Notes</Trans>
         </h4>
@@ -24,7 +24,7 @@ export function FolderNotes({ folderPath }: { folderPath: string }) {
             states, nngroup.com/articles/empty-state-interface-design). No
             dashed outline: it read as a drop target, and Granola's empty
             states have none (picture review, Oct 6). */}
-        <div className="flex flex-col items-center gap-1 px-6 py-3 text-center">
+        <div className="flex flex-col items-center gap-1 px-6 text-center">
           <p className="text-foreground text-sm font-medium">
             <Trans>No notes in this folder yet</Trans>
           </p>

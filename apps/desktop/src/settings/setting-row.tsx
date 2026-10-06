@@ -23,7 +23,10 @@ export const SETTING_CONTROL_CLASS =
 // segmented controls (Apple HIG, Segmented controls; redline3-oct3 S1).
 // Dark keeps the solid pill (14.8:1). Every segment has a 1 px border so
 // the selection never shifts the text.
-export const SEGMENT_TRACK_CLASS = "bg-accent flex gap-1 rounded-lg p-1";
+// Fork: a 2 pt inset and 28 pt segments make the control 32 pt, like
+// every other Settings control (picture review, Oct 6: 38 and 36 pt; Apple
+// HIG, Segmented controls).
+export const SEGMENT_TRACK_CLASS = "bg-accent flex gap-0.5 rounded-lg p-0.5";
 export const SEGMENT_BASE_CLASS = "border border-transparent";
 // Fork: `!` on the dark colors: @anlg/ui's stylesheet loads later and
 // also defines .text-foreground, which otherwise wins and draws white text on

@@ -315,7 +315,10 @@ function TabContentNoteInner({
                       data-session-top-audio-player
                       className="shrink-0 pt-1 pb-2"
                     >
-                      <div className="border-border/70 bg-card/80 overflow-hidden rounded-[22px] border">
+                      {/* Fork: the card fill and border, like every other
+                          card (picture review, Oct 6: the dark fill matched
+                          the page; NN/g #4). */}
+                      <div className="border-border bg-card dark:bg-muted overflow-hidden rounded-[22px] border">
                         <AudioPlayer.Timeline contentClassName="py-1.5 pr-3 pl-1" />
                       </div>
                     </div>

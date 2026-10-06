@@ -394,13 +394,18 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
             </div>
           ) : null}
 
-          <div className="flex flex-col gap-1.5">
-            <h4 className="text-muted-foreground text-sm font-medium">
-              <Trans>Context</Trans>
-            </h4>
-            <p className="text-muted-foreground text-xs">
-              <Trans>What these notes are usually about</Trans>
-            </p>
+          {/* Fork: every section keeps 8 pt from its heading block to its
+              content (picture review, Oct 6: 28, 16 and 14 pt; Apple HIG,
+              Layout). */}
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-0.5">
+              <h4 className="text-muted-foreground text-sm font-medium">
+                <Trans>Context</Trans>
+              </h4>
+              <p className="text-muted-foreground text-xs">
+                <Trans>What these notes are usually about</Trans>
+              </p>
+            </div>
             <FolderInstructionsField folderPath={folderPath} rows={4} />
           </div>
 

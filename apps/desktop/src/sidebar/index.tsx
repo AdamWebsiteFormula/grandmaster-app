@@ -68,7 +68,10 @@ export function LeftSidebar({
       className={cn([
         "flex h-full w-full shrink-0 flex-col gap-1 overflow-hidden",
         needsChromeRowGutter ? "pt-11" : "pt-0",
-        !isTimelineSidebarLayout && "pr-1",
+        // Fork: the selection pill keeps 12 pt from the content panel, as
+        // from the window edge (picture review, Oct 6: 4 pt beside Home,
+        // 8 pt in Settings; Apple HIG, Sidebars).
+        "pr-2",
       ])}
     >
       <div className="flex flex-1 flex-col gap-1 overflow-hidden">

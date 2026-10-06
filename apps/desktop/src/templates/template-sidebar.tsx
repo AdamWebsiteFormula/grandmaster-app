@@ -421,8 +421,11 @@ export function TemplatesSidebarContent({
           <div
             ref={searchRef}
             className={cn([
-              "border-border bg-accent/50 flex h-8 w-full shrink-0 items-center gap-2 rounded-lg border px-3",
-              "focus-within:bg-accent transition-colors",
+              // Fork: the Settings search style: the field-border gray
+              // (picture review, Oct 6: 1.15:1 light, 1.76:1 dark; WCAG 2.2
+              // SC 1.4.11) and a focus ring (SC 2.4.7).
+              "border-input bg-accent/50 flex h-8 w-full shrink-0 items-center gap-2 rounded-lg border px-3",
+              "focus-within:bg-accent focus-within:ring-ring transition-colors focus-within:ring-1",
             ])}
           >
             <MagnifyingGlass className="text-muted-foreground h-4 w-4 shrink-0" />

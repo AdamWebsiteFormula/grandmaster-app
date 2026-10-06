@@ -122,7 +122,7 @@ export function DictionarySettings({
           stays, so keyboard focus shows (WCAG 2.2 SC 2.4.7). */}
       <SettingsGroup>
         <div className="flex flex-col gap-2">
-          <InputGroup className="border-input bg-card has-[[data-slot=input-group-control]:focus-visible]:border-input shadow-none">
+          <InputGroup className="border-input bg-card has-[[data-slot=input-group-control]:focus-visible]:border-input h-8 shadow-none">
             <form.Field name="term">
               {(field) => (
                 <InputGroupInput
