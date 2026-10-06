@@ -56,3 +56,7 @@ All five use the Upshot session token (`Authorization: Bearer`). A dead provider
 
 - Users who signed in before this change: ask again for calendar access on the next sign-in, or show "Connect calendar" once.
 - The duplicate rule if someone turns on the Mac route too.
+
+## Release gate (Oct 6)
+
+Do not merge `calendar-connect` or ship it until the "Release gate: Connect calendar" steps in `grandmaster/sops/sign-in-setup.md` are done: calendar.readonly back in Google's Data Access, the demo video recorded, and the sensitive-scope review submitted. The Worker routes are live (version d6ef976b); Google and Azure consent settings are done.

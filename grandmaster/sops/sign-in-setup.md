@@ -53,6 +53,14 @@ Each has a task chip in the account-requirement session; start it there, or past
 - [ ] Microsoft client secret expires Oct 4, 2028. Renew before then.
 - [ ] Add "Continue with email" with a 6-digit code (Adam chose this, Oct 5: Google and Microsoft now, email later, as Fireflies offers). Blocked on: Adam buys a domain and sets up Resend. Then: custom SMTP in Supabase, Email provider on with "Confirm email", the email template with `{{ .Token }}`, Worker `/auth/email/start` and `/auth/email/verify`, a code screen in `upshot-plan/sign-in.tsx`. Same as `sharing-plan.md` step 1a.7.
 
+## Release gate: Connect calendar (do not skip)
+
+Before the `calendar-connect` branch merges or ships in any installer:
+1. Google Auth Platform › Data Access: calendar.readonly is listed (Adam removed it on Oct 6 so the brand review could go first).
+2. Record the demo video Google asks for: sign in, click Connect Google Calendar, Google's consent screen with the app name, then the calendar events showing in Upshot.
+3. Verification Center: submit the sensitive-scope review with that video and this justification: "Upshot reads calendar events to name meeting notes, list attendees and remind the user before meetings. Read-only; never written or shared."
+Until Google approves, people who click Connect Google Calendar see the unverified-app screen, and Google caps it at 100 users.
+
 ## Upshot's own name on Google's sign-in screen (Adam, Oct 5-6)
 
 Adam declined Supabase's paid custom domain ($25 Pro + $10 add-on a month). Instead the Worker handles Google's return on `upshotnotes.com` (bought Oct 6 on Cloudflare): Google → `https://upshotnotes.com/auth/google/callback` → the Worker swaps the code (Google client secret), signs in to Supabase with `grant_type=id_token` (raw nonce to Supabase, its SHA-256 to Google), and hands the app a sealed one-time code (`u1.…`, AES-GCM, OAUTH_STATE_KEY) that only the app's PKCE verifier opens at `/auth/oauth/exchange`. The app is unchanged. Microsoft stays on the Supabase flow (its screen already says "Upshot"). Without the Worker secrets, Google falls back to the Supabase flow.
