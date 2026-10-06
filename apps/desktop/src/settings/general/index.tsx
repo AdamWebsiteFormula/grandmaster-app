@@ -304,7 +304,7 @@ function SettingsSectionContent({
             aria-labelledby="settings-permissions-title"
             className="flex min-w-0 scroll-mt-6 flex-col gap-2"
           >
-            <div className="flex min-h-6 items-center px-1">
+            <div className="flex min-h-6 items-center">
               <SettingsSectionTitle id="settings-permissions-title">
                 <Trans>Permissions</Trans>
               </SettingsSectionTitle>

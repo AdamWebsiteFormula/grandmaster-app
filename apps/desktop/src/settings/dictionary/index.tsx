@@ -44,7 +44,7 @@ export function DictionarySection() {
       aria-labelledby={titleId}
       className="flex min-w-0 scroll-mt-6 flex-col gap-2"
     >
-      <div className="flex min-h-6 items-center px-1">
+      <div className="flex min-h-6 items-center">
         <SettingsSectionTitle id={titleId}>
           <Trans>Dictionary</Trans>
         </SettingsSectionTitle>

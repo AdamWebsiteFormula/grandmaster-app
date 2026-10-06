@@ -327,7 +327,10 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
             <p className="text-muted-foreground line-clamp-2 max-w-[60ch] text-sm text-pretty">
               {description || t`Notes, files, and context for this folder`}
             </p>
-            {noteCount !== null ? (
+            {/* Fork: no "0 notes · 0 files" while the folder is empty; the
+                empty sections below already say so (picture review, Oct 6;
+                NN/g #8). */}
+            {noteCount !== null && (noteCount > 0 || materials.length > 0) ? (
               <p className="text-muted-foreground text-sm tabular-nums">
                 {[
                   noteCount === 1 ? t`1 note` : t`${noteCount} notes`,
@@ -429,7 +432,10 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
                   type="button"
                   disabled={busy}
                   className={cn([
-                    "border-border text-muted-foreground hover:bg-accent hover:text-foreground",
+                    // Fork: the field-border gray, so the Add file tile's
+                    // edge meets 3:1 like a control should (picture review,
+                    // Oct 6: 1.15:1; WCAG 2.2 SC 1.4.11).
+                    "border-input text-muted-foreground hover:bg-accent hover:text-foreground",
                     "flex aspect-[4/3] w-full flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed",
                     "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-hidden",
                     "disabled:opacity-50",

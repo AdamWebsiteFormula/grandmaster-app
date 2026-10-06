@@ -266,7 +266,10 @@ export function TemplateIconPicker({
             "relative flex shrink-0 items-center justify-center overflow-hidden rounded-md transition-colors",
             size === "sm"
               ? "hover:bg-accent size-7"
-              : "border-border bg-muted/60 hover:bg-accent after:border-t-background size-9 border after:absolute after:top-0 after:right-0 after:size-0 after:border-t-[8px] after:border-l-[8px] after:border-l-transparent",
+              : // Fork: no folded-corner triangle; drawn in the window color
+                // on the page's gray it read as a broken corner (picture
+                // review, Oct 6).
+                "border-border bg-muted/60 hover:bg-accent size-9 border",
           ])}
           aria-label={label ?? t`Choose template icon`}
         >

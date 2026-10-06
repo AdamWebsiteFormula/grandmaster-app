@@ -453,9 +453,9 @@ function PlanComparison({
       {/* Fork: the Monthly/Yearly toggle sits in the title row, not in the
           table, so it never overlaps the Free column in a narrow window
           (journey-account-settings P2; WCAG 2.2 SC 1.4.10; Apple HIG
-          Layout). Only the title is inset (pl-1), so the toggle ends flush
+          Layout). The title sits on the page title's edge (backlog item 6), and the toggle ends flush
           with the card's right edge. */}
-      <div className="flex min-h-6 flex-wrap items-center justify-between gap-x-3 gap-y-2 pl-1">
+      <div className="flex min-h-6 flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <SettingsSectionTitle id={titleId}>
           <Trans>Compare plans</Trans>
         </SettingsSectionTitle>
