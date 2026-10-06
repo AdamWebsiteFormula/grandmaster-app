@@ -813,6 +813,11 @@ msgstr "Append an update to Notion"
 msgid "Append the meeting update"
 msgstr "Append the meeting update"
 
+#: src/onboarding/calendar.tsx
+#: src/settings/calendar/index.tsx
+msgid "Apple Calendar"
+msgstr "Apple Calendar"
+
 #: src/main/windows-title-bar.tsx
 msgid "Application menu"
 msgstr "Application menu"
@@ -1156,6 +1161,10 @@ msgstr "Calendar skipped"
 msgid "Calendar-scheduled capture jobs. Canceling stops the bot from joining."
 msgstr "Calendar-scheduled capture jobs. Canceling stops the bot from joining."
 
+#: src/settings/calendar/index.tsx
+#~ msgid "Calendars on this Mac"
+#~ msgstr "Calendars on this Mac"
+
 #: src/session-sharing/access-management.tsx
 msgid "Can comment"
 msgstr "Can comment"
@@ -1184,11 +1193,13 @@ msgstr "Can't hear the other side. Check your computer's sound output."
 #: src/folders/folder-editor.tsx
 #: src/imports/screen.tsx
 #: src/main/move-to-applications.ts
+#: src/onboarding/calendar.tsx
 #: src/resource-sharing/library.tsx
 #: src/session-sharing/comments.tsx
 #: src/session/components/folder-picker.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
 #: src/settings/ai/llm/subscriptions/connect.tsx
+#: src/settings/calendar/index.tsx
 #: src/settings/crm/index.tsx
 #: src/settings/dictionary/index.tsx
 #: src/settings/general/e2ee-setup.tsx
@@ -1753,7 +1764,9 @@ msgid "Confirm"
 msgstr "Confirm"
 
 #: src/imports/screen.tsx
+#: src/onboarding/calendar.tsx
 #: src/settings/ai/llm/subscriptions/connect.tsx
+#: src/settings/calendar/index.tsx
 #: src/settings/crm/index.tsx
 msgid "Connect"
 msgstr "Connect"
@@ -1796,6 +1809,10 @@ msgstr "Connect calendar"
 msgid "Connect GitHub for private repos."
 msgstr "Connect GitHub for private repos."
 
+#: src/calendar/components/cloud-connect.tsx
+msgid "Connect Google Calendar"
+msgstr "Connect Google Calendar"
+
 #: src/settings/automations/google-drive-config.tsx
 msgid "Connect Google Drive"
 msgstr "Connect Google Drive"
@@ -1816,6 +1833,10 @@ msgstr "Connect Notion"
 #: src/crm/enrich-contact.tsx
 msgid "Connect one in Settings"
 msgstr "Connect one in Settings"
+
+#: src/calendar/components/cloud-connect.tsx
+msgid "Connect Outlook calendar"
+msgstr "Connect Outlook calendar"
 
 #: src/session-sharing/delivery-panel.tsx
 #: src/settings/automations/starter-config.tsx
@@ -1843,6 +1864,8 @@ msgid "Connect your integration"
 msgstr "Connect your integration"
 
 #: src/imports/screen.tsx
+#: src/onboarding/calendar.tsx
+#: src/settings/calendar/index.tsx
 #: src/settings/connectors/index.tsx
 #: src/settings/crm/index.tsx
 msgid "Connected"
@@ -3168,6 +3191,12 @@ msgstr "Finish connecting in your browser."
 msgid "Finish in your browser, then return to Upshot."
 msgstr "Finish in your browser, then return to Upshot."
 
+#: src/calendar/components/cloud-connect.tsx
+#: src/onboarding/calendar.tsx
+#: src/settings/calendar/index.tsx
+msgid "Finish in your browser…"
+msgstr "Finish in your browser…"
+
 #: src/settings/general/account.tsx
 msgid "Finish sign-in"
 msgstr "Finish sign-in"
@@ -3418,6 +3447,10 @@ msgstr "Go to the note being recorded"
 msgid "Good listener"
 msgstr "Good listener"
 
+#: src/calendar/components/cloud-connect.tsx
+msgid "Google Calendar"
+msgstr "Google Calendar"
+
 #: src/settings/automations/google-drive-config.tsx
 msgid "Google Docs"
 msgstr "Google Docs"
@@ -3425,6 +3458,10 @@ msgstr "Google Docs"
 #: src/settings/automations/google-drive-config.tsx
 msgid "Google Drive export did not finish."
 msgstr "Google Drive export did not finish."
+
+#: src/settings/calendar/index.tsx
+msgid "Google or Outlook calendar"
+msgstr "Google or Outlook calendar"
 
 #: src/billing/trial-started-dialog.tsx
 #: src/settings/ai/stt/select.tsx
@@ -5107,6 +5144,7 @@ msgid "Open settings"
 msgstr "Open settings"
 
 #: src/calendar/components/apple/permission.tsx
+#: src/onboarding/calendar.tsx
 #: src/session/components/floating/recording-bar.tsx
 #: src/settings/calendar/index.tsx
 #: src/settings/general/permissions.tsx
@@ -5204,6 +5242,10 @@ msgstr "Organization name"
 #: src/session/components/version-history-dialog.tsx
 msgid "Other device's version"
 msgstr "Other device's version"
+
+#: src/calendar/components/cloud-connect.tsx
+msgid "Outlook calendar"
+msgstr "Outlook calendar"
 
 #: src/settings/stats/index.tsx
 msgid "Overview"
@@ -6783,6 +6825,10 @@ msgstr "Show words in the floating panel as you speak. Uses a live connection to
 msgid "Show your Google, Outlook, and iCloud events in Upshot."
 msgstr "Show your Google, Outlook, and iCloud events in Upshot."
 
+#: src/settings/calendar/index.tsx
+msgid "Show your meetings and name your notes after them."
+msgstr "Show your meetings and name your notes after them."
+
 #. placeholder {0}: options.length
 #: src/settings/ai/shared/model-combobox.tsx
 msgid "Showing total of {0} models."
@@ -6908,6 +6954,10 @@ msgstr "Sign in with ChatGPT Plus or Pro. We'll open Upshot and finish connectin
 #: src/settings/ai/llm/subscriptions/connect.tsx
 msgid "Sign in with GitHub Copilot and enter the code below."
 msgstr "Sign in with GitHub Copilot and enter the code below."
+
+#: src/settings/calendar/index.tsx
+msgid "Sign in with Google or Microsoft to connect your calendar."
+msgstr "Sign in with Google or Microsoft to connect your calendar."
 
 #: src/settings/ai/llm/subscriptions/connect.tsx
 msgid "Sign in with SuperGrok or X Premium+ and enter the code below."
@@ -7861,6 +7911,7 @@ msgstr "Turn on Upshot in Screen & System Audio Recording"
 msgid "Turn on Upshot in System Settings › Privacy & Security › Calendars, then return here."
 msgstr "Turn on Upshot in System Settings › Privacy & Security › Calendars, then return here."
 
+#: src/onboarding/calendar.tsx
 #: src/settings/calendar/index.tsx
 msgid "Turn on Upshot in System Settings › Privacy & Security › Calendars."
 msgstr "Turn on Upshot in System Settings › Privacy & Security › Calendars."
@@ -8239,8 +8290,12 @@ msgid "Upshot needs your microphone and your Mac's sound to transcribe meetings.
 msgstr "Upshot needs your microphone and your Mac's sound to transcribe meetings. Accessibility is optional: it lets Upshot see which meeting app you're in and when the call ends."
 
 #: src/onboarding/index.tsx
-msgid "Upshot reads the calendars on this Mac to remind you before meetings and add titles and attendees to your notes."
-msgstr "Upshot reads the calendars on this Mac to remind you before meetings and add titles and attendees to your notes."
+#~ msgid "Upshot reads the calendars on this Mac to remind you before meetings and add titles and attendees to your notes."
+#~ msgstr "Upshot reads the calendars on this Mac to remind you before meetings and add titles and attendees to your notes."
+
+#: src/onboarding/index.tsx
+msgid "Upshot reads your calendar to remind you before meetings and add titles and attendees to your notes."
+msgstr "Upshot reads your calendar to remind you before meetings and add titles and attendees to your notes."
 
 #: src/settings/calendar/index.tsx
 msgid "Upshot reads your Google, Outlook, iCloud, and other calendars on this Mac."
@@ -8249,6 +8304,10 @@ msgstr "Upshot reads your Google, Outlook, iCloud, and other calendars on this M
 #: src/settings/privacy/index.tsx
 msgid "Upshot sends no usage data or crash reports."
 msgstr "Upshot sends no usage data or crash reports."
+
+#: src/settings/calendar/index.tsx
+msgid "Upshot shows its meetings and names your notes."
+msgstr "Upshot shows its meetings and names your notes."
 
 #. placeholder {0}: statuses[0].displayName
 #: src/settings/developers/skills.tsx
@@ -8321,6 +8380,10 @@ msgstr "Use a verified work email to enable automatic joining. Personal email pr
 #: src/settings/general/e2ee-setup.tsx
 msgid "Use an existing key"
 msgstr "Use an existing key"
+
+#: src/onboarding/calendar.tsx
+#~ msgid "Use calendars on this Mac instead"
+#~ msgstr "Use calendars on this Mac instead"
 
 #: src/imports/screen.tsx
 msgid "Use files"

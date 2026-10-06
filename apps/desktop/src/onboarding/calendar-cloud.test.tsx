@@ -27,7 +27,7 @@ vi.mock("~/calendar/components/cloud-connect", async () => {
     typeof import("~/calendar/components/cloud-connect")
   >("~/calendar/components/cloud-connect");
   return {
-    ConnectCloudCalendarLabel: actual.ConnectCloudCalendarLabel,
+    CloudCalendarName: actual.CloudCalendarName,
     useCloudCalendar: () => mocks.cloud,
     CloudCalendarList: ({ provider }: { provider: string }) => (
       <p>{`${provider} calendar list`}</p>
@@ -88,25 +88,29 @@ afterEach(() => {
   cleanup();
 });
 
-it("signed in with Google, the step's one action connects Google Calendar", () => {
+it("signed in with Google, Google Calendar and Apple Calendar are equal rows", () => {
   render(<CalendarSection onContinue={vi.fn()} />);
 
-  fireEvent.click(
-    screen.getByRole("button", { name: "Connect Google Calendar" }),
-  );
-  expect(mocks.cloud.connect).toHaveBeenCalledOnce();
-  // No Internet Accounts detour and no Continue until a calendar is there.
+  expect(screen.getByText("Google Calendar")).toBeTruthy();
+  expect(screen.getByText("Apple Calendar")).toBeTruthy();
+  const [google, apple] = screen.getAllByRole("button", { name: "Connect" });
+  expect(google.className).toBe(apple.className);
+  // No "instead" choice and no Internet Accounts detour.
+  expect(screen.queryByText(/instead/)).toBeNull();
   expect(screen.queryByText(/Internet Accounts/)).toBeNull();
   expect(screen.queryByRole("button", { name: "Continue" })).toBeNull();
+
+  fireEvent.click(google);
+  expect(mocks.cloud.connect).toHaveBeenCalledOnce();
+  fireEvent.click(apple);
+  expect(mocks.permission.request).toHaveBeenCalledOnce();
 });
 
 it("names Outlook for a Microsoft account", () => {
   mocks.cloud.provider = "outlook";
   render(<CalendarSection onContinue={vi.fn()} />);
 
-  expect(
-    screen.getByRole("button", { name: "Connect Outlook calendar" }),
-  ).toBeTruthy();
+  expect(screen.getByText("Outlook calendar")).toBeTruthy();
 });
 
 it("while the browser is open, says so and offers Cancel", () => {
@@ -131,32 +135,35 @@ it("shows why it failed", () => {
   );
 });
 
-it("once connected, lists the calendars and continues", () => {
+it("once connected, says so, lists the calendars and continues", () => {
   mocks.cloud.connected = true;
   mocks.enabled = [{ id: "cal-1", provider: "google" }];
   const onContinue = vi.fn();
   render(<CalendarSection onContinue={onContinue} />);
 
+  expect(screen.getByText("Connected")).toBeTruthy();
   expect(screen.getByText("google calendar list")).toBeTruthy();
-  expect(screen.queryByText(/calendars on this Mac/)).toBeNull();
+  // Apple Calendar can still be added next to it.
+  expect(screen.getByRole("button", { name: "Connect" })).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Continue" }));
   expect(onContinue).toHaveBeenCalledWith(true);
 });
 
-it("on a Mac, calendars on this Mac are the second choice", () => {
+it("Apple Calendar denied points to System Settings", () => {
+  mocks.permission.status = "denied";
   render(<CalendarSection onContinue={vi.fn()} />);
 
-  fireEvent.click(
-    screen.getByRole("button", { name: "Use calendars on this Mac instead" }),
-  );
-  expect(mocks.permission.request).toHaveBeenCalledOnce();
+  const apple = screen.getAllByRole("button", { name: "Connect" })[1];
+  fireEvent.click(apple);
+  expect(mocks.permission.open).toHaveBeenCalledOnce();
 });
 
-it("on Windows and Linux, there is no Mac choice", () => {
+it("on Windows and Linux, there is no Apple Calendar row", () => {
   mocks.platform = "windows";
   render(<CalendarSection onContinue={vi.fn()} />);
 
-  expect(screen.queryByText(/calendars on this Mac/)).toBeNull();
+  expect(screen.queryByText("Apple Calendar")).toBeNull();
+  expect(screen.getAllByRole("button", { name: "Connect" })).toHaveLength(1);
 });
 
 it("signed out, the step keeps the calendars on this Mac", () => {

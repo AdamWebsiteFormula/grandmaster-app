@@ -131,21 +131,21 @@ describe("Settings › Calendar", () => {
   });
 
   describe("calendar from the Upshot account", () => {
-    it("signed in with Google, Connect Google Calendar is the one orange button", () => {
+    it("signed in with Google, Google Calendar and Apple Calendar are equal rows", () => {
       mocks.cloud.provider = "google";
       mocks.status = "notDetermined";
       render(<SettingsCalendar />);
 
-      const connect = screen.getByRole("button", {
-        name: "Connect Google Calendar",
+      expect(screen.getByText("Google Calendar")).toBeTruthy();
+      expect(screen.getByText("Apple Calendar")).toBeTruthy();
+      const [google, apple] = screen.getAllByRole("button", {
+        name: "Connect",
       });
-      fireEvent.click(connect);
+      expect(google.className).toBe(apple.className);
+      fireEvent.click(google);
       expect(mocks.cloud.connect).toHaveBeenCalledOnce();
-      // Calendars on this Mac become the second choice.
-      expect(screen.getByText("Calendars on this Mac")).toBeTruthy();
-      expect(
-        screen.getByRole("button", { name: "Allow access" }).className,
-      ).not.toBe(connect.className);
+      // No Internet Accounts detour next to the account's own calendar.
+      expect(screen.queryByRole("button", { name: /Add account/ })).toBeNull();
     });
 
     it("connected, lists the account's calendars before the Mac's", () => {
@@ -178,9 +178,8 @@ describe("Settings › Calendar", () => {
       mocks.cloud.provider = "outlook";
       render(<SettingsCalendar />);
 
-      expect(
-        screen.getByRole("button", { name: "Connect Outlook calendar" }),
-      ).toBeTruthy();
+      expect(screen.getByText("Outlook calendar")).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Connect" })).toBeTruthy();
       expect(screen.queryByText(/Internet Accounts/)).toBeNull();
       expect(screen.queryByRole("button", { name: "Allow access" })).toBeNull();
     });

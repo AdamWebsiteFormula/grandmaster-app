@@ -25,7 +25,6 @@ import {
 import type { CalendarItem } from "~/calendar/components/calendar-selection";
 import {
   CloudCalendarName,
-  ConnectCloudCalendarLabel,
   useCloudCalendar,
 } from "~/calendar/components/cloud-connect";
 import { SyncProvider } from "~/calendar/components/context";
@@ -145,21 +144,21 @@ function SettingsCalendarContent() {
                       <Trans>Cancel</Trans>
                     </Button>
                   )}
-                  {/* Fork: the page's one orange button while the account's
-                      calendar isn't connected (design-system "The one
-                      accent"). */}
+                  {/* Fork: Connect next to each calendar, all alike, as
+                      Calendly lists them (Adam, Oct 6). */}
                   <Button
                     aria-describedby={labelProps["aria-describedby"]}
-                    variant="default"
+                    variant="outline"
                     size="sm"
                     className="h-8 px-3 text-sm"
                     disabled={cloud.waiting}
                     onClick={cloud.connect}
                   >
-                    <ConnectCloudCalendarLabel
-                      provider={cloudProvider}
-                      waiting={cloud.waiting}
-                    />
+                    {cloud.waiting ? (
+                      <Trans>Finish in your browser…</Trans>
+                    ) : (
+                      <Trans>Connect</Trans>
+                    )}
                   </Button>
                 </span>
               )
@@ -317,7 +316,7 @@ function MacCalendarRows({
         icon={Key}
         title={
           cloudFirst ? (
-            <Trans>Calendars on this Mac</Trans>
+            <Trans>Apple Calendar</Trans>
           ) : (
             <Trans>Calendar access</Trans>
           )
@@ -365,6 +364,8 @@ function MacCalendarRows({
             >
               {denied ? (
                 <Trans>Open System Settings</Trans>
+              ) : cloudFirst ? (
+                <Trans>Connect</Trans>
               ) : (
                 <Trans>Allow access</Trans>
               )}
@@ -372,34 +373,40 @@ function MacCalendarRows({
           )
         }
       </SettingRow>
-      {/* Fork: adding Google or Outlook is always one click away, not only
+      {/* Fork: signed in, Google or Outlook connects from its own row above,
+          so the Internet Accounts detour shows only without it (Adam, Oct 6). */}
+      {!cloudFirst && (
+        <>
+          {/* Fork: adding Google or Outlook is always one click away, not only
             from an empty list (owner, Oct 3). macOS adds calendar accounts in
             Internet Accounts (Apple support icl4308d6701). */}
-      <SettingRow
-        icon={UserPlus}
-        title={<Trans>Add Google or Outlook</Trans>}
-        description={
-          <Trans>
-            Add the account in System Settings › Internet Accounts. Its
-            calendars show up here.
-          </Trans>
-        }
-        controlWidth="content"
-      >
-        {(labelProps) => (
-          // Fork: the same size as Allow access (NN/g #4).
-          <Button
-            aria-describedby={labelProps["aria-describedby"]}
-            variant="outline"
-            size="sm"
-            className="h-8 px-3 text-sm"
-            onClick={() => void openInternetAccounts()}
+          <SettingRow
+            icon={UserPlus}
+            title={<Trans>Add Google or Outlook</Trans>}
+            description={
+              <Trans>
+                Add the account in System Settings › Internet Accounts. Its
+                calendars show up here.
+              </Trans>
+            }
+            controlWidth="content"
           >
-            <Trans>Add account</Trans>
-            <ArrowUpRight className="size-3.5" aria-hidden />
-          </Button>
-        )}
-      </SettingRow>
+            {(labelProps) => (
+              // Fork: the same size as Allow access (NN/g #4).
+              <Button
+                aria-describedby={labelProps["aria-describedby"]}
+                variant="outline"
+                size="sm"
+                className="h-8 px-3 text-sm"
+                onClick={() => void openInternetAccounts()}
+              >
+                <Trans>Add account</Trans>
+                <ArrowUpRight className="size-3.5" aria-hidden />
+              </Button>
+            )}
+          </SettingRow>
+        </>
+      )}
     </>
   );
 }

@@ -238,8 +238,8 @@ function OnboardingScreenContent({
             title={<Trans>Sign in to Upshot</Trans>}
             description={
               <Trans>
-                A free account turns on Upshot AI and Upshot transcription.
-                Your notes stay on this computer.
+                A free account turns on Upshot AI and Upshot transcription. Your
+                notes stay on this computer.
               </Trans>
             }
             completedTitle={<Trans>Signed in</Trans>}
@@ -291,7 +291,9 @@ function OnboardingScreenContent({
             title={<Trans>Set up transcription</Trans>}
             description={
               // Fork: cloud by default on every computer (owner, Oct 3).
-              <Trans>Upshot transcribes your meetings. No API key needed.</Trans>
+              <Trans>
+                Upshot transcribes your meetings. No API key needed.
+              </Trans>
             }
             completedTitle={
               didTranscriptionFail ? (
@@ -311,15 +313,15 @@ function OnboardingScreenContent({
             <TranscriptionSetupSection onContinue={continueTranscription} />
           </OnboardingSection>
 
-
           <OnboardingSection
             title={<Trans>Connect calendar</Trans>}
             description={
-              // Fork: every calendar account on the Mac counts, not only
-              // Apple's (support.apple.com/guide/calendar/icl4308d6701/mac).
+              // Fork: neutral, since the calendar comes from the Google or
+              // Microsoft account or from this Mac
+              // (grandmaster/sops/calendar-from-sign-in.md).
               <Trans>
-                Upshot reads the calendars on this Mac to remind you before
-                meetings and add titles and attendees to your notes.
+                Upshot reads your calendar to remind you before meetings and add
+                titles and attendees to your notes.
               </Trans>
             }
             completedTitle={
