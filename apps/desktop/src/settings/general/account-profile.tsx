@@ -166,7 +166,7 @@ function ProfileForm({
                       // Fork: one field fill with the Settings dropdowns:
                       // the light tint in dark (Apple HIG, Dark Mode;
                       // shadcn/ui input; NN/g #4).
-                      className="bg-card dark:bg-input/30 h-8 w-full min-w-0"
+                      className="bg-card dark:bg-input/30 h-8 w-full min-w-0 text-ellipsis"
                       onChange={(event) =>
                         field.handleChange(event.target.value)
                       }
@@ -196,7 +196,9 @@ function ProfileForm({
       <SettingsGroup title={<Trans>Your company</Trans>}>
         <form.Field name="organizationId">
           {(field) => (
-            <div className="flex items-center justify-between gap-4">
+            // Fork: min-h-8, the field rows' height, so Company lines up
+            // with Your info above (picture review, Oct 7: 56 vs 60 pt).
+            <div className="flex min-h-8 items-center justify-between gap-4">
               <span className="text-sm font-medium">
                 <Trans>Company</Trans>
               </span>
@@ -305,7 +307,9 @@ function ProfileFieldRow({
       <label htmlFor={id} className="text-sm font-medium">
         {label}
       </label>
-      <div className="w-56 max-w-[60%] min-w-0">{children(id)}</div>
+      {/* Fork: 320 pt, so an email or LinkedIn name fits (picture review,
+          Oct 7: a 224 pt field clipped the email; Apple HIG, Text fields). */}
+      <div className="w-80 max-w-[60%] min-w-0">{children(id)}</div>
     </div>
   );
 }

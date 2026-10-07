@@ -40,7 +40,6 @@ import { MoveToFolderDialog } from "~/session/components/folder-picker";
 import { useSessionSummaries } from "~/session/queries";
 import { useDurableSharedNotes } from "~/shared-notes/cache";
 import { useEmptyNoteIds } from "~/shared/empty-note-ids";
-import { useMainContentCenterOffset } from "~/shared/main/content-offset";
 import { shortcutLabel } from "~/shared/shortcut-label";
 import { useNewNote, useNewNoteAndListen } from "~/shared/useNewNote";
 import { useSettingsNavGroups } from "~/sidebar/settings-nav-groups";
@@ -56,7 +55,6 @@ const SNIPPET_MAX_CHARS = 120;
 interface OpenNoteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  mainContentCenterOffset?: number;
 }
 
 type OpenNoteDialogContextValue = {
@@ -97,7 +95,6 @@ export function OpenNoteDialogProvider({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const mainContentCenterOffset = useMainContentCenterOffset();
 
   const openDialog = useCallback(() => {
     setOpen(true);
@@ -117,7 +114,6 @@ export function OpenNoteDialogProvider({
       <OpenNoteDialog
         open={open}
         onOpenChange={setOpen}
-        mainContentCenterOffset={mainContentCenterOffset}
       />
       {/* Fork: host for "Move to folder…" from a note's right-click menu
           (journey-after P2 "Add note to folder from Home"). */}
@@ -149,7 +145,6 @@ function selectOrOpen(type: "empty" | "chat") {
 export function OpenNoteDialog({
   open,
   onOpenChange,
-  mainContentCenterOffset = 0,
 }: OpenNoteDialogProps) {
   const { t } = useLingui();
   const [query, setQuery] = useState("");
@@ -625,11 +620,13 @@ export function OpenNoteDialog({
           />
         }
         className={cn([
+          // Fork: centered on the window, as Spotlight is and as the dimmed
+          // backdrop covers it (picture review, Oct 7: 6 pt right of center,
+          // neither the window's nor the panel's).
           "top-[15%] w-full max-w-lg -translate-y-0 gap-0 border-0 bg-transparent px-4 py-0 shadow-none sm:rounded-none",
           "data-[state=closed]:animate-none data-[state=open]:animate-none",
           "[&>button:last-child]:hidden",
         ])}
-        style={{ marginLeft: mainContentCenterOffset }}
         onPointerDownOutside={(event) => {
           const target = event.detail.originalEvent.target;
           if (

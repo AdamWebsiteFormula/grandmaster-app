@@ -374,7 +374,10 @@ export function NotificationSettingsView() {
                             )}
                           </form.Field>
 
-                          <div className="mb-3 flex flex-col gap-1">
+                          {/* Fork: gap-0.5, the title-to-description gap of
+                              every other row (picture review, Oct 7: 2 pt
+                              more). */}
+                          <div className="mb-3 flex flex-col gap-0.5">
                             <h4 className="text-sm font-medium">
                               <Trans>Exclude apps from detection</Trans>
                             </h4>

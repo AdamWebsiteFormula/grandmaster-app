@@ -370,7 +370,10 @@ export function TemplatesSidebarContent({
         {/* Fork: the list's own header row, level with the editor's title
             row, as Granola's Note templates heads its list with New template
             (Granola Help Center, "Customize notes with templates"). */}
-        <div className="flex h-12 items-center gap-1 pl-3">
+        {/* Fork: pr-1 puts the + icon 12 pt inside the search field's right
+            edge, as the title sits 12 pt inside its left (picture review,
+            Oct 7: 8 pt). */}
+        <div className="flex h-12 items-center gap-1 pr-1 pl-3">
           <h1 className="min-w-0 flex-1 truncate text-sm font-semibold">
             <Trans>Templates</Trans>
           </h1>
