@@ -173,9 +173,10 @@ export function ChatPage() {
           <form
             onSubmit={onSubmit}
             className={cn([
-              // Fork: px-4, the 16 pt text inset of Home's cards and composer
-              // (picture review, Oct 6: 12 pt here, 20.5 pt on Home).
-              "bg-card dark:bg-muted border-input flex min-h-[88px] flex-col gap-2 rounded-2xl border px-4 py-3",
+              // Fork: p-4, the 16 pt inset of Home's cards and composer, on
+              // every side, so the send button sits square in its corner
+              // (picture review, Oct 6 and 7).
+              "bg-card dark:bg-muted border-input flex min-h-[88px] flex-col gap-2 rounded-2xl border p-4",
               "focus-within:ring-ring focus-within:ring-2",
             ])}
           >
@@ -244,7 +245,17 @@ export function ChatPage() {
                   // row times (picture review, Oct 6: 4 pt short).
                   className="text-muted-foreground hover:text-foreground focus-visible:ring-ring -mr-1 cursor-pointer rounded-md px-1 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-hidden"
                 >
-                  {showAll ? <Trans>Show less</Trans> : <Trans>See all</Trans>}
+                  {/* Fork: a chevron, as on Recipes' "See all", so it reads
+                      as a link, not a label (picture review, Oct 7; NN/g
+                      #4). */}
+                  {showAll ? (
+                    <Trans>Show less</Trans>
+                  ) : (
+                    <span className="inline-flex items-center gap-1">
+                      <Trans>See all</Trans>
+                      <CaretRight size={12} className="shrink-0" aria-hidden />
+                    </span>
+                  )}
                 </button>
               ) : null}
             </div>

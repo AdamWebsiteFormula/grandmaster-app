@@ -508,18 +508,38 @@ export function OpenNoteDialog({
 
   const isQueryEmpty = !query.trim();
 
-  // Fork: new results start at the top, where the first result is
-  // selected, as Spotlight does (picture review, Oct 6: after typing, the
-  // list kept a scroll of about two rows and hid the first result and its
-  // heading; Apple HIG, Searching).
+  // Fork: whenever the results change, the first result is selected and the
+  // list starts at the top, as Spotlight does. Note text matches arrive after
+  // the title matches, and cmdk kept its earlier pick then, often a row out
+  // of view, so nothing showed as selected and the list opened scrolled (picture
+  // review, Oct 6 and 7; Apple HIG, Searching).
+  const firstResultValue =
+    (isQueryEmpty
+      ? [
+          filteredRecentSessions[0] && `recent-${filteredRecentSessions[0].id}`,
+          filteredPages[0] && `page-${filteredPages[0].id}`,
+        ]
+      : [
+          filteredPages[0] && `page-${filteredPages[0].id}`,
+          filteredRecentSessions[0] && `recent-${filteredRecentSessions[0].id}`,
+        ]
+    ).find(Boolean) ||
+    (filteredOtherNotes[0] &&
+      `${filteredOtherNotes[0].resourceType}-${filteredOtherNotes[0].id}`) ||
+    (contentResults[0] && `content-${contentResults[0].note.id}`) ||
+    "";
+  const [selectedValue, setSelectedValue] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
   const resultsKey = [
     query,
+    firstResultValue,
     filteredPages.length,
     filteredRecentSessions.length,
     filteredOtherNotes.length,
+    contentResults.length,
   ].join("|");
   useLayoutEffect(() => {
+    setSelectedValue(firstResultValue);
     const list = listRef.current;
     if (!list) return;
     list.scrollTop = 0;
@@ -635,7 +655,12 @@ export function OpenNoteDialog({
             "overflow-hidden",
           ])}
         >
-          <CommandPrimitive shouldFilter={false} className="flex flex-col">
+          <CommandPrimitive
+            shouldFilter={false}
+            value={selectedValue}
+            onValueChange={setSelectedValue}
+            className="flex flex-col"
+          >
             <div className="border-border/60 flex items-center gap-3 border-b px-4 py-3">
               <MagnifyingGlass className="text-muted-foreground h-4 w-4 shrink-0" />
               <CommandPrimitive.Input
@@ -667,14 +692,14 @@ export function OpenNoteDialog({
               </button>
             </div>
 
-            {/* Fork: the 6 pt scroll bar gutter is kept on both sides and the
-                rows use an 8 pt inset, so a row's icon and text line up with
-                the search icon and query above, and the selection sits 8 pt
-                from both edges (picture review, Oct 6: 8 and 14 pt, rows 4 pt
-                right of the field; Apple HIG, Layout). */}
+            {/* Fork: no scroll bar at rest, as macOS overlay scroll bars, and
+                an 8 pt inset, so a row's icon and text line up with the
+                search icon and query above, and the selection sits 8 pt from
+                both edges (picture review, Oct 6 and 7; Apple HIG, Scroll
+                views, Layout). */}
             <CommandPrimitive.List
               ref={listRef}
-              className="max-h-80 overflow-y-auto px-0.5 py-2 [scrollbar-gutter:stable_both-edges]"
+              className="scrollbar-hide max-h-80 overflow-y-auto p-2"
             >
               {!hasAnyResults ? (
                 <CommandPrimitive.Empty className="text-muted-foreground py-6 text-center text-sm">

@@ -403,6 +403,44 @@ describe("OpenNoteDialog", () => {
     });
   });
 
+  it("selects the first result after the note-text matches arrive", async () => {
+    mocks.sessions = [
+      {
+        id: "content-match",
+        title: "Weekly sync",
+        created_at: "2026-07-15T09:00:00.000Z",
+      },
+    ];
+    mocks.search.mockResolvedValue([
+      {
+        score: 1,
+        document: {
+          id: "content-match",
+          type: "session",
+          title: "Weekly sync",
+          content: "We will chat about pricing.",
+          created_at: 0,
+        },
+      },
+    ]);
+
+    render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
+    const input = screen.getByPlaceholderText("Search notes and settings…");
+    for (const value of ["c", "ch", "cha", "chat"]) {
+      fireEvent.change(input, { target: { value } });
+      await new Promise((resolve) => setTimeout(resolve, 40));
+    }
+    await waitFor(() => expect(screen.getByText("In notes")).toBeTruthy());
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    const options = screen.getAllByRole("option");
+    const selected = options.filter(
+      (option) => option.getAttribute("aria-selected") === "true",
+    );
+    expect(options[0]?.textContent).toContain("Chat");
+    expect(selected).toEqual([options[0]]);
+  });
+
   it("does not run content search for short or empty queries", async () => {
     render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
 

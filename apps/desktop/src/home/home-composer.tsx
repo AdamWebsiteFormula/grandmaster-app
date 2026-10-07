@@ -79,7 +79,9 @@ export function HomeComposer() {
               <TooltipProvider>
                 <Tooltip delayDuration={400}>
                   <TooltipTrigger asChild>
-                    <div className="ml-2 shrink-0">
+                    {/* Fork: ml-1 puts the history icon on the text's 16 pt edge
+                        (picture review, Oct 7: 20 pt). */}
+                    <div className="ml-1 shrink-0">
                       <ChatGroups
                         label={t`Recent chats`}
                         chatScope={chat.scope}
