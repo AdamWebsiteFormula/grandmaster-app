@@ -126,17 +126,27 @@ function HeaderViewEnhancedInactive({
         title={templateTooltip}
         className={noteChipClassName(false)}
       >
-        {isGenerating ? (
-          <Spinner size={14} className="shrink-0" />
-        ) : (
-          <Sparkle aria-hidden />
-        )}
-        <span className="min-w-0 truncate">{viewTitle}</span>
-        {/* Fork: the menu arrow's space is kept while this segment is not
-            selected, so the segment keeps its width and the chips beside
-            it do not move when you switch views (picture review, Oct 6:
-            16 pt shift; Apple HIG, Segmented controls). */}
-        <CaretDown aria-hidden className="invisible !size-3" />
+        {/* Fork: a hidden copy with the menu arrow keeps the segment as wide
+            as when it is selected, so the chips beside it do not move when
+            you switch views (picture review, Oct 6: 16 pt shift), and the
+            visible label is centered over it, not pushed left by the
+            arrow's space (picture review, Oct 7: 10.5 and 25.5 pt sides;
+            Apple HIG, Segmented controls). */}
+        <span className="grid min-w-0 place-items-center [&>*]:[grid-area:1/1]">
+          <span aria-hidden className="invisible inline-flex items-center gap-1">
+            <Sparkle />
+            <span className="whitespace-nowrap">{viewTitle}</span>
+            <CaretDown className="!size-3" />
+          </span>
+          <span className="inline-flex min-w-0 items-center gap-1">
+            {isGenerating ? (
+              <Spinner size={14} className="shrink-0" />
+            ) : (
+              <Sparkle aria-hidden />
+            )}
+            <span className="min-w-0 truncate">{viewTitle}</span>
+          </span>
+        </span>
       </button>
     );
   }

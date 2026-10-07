@@ -138,7 +138,9 @@ export function DictionarySettings({
                 />
               )}
             </form.Field>
-            <InputGroupAddon align="inline-end">
+            {/* Fork: pr-[9px] leaves Add 3 pt from the field's right edge,
+                as from its top and bottom (picture review, Oct 7: 6.5 pt). */}
+            <InputGroupAddon align="inline-end" className="pr-[9px]">
               <form.Subscribe selector={(state) => state.values.term}>
                 {(value) => {
                   const canAdd =

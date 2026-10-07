@@ -56,7 +56,7 @@ export function ResourcePreviewHeader({
     <div className="flex h-full flex-col">
       {/* Fork: the icon starts on the content's 24 pt edge (picture review,
           Oct 6: 11 pt to the left of it; Apple HIG, Layout). */}
-      <div className="flex h-12 items-center justify-between gap-3 pr-1 pl-6">
+      <div className="flex h-12 items-center justify-between gap-3 pr-4 pl-6">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           {icon}
           <h2 className="min-w-0 truncate text-sm font-semibold">

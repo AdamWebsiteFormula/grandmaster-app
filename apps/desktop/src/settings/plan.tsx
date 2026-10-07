@@ -617,9 +617,14 @@ function Included({ value }: { value: boolean | string }) {
 }
 
 function CurrentPlanChip() {
+  // Fork: the tag sits centered in a 32 pt row, the Upgrade button's
+  // height, so both columns' tags and buttons share one center line
+  // (picture review, Oct 7: 5 pt apart; Apple HIG, Layout).
   return (
-    <span className="border-border text-muted-foreground rounded-full border px-2 text-xs leading-5">
-      <Trans>Current plan</Trans>
+    <span className="flex h-8 items-center">
+      <span className="border-border text-muted-foreground rounded-full border px-2 text-xs leading-5">
+        <Trans>Current plan</Trans>
+      </span>
     </span>
   );
 }

@@ -25,7 +25,7 @@ export const BUNDLED_TEMPLATES: Record<string, unknown>[] = [
       },
       {
         title: "Decisions",
-        description: 'What was agreed. Write "None" if nothing was decided.',
+        description: "What was agreed. Write “None” if nothing was decided.",
       },
       {
         title: "Next steps",

@@ -319,7 +319,11 @@ function TabContentNoteInner({
                           card (picture review, Oct 6: the dark fill matched
                           the page; NN/g #4). */}
                       <div className="border-border bg-card dark:bg-muted overflow-hidden rounded-[22px] border">
-                        <AudioPlayer.Timeline contentClassName="py-1.5 pr-3 pl-1" />
+                        {/* Fork: the play button sits 12 pt from the player's
+                            left edge, as the waveform ends 12 pt from its right
+                            (picture review, Oct 7: 9 and 12 pt). `!` because
+                            the shell's px-2 wins over a plain pl (measured). */}
+                        <AudioPlayer.Timeline contentClassName="py-1.5 pl-[11px]!" />
                       </div>
                     </div>
                   ) : null

@@ -72,7 +72,10 @@ export function TranscriptToolbar({
       role="toolbar"
       aria-label={t`Transcript`}
       data-transcript-toolbar
-      className="mx-auto mb-2 flex h-8 w-full max-w-[576px] shrink-0 items-center gap-1"
+      // Fork: the last button's -mr-2 puts the drawn icons, not their
+      // 32 pt circles, on the bubbles' right edge (picture review, Oct 7:
+      // 9.5 pt short; Apple HIG, Layout).
+      className="mx-auto mb-2 flex h-8 w-full max-w-[576px] shrink-0 items-center gap-1 [&>*:last-child]:-mr-2"
     >
       <div className="flex-1" />
       {/* Fork: Resume lives in the note's bottom bar (redline3 S3), so the
