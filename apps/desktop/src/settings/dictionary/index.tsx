@@ -126,7 +126,9 @@ export function DictionarySettings({
             <form.Field name="term">
               {(field) => (
                 <InputGroupInput
-                  className="pr-4 pl-4"
+                  // Fork: the 12 pt text inset of the other Settings fields
+                  // (picture review, Oct 6: 18.5 pt; NN/g #4).
+                  className="pr-3 pl-3"
                   aria-label={t`Add a term`}
                   aria-describedby={hintId}
                   placeholder={t`Add a term`}

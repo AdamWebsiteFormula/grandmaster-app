@@ -217,7 +217,9 @@ export function TemplateForm({
 
   return (
     <div className="flex h-full flex-1 flex-col">
-      <div className="flex h-12 items-center justify-between gap-3 pr-1 pl-3">
+      {/* Fork: the icon glyph starts on the content's 24 pt edge: 18 pt plus
+          the picker button's 6 pt inset (picture review, Oct 6). */}
+      <div className="flex h-12 items-center justify-between gap-3 pr-1 pl-[18px]">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <form.Field name="icon">
             {(field) => (

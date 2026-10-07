@@ -283,15 +283,18 @@ export function SettingLinkRow({
       {value ? (
         <span className="text-muted-foreground shrink-0 text-xs">{value}</span>
       ) : null}
+      {/* Fork: the drawn chevron or arrow, not its 16 px box, ends on the
+          trailing edge that switches and selects use, as in System Settings
+          (picture review, Oct 6: 5 pt short). */}
       {external ? (
         <ArrowUpRight
           aria-hidden
-          className="text-muted-foreground size-4 shrink-0"
+          className="text-muted-foreground -mr-1 size-4 shrink-0"
         />
       ) : (
         <CaretRight
           aria-hidden
-          className="text-muted-foreground size-4 shrink-0"
+          className="text-muted-foreground -mr-[5px] size-4 shrink-0"
         />
       )}
     </button>

@@ -145,7 +145,9 @@ export function AutoFormatForm({
         void form.handleSubmit().catch(() => {});
       }}
     >
-      <div className="flex h-12 shrink-0 items-center justify-between gap-3 pr-1 pl-3">
+      {/* Fork: the icon starts on the content's 24 pt edge, as on the other
+          template pages (picture review, Oct 6). */}
+      <div className="flex h-12 shrink-0 items-center justify-between gap-3 pr-1 pl-6">
         <div className="flex min-w-0 items-center gap-2">
           {/* Fork: neutral, as the note picker shows Auto; orange marks only
               the main action (design-system.md The one accent; Apple HIG

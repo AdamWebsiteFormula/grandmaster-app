@@ -600,7 +600,9 @@ function Included({ value }: { value: boolean | string }) {
     return <span className="text-muted-foreground text-xs">{value}</span>;
   }
   return value ? (
-    <span role="img" aria-label={t`Included`} className="inline-flex">
+    // Fork: align-middle centers the check on the row's text, not its
+    // baseline (picture review, Oct 6: 2 pt high).
+    <span role="img" aria-label={t`Included`} className="inline-flex align-middle">
       <Check className="text-foreground size-4" weight="bold" aria-hidden />
     </span>
   ) : (

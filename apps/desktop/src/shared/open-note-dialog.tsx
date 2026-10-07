@@ -557,7 +557,7 @@ export function OpenNoteDialog({
           value={`page-${page.id}`}
           onSelect={() => handleSelectPage(page)}
           className={cn([
-            "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5",
+            "flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2.5",
             // Fork: results in the primary text color, as Spotlight lists
             // them; gray read as disabled (picture review, Oct 5; Apple HIG,
             // Color: secondary label only for less important text).
@@ -667,9 +667,14 @@ export function OpenNoteDialog({
               </button>
             </div>
 
+            {/* Fork: the 6 pt scroll bar gutter is kept on both sides and the
+                rows use an 8 pt inset, so a row's icon and text line up with
+                the search icon and query above, and the selection sits 8 pt
+                from both edges (picture review, Oct 6: 8 and 14 pt, rows 4 pt
+                right of the field; Apple HIG, Layout). */}
             <CommandPrimitive.List
               ref={listRef}
-              className="max-h-80 overflow-y-auto p-2"
+              className="max-h-80 overflow-y-auto px-0.5 py-2 [scrollbar-gutter:stable_both-edges]"
             >
               {!hasAnyResults ? (
                 <CommandPrimitive.Empty className="text-muted-foreground py-6 text-center text-sm">
@@ -710,7 +715,7 @@ export function OpenNoteDialog({
                           value={`recent-${session.id}`}
                           onSelect={() => handleSelect(session)}
                           className={cn([
-                            "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5",
+                            "flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2.5",
                             "text-foreground text-sm",
                             "data-[selected=true]:bg-sidebar-accent data-[selected=true]:text-foreground dark:data-[selected=true]:bg-[hsl(0_0%_22%)]",
                             "transition-colors",
@@ -745,7 +750,7 @@ export function OpenNoteDialog({
                           value={`${note.resourceType}-${note.id}`}
                           onSelect={() => handleSelect(note)}
                           className={cn([
-                            "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5",
+                            "flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2.5",
                             "text-foreground text-sm",
                             "data-[selected=true]:bg-sidebar-accent data-[selected=true]:text-foreground dark:data-[selected=true]:bg-[hsl(0_0%_22%)]",
                             "transition-colors",
@@ -786,7 +791,7 @@ export function OpenNoteDialog({
                           value={`content-${note.id}`}
                           onSelect={() => handleSelect(note)}
                           className={cn([
-                            "flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2.5",
+                            "flex cursor-pointer items-start gap-3 rounded-lg px-2 py-2.5",
                             "text-foreground text-sm",
                             "data-[selected=true]:bg-sidebar-accent data-[selected=true]:text-foreground dark:data-[selected=true]:bg-[hsl(0_0%_22%)]",
                             "transition-colors",

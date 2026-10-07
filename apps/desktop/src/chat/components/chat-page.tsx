@@ -173,7 +173,9 @@ export function ChatPage() {
           <form
             onSubmit={onSubmit}
             className={cn([
-              "bg-card dark:bg-muted border-input flex min-h-[88px] flex-col gap-2 rounded-2xl border p-3",
+              // Fork: px-4, the 16 pt text inset of Home's cards and composer
+              // (picture review, Oct 6: 12 pt here, 20.5 pt on Home).
+              "bg-card dark:bg-muted border-input flex min-h-[88px] flex-col gap-2 rounded-2xl border px-4 py-3",
               "focus-within:ring-ring focus-within:ring-2",
             ])}
           >

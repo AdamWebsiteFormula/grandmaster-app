@@ -112,7 +112,10 @@ export function HomeComposer() {
           </div>
           <form
             onSubmit={onSubmit}
-            className="flex h-12 items-center gap-2 rounded-xl border-0 bg-transparent pr-2 pl-4"
+            // Fork: pl-3 puts the text 16 pt inside the border, as in the
+            // Coming up card, the chip row above and Chat's composer
+            // (picture review, Oct 6: 20.5 pt; NN/g #4).
+            className="flex h-12 items-center gap-2 rounded-xl border-0 bg-transparent pr-2 pl-3"
           >
             <input
               value={value}
