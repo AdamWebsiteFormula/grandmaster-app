@@ -2,7 +2,7 @@ import { msg } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { platform } from "@tauri-apps/plugin-os";
 
-import { AppWindow, Desktop, Rocket } from "@anlg/ui/components/icons";
+import { DockBar, MenuBar, Rocket } from "@anlg/ui/components/icons";
 
 import { SettingsGroup, SettingSwitchRow } from "~/settings/setting-row";
 
@@ -38,9 +38,7 @@ export function AppSettingsView({
   const trayIsLastOn = isMacos && showTrayIcon.value && !showAppInDock.value;
   // Fork: a locked switch says what to turn on, as Meetings' "Join scheduled
   // meetings" does (picture review, Oct 8; NN/g #1, #4).
-  const dockLockedReason = (
-    <Trans>Turn on “Show in menu bar” first.</Trans>
-  );
+  const dockLockedReason = <Trans>Turn on “Show in menu bar” first.</Trans>;
   const trayLockedReason = <Trans>Turn on “Show app in Dock” first.</Trans>;
 
   return (
@@ -69,7 +67,7 @@ export function AppSettingsView({
       )}
       {isMacos && (
         <SettingSwitchRow
-          icon={AppWindow}
+          icon={DockBar}
           title={<Trans>Show app in Dock</Trans>}
           description={
             dockIsLastOn ? (
@@ -84,7 +82,7 @@ export function AppSettingsView({
         />
       )}
       <SettingSwitchRow
-        icon={Desktop}
+        icon={MenuBar}
         title={
           isMacos ? (
             <Trans>Show in menu bar</Trans>

@@ -349,7 +349,10 @@ function NoteAskField({
         <span
           aria-hidden
           data-note-bar-divider
-          className="bg-border h-5 w-px shrink-0"
+          // Fork: -ml-1 mr-1 centers the divider between the button's
+          // label and the field's text, about 11.5 pt each side (picture
+          // review, Oct 8: 15 and 8 pt; Apple HIG, Layout).
+          className="bg-border -ml-1 mr-1 h-5 w-px shrink-0"
         />
       ) : null}
       <input

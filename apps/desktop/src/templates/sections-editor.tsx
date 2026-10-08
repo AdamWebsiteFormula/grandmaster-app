@@ -323,7 +323,7 @@ function SectionItem({
             // SETTING_CONTROL_CLASS; NN/g #4; Apple HIG Text fields).
             // Fork: no resize grip; it grows with its text, as Mac text views
             // do (picture review, Oct 6; Apple HIG, Text views).
-            "bg-card dark:bg-muted min-h-[100px] w-full resize-none rounded-xl border p-3 text-sm transition-colors [field-sizing:content]",
+            "bg-card dark:bg-muted min-h-[100px] w-full resize-none rounded-lg border p-3 text-sm transition-colors [field-sizing:content]",
             "focus-visible:outline-hidden",
             isFocused
               ? "ring-primary/20 border-primary ring-2"

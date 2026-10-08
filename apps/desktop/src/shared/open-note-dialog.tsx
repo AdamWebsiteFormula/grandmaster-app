@@ -538,6 +538,9 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
     return () => cancelAnimationFrame(frame);
   }, [resultsKey]);
 
+  // Fork: group dividers have 12 pt above and below (gap-1.5 plus mt-1.5
+  // and the pb-1.5 under the group before), so they sit centered between
+  // the groups (picture review, Oct 8: 6 and 22 pt).
   const pageGroup = filteredPages.length > 0 && (
     <CommandPrimitive.Group
       className={
@@ -550,9 +553,9 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
             : ""
       }
       heading={
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1.5">
           {isQueryEmpty && filteredRecentSessions.length > 0 && (
-            <div className="bg-accent mx-2 h-px" />
+            <div className="bg-accent mx-2 mt-1.5 h-px" />
           )}
           <div className="text-muted-foreground px-2 py-1.5 text-xs font-medium">
             <Trans>Go to</Trans>
@@ -718,9 +721,9 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
                           : ""
                       }
                       heading={
-                        <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-1.5">
                           {!isQueryEmpty && filteredPages.length > 0 && (
-                            <div className="bg-accent mx-2 h-px" />
+                            <div className="bg-accent mx-2 mt-1.5 h-px" />
                           )}
                           <div className="text-muted-foreground px-2 py-1.5 text-xs font-medium">
                             <Trans>Recent</Trans>
@@ -754,10 +757,10 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
                   {filteredOtherNotes.length > 0 && (
                     <CommandPrimitive.Group
                       heading={
-                        <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-1.5">
                           {(filteredPages.length > 0 ||
                             filteredRecentSessions.length > 0) && (
-                            <div className="bg-accent mx-2 h-px" />
+                            <div className="bg-accent mx-2 mt-1.5 h-px" />
                           )}
                           <div className="text-muted-foreground px-2 py-1.5 text-xs font-medium">
                             <Trans>All notes</Trans>
@@ -796,11 +799,11 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
                   {contentResults.length > 0 && (
                     <CommandPrimitive.Group
                       heading={
-                        <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-1.5">
                           {(filteredPages.length > 0 ||
                             filteredRecentSessions.length > 0 ||
                             filteredOtherNotes.length > 0) && (
-                            <div className="bg-accent mx-2 h-px" />
+                            <div className="bg-accent mx-2 mt-1.5 h-px" />
                           )}
                           <div className="text-muted-foreground px-2 py-1.5 text-xs font-medium">
                             <Trans>In notes</Trans>

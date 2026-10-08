@@ -5,6 +5,8 @@
 import { Trans } from "@lingui/react/macro";
 import { useState } from "react";
 
+import { FileText } from "@anlg/ui/components/icons";
+
 import { RECENT_PAGE_SIZE, useFolderNotes } from "~/home/home-data";
 import { RecentNotes } from "~/home/home-view";
 
@@ -27,11 +29,15 @@ export function FolderNotes({ folderPath }: { folderPath: string }) {
             states, nngroup.com/articles/empty-state-interface-design). No
             dashed outline: it read as a drop target, and Granola's empty
             states have none (picture review, Oct 6). */}
-        <div className="flex flex-col items-center gap-1 px-6 text-center">
-          <p className="text-muted-foreground text-sm">
+        {/* The same pattern as the dictionary's empty state: a glyph, a
+            title in primary text, a smaller secondary line (picture review,
+            Oct 8; Apple HIG, content-unavailable views; NN/g #4). */}
+        <div className="flex flex-col items-center px-6 text-center">
+          <FileText className="text-muted-foreground mb-2 size-4" />
+          <p className="text-sm font-medium">
             <Trans>No notes in this folder yet</Trans>
           </p>
-          <p className="text-muted-foreground text-sm text-pretty">
+          <p className="text-muted-foreground mt-0.5 text-xs text-pretty">
             <Trans>
               On Home, right-click a note and choose Add to folder. Or open a
               note and click Add to folder under its title.

@@ -54,6 +54,7 @@ import {
   CrownIcon,
   Cursor01Icon,
   DatabaseIcon,
+  DockIcon,
   DollarSignIcon,
   Download01Icon,
   ElectricPlugsIcon,
@@ -93,6 +94,7 @@ import {
   KanbanIcon,
   Key01Icon,
   LaptopPhoneSyncIcon,
+  LayoutTopIcon,
   Leaf01Icon,
   LeftToRightListBulletIcon,
   LeftToRightListNumberIcon,
@@ -118,7 +120,7 @@ import {
   Mic01Icon,
   MicOff01Icon,
   MinusIcon,
-  MoonIcon,
+  Moon02Icon,
   MoreHorizontalIcon,
   MoreVerticalIcon,
   MusicNote01Icon,
@@ -637,7 +639,13 @@ export const MinusCircle = /* @__PURE__ */ createIcon(
   CircleMinusIcon,
   "MinusCircle",
 );
-export const Moon = /* @__PURE__ */ createIcon(MoonIcon, "Moon");
+// Fork: the crescent, the symbol macOS uses for Do Not Disturb and Focus
+// (picture review, Oct 8: the cratered full moon read as a ball).
+export const Moon = /* @__PURE__ */ createIcon(Moon02Icon, "Moon");
+// Fork: a bar along the bottom and one along the top, as SF Symbols'
+// dock.rectangle and menubar.rectangle show the Dock and the menu bar.
+export const DockBar = /* @__PURE__ */ createIcon(DockIcon, "DockBar");
+export const MenuBar = /* @__PURE__ */ createIcon(LayoutTopIcon, "MenuBar");
 export const MusicNote = /* @__PURE__ */ createIcon(
   MusicNote01Icon,
   "MusicNote",
