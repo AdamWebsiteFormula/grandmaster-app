@@ -1122,7 +1122,9 @@ test("privacy policy: served from public/ with the CalOPPA items", async () => {
     "utf8",
   );
   assert.match(config, /"directory": "\.\/public"/);
-  assert.doesNotMatch(config, /"html_handling"|"run_worker_first"/);
+  assert.doesNotMatch(config, /"html_handling"/);
+  // Only the video runs through the Worker first (media.js answers its byte ranges).
+  assert.deepEqual([...config.matchAll(/"run_worker_first": (\[[^\]]*\]|\w+)/g)].map((m) => m[1]), ['["/media/*"]']);
 });
 
 // ---------- Hardening (Oct 3) ----------
@@ -2324,4 +2326,28 @@ test("calendar switch: providers are off unless their var is 1, and off means no
     );
     assert.equal(signIn.status, 302, "plain sign-in is never blocked");
   }
+});
+
+test("media: the home page video answers byte ranges with 206, as Safari needs", async () => {
+  const bytes = new Uint8Array(100).map((_, i) => i);
+  const env = { ASSETS: { fetch: async (req) => (new URL(req.url).pathname === "/media/v.mp4" && !req.headers.get("Range")
+    ? new Response(bytes, { headers: { "Content-Type": "video/mp4" } })
+    : new Response("not found", { status: 404 })) } };
+  const get = (range) => worker.fetch(new Request("https://upshotnotes.com/media/v.mp4", range ? { headers: { Range: range } } : {}), env);
+  let r = await get("bytes=10-19");
+  assert.equal(r.status, 206);
+  assert.equal(r.headers.get("Content-Range"), "bytes 10-19/100");
+  assert.equal(r.headers.get("Content-Type"), "video/mp4");
+  assert.deepEqual([...new Uint8Array(await r.arrayBuffer())], [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
+  r = await get("bytes=90-");
+  assert.equal(r.headers.get("Content-Range"), "bytes 90-99/100");
+  r = await get("bytes=-5");
+  assert.equal(r.headers.get("Content-Range"), "bytes 95-99/100");
+  r = await get("bytes=200-300");
+  assert.equal(r.status, 416);
+  r = await get(null);
+  assert.equal(r.status, 200);
+  assert.equal(r.headers.get("Accept-Ranges"), "bytes");
+  r = await worker.fetch(new Request("https://upshotnotes.com/media/none.mp4"), env);
+  assert.equal(r.status, 404);
 });

@@ -30,7 +30,9 @@
   // (public/ holds brand/ and privacy.html). Default html_handling
   // "auto-trailing-slash" serves privacy.html at /privacy
   // (developers.cloudflare.com/workers/static-assets/routing/advanced/html-handling/).
-  "assets": { "directory": "./public", "binding": "ASSETS" },
+  // /media/* (the home page video) runs through the Worker first so media.js
+  // can answer byte ranges, which Safari and iOS need to play an MP4.
+  "assets": { "directory": "./public", "binding": "ASSETS", "run_worker_first": ["/media/*"] },
   // Fork: Upshot's own domain (Adam, Oct 6). Google sign-in returns to
   // PUBLIC_ORIGIN/auth/google/callback (auth.js); / and /privacy are the
   // home page and privacy policy Google's brand review checks.

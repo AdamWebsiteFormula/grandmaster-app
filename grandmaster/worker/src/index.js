@@ -26,6 +26,7 @@ import { handleBilling, handleDeleteAccount } from "./billing.js";
 import { calendarProviders, handleCalendar } from "./calendar.js";
 import { json, userRateLimited } from "./http.js";
 import { handleStt } from "./stt.js";
+import { handleMedia } from "./media.js";
 import {
   AUTO_MODEL,
   isProModelSlug,
@@ -58,6 +59,12 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    if (
+      (request.method === "GET" || request.method === "HEAD") &&
+      url.pathname.startsWith("/media/")
+    ) {
+      return handleMedia(request, env);
+    }
     if (request.method === "GET" && url.pathname === "/health") {
       return new Response("ok");
     }
