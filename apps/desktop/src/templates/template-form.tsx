@@ -348,7 +348,7 @@ export function TemplateForm({
       </div>
 
       <div className="relative min-h-0 flex-1 overflow-hidden">
-        <div className="scroll-fade-y h-full overflow-y-auto px-6 pt-3 pb-6">
+        <div className="scrollbar-hide scroll-fade-y h-full overflow-y-auto px-6 pt-3 pb-6">
           <div className="min-w-0">
             <form.Field name="description">
               {(field) => (

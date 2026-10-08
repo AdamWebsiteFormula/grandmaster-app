@@ -447,7 +447,7 @@ function EmptyWeek() {
     return (
       <>
         <p className="text-muted-foreground min-w-0 flex-1 text-sm">
-          <Trans>Your next meetings show up here</Trans>
+          <Trans>Your next meetings show up here.</Trans>
         </p>
         <Button
           type="button"

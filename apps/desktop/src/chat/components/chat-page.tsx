@@ -202,12 +202,14 @@ export function ChatPage() {
                 // Apple HIG, Color: the accent marks the primary action).
                 // Fork: in dark, a bright fill with a dark arrow reads as ready,
                 // so the empty Send is a muted chip with a gray arrow (Apple
-                // HIG, Buttons: a disabled button looks unavailable).
+                // HIG, Buttons: a disabled button looks unavailable). Same
+                // pale chip in light (picture review, Oct 8: a solid gray
+                // read as the heaviest thing in the box).
                 className={cn([
-                  "inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition disabled:cursor-default disabled:opacity-45 dark:disabled:opacity-100",
+                  "inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition disabled:cursor-default",
                   value.trim()
                     ? "bg-primary text-primary-foreground hover:brightness-90"
-                    : "bg-foreground text-background dark:bg-foreground/15 dark:text-foreground/40",
+                    : "bg-foreground/10 text-foreground/40 dark:bg-foreground/15",
                 ])}
               >
                 <ArrowUp className="size-4" weight="bold" />

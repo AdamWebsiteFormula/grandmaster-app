@@ -37,7 +37,7 @@ import { useTabs } from "~/store/zustand/tabs";
 import { TemplateIconGlyph } from "~/templates/template-icon";
 
 const NAV_ITEM_CLASS =
-  "flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-hidden";
+  "flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-hidden";
 
 export function SidebarHomeNav() {
   const { t } = useLingui();

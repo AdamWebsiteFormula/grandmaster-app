@@ -70,7 +70,7 @@ export function ResourcePreviewHeader({
         </div>
       </div>
 
-      <div className="scroll-fade-y min-h-0 flex-1 overflow-y-auto px-6 pt-3 pb-6">
+      <div className="scrollbar-hide scroll-fade-y min-h-0 flex-1 overflow-y-auto px-6 pt-3 pb-6">
         <div className="min-w-0">
           {description && (
             <p className="text-muted-foreground min-h-[24px] text-sm">

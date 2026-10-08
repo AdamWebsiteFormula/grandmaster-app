@@ -8833,8 +8833,12 @@ msgid "Your mic is muted"
 msgstr "Your mic is muted"
 
 #: src/home/home-view.tsx
-msgid "Your next meetings show up here"
-msgstr "Your next meetings show up here"
+#~ msgid "Your next meetings show up here"
+#~ msgstr "Your next meetings show up here"
+
+#: src/home/home-view.tsx
+msgid "Your next meetings show up here."
+msgstr "Your next meetings show up here."
 
 #: src/settings/profile/index.tsx
 msgid "Your notes"

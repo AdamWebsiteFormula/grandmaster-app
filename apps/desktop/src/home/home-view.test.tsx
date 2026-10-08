@@ -289,7 +289,7 @@ describe("HomeView", () => {
     render(<HomeView />);
 
     expect(screen.queryByText("No meetings in the next 7 days")).toBeNull();
-    expect(screen.getByText("Your next meetings show up here")).toBeTruthy();
+    expect(screen.getByText("Your next meetings show up here.")).toBeTruthy();
     expect(
       screen.queryByRole("button", { name: "Start recording" }),
     ).toBeNull();
