@@ -39,13 +39,14 @@ export function ThemeSelector() {
   const setTheme = useSetSettingValue("theme");
   const trackRef = useSquircleRef<HTMLDivElement>();
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  // Fork: off a Mac the theme that follows the OS reads "Use system
-  // setting", as Windows 11 Notepad words it (Settings › App theme).
+  // Fork: "Auto", the word macOS System Settings › Appearance uses, so the
+  // three segments are short and equal (picture review, Oct 8; Apple HIG,
+  // Segmented controls); off a Mac, "System", as Windows calls it.
   const mac = isMac();
   const options = [
     { value: "light", label: t`Light` },
     { value: "dark", label: t`Dark` },
-    { value: "system", label: mac ? t`Match my Mac` : t`Use system setting` },
+    { value: "system", label: mac ? t`Auto` : t`System` },
   ] as const satisfies readonly { value: ThemePreference; label: string }[];
 
   const choose = (next: ThemePreference) => {
@@ -109,7 +110,7 @@ export function ThemeSelector() {
                 // Fork: text-sm like the other Settings row controls; 28 pt
                 // inside the 32 pt track (NN/g #4).
                 className={cn([
-                  "flex h-7 items-center rounded-md px-3 text-sm font-medium whitespace-nowrap transition-colors",
+                  "flex h-7 items-center justify-center rounded-md px-3 text-sm font-medium whitespace-nowrap transition-colors",
                   "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
                   SEGMENT_BASE_CLASS,
                   selected ? SEGMENT_SELECTED_CLASS : SEGMENT_IDLE_CLASS,

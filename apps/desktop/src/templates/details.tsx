@@ -149,9 +149,12 @@ function WebTemplatePreview({
             <Button
               type="button"
               size="sm"
-              variant="ghost"
+              variant="outline"
               onClick={() => onSetDefault(nextTemplate)}
-              className="text-muted-foreground hover:text-foreground shrink-0"
+              // Fork: a bordered button, as Share is, so it reads as a
+              // command, not a byline (picture review, Oct 8; NN/g, flat UI
+              // signifiers).
+              className="h-7 shrink-0 px-2.5 shadow-none"
             >
               <Trans>Set as default</Trans>
             </Button>

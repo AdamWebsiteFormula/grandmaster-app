@@ -125,8 +125,8 @@ export function useSettingsNavGroups(): SettingsNavGroup[] {
           label: t`Appearance`,
           icon: Sun,
           keywords: mac
-            ? t`theme, dark, light, mode, Match my Mac, 24-hour, time format, clock`
-            : t`theme, dark, light, mode, Use system setting, 24-hour, time format, clock`,
+            ? t`theme, dark, light, mode, Auto, Match my Mac, 24-hour, time format, clock`
+            : t`theme, dark, light, mode, System, Use system setting, 24-hour, time format, clock`,
           parent: "app",
         },
         {

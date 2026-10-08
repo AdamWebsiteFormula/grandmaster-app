@@ -159,14 +159,15 @@ export function AutoFormatForm({
           <Button
             type="button"
             size="sm"
-            variant="ghost"
+            variant={isDefault ? "ghost" : "outline"}
             className={cn([
-              "text-muted-foreground hover:text-foreground shrink-0",
+              "shrink-0",
               // Fork: neutral, orange marks only the main action (design-system.md
-              // The one accent; Apple HIG Color).
+              // The one accent; Apple HIG Color). "Set as default" is a
+              // bordered button, as Share is (picture review, Oct 8).
               isDefault
                 ? "text-foreground hover:text-foreground hover:bg-transparent disabled:opacity-100"
-                : null,
+                : "h-7 px-2.5 shadow-none",
             ])}
             onClick={() => {
               void setSettingValue("selected_template_id", "").catch(

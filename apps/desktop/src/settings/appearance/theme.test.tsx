@@ -35,33 +35,28 @@ describe("ThemeSelector", () => {
     mocks.platform = "macos";
   });
 
-  // Fork: Windows 11 Notepad's App theme says "Use system setting".
-  it.each(["windows", "linux"])(
-    "says Use system setting and your computer on %s",
-    (os) => {
-      mocks.platform = os;
-      render(<ThemeSelector />);
+  // Fork: off a Mac the option that follows the OS says "System".
+  it.each(["windows", "linux"])("says System and your computer on %s", (os) => {
+    mocks.platform = os;
+    render(<ThemeSelector />);
 
-      expect(
-        screen
-          .getByRole("radio", { name: "Use system setting" })
-          .getAttribute("aria-checked"),
-      ).toBe("true");
-      expect(
-        screen.getByText("Light, dark, or the same as your computer."),
-      ).toBeTruthy();
-      expect(screen.queryByText(/Mac/)).toBeNull();
-    },
-  );
+    expect(
+      screen
+        .getByRole("radio", { name: "System" })
+        .getAttribute("aria-checked"),
+    ).toBe("true");
+    expect(
+      screen.getByText("Light, dark, or the same as your computer."),
+    ).toBeTruthy();
+    expect(screen.queryByText(/Mac/)).toBeNull();
+  });
 
   it("applies the selected theme with the current app icon", () => {
     mocks.appIcon = "anagram";
     render(<ThemeSelector />);
 
     expect(
-      screen
-        .getByRole("radio", { name: /Match my Mac/ })
-        .getAttribute("aria-checked"),
+      screen.getByRole("radio", { name: /Auto/ }).getAttribute("aria-checked"),
     ).toBe("true");
 
     fireEvent.click(screen.getByRole("radio", { name: /Dark/ }));
@@ -71,7 +66,7 @@ describe("ThemeSelector", () => {
   });
 
   // grandmaster/sops/settings-ia-oct3.md Q1: one compact row with text
-  // segments, Match my Mac by default.
+  // segments, Auto by default (macOS System Settings › Appearance).
   it("is one Theme row with three text segments", () => {
     render(<ThemeSelector />);
     const group = screen.getByRole("radiogroup", { name: "Theme" });
@@ -79,7 +74,7 @@ describe("ThemeSelector", () => {
       Array.from(group.querySelectorAll("[role=radio]")).map(
         (radio) => radio.textContent,
       ),
-    ).toEqual(["Light", "Dark", "Match my Mac"]);
+    ).toEqual(["Light", "Dark", "Auto"]);
   });
 
   it("marks the choice with a light bordered tile in light and a gray fill in dark", () => {
@@ -96,7 +91,7 @@ describe("ThemeSelector", () => {
 
   it("moves and selects with the arrow keys", () => {
     render(<ThemeSelector />);
-    const system = screen.getByRole("radio", { name: "Match my Mac" });
+    const system = screen.getByRole("radio", { name: "Auto" });
     expect(system.getAttribute("tabindex")).toBe("0");
 
     fireEvent.keyDown(system, { key: "ArrowRight" });

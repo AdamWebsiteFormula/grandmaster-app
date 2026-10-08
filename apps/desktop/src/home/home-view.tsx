@@ -24,6 +24,7 @@ import {
   CalendarBlank,
   CaretLeft,
   CaretRight,
+  FileText,
   Lock,
   Microphone,
 } from "@anlg/ui/components/icons";
@@ -723,8 +724,9 @@ function RecentNoteRow({
         className="hover:bg-accent flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors"
       >
         {/* Fork: the first attendee's initial in a rounded square, as
-            Granola's meeting rows have; no mark without attendees
-            (redline2-oct3, Home). */}
+            Granola's meeting rows have; without attendees, a neutral note
+            glyph in the same tile, so the list's left edge holds (picture
+            review, Oct 8; Apple Mail fills an empty avatar slot). */}
         {initial ? (
           <span
             aria-hidden="true"
@@ -734,7 +736,13 @@ function RecentNoteRow({
             {initial}
           </span>
         ) : avatarSlot ? (
-          <span aria-hidden="true" className="size-8 shrink-0" />
+          <span
+            aria-hidden="true"
+            data-note-avatar
+            className="bg-muted text-muted-foreground border-border flex size-8 shrink-0 items-center justify-center rounded-lg border"
+          >
+            <FileText className="size-4" />
+          </span>
         ) : null}
         <span className="flex min-w-0 flex-1 flex-col">
           {/* Fork: the time sits on the title's line, baseline-aligned,

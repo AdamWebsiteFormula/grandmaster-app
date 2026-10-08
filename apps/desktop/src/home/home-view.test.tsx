@@ -155,7 +155,9 @@ describe("HomeView", () => {
     expect(screen.getAllByText("10:00 – 10:05 AM")).toHaveLength(2);
     expect(screen.getByText("12:00 – 12:05 PM")).toBeTruthy();
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Start recording" })[0]);
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "Start recording" })[0],
+    );
     await vi.waitFor(() =>
       expect(mocks.openSessionAndListen).toHaveBeenCalledWith("session-1", {
         behavior: "current",
@@ -380,7 +382,7 @@ describe("HomeView", () => {
         ],
       },
     ];
-    const { container } = render(<HomeView />);
+    render(<HomeView />);
 
     expect(screen.getByRole("heading", { name: "Notes" })).toBeTruthy();
     for (const name of ["Today", "Yesterday", "Wed, Sep 30"]) {
@@ -409,14 +411,15 @@ describe("HomeView", () => {
     expect(ideas.className).toContain("min-h-14");
     expect(ideas.className).toContain("items-center");
     expect(ideas.querySelector("span.text-xs")).toBeNull();
-    // Attendee initials only when people were there; no glyph otherwise.
+    // Attendee initials when people were there.
     expect(screen.getByText("B")).toBeTruthy();
     expect(screen.getByText("A")).toBeTruthy();
-    expect(container.querySelectorAll("[data-note-avatar]")).toHaveLength(2);
-    // A row without attendees keeps an empty slot so titles line up.
+    // A row without attendees shows a neutral note glyph in the same tile,
+    // so the list's left edge holds (picture review, Oct 8).
     const plain = screen.getByText("Ideas").closest("button")!;
-    expect(plain.querySelector("svg")).toBeNull();
-    expect(plain.querySelector("span.size-8")?.textContent).toBe("");
+    const tile = plain.querySelector("[data-note-avatar]")!;
+    expect(tile.querySelector("svg")).toBeTruthy();
+    expect(tile.textContent).toBe("");
     expect(screen.queryByText("S")).toBeNull();
     expect(screen.getByText("11:00 AM").className).toContain("text-sm");
     // The time sits on the title's line, baseline-aligned (redline5-oct3).

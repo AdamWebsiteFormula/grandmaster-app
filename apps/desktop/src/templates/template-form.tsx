@@ -263,19 +263,21 @@ export function TemplateForm({
           <Button
             type="button"
             size="sm"
-            variant="ghost"
+            variant={isDefault ? "ghost" : "outline"}
             onClick={setSelectedTemplateId}
             aria-pressed={isDefault}
             // Fork: translated, sentence case (journey-after P3 "Templates";
             // design-system Words).
             title={isDefault ? t`Remove as default` : t`Set as default`}
             className={cn([
-              "text-muted-foreground hover:text-foreground shrink-0",
+              "shrink-0",
               // Fork: neutral, orange marks only the main action (design-system.md
-              // The one accent; Apple HIG Color).
+              // The one accent; Apple HIG Color). "Set as default" is a
+              // bordered button, as Share is; "Current default" a plain
+              // status label (picture review, Oct 8).
               isDefault
                 ? "text-foreground hover:text-foreground hover:bg-transparent"
-                : null,
+                : "h-7 px-2.5 shadow-none",
             ])}
           >
             {isDefault ? (

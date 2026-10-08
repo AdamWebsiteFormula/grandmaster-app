@@ -964,6 +964,7 @@ msgid "Authorize access in your browser, then return to Upshot."
 msgstr "Authorize access in your browser, then return to Upshot."
 
 #: src/chat/components/input/model-menu.tsx
+#: src/settings/appearance/theme.tsx
 msgid "Auto"
 msgstr "Auto"
 
@@ -4239,8 +4240,8 @@ msgid "Match case"
 msgstr "Match case"
 
 #: src/settings/appearance/theme.tsx
-msgid "Match my Mac"
-msgstr "Match my Mac"
+#~ msgid "Match my Mac"
+#~ msgstr "Match my Mac"
 
 #: src/session/components/note-input/search/bar.tsx
 msgid "Match whole word"
@@ -7401,6 +7402,10 @@ msgstr "Synced devices"
 msgid "Syncing…"
 msgstr "Syncing…"
 
+#: src/settings/appearance/theme.tsx
+msgid "System"
+msgstr "System"
+
 #. placeholder {0}: timeZoneCity(systemTimezone)
 #: src/settings/general/timezone.tsx
 msgid "System ({0})"
@@ -7568,12 +7573,20 @@ msgid "Theme"
 msgstr "Theme"
 
 #: src/sidebar/settings-nav-groups.ts
-msgid "theme, dark, light, mode, Match my Mac, 24-hour, time format, clock"
-msgstr "theme, dark, light, mode, Match my Mac, 24-hour, time format, clock"
+msgid "theme, dark, light, mode, Auto, Match my Mac, 24-hour, time format, clock"
+msgstr "theme, dark, light, mode, Auto, Match my Mac, 24-hour, time format, clock"
 
 #: src/sidebar/settings-nav-groups.ts
-msgid "theme, dark, light, mode, Use system setting, 24-hour, time format, clock"
-msgstr "theme, dark, light, mode, Use system setting, 24-hour, time format, clock"
+#~ msgid "theme, dark, light, mode, Match my Mac, 24-hour, time format, clock"
+#~ msgstr "theme, dark, light, mode, Match my Mac, 24-hour, time format, clock"
+
+#: src/sidebar/settings-nav-groups.ts
+msgid "theme, dark, light, mode, System, Use system setting, 24-hour, time format, clock"
+msgstr "theme, dark, light, mode, System, Use system setting, 24-hour, time format, clock"
+
+#: src/sidebar/settings-nav-groups.ts
+#~ msgid "theme, dark, light, mode, Use system setting, 24-hour, time format, clock"
+#~ msgstr "theme, dark, light, mode, Use system setting, 24-hour, time format, clock"
 
 #: src/settings/automations/workflow-builder.tsx
 msgid "Then"
@@ -8430,8 +8443,8 @@ msgid "Use system audio to capture other speakers"
 msgstr "Use system audio to capture other speakers"
 
 #: src/settings/appearance/theme.tsx
-msgid "Use system setting"
-msgstr "Use system setting"
+#~ msgid "Use system setting"
+#~ msgstr "Use system setting"
 
 #: src/automations/starters.tsx
 msgid "Use the AI meeting summary"

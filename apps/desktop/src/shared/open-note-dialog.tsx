@@ -880,11 +880,13 @@ function MatchText({ text, query }: { text: string; query: string }) {
     .filter(Boolean)
     .map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
   if (terms.length === 0) return <>{text}</>;
-  const pattern = new RegExp(`(${terms.join("|")})`, "gi");
+  // Only matches that start a word, as Spotlight marks them, so "ai" is not
+  // marked inside "said" (picture review, Oct 8).
+  const pattern = new RegExp(`(?<![\\p{L}\\p{N}])(${terms.join("|")})`, "giu");
   return (
     <>
       {text.split(pattern).map((part, index) =>
-        index % 2 === 1 ? (
+        index % 2 === 1 && part ? (
           <span key={index} className="text-foreground font-semibold">
             {part}
           </span>

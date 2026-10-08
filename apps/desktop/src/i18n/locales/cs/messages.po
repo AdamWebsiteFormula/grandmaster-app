@@ -964,6 +964,7 @@ msgid "Authorize access in your browser, then return to Upshot."
 msgstr ""
 
 #: src/chat/components/input/model-menu.tsx
+#: src/settings/appearance/theme.tsx
 msgid "Auto"
 msgstr ""
 
@@ -4239,8 +4240,8 @@ msgid "Match case"
 msgstr ""
 
 #: src/settings/appearance/theme.tsx
-msgid "Match my Mac"
-msgstr ""
+#~ msgid "Match my Mac"
+#~ msgstr ""
 
 #: src/session/components/note-input/search/bar.tsx
 msgid "Match whole word"
@@ -7401,6 +7402,10 @@ msgstr ""
 msgid "Syncing…"
 msgstr ""
 
+#: src/settings/appearance/theme.tsx
+msgid "System"
+msgstr ""
+
 #. placeholder {0}: timeZoneCity(systemTimezone)
 #: src/settings/general/timezone.tsx
 msgid "System ({0})"
@@ -7568,12 +7573,20 @@ msgid "Theme"
 msgstr ""
 
 #: src/sidebar/settings-nav-groups.ts
-msgid "theme, dark, light, mode, Match my Mac, 24-hour, time format, clock"
+msgid "theme, dark, light, mode, Auto, Match my Mac, 24-hour, time format, clock"
 msgstr ""
 
 #: src/sidebar/settings-nav-groups.ts
-msgid "theme, dark, light, mode, Use system setting, 24-hour, time format, clock"
+#~ msgid "theme, dark, light, mode, Match my Mac, 24-hour, time format, clock"
+#~ msgstr ""
+
+#: src/sidebar/settings-nav-groups.ts
+msgid "theme, dark, light, mode, System, Use system setting, 24-hour, time format, clock"
 msgstr ""
+
+#: src/sidebar/settings-nav-groups.ts
+#~ msgid "theme, dark, light, mode, Use system setting, 24-hour, time format, clock"
+#~ msgstr ""
 
 #: src/settings/automations/workflow-builder.tsx
 msgid "Then"
@@ -8430,8 +8443,8 @@ msgid "Use system audio to capture other speakers"
 msgstr ""
 
 #: src/settings/appearance/theme.tsx
-msgid "Use system setting"
-msgstr ""
+#~ msgid "Use system setting"
+#~ msgstr ""
 
 #: src/automations/starters.tsx
 msgid "Use the AI meeting summary"

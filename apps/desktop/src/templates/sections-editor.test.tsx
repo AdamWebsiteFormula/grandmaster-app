@@ -25,7 +25,7 @@ describe("SectionsList", () => {
 
       const field = screen.getByDisplayValue(items[0].description);
       expect(classes(field)).toEqual(
-        expect.arrayContaining(["bg-card", "dark:bg-input/30", "border-input"]),
+        expect.arrayContaining(["bg-card", "dark:bg-muted", "border-input"]),
       );
       expect(classes(field)).not.toContain("bg-muted");
 

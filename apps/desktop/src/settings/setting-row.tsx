@@ -29,9 +29,11 @@ export const SETTING_CONTROL_CLASS =
 // The light track is the sidebar's selection gray, so the control reads as
 // one object on the panel (picture review, Oct 7: bg-accent measured 1.05:1
 // on the light panel; Apple HIG, Segmented controls); dark uses 17% gray for
-// the same reason (Oct 8: 13% measured 1.09:1 on a dark card).
+// the same reason (Oct 8: 13% measured 1.09:1 on a dark card). Segments
+// are equal width, as Apple's segmented controls are (picture review,
+// Oct 8: 55, 53 and 121 pt).
 export const SEGMENT_TRACK_CLASS =
-  "bg-sidebar-accent flex gap-0.5 rounded-lg p-0.5 dark:bg-[hsl(0_0%_17%)]";
+  "bg-sidebar-accent grid auto-cols-fr grid-flow-col gap-0.5 rounded-lg p-0.5 dark:bg-[hsl(0_0%_17%)]";
 export const SEGMENT_BASE_CLASS = "border border-transparent";
 // Fork: `!` on the dark colors: @anlg/ui's stylesheet loads later and
 // also defines .text-foreground, which otherwise wins and draws white text on
