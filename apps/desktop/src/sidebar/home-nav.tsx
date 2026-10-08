@@ -22,7 +22,11 @@ import { cn } from "@anlg/utils";
 import { FolderNameDialog } from "./folder-name-dialog";
 import { ShortcutTooltip } from "./shortcut-tooltip";
 
-import { type FolderAction, useFolderSelection } from "~/folders/selection";
+import {
+  type FolderAction,
+  useActiveFolderPath,
+  useFolderSelection,
+} from "~/folders/selection";
 import { createNamedFolder } from "~/session/folder-catalog";
 import { resolvedFolderIcon } from "~/session/folder-icon";
 import { useFolderIcons, useFolderPaths } from "~/session/queries";
@@ -45,8 +49,11 @@ export function SidebarHomeNav() {
   const iconOverrides = useFolderSelection((state) => state.iconOverrides);
   const setSelectedPath = useFolderSelection((state) => state.setSelectedPath);
   // Fork: the folder you're in is the selected row (two cues), as Home and
-  // Chat are (journey-after P2 "Folders"; design-system.md; NN/g #1).
-  const activeFolder = useFolderSelection((state) => state.selectedPath);
+  // Chat are (journey-after P2 "Folders"; design-system.md; NN/g #1). Same
+  // rule as the folder page, which shows the first folder when none is
+  // chosen, so a folder page restored at launch still marks its row
+  // (picture review, Oct 8: no row selected).
+  const activeFolder = useActiveFolderPath(folders);
   const onFolders = currentTab?.type === "folders";
   const [creatingFolder, setCreatingFolder] = useState(false);
   const foldersHeadingId = useId();

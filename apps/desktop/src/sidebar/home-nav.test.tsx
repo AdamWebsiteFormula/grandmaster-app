@@ -71,6 +71,8 @@ vi.mock("~/folders/selection", () => ({
       setSelectedPath: mocks.setSelectedPath,
       requestFolderAction: mocks.requestFolderAction,
     }),
+  useActiveFolderPath: (folders: string[]) =>
+    mocks.selectedPath ?? folders[0] ?? null,
 }));
 
 import { SidebarHomeNav } from "./home-nav";
@@ -85,6 +87,22 @@ describe("SidebarHomeNav", () => {
     vi.clearAllMocks();
   });
   afterEach(cleanup);
+
+  // A folder page restored at launch shows the first folder with nothing
+  // chosen yet; its row is still the current one (picture review, Oct 8).
+  it("marks the folder the page shows when none is chosen", () => {
+    mocks.currentTab = { type: "folders" };
+    mocks.folders = ["Work", "Clients"];
+    mocks.selectedPath = null;
+    render(<SidebarHomeNav />);
+
+    expect(
+      screen.getByRole("button", { name: "Work" }).getAttribute("aria-current"),
+    ).toBe("page");
+    expect(
+      screen.getByRole("button", { name: "Home" }).getAttribute("aria-current"),
+    ).toBeNull();
+  });
 
   // Fork: journey-after P2 "Folders": the open folder is the selected row.
   it("marks the open folder row as current", () => {
