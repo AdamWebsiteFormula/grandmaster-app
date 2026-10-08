@@ -135,7 +135,12 @@ export function HomeComposer() {
             {value.trim() ? null : (
               <Kbd className="shrink-0">{kbdLabel(["mod", "J"])}</Kbd>
             )}
-            <ChatModelMenu />
+            {/* Fork: with no Send button after it, the model menu's chevron
+                ends 17 pt from the composer's edge, as the text starts 17 pt
+                from the other (picture review, Oct 7: 23 pt). */}
+            <span className={value.trim() ? "contents" : "-mr-1.5 flex"}>
+              <ChatModelMenu />
+            </span>
             {value.trim() ? (
               <button
                 type="submit"

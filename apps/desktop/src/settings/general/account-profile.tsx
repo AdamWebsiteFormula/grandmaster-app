@@ -196,9 +196,10 @@ function ProfileForm({
       <SettingsGroup title={<Trans>Your company</Trans>}>
         <form.Field name="organizationId">
           {(field) => (
-            // Fork: min-h-8, the field rows' height, so Company lines up
-            // with Your info above (picture review, Oct 7: 56 vs 60 pt).
-            <div className="flex min-h-8 items-center justify-between gap-4">
+            // Fork: 60 pt, the field rows' height with the card's padding
+            // (border-box), so Company lines up with Your info above
+            // (picture review, Oct 7: 56 vs 60 pt).
+            <div className="flex min-h-[60px] items-center justify-between gap-4">
               <span className="text-sm font-medium">
                 <Trans>Company</Trans>
               </span>

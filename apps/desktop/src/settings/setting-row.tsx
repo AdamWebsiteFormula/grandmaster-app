@@ -26,7 +26,11 @@ export const SETTING_CONTROL_CLASS =
 // Fork: a 2 pt inset and 28 pt segments make the control 32 pt, like
 // every other Settings control (picture review, Oct 6: 38 and 36 pt; Apple
 // HIG, Segmented controls).
-export const SEGMENT_TRACK_CLASS = "bg-accent flex gap-0.5 rounded-lg p-0.5";
+// The light track is the sidebar's selection gray, so the control reads as
+// one object on the panel (picture review, Oct 7: bg-accent measured 1.05:1
+// on the light panel; Apple HIG, Segmented controls); dark keeps bg-accent.
+export const SEGMENT_TRACK_CLASS =
+  "bg-sidebar-accent dark:bg-accent flex gap-0.5 rounded-lg p-0.5";
 export const SEGMENT_BASE_CLASS = "border border-transparent";
 // Fork: `!` on the dark colors: @anlg/ui's stylesheet loads later and
 // also defines .text-foreground, which otherwise wins and draws white text on

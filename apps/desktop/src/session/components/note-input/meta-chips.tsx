@@ -115,7 +115,9 @@ export function NoteMetaChipsLayer({ children }: { children: ReactNode }) {
 // Monthly/Yearly control, kept at the 24 px chip height, with a 16 px gap
 // before the metadata chips.
 const NOTE_VIEW_SEGMENT_CLASS = cn([
-  "bg-accent mr-2.5 flex items-center gap-0.5 rounded-md p-0.5",
+  // Light track: the sidebar's selection gray, as the Settings segmented
+  // controls (picture review, Oct 7: 1.05:1 on the panel).
+  "bg-sidebar-accent dark:bg-accent mr-2.5 flex items-center gap-0.5 rounded-md p-0.5",
   "[&>button]:h-5 [&>button]:rounded-[5px] [&>button]:border-transparent [&>button]:bg-transparent",
   "[&>button[aria-pressed=true]]:bg-card [&>button[aria-pressed=true]]:border-input [&>button[aria-pressed=true]]:text-foreground",
   "[&>button[aria-current=page]]:bg-card [&>button[aria-current=page]]:border-input",
