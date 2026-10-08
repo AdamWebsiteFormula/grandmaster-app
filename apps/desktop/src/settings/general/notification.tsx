@@ -446,11 +446,14 @@ export function NotificationSettingsView() {
                                                 key={bundleId}
                                                 variant="secondary"
                                                 className={cn([
-                                                  "flex items-center gap-1 px-2 py-0.5 text-xs",
+                                                  // Fork: regular weight and the
+                                                  // primary text color, as the
+                                                  // other tags; "(default)" stays
+                                                  // gray (picture review, Oct 8;
+                                                  // Apple HIG, Token fields).
+                                                  "text-foreground flex items-center gap-1 px-2 py-0.5 text-xs font-normal",
                                                   isDefault
-                                                    ? [
-                                                        "bg-accent text-muted-foreground",
-                                                      ]
+                                                    ? ["bg-accent"]
                                                     : ["bg-muted"],
                                                 ])}
                                                 title={
@@ -463,7 +466,7 @@ export function NotificationSettingsView() {
                                                 {isDefault && (
                                                   // Fork: no fade on text, 4.5:1
                                                   // or more (WCAG 2.2 SC 1.4.3).
-                                                  <span className="text-xs">
+                                                  <span className="text-muted-foreground text-xs">
                                                     <Trans>(default)</Trans>
                                                   </span>
                                                 )}

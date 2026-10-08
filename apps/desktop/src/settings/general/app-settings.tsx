@@ -36,7 +36,12 @@ export function AppSettingsView({
   // is on can't be turned off (ux-audit-oct3 E, HIG; NN/g #5).
   const dockIsLastOn = isMacos && showAppInDock.value && !showTrayIcon.value;
   const trayIsLastOn = isMacos && showTrayIcon.value && !showAppInDock.value;
-  const keepReachable = <Trans>Keep Upshot in the Dock or the menu bar.</Trans>;
+  // Fork: a locked switch says what to turn on, as Meetings' "Join scheduled
+  // meetings" does (picture review, Oct 8; NN/g #1, #4).
+  const dockLockedReason = (
+    <Trans>Turn on “Show in menu bar” first.</Trans>
+  );
+  const trayLockedReason = <Trans>Turn on “Show app in Dock” first.</Trans>;
 
   return (
     <SettingsGroup title={<Trans>App</Trans>}>
@@ -68,7 +73,7 @@ export function AppSettingsView({
           title={<Trans>Show app in Dock</Trans>}
           description={
             dockIsLastOn ? (
-              keepReachable
+              dockLockedReason
             ) : (
               <Trans>Show Upshot in the Dock and app switcher.</Trans>
             )
@@ -89,7 +94,7 @@ export function AppSettingsView({
         }
         description={
           trayIsLastOn ? (
-            keepReachable
+            trayLockedReason
           ) : isMacos ? (
             <Trans>Open Upshot from the menu bar.</Trans>
           ) : undefined

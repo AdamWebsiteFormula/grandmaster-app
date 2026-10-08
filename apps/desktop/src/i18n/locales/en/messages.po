@@ -3888,8 +3888,8 @@ msgid "Keep this version"
 msgstr "Keep this version"
 
 #: src/settings/general/app-settings.tsx
-msgid "Keep Upshot in the Dock or the menu bar."
-msgstr "Keep Upshot in the Dock or the menu bar."
+#~ msgid "Keep Upshot in the Dock or the menu bar."
+#~ msgstr "Keep Upshot in the Dock or the menu bar."
 
 #: src/settings/dictation.tsx
 msgid "Keep Upshot running to use your shortcut in other apps."
@@ -7913,6 +7913,14 @@ msgstr "Turn into an email"
 #: src/onboarding/calendar.tsx
 msgid "Turn off any calendar you don't meet from."
 msgstr "Turn off any calendar you don't meet from."
+
+#: src/settings/general/app-settings.tsx
+msgid "Turn on “Show app in Dock” first."
+msgstr "Turn on “Show app in Dock” first."
+
+#: src/settings/general/app-settings.tsx
+msgid "Turn on “Show in menu bar” first."
+msgstr "Turn on “Show in menu bar” first."
 
 #: src/settings/general/meeting-settings.tsx
 msgid "Turn on “Start when meeting begins” first."
