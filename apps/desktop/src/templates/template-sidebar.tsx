@@ -461,9 +461,13 @@ export function TemplatesSidebarContent({
         </div>
       </div>
 
+      {/* Fork: rows fade at the list's top and bottom edges instead of being
+          cut against the search field (picture review, Oct 8; Apple HIG,
+          scroll edge effect); scroll-py-6 keeps the selected template,
+          scrolled into view, clear of the 24 pt fade. */}
       <div
         ref={scrollContainerRef}
-        className="scrollbar-hide flex-1 overflow-y-auto"
+        className="scrollbar-hide scroll-fade-y flex-1 scroll-py-6 overflow-y-auto"
       >
         {isEmpty ? (
           <div className="text-muted-foreground px-3 py-8 text-center">

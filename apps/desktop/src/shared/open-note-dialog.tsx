@@ -692,11 +692,12 @@ export function OpenNoteDialog({
             {/* Fork: no scroll bar at rest, as macOS overlay scroll bars, and
                 an 8 pt inset, so a row's icon and text line up with the
                 search icon and query above, and the selection sits 8 pt from
-                both edges (picture review, Oct 6 and 7; Apple HIG, Scroll
+                both edges; a part row at the bottom fades, so it reads as
+                more below (picture review, Oct 6 to 8; Apple HIG, Scroll
                 views, Layout). */}
             <CommandPrimitive.List
               ref={listRef}
-              className="scrollbar-hide max-h-80 overflow-y-auto p-2"
+              className="scrollbar-hide scroll-fade-y max-h-80 overflow-y-auto p-2"
             >
               {!hasAnyResults ? (
                 <CommandPrimitive.Empty className="text-muted-foreground py-6 text-center text-sm">

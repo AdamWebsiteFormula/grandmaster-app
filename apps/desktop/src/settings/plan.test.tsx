@@ -498,8 +498,8 @@ describe("Settings › Plan", () => {
     const section = screen.getByRole("region", { name: /Compare plans/ });
     expect(section.contains(toggle)).toBe(true);
     const cols = table.querySelectorAll("col");
-    expect(cols[1].className).toContain("@max-[520px]:w-24");
-    expect(cols[2].className).toContain("@max-[520px]:w-36");
+    expect(cols[1].className).toContain("@max-[520px]:w-32");
+    expect(cols[2].className).toContain("@max-[520px]:w-32");
     expect(table.parentElement?.className).toContain("overflow-x-auto");
     expect(table.closest("[data-settings-card]")?.className).toContain(
       "@container",

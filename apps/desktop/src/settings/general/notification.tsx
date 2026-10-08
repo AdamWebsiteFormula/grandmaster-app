@@ -491,7 +491,10 @@ export function NotificationSettingsView() {
                                             );
                                           },
                                         )}
-                                        <span className="text-muted-foreground text-sm">
+                                        {/* Fork: the tags' 12 pt, one size
+                                            in one field, as macOS token
+                                            fields (picture review, Oct 8). */}
+                                        <span className="text-muted-foreground text-xs">
                                           <Trans>Search installed apps…</Trans>
                                         </span>
                                       </div>

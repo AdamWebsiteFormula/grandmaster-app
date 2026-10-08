@@ -476,8 +476,11 @@ function PlanComparison({
           >
             <colgroup>
               <col />
-              <col className="w-32 @max-[520px]:w-24" />
-              <col className="w-44 @max-[520px]:w-36" />
+              {/* Fork: one width for both plans, as pricing tables give
+                  each plan an equal column (picture review, Oct 8: 128
+                  and 176 pt). */}
+              <col className="w-40 @max-[520px]:w-32" />
+              <col className="w-40 @max-[520px]:w-32" />
             </colgroup>
             <thead>
               <tr>
