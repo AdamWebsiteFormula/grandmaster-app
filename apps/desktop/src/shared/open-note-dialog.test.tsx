@@ -378,6 +378,12 @@ describe("OpenNoteDialog", () => {
 
     await waitFor(() => expect(screen.getByText("In notes")).toBeTruthy());
     expect(mocks.search).toHaveBeenCalledWith("pricing");
+    // The typed word is marked in each result (NN/g: highlight query terms).
+    expect(
+      screen
+        .getAllByText(/^pricing$/i)
+        .some((element) => element.className.includes("font-semibold")),
+    ).toBe(true);
 
     const options = screen.getAllByRole("option");
     const titleIndex = options.findIndex((o) =>

@@ -145,9 +145,9 @@ describe("ChatPage", () => {
       screen
         .getAllByRole("button", { name: /See all/ })
         .map((button) =>
-          button.closest("[role=group]")?.getAttribute("aria-label"),
+          button.closest("section")?.getAttribute("aria-labelledby"),
         ),
-    ).toEqual(["Recipes"]);
+    ).toEqual(["chat-recipes"]);
 
     fireEvent.click(row);
     expect(mocks.chat.selectChat).toHaveBeenCalledWith("chat-1");
@@ -181,6 +181,9 @@ describe("ChatPage", () => {
     render(<ChatPage />);
 
     const recipes = screen.getByRole("group", { name: "Recipes" });
+    const section = screen
+      .getByRole("heading", { name: "Recipes" })
+      .closest("section")!;
     const labels = () =>
       Array.from(recipes.querySelectorAll("button")).map(
         (button) => button.textContent,
@@ -189,10 +192,11 @@ describe("ChatPage", () => {
       "What did I commit to this week?",
       "Summarize this week's meetings",
       "Prep me for my next meeting",
-      "See all",
     ]);
 
-    const seeAll = within(recipes).getByRole("button", { name: "See all" });
+    // On the heading row, the same link as Recent's (NN/g #4).
+    const seeAll = within(section).getByRole("button", { name: "See all" });
+    expect(seeAll.parentElement?.className).toContain("justify-between");
     expect(seeAll.getAttribute("aria-expanded")).toBe("false");
     fireEvent.click(seeAll);
     expect(labels()).toEqual([
@@ -201,8 +205,12 @@ describe("ChatPage", () => {
       "Prep me for my next meeting",
       "Draft follow-up email",
       "List action items",
-      "Show less",
     ]);
+    expect(
+      within(section)
+        .getByRole("button", { name: "Show less" })
+        .getAttribute("aria-expanded"),
+    ).toBe("true");
   });
 
   it("sends a recipe's prompt in a new chat", () => {

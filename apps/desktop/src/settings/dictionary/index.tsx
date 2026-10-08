@@ -152,6 +152,11 @@ export function DictionarySettings({
                       type="submit"
                       variant="secondary"
                       size="xs"
+                      // Fork: dims to about 3.4:1 in dark, as it does in light
+                      // (picture review, Oct 8: 50% opacity left it at 5.05:1
+                      // on the dark card, reading as enabled; Apple HIG,
+                      // Dark Mode: same state in both).
+                      className="dark:disabled:opacity-40"
                       disabled={!canAdd}
                       aria-label={t`Add`}
                     >
@@ -169,6 +174,21 @@ export function DictionarySettings({
             </Trans>
           </p>
         </div>
+        {/* Fork: with no terms yet, the empty state is a short row in the
+            same card as the field, as macOS Text Replacements shows its
+            empty list inside its group (picture review, Oct 8: a separate
+            158 pt card for two lines; NN/g empty states). */}
+        {normalizedTerms.length === 0 ? (
+          <div className="flex flex-col items-center text-center">
+            <BookOpen className="text-muted-foreground mb-2 size-4" />
+            <p className="text-sm font-medium">
+              <Trans>Your dictionary is empty</Trans>
+            </p>
+            <p className="text-muted-foreground mt-0.5 text-xs">
+              <Trans>Terms you add show up here.</Trans>
+            </p>
+          </div>
+        ) : null}
       </SettingsGroup>
 
       <form.Subscribe selector={(state) => state.values.term}>
@@ -179,22 +199,9 @@ export function DictionarySettings({
           );
           const hasSearch = parseDictionaryTermsText(value).length > 0;
 
-          // Fork: Settings cards (bg-card dark:bg-muted, rounded-xl) per
-          // design-system "Contrast", and an empty state that says what
-          // shows up here instead of repeating the hint above (NN/g empty
-          // states).
+          // The empty state lives in the field's card above.
           if (normalizedTerms.length === 0) {
-            return (
-              <div className="border-border bg-card dark:bg-muted flex min-h-40 flex-col items-center justify-center rounded-xl border px-6 text-center">
-                <BookOpen className="text-muted-foreground mb-3 size-5" />
-                <p className="text-sm font-medium">
-                  <Trans>Your dictionary is empty</Trans>
-                </p>
-                <p className="text-muted-foreground mt-1 max-w-sm text-xs">
-                  <Trans>Terms you add show up here.</Trans>
-                </p>
-              </div>
-            );
+            return null;
           }
 
           if (visibleTerms.length === 0) {

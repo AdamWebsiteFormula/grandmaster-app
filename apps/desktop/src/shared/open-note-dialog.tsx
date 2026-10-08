@@ -111,10 +111,7 @@ export function OpenNoteDialogProvider({
   return (
     <OpenNoteDialogContext.Provider value={value}>
       {children}
-      <OpenNoteDialog
-        open={open}
-        onOpenChange={setOpen}
-      />
+      <OpenNoteDialog open={open} onOpenChange={setOpen} />
       {/* Fork: host for "Move to folder…" from a note's right-click menu
           (journey-after P2 "Add note to folder from Home"). */}
       <MoveToFolderDialog />
@@ -142,10 +139,7 @@ function selectOrOpen(type: "empty" | "chat") {
   }
 }
 
-export function OpenNoteDialog({
-  open,
-  onOpenChange,
-}: OpenNoteDialogProps) {
+export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
   const { t } = useLingui();
   const [query, setQuery] = useState("");
   const openCurrent = useTabs((state) => state.openCurrent);
@@ -587,7 +581,9 @@ export function OpenNoteDialog({
           ])}
         >
           <page.icon className="text-muted-foreground h-4 w-4 shrink-0" />
-          <span className="truncate">{page.label}</span>
+          <span className="truncate">
+            <MatchText text={page.label} query={query} />
+          </span>
           {page.hint ? (
             <span className="text-muted-foreground ml-auto shrink-0 text-xs">
               {page.hint}
@@ -745,7 +741,9 @@ export function OpenNoteDialog({
                           ])}
                         >
                           <FileText className="text-muted-foreground h-4 w-4 shrink-0" />
-                          <span className="truncate">{session.title}</span>
+                          <span className="truncate">
+                            <MatchText text={session.title} query={query} />
+                          </span>
                         </CommandPrimitive.Item>
                       ))}
                     </CommandPrimitive.Group>
@@ -787,7 +785,9 @@ export function OpenNoteDialog({
                           ) : (
                             <FileText className="text-muted-foreground h-4 w-4 shrink-0" />
                           )}
-                          <span className="truncate">{note.title}</span>
+                          <span className="truncate">
+                            <MatchText text={note.title} query={query} />
+                          </span>
                         </CommandPrimitive.Item>
                       ))}
                     </CommandPrimitive.Group>
@@ -822,13 +822,15 @@ export function OpenNoteDialog({
                         >
                           <FileText className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0" />
                           <span className="flex min-w-0 flex-col gap-0.5">
-                            <span className="truncate">{note.title}</span>
+                            <span className="truncate">
+                              <MatchText text={note.title} query={query} />
+                            </span>
                             {snippet ? (
                               <span
                                 className="text-muted-foreground line-clamp-2 text-xs"
                                 data-testid="content-snippet"
                               >
-                                {snippet}
+                                <MatchText text={snippet} query={query} />
                               </span>
                             ) : null}
                           </span>
@@ -866,4 +868,30 @@ export function buildSnippet(content: string, query: string): string {
   const fragment = text.slice(start, end).trim();
 
   return `${start > 0 ? "…" : ""}${fragment}${end < text.length ? "…" : ""}`;
+}
+
+// Fork: the words you typed show in semibold primary text in each result,
+// so you can see why it matched, as Mail and Notes mark search matches
+// (NN/g, search results: highlight the query terms).
+function MatchText({ text, query }: { text: string; query: string }) {
+  const terms = query
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  if (terms.length === 0) return <>{text}</>;
+  const pattern = new RegExp(`(${terms.join("|")})`, "gi");
+  return (
+    <>
+      {text.split(pattern).map((part, index) =>
+        index % 2 === 1 ? (
+          <span key={index} className="text-foreground font-semibold">
+            {part}
+          </span>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  );
 }

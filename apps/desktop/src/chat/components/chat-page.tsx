@@ -12,11 +12,7 @@ import { cn } from "@anlg/utils";
 import { useOptionalAuth } from "~/auth";
 import { ChatPanelFrame } from "~/chat/components/chat-panel";
 import { ChatModelMenu } from "~/chat/components/input/model-menu";
-import {
-  chatPageRecipes,
-  RECIPE_CHIP_CLASS,
-  RecipeRow,
-} from "~/chat/components/recipes";
+import { chatPageRecipes, RecipeRow } from "~/chat/components/recipes";
 import { useChatSessionProps } from "~/chat/components/session-props-context";
 import { queueChatPrompt } from "~/chat/pending-prompt";
 import { type ChatGroupRecord, useChatGroups } from "~/chat/store/queries";
@@ -270,14 +266,34 @@ export function ChatPage() {
         ) : null}
 
         <section aria-labelledby="chat-recipes" className="flex flex-col gap-2">
-          <h2
-            id="chat-recipes"
-            className="text-muted-foreground text-sm font-medium"
-          >
-            <Trans>Recipes</Trans>
-          </h2>
-          {/* Fork: three chips, then "See all", as Granola's Chat page
-              ends its recipe row (granola-screens/10). */}
+          {/* Fork: "See all" sits by the heading, the same link as Recent's,
+              so one action has one look on the page (picture review, Oct 6
+              to 8: a link and a chip; NN/g #4). */}
+          <div className="flex items-center justify-between">
+            <h2
+              id="chat-recipes"
+              className="text-muted-foreground text-sm font-medium"
+            >
+              <Trans>Recipes</Trans>
+            </h2>
+            {recipes.length > CHAT_RECIPES_LIMIT ? (
+              <button
+                type="button"
+                aria-expanded={showAllRecipes}
+                onClick={() => setShowAllRecipes((current) => !current)}
+                className="text-muted-foreground hover:text-foreground focus-visible:ring-ring -mr-[6.5px] cursor-pointer rounded-md px-1 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-hidden"
+              >
+                {showAllRecipes ? (
+                  <Trans>Show less</Trans>
+                ) : (
+                  <span className="inline-flex items-center gap-1">
+                    <Trans>See all</Trans>
+                    <CaretRight size={12} className="shrink-0" aria-hidden />
+                  </span>
+                )}
+              </button>
+            ) : null}
+          </div>
           <RecipeRow
             label={t`Recipes`}
             recipes={
@@ -285,25 +301,7 @@ export function ChatPage() {
             }
             onSelect={ask}
             wrap
-          >
-            {recipes.length > CHAT_RECIPES_LIMIT ? (
-              <button
-                type="button"
-                aria-expanded={showAllRecipes}
-                onClick={() => setShowAllRecipes((current) => !current)}
-                className={RECIPE_CHIP_CLASS}
-              >
-                {showAllRecipes ? (
-                  <Trans>Show less</Trans>
-                ) : (
-                  <>
-                    <Trans>See all</Trans>
-                    <CaretRight size={12} className="shrink-0" aria-hidden />
-                  </>
-                )}
-              </button>
-            ) : null}
-          </RecipeRow>
+          />
         </section>
       </div>
     </div>
