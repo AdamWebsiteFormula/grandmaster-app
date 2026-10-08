@@ -26,7 +26,7 @@ const switchVariants = cva(
 );
 
 const thumbVariants = cva(
-  "rounded-pill pointer-events-none block bg-white shadow-lg ring-0 transition-transform [corner-shape:round]",
+  "rounded-pill pointer-events-none block bg-white shadow-sm ring-0 transition-transform [corner-shape:round]",
   {
     variants: {
       size: {

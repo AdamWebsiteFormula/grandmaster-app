@@ -5038,8 +5038,8 @@ msgid "On {date}"
 msgstr ""
 
 #: src/folders/folder-notes.tsx
-msgid "On Home, right-click a note and choose Add to folder. Or open a note and click Add to folder under its title."
-msgstr ""
+#~ msgid "On Home, right-click a note and choose Add to folder. Or open a note and click Add to folder under its title."
+#~ msgstr ""
 
 #: src/settings/connectors/index.tsx
 msgid "On this computer"
@@ -6208,6 +6208,10 @@ msgstr ""
 #: src/settings/dictation-shortcut.tsx
 msgid "Right Command"
 msgstr "Comando derecho"
+
+#: src/folders/folder-notes.tsx
+msgid "Right-click a note on Home and choose Add to folder."
+msgstr ""
 
 #. placeholder {0}: formatToolName(name)
 #: src/chat/components/message/tool/generic.tsx

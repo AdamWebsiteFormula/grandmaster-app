@@ -118,7 +118,7 @@ const NOTE_VIEW_SEGMENT_CLASS = cn([
   // Light track: the sidebar's selection gray, as the Settings segmented
   // controls (picture review, Oct 7: 1.05:1 on the panel). Equal segments
   // (Oct 8: 82 and 100 pt; Apple HIG, Segmented controls).
-  "bg-sidebar-accent dark:bg-accent mr-2.5 grid auto-cols-fr grid-flow-col items-center gap-0.5 rounded-md p-0.5 [&>button]:justify-center",
+  "bg-sidebar-accent mr-2.5 grid dark:bg-[hsl(0_0%_17%)] auto-cols-fr grid-flow-col items-center gap-0.5 rounded-md p-0.5 [&>button]:justify-center",
   "[&>button]:h-5 [&>button]:rounded-[5px] [&>button]:border-transparent [&>button]:bg-transparent",
   "[&>button[aria-pressed=true]]:bg-card [&>button[aria-pressed=true]]:border-input [&>button[aria-pressed=true]]:text-foreground",
   "[&>button[aria-current=page]]:bg-card [&>button[aria-current=page]]:border-input",

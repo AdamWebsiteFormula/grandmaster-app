@@ -38,10 +38,7 @@ export function FolderNotes({ folderPath }: { folderPath: string }) {
             <Trans>No notes in this folder yet</Trans>
           </p>
           <p className="text-muted-foreground mt-0.5 text-xs text-pretty">
-            <Trans>
-              On Home, right-click a note and choose Add to folder. Or open a
-              note and click Add to folder under its title.
-            </Trans>
+            <Trans>Right-click a note on Home and choose Add to folder.</Trans>
           </p>
         </div>
       </section>

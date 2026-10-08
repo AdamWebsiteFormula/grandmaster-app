@@ -50,9 +50,9 @@ export function ShareMenu({
             type="button"
             data-tauri-drag-region="false"
             className={cn([
-              "border-input text-foreground hover:bg-accent ml-1 inline-flex h-7 shrink-0 cursor-pointer items-center rounded-full border px-3 text-sm font-medium transition-colors",
+              "border-input bg-card dark:bg-muted text-foreground hover:bg-accent dark:hover:bg-accent ml-1 inline-flex h-7 shrink-0 cursor-pointer items-center rounded-full border px-3 text-sm font-medium transition-colors",
               menuTriggerFocusClassName,
-              open && "bg-accent",
+              open && "bg-accent dark:bg-accent",
             ])}
           >
             {t`Share`}

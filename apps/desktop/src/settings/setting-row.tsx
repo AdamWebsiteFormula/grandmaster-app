@@ -126,12 +126,24 @@ export function SettingsGroup({
   );
 }
 
-export function SettingIconTile({ icon: IconComponent }: { icon: Icon }) {
+export function SettingIconTile({
+  icon: IconComponent,
+  dimmed,
+}: {
+  icon: Icon;
+  dimmed?: boolean;
+}) {
   return (
     <span
       aria-hidden
       data-testid="setting-icon"
-      className="border-border bg-card flex size-8 shrink-0 items-center justify-center rounded-lg border"
+      className={cn([
+        "border-border bg-card flex size-8 shrink-0 items-center justify-center rounded-lg border",
+        // Fork: a disabled row's icon dims with its title, as macOS dims
+        // a whole unavailable control (picture review, Oct 8; Apple HIG,
+        // Color).
+        dimmed && "opacity-50",
+      ])}
     >
       <IconComponent className="text-muted-foreground size-4" />
     </span>
@@ -174,7 +186,7 @@ export function SettingRow({
       ])}
     >
       <div className="flex min-w-0 flex-1 items-center gap-3">
-        {icon ? <SettingIconTile icon={icon} /> : null}
+        {icon ? <SettingIconTile icon={icon} dimmed={disabled} /> : null}
         <div className="min-w-0 flex-1">
           {/* Fork: a disabled row's title uses the muted text color, as
               macOS dims an unavailable control's label (Apple HIG, Color);

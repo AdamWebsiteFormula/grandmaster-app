@@ -105,7 +105,7 @@ export function HomeComposer() {
                 key={label}
                 type="button"
                 onClick={() => ask(prompt)}
-                className="text-muted-foreground hover:bg-accent hover:text-foreground inline-flex h-7 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-2 text-xs transition-colors"
+                className="border-border text-muted-foreground hover:bg-accent hover:text-foreground inline-flex h-7 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border px-2.5 text-xs transition-colors"
               >
                 <Icon size={14} className="shrink-0" aria-hidden="true" />
                 <span>{label}</span>
