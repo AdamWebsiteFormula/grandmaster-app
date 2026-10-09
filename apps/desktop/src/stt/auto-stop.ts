@@ -7,10 +7,7 @@ import {
   createAutoStopEndedNotificationKey,
   isAutoStopEndedNotificationKeyActive,
 } from "./auto-stop-notification";
-import {
-  BROWSER_AUTO_STOP_APP_IDS,
-  getNotificationIconForApp,
-} from "./meeting-apps";
+import { BROWSER_AUTO_STOP_APP_IDS } from "./meeting-apps";
 
 import { loadSessionEvent } from "~/session/queries";
 
@@ -96,21 +93,6 @@ export function isRecentNetworkDrop(
   );
 }
 
-function getPrimaryStoppedApp(
-  stoppedTriggerAppIds: string[],
-  stoppedApps: { id: string; name: string }[],
-) {
-  return (
-    stoppedApps.find(
-      (app) =>
-        stoppedTriggerAppIds.includes(app.id) &&
-        BROWSER_AUTO_STOP_APP_IDS.has(app.id),
-    ) ??
-    stoppedApps.find((app) => stoppedTriggerAppIds.includes(app.id)) ??
-    null
-  );
-}
-
 export function getAutoStopCandidateAppIds(
   triggerAppIds: string[] | null | undefined,
   stoppedApps: { id: string }[],
@@ -136,8 +118,6 @@ export function getAutoStopActiveCheckAppIds(
 
 export async function showMeetingEndedPrompt({
   sessionId,
-  stoppedTriggerAppIds,
-  stoppedApps,
   notificationEnabled = true,
 }: {
   sessionId: string;
@@ -150,8 +130,6 @@ export async function showMeetingEndedPrompt({
   }
 
   const key = createAutoStopEndedNotificationKey(sessionId);
-  const app = getPrimaryStoppedApp(stoppedTriggerAppIds, stoppedApps);
-  const icon = app ? await getNotificationIconForApp(app) : null;
 
   if (!isAutoStopEndedNotificationKeyActive(key)) {
     return;
@@ -171,7 +149,9 @@ export async function showMeetingEndedPrompt({
       action_variant: "destructive",
       options: null,
       footer: null,
-      icon,
+      // Fork: only the Upshot logo on Upshot's popups, as Granola (owner
+      // test, Oct 9).
+      icon: null,
     });
   } catch (error) {
     if (isAutoStopEndedNotificationKeyActive(key)) {

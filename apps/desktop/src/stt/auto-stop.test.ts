@@ -95,24 +95,16 @@ describe("showMeetingEndedPrompt", () => {
     expect(showNotificationMock).not.toHaveBeenCalled();
   });
 
-  test("does not show a prompt cancelled while its icon loads", async () => {
-    let resolveIcon: (value: null) => void = () => {};
-    getNotificationIconForAppMock.mockReturnValue(
-      new Promise<null>((resolve) => {
-        resolveIcon = resolve;
-      }),
-    );
-
-    const prompt = showMeetingEndedPrompt({
+  test("shows the Upshot logo, not the meeting app's icon", async () => {
+    await showMeetingEndedPrompt({
       sessionId: "session-1",
       stoppedTriggerAppIds: ["com.google.Chrome"],
       stoppedApps: [{ id: "com.google.Chrome", name: "Google Chrome" }],
     });
 
-    expect(cancelAutoStopEndedNotification("session-1")).toBe(true);
-    resolveIcon(null);
-    await prompt;
-
-    expect(showNotificationMock).not.toHaveBeenCalled();
+    expect(getNotificationIconForAppMock).not.toHaveBeenCalled();
+    expect(showNotificationMock).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "Did your meeting end?", icon: null }),
+    );
   });
 });
