@@ -4117,6 +4117,10 @@ msgstr ""
 msgid "Install to all agents"
 msgstr ""
 
+#: src/settings/general/app-settings.tsx
+msgid "Install updates automatically"
+msgstr ""
+
 #: src/settings/sync/index.tsx
 msgid "Install Upshot and sign in with this account on the new device. Keep this device online and the new device will connect automatically."
 msgstr ""
@@ -8703,6 +8707,10 @@ msgstr ""
 
 #: src/settings/ai/shared/model-combobox.tsx
 msgid "Updated {updatedAgo}"
+msgstr ""
+
+#: src/settings/general/app-settings.tsx
+msgid "Updates install when Upshot opens, never during a recording."
 msgstr ""
 
 #: src/settings/automations/google-drive-config.tsx

@@ -32,6 +32,11 @@ const ACCENT = "#C74200";
 // Served from ./public by Workers static assets (wrangler.jsonc).
 const BRAND_LOGO = "/brand/upshot-logo-orange-on-light.png";
 
+/** Test-mode secret or restricted key (docs.stripe.com/keys). */
+export function isTestKey(key) {
+  return /^(sk|rk)_test_/.test(key ?? "");
+}
+
 export function isProStatus(status) {
   return PRO_STATUSES.has(status);
 }
@@ -197,11 +202,13 @@ export function checkoutParams(env, origin, user, row, interval) {
   params.set("branding_settings[logo][type]", "url");
   params.set("branding_settings[logo][url]", `${origin}${BRAND_LOGO}`);
 
-  // Sandbox contest build: hide Link. Stripe: "Don't store real user data in
-  // sandbox Link accounts" (docs.stripe.com/payments/link/checkout-link).
-  // Cards and Apple Pay stay. For the live launch, remove this line (Stripe
-  // reports +14% conversion for returning Link users).
-  params.set("wallet_options[link][display]", "never");
+  // Sandbox only: hide Link. Stripe: "Don't store real user data in sandbox
+  // Link accounts" (docs.stripe.com/payments/link/checkout-link). Cards and
+  // Apple Pay stay. A live key shows Link again (Stripe reports +14%
+  // conversion for returning Link users).
+  if (isTestKey(env.STRIPE_SECRET_KEY)) {
+    params.set("wallet_options[link][display]", "never");
+  }
 
   // State the total and the renewal next to the Pay button before anyone
   // pays: FTC "Bringing Dark Patterns to Light" (ftc.gov, Sept 2022) and

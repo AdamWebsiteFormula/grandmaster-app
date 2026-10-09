@@ -482,6 +482,20 @@ test("checkout form encoding", () => {
   assert.equal(again.get("line_items[0][price]"), "price_month");
 });
 
+test("Link is hidden with a test key and shown with a live key", () => {
+  const user = { id: "user-1", email: "judge@example.com" };
+  for (const key of ["sk_test_x", "rk_test_x"]) {
+    const env = { ...baseEnv, STRIPE_SECRET_KEY: key };
+    const p = checkoutParams(env, "https://w.dev", user, null, "month");
+    assert.equal(p.get("wallet_options[link][display]"), "never", key);
+  }
+  for (const key of ["sk_live_x", "rk_live_x"]) {
+    const env = { ...baseEnv, STRIPE_SECRET_KEY: key };
+    const p = checkoutParams(env, "https://w.dev", user, null, "month");
+    assert.equal(p.get("wallet_options[link][display]"), null, key);
+  }
+});
+
 test("checkout branding, Link hidden, and the renewal terms", () => {
   const user = { id: "user-1", email: "judge@example.com" };
   const year = checkoutParams(baseEnv, "https://w.dev", user, null, "year");

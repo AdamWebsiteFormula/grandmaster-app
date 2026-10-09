@@ -345,10 +345,10 @@ pub fn main() {
     }
 
     builder = builder
-        // Fork: the updater has no release feed yet, so Check for updates
-        // always failed; hide it in the app menu, tray and Dock (UX audit
-        // Oct 3, A: NN/g #9).
-        .plugin(tauri_plugin_tray::init(false))
+        // Fork: the updater has a release feed (GitHub Releases latest.json,
+        // launch gates Oct 9), so Check for updates is back in the app menu,
+        // tray and Dock, as Sparkle apps place it.
+        .plugin(tauri_plugin_tray::init(true))
         .plugin(tauri_plugin_settings::init())
         .plugin(tauri_plugin_sfx::init())
         .plugin(tauri_plugin_shortcut::init())

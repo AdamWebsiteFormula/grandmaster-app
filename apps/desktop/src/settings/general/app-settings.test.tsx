@@ -54,12 +54,15 @@ describe("AppSettingsView", () => {
     expect(screen.getByText(text)).toBeTruthy();
   });
 
-  it("does not offer automatic updates (the updater is off in this fork)", () => {
-    renderAppSettings();
+  it("offers automatic updates and reports the change", () => {
+    const { automaticUpdates } = renderAppSettings();
+    const toggle = screen.getByRole("switch", {
+      name: "Install updates automatically",
+    });
 
-    expect(
-      screen.queryByRole("switch", { name: "Automatically install updates" }),
-    ).toBeNull();
+    toggle.click();
+
+    expect(automaticUpdates.onChange).toHaveBeenCalledWith(false);
   });
 
   it("hides direct-distribution controls in App Store builds", () => {
@@ -69,7 +72,7 @@ describe("AppSettingsView", () => {
       screen.queryByRole("switch", { name: "Start Anarlog at login" }),
     ).toBeNull();
     expect(
-      screen.queryByRole("switch", { name: "Automatically install updates" }),
+      screen.queryByRole("switch", { name: "Install updates automatically" }),
     ).toBeNull();
   });
 });

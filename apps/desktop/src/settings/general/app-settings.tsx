@@ -2,7 +2,12 @@ import { msg } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { platform } from "@tauri-apps/plugin-os";
 
-import { DockBar, MenuBar, Rocket } from "@anlg/ui/components/icons";
+import {
+  DockBar,
+  DownloadSimple,
+  MenuBar,
+  Rocket,
+} from "@anlg/ui/components/icons";
 
 import { SettingsGroup, SettingSwitchRow } from "~/settings/setting-row";
 
@@ -27,6 +32,7 @@ interface AppSettingsViewProps {
 export function AppSettingsView({
   appStoreBuild,
   autostart,
+  automaticUpdates,
   showAppInDock,
   showTrayIcon,
 }: AppSettingsViewProps) {
@@ -62,7 +68,20 @@ export function AppSettingsView({
             checked={autostart.value}
             onChange={autostart.onChange}
           />
-          {/* Fork: NN/g "error prevention" - the updater is off in this app, so no update toggle. */}
+          {/* Fork: the updater has a release feed again (launch gates, Oct 9).
+              Sparkle's "Automatically download and install updates" pattern;
+              updater2 installs at open and never during a recording. */}
+          <SettingSwitchRow
+            icon={DownloadSimple}
+            title={<Trans>Install updates automatically</Trans>}
+            description={
+              <Trans>
+                Updates install when Upshot opens, never during a recording.
+              </Trans>
+            }
+            checked={automaticUpdates.value}
+            onChange={automaticUpdates.onChange}
+          />
         </>
       )}
       {isMacos && (

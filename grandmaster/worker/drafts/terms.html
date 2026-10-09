@@ -1,0 +1,123 @@
+<!doctype html>
+<!--
+  Upshot terms of service. Move to ../public/ to serve it at /terms, like
+  /privacy. DRAFT (Oct 9, 2026): not linked or deployed until Adam approves
+  it; have a lawyer read it before charging real cards.
+
+  Why and what it must say:
+  - Stripe website checklist (docs.stripe.com/get-started/checklist/website):
+    customer service contact, refund and dispute policy, cancellation policy,
+    clear prices.
+  - California Automatic Renewal Law, Bus. & Prof. Code §17600 et seq., as
+    amended by AB 2863 (in force July 1, 2025): clear renewal terms, consent,
+    cancel online in the same medium, a yearly reminder before an annual
+    renewal, notice before a price change.
+  - ROSCA, 15 U.S.C. §8403: disclose material terms before billing, express
+    consent, simple cancellation.
+  - Recording consent: Granola's help center puts consent on the user
+    (docs.granola.ai/help-center/consent-security-privacy/getting-consent);
+    Chamberlain v. Granola (N.D. Cal., filed July 30, 2026) shows why the
+    terms and the app must both say it plainly.
+  Every line below is checked against the code (upshot-plan/, worker/src/billing.js).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="canonical" href="https://upshotnotes.com/terms">
+<title>Upshot terms of service</title>
+<meta name="description" content="The rules for using Upshot and paying for Upshot Pro.">
+<style>
+:root{color-scheme:light}
+body{margin:0;background:#fff;color:#171717;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+main{max-width:680px;margin:0 auto;padding:40px 24px 64px}
+.logo{display:block;height:32px;width:auto;margin:0 0 32px}
+h1{font-size:28px;line-height:1.25;margin:0 0 8px;text-wrap:balance}
+h2{font-size:20px;line-height:1.3;margin:40px 0 8px;text-wrap:balance}
+p,ul{margin:0 0 12px}
+ul{padding-left:20px}
+li{margin:0 0 6px}
+.meta{color:#525252;margin-bottom:24px}
+.summary{background:#f5f5f5;border-radius:12px;padding:16px 20px;margin:0 0 8px}
+.summary p:last-child,.summary ul:last-child{margin-bottom:0}
+a{color:#C74200;text-underline-offset:2px}
+a:focus-visible{outline:2px solid #171717;outline-offset:2px;border-radius:2px}
+code{font:14px ui-monospace,SFMono-Regular,Menlo,monospace;background:#f5f5f5;padding:1px 4px;border-radius:4px}
+footer{margin-top:48px;color:#737373;font-size:14px}
+</style>
+</head>
+<body>
+<main>
+<img class="logo" src="/brand/upshot-logo-orange-on-light.png" alt="Upshot">
+<h1>Terms of service</h1>
+<p class="meta">Effective October 9, 2026</p>
+
+<div class="summary">
+<p><strong>The short version</strong></p>
+<ul>
+<li>Upshot is free. Upshot Pro is a paid plan that renews by itself until you cancel.</li>
+<li>Cancel online at any time in Settings › Plan › Manage subscription. Pro stays on until the end of the period you paid for.</li>
+<li>Tell people before you record them. In many places the law says you must.</li>
+<li>AI notes can be wrong. Check them before you rely on them.</li>
+<li>Your notes are yours. We don't use them to train AI models.</li>
+</ul>
+</div>
+
+<h2>Who we are</h2>
+<p>Upshot is published by Website Formula ("we"). These terms are an agreement between you and Website Formula. When you use Upshot, you agree to them.</p>
+<p>Contact: email <a href="mailto:adam@websiteformula.co">adam@websiteformula.co</a>.</p>
+
+<h2>Upshot Pro</h2>
+<ul>
+<li><strong>Price.</strong> The app and the checkout page show the price and how often you pay (monthly or yearly) before you pay. Taxes may be added where the law requires.</li>
+<li><strong>Renewal.</strong> Pro renews automatically at the end of each period, at the same price, until you cancel. Stripe charges the card you gave at checkout.</li>
+<li><strong>Cancel.</strong> Go to Settings › Plan › Manage subscription and click Cancel. You can also email us. You don't need to call anyone or give a reason. Pro stays on until the end of the period you paid for. Then your account moves to the free plan, and we don't charge you again.</li>
+<li><strong>Yearly plans.</strong> Before a yearly plan renews, we email you the date, the amount and how to cancel.</li>
+<li><strong>Price changes.</strong> If the price changes, we email you at least 30 days before your next renewal. The new price starts only at that renewal. You can cancel before then.</li>
+<li><strong>Refunds.</strong> If you are not happy, email us within 14 days of a charge, and we refund that charge in full. After 14 days we don't refund part of a period, unless the law where you live says we must.</li>
+<li><strong>Failed payments.</strong> If a payment fails, Pro turns off until the payment goes through. Stripe tries the card again, and you can update it in Settings › Plan › Update payment. Your notes stay safe on the free plan.</li>
+<li><strong>Delete your account.</strong> Settings › Profile › Delete account cancels Pro at once and deletes your account. See the <a href="/privacy">privacy policy</a>.</li>
+</ul>
+
+<h2>Recording and consent</h2>
+<p>Upshot records the meetings you start it in. Laws about recording differ by place. Some places, such as California, need every person on the call to agree.</p>
+<ul>
+<li>You are responsible for telling people that you record and transcribe, and for getting their consent where the law needs it.</li>
+<li>Don't record a meeting when someone says no.</li>
+<li>On Mac and Linux, Upshot can post a short notice in the meeting chat when recording starts. Turn on "Post a short notice in the meeting chat" in Settings › Meetings. The notice tells people; it does not get their consent for you.</li>
+</ul>
+
+<h2>AI notes</h2>
+<p>Summaries, transcripts and chat answers come from AI models. They can miss things or be wrong. Check them before you use them for important decisions, such as legal, medical, money or hiring decisions.</p>
+
+<h2>Your content</h2>
+<ul>
+<li>Your recordings, transcripts and notes belong to you. Most of them stay on your computer.</li>
+<li>To make summaries and chat answers, Upshot sends the text they need to AI providers. The <a href="/privacy">privacy policy</a> says what goes where.</li>
+<li>We don't use your content to train AI models, and we don't sell it.</li>
+</ul>
+
+<h2>Use Upshot fairly</h2>
+<p>Don't use Upshot to:</p>
+<ul>
+<li>record people against the law or without the consent the law needs;</li>
+<li>break into, overload or test the security of Upshot's servers without our written permission;</li>
+<li>resell Upshot AI or Upshot transcription, or share one account with other people;</li>
+<li>make content that is illegal or that the AI providers' own rules forbid.</li>
+</ul>
+<p>If you break these rules, we may limit or close your account. If we close a paid account without a good reason, we refund the unused part of your period.</p>
+
+<h2>Open source</h2>
+<p>Upshot is based on Anarlog, which is open source under the MIT license. The licenses that come with the app apply to that code. The Upshot name and logo belong to Website Formula.</p>
+
+<h2>Changes to Upshot and to these terms</h2>
+<p>We improve Upshot often, and we may add, change or remove features. If we change these terms, we post the new terms on this page and update the date at the top. If a change takes away something you paid for, we email you first, and you can cancel and get a refund for the unused part of your period.</p>
+
+<h2>No warranty and limit of liability</h2>
+<p>We work hard to keep Upshot working and your notes safe, but we provide Upshot "as is", without warranties, as far as the law allows. Keep backups of notes that are important to you.</p>
+<p>As far as the law allows, Website Formula is not liable for indirect or lost-profit damages, and our total liability for any claim is no more than what you paid us in the 12 months before the claim. Some places don't allow these limits, so they may not apply to you.</p>
+
+<footer>Upshot, by Website Formula. See also the <a href="/privacy">privacy policy</a>.</footer>
+</main>
+</body>
+</html>

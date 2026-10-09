@@ -4117,6 +4117,10 @@ msgstr "Install"
 msgid "Install to all agents"
 msgstr "Install to all agents"
 
+#: src/settings/general/app-settings.tsx
+msgid "Install updates automatically"
+msgstr "Install updates automatically"
+
 #: src/settings/sync/index.tsx
 msgid "Install Upshot and sign in with this account on the new device. Keep this device online and the new device will connect automatically."
 msgstr "Install Upshot and sign in with this account on the new device. Keep this device online and the new device will connect automatically."
@@ -8704,6 +8708,10 @@ msgstr "Update project notes in Notion"
 #: src/settings/ai/shared/model-combobox.tsx
 msgid "Updated {updatedAgo}"
 msgstr "Updated {updatedAgo}"
+
+#: src/settings/general/app-settings.tsx
+msgid "Updates install when Upshot opens, never during a recording."
+msgstr "Updates install when Upshot opens, never during a recording."
 
 #: src/settings/automations/google-drive-config.tsx
 msgid "Updating a note replaces the Google document's content, including edits made in Google Docs. Changing formats keeps previously exported files."
