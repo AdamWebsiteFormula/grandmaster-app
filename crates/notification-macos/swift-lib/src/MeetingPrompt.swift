@@ -165,10 +165,11 @@ final class MeetingPromptController {
     title.textColor = NSColor.labelColor
     title.alignment = .center
     title.maximumNumberOfLines = 3
-    title.lineBreakMode = .byTruncatingTail
+    title.lineBreakMode = .byWordWrapping
     title.cell?.truncatesLastVisibleLine = true
     title.preferredMaxLayoutWidth = innerWidth
     stack.addArrangedSubview(title)
+    title.widthAnchor.constraint(equalToConstant: innerWidth).isActive = true
     stack.setCustomSpacing(PromptLayout.spacing + 2, after: title)
 
     let takeNotes = PromptButton()
