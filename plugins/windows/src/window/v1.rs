@@ -208,8 +208,13 @@ impl AppWindow {
                 .visible(false)
                 .decorations(true)
                 .hidden_title(true)
-                .theme(Some(tauri::Theme::Dark))
-                .background_color(tauri::window::Color(0, 0, 0, 255))
+                // Fork: open in the theme the user picked (or the Mac's own);
+                // build_window then paints the matching background, so the
+                // window no longer opens on the wrong color (Adam, Oct 9).
+                .theme(
+                    tauri::Manager::try_state::<crate::LaunchThemeState>(app)
+                        .and_then(|state| state.get()),
+                )
                 .traffic_light_position(tauri::LogicalPosition::new(12.0, traffic_light_y))
                 .title_bar_style(tauri::TitleBarStyle::Overlay);
         }
@@ -280,6 +285,19 @@ impl WindowImpl for AppWindow {
                 builder.build()?
             }
         };
+
+        // Fork: the window shows before the page paints, so its own background
+        // must match the boot splash (#000 dark, #FAFAF9 light) or a light Mac
+        // flashes black first (Adam, Oct 9; Tauri and Electron docs: match the
+        // window background to the app to avoid a launch flash).
+        #[cfg(target_os = "macos")]
+        {
+            let background = match window.theme() {
+                Ok(tauri::Theme::Light) => tauri::window::Color(250, 250, 249, 255),
+                _ => tauri::window::Color(0, 0, 0, 255),
+            };
+            window.set_background_color(Some(background))?;
+        }
 
         #[cfg(any(target_os = "windows", target_os = "linux"))]
         window.set_decorations(!matches!(self, Self::Main))?;

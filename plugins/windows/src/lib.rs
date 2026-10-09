@@ -121,6 +121,21 @@ impl DockVisibilityState {
     }
 }
 
+// Fork: the theme the user picked in Upshot (None = follow the system), read
+// at launch so a new window opens in the right color (Adam, Oct 9).
+#[derive(Default)]
+pub struct LaunchThemeState(Mutex<Option<tauri::Theme>>);
+
+impl LaunchThemeState {
+    pub fn set(&self, theme: Option<tauri::Theme>) {
+        *self.0.lock().unwrap_or_else(|err| err.into_inner()) = theme;
+    }
+
+    pub fn get(&self) -> Option<tauri::Theme> {
+        *self.0.lock().unwrap_or_else(|err| err.into_inner())
+    }
+}
+
 use tauri::Manager;
 use tokio::sync::oneshot;
 
@@ -372,6 +387,8 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                 let dock_visibility_state = DockVisibilityState::default();
                 app.manage(dock_visibility_state);
             }
+
+            app.manage(LaunchThemeState::default());
 
             {
                 let saved_frames = SavedFrames::default();

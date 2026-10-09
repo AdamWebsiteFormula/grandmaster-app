@@ -549,6 +549,25 @@ pub fn main() {
         }
     }
 
+    // Fork: the frontend saves the picked theme here, so the first window
+    // opens in it instead of flashing the other color (Adam, Oct 9).
+    {
+        use tauri_plugin_store2::Store2PluginExt;
+        let saved = app
+            .store2()
+            .scoped_store::<String>("windows")
+            .ok()
+            .and_then(|store| store.get::<String>("launch_theme".to_string()).ok())
+            .flatten();
+        if let Some(state) = app.try_state::<tauri_plugin_windows::LaunchThemeState>() {
+            state.set(match saved.as_deref() {
+                Some("light") => Some(tauri::Theme::Light),
+                Some("dark") => Some(tauri::Theme::Dark),
+                _ => None,
+            });
+        }
+    }
+
     if let Err(error) = AppWindow::Main.show(app.handle()) {
         exit_after_startup_failure(&identifier, &error);
     }

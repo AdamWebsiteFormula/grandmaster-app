@@ -7,6 +7,7 @@ import {
 import type { ReactNode } from "react";
 
 import { commands as iconCommands } from "@anlg/plugin-icon";
+import { commands as store2Commands } from "@anlg/plugin-store2";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 
 import { applyDocumentTheme, writeStoredThemePreference } from "./apply";
@@ -139,6 +140,11 @@ async function applyAppearance(
 ) {
   applyDocumentTheme(theme, systemIsDark);
   writeStoredThemePreference(theme);
+  // Fork: the native window reads this at launch, so it opens in the picked
+  // theme instead of flashing the other color (Adam, Oct 9).
+  void store2Commands
+    .setStr("windows", "launch_theme", theme)
+    .catch(() => undefined);
   await applyDockIcon(appIcon, theme, systemIsDark);
 }
 
