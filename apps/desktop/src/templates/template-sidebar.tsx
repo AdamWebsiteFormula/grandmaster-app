@@ -535,7 +535,12 @@ export function TemplatesSidebarContent({
                             accent; Apple HIG Color). */}
                           <Sparkle className="text-muted-foreground size-4" />
                           <div className="min-w-0 flex-1">
-                            <div className="truncate font-medium">
+                            <div
+                              className={cn([
+                                "truncate",
+                                item.selected && "font-medium",
+                              ])}
+                            >
                               {item.title}
                             </div>
                             {item.customized ? (
@@ -576,7 +581,12 @@ export function TemplatesSidebarContent({
                             className="size-4 text-sm"
                           />
                           <div className="min-w-0 flex-1">
-                            <div className="truncate font-medium">
+                            <div
+                              className={cn([
+                                "truncate",
+                                item.selected && "font-medium",
+                              ])}
+                            >
                               {item.title}
                             </div>
                           </div>
@@ -687,7 +697,10 @@ function TemplateListItem({
       <div className="flex items-center gap-2">
         <TemplateIconGlyph icon={template.icon} className="size-4 text-sm" />
         <div className="min-w-0 flex-1">
-          <div className="truncate font-medium">
+          {/* Fork: regular weight, medium only on the open row, as the
+              sidebar and Chat lists (picture review, Oct 9; Apple HIG,
+              Typography). */}
+          <div className={cn(["truncate", selected && "font-medium"])}>
             {template.title?.trim() || t`Untitled template`}
           </div>
         </div>

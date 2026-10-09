@@ -707,7 +707,10 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
                 className={cn([
                   "size-6 shrink-0 rounded-full",
                   "flex items-center justify-center",
-                  "bg-accent hover:text-foreground",
+                  // Fork: no resting fill, as every other icon button; in dark
+                  // the fill sat darker than the palette (picture review,
+                  // Oct 9; Apple HIG, Dark Mode).
+                  "hover:bg-accent hover:text-foreground",
                   "text-muted-foreground text-xs",
                   "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-hidden",
                   "transition-colors",
