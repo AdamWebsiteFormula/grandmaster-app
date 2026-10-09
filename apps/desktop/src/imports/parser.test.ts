@@ -37,7 +37,7 @@ describe("meeting export parser", () => {
   });
 
   // Fork: the record Upshot builds from Granola's MCP (Oct 5, 2026).
-  it("reads a Granola meeting and falls back when its date does not parse", () => {
+  it("reads a Granola meeting and its zone-named date", () => {
     const [meeting] = parseMeetingExport({
       path: "mcp://granola/m-1.json",
       name: "m-1.json",
@@ -55,11 +55,41 @@ describe("meeting export parser", () => {
     expect(meeting).toMatchObject({
       externalId: "m-1",
       title: "Strategy call",
-      startedAt: "2026-10-05T11:02:13.890Z",
+      startedAt: "2026-10-05T11:00:00.000Z",
       attendees: [{ name: "Ann Lee", email: "ann@acme.com" }],
     });
     expect(meeting?.noteMarkdown).toContain("Ship it");
     expect(meeting?.transcript.length).toBeGreaterThan(0);
+  });
+
+  // Fork: Granola's tagged meetings have only this date (Oct 8 bug sweep:
+  // BST and CEST did not parse, so a UK import landed on import day).
+  it.each([
+    ["Oct 5, 2026 12:00 PM EDT", "2026-10-05T16:00:00.000Z"],
+    ["Oct 5, 2026 12:00 PM BST", "2026-10-05T11:00:00.000Z"],
+    ["Oct 5, 2026 12:30 AM CEST", "2026-10-04T22:30:00.000Z"],
+    ["Jan 9, 2026 9:05 PM IST", "2026-01-09T15:35:00.000Z"],
+  ])("reads Granola's date %s", (date, iso) => {
+    const [meeting] = parseMeetingExport({
+      path: "mcp://granola/m-2.json",
+      name: "m-2.json",
+      content: JSON.stringify({ id: "m-2", title: "Call", date, summary: "x" }),
+    });
+    expect(meeting?.startedAt).toBe(iso);
+  });
+
+  it("reads an unknown zone name as this computer's time", () => {
+    const [meeting] = parseMeetingExport({
+      path: "mcp://granola/m-3.json",
+      name: "m-3.json",
+      content: JSON.stringify({
+        id: "m-3",
+        title: "Call",
+        date: "Oct 5, 2026 12:00 PM XYZT",
+        summary: "x",
+      }),
+    });
+    expect(meeting?.startedAt).toBe(new Date(2026, 9, 5, 12, 0).toISOString());
   });
 
   it("parses captions and preserves speaker labels", () => {

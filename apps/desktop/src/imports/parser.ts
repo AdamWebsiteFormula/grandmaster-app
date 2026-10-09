@@ -521,11 +521,77 @@ function firstIsoDate(record: JsonRecord, keys: string[]) {
   return "";
 }
 
+// Fork: Granola writes dates as "Oct 5, 2026 12:00 PM BST", with no other
+// date field. JavaScript engines read zone names differently (V8 reads only
+// US ones), so read the parts and use a known abbreviation's offset
+// (timeanddate.com/time/zones); an unknown one is read as this computer's
+// time, the zone Granola wrote it in.
+const ZONE_OFFSETS: Record<string, string> = {
+  UTC: "+00:00",
+  GMT: "+00:00",
+  EST: "-05:00",
+  EDT: "-04:00",
+  CST: "-06:00",
+  CDT: "-05:00",
+  MST: "-07:00",
+  MDT: "-06:00",
+  PST: "-08:00",
+  PDT: "-07:00",
+  AKST: "-09:00",
+  AKDT: "-08:00",
+  HST: "-10:00",
+  BST: "+01:00",
+  IST: "+05:30",
+  CET: "+01:00",
+  CEST: "+02:00",
+  EET: "+02:00",
+  EEST: "+03:00",
+  WET: "+00:00",
+  WEST: "+01:00",
+  SAST: "+02:00",
+  JST: "+09:00",
+  KST: "+09:00",
+  SGT: "+08:00",
+  AEST: "+10:00",
+  AEDT: "+11:00",
+  ACST: "+09:30",
+  ACDT: "+10:30",
+  AWST: "+08:00",
+  NZST: "+12:00",
+  NZDT: "+13:00",
+};
+
+const MONTHS = "jan feb mar apr may jun jul aug sep oct nov dec".split(" ");
+
+/** "Oct 5, 2026 12:00 PM BST" as a Date, or null for any other shape. */
+function parseGranolaDate(value: string): Date | null {
+  const match =
+    /^([A-Za-z]{3})[A-Za-z]*\.? (\d{1,2}), (\d{4}),? (\d{1,2}):(\d{2})\s*([AP]M)(?:\s+([A-Z]{2,5}))?$/i.exec(
+      value.trim(),
+    );
+  if (!match) return null;
+  const [, monthName, day, year, hour12, minute, meridiem, zone] = match;
+  const month = MONTHS.indexOf(monthName.toLowerCase());
+  if (month < 0) return null;
+  const hour =
+    (Number(hour12) % 12) + (meridiem.toUpperCase() === "PM" ? 12 : 0);
+  const offset = zone ? ZONE_OFFSETS[zone.toUpperCase()] : undefined;
+  if (!offset) {
+    return new Date(Number(year), month, Number(day), hour, Number(minute));
+  }
+  const pad = (n: number | string) => String(n).padStart(2, "0");
+  return new Date(
+    `${year}-${pad(month + 1)}-${pad(day)}T${pad(hour)}:${minute}:00${offset}`,
+  );
+}
+
 function toIsoDate(value: unknown) {
   if (typeof value !== "string" && typeof value !== "number") return "";
   const milliseconds =
     typeof value === "number" && value < 10_000_000_000 ? value * 1_000 : value;
-  const date = new Date(milliseconds);
+  const date =
+    (typeof milliseconds === "string" && parseGranolaDate(milliseconds)) ||
+    new Date(milliseconds);
   return Number.isNaN(date.getTime()) ? "" : date.toISOString();
 }
 
