@@ -3,6 +3,7 @@ import { t } from "@lingui/core/macro";
 import { toast } from "@anlg/ui/components/ui/toast";
 
 import { preloadSession } from "~/session/queries";
+import { listenerStore } from "~/store/zustand/listener/instance";
 import { useTabs } from "~/store/zustand/tabs";
 
 // Fork: a record request must never vanish silently (journey-meeting P1, P2;
@@ -50,4 +51,16 @@ export function showStillRecordingToast(liveSessionId: string) {
   void preloadSession(liveSessionId)
     .then((session) => show(session?.title ?? ""))
     .catch(() => show(""));
+}
+
+// Fork: Start recording and Resume in a note did nothing while another note
+// was recording. Say so, as New note on Home does (task test, Oct 8; NN/g
+// #1). Returns true when the start should not go ahead.
+export function refuseWhileAnotherNoteRecords(sessionId: string): boolean {
+  const { status, sessionId: liveSessionId } = listenerStore.getState().live;
+  if (status === "active" && liveSessionId && liveSessionId !== sessionId) {
+    showStillRecordingToast(liveSessionId);
+    return true;
+  }
+  return false;
 }

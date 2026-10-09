@@ -374,6 +374,10 @@ msgstr ""
 msgid "a month, billed ${YEARLY_PRICE} yearly"
 msgstr ""
 
+#: src/session/components/note-input/header-enhanced.tsx
+msgid "A new summary replaces this one, including any edits you made."
+msgstr ""
+
 #: src/automations/starters.tsx
 msgid "A Slack message with the meeting title and recap."
 msgstr ""
@@ -2302,6 +2306,10 @@ msgstr ""
 #: src/settings/ai/stt/health.tsx
 msgid "Couldn’t reach the on-device model. Quit and reopen Upshot, or pick another model."
 msgstr ""
+
+#: src/session/components/title-input.tsx
+#~ msgid "Couldn't rename the note. Try again."
+#~ msgstr ""
 
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 msgid "Couldn't restore these lines. Try again."
@@ -5974,6 +5982,10 @@ msgstr ""
 msgid "Remove your {0} key?"
 msgstr ""
 
+#: src/session/components/folder-picker.tsx
+msgid "Removed from “{previous}”"
+msgstr ""
+
 #: src/settings/ai/shared/index.tsx
 msgid "Removing…"
 msgstr ""
@@ -6032,6 +6044,7 @@ msgstr ""
 msgid "Repair Keychain Access"
 msgstr ""
 
+#: src/session/components/note-input/header-enhanced.tsx
 #: src/session/components/note-input/search/bar.tsx
 #: src/settings/sync/index.tsx
 msgid "Replace"
@@ -6043,6 +6056,10 @@ msgstr ""
 
 #: src/settings/todo/github.tsx
 msgid "Replace repository"
+msgstr ""
+
+#: src/session/components/note-input/header-enhanced.tsx
+msgid "Replace this summary?"
 msgstr ""
 
 #: src/session/components/note-input/search/bar.tsx
@@ -7145,6 +7162,10 @@ msgstr ""
 msgid "Start writing…"
 msgstr ""
 
+#: src/services/event-notification/index.ts
+msgid "Started"
+msgstr ""
+
 #: src/settings/ai/stt/select.tsx
 msgid "Starting"
 msgstr ""
@@ -7162,8 +7183,8 @@ msgid "Starting microphone…"
 msgstr "Iniciando micrófono…"
 
 #: src/services/event-notification/index.ts
-msgid "Starting now"
-msgstr ""
+#~ msgid "Starting now"
+#~ msgstr ""
 
 #: src/settings/ai/stt/health.tsx
 msgid "Starting the on-device model…"
@@ -7991,6 +8012,7 @@ msgstr ""
 
 #: src/calendar/components/event-chip.tsx
 #: src/main/windows-title-bar.tsx
+#: src/session/components/folder-picker.tsx
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 #: src/settings/ai/shared/provider-selection-prompt.ts
 #: src/sidebar/toast/undo-delete-toast.tsx
@@ -8319,6 +8341,10 @@ msgstr ""
 
 #: src/main/move-to-applications.ts
 msgid "Upshot is running from the disk image, so it quits when you eject it. Click Move to quit Upshot and open Applications, then drag Upshot there and open it again."
+msgstr ""
+
+#: src/session/components/note-input/header-enhanced.tsx
+msgid "Upshot is still writing this summary. Pick a template when it's done."
 msgstr ""
 
 #: src/session-sharing/access-management.tsx
@@ -8827,6 +8853,10 @@ msgstr ""
 
 #: src/settings/ai/shared/provider-selection-prompt.ts
 msgid "Your key works. {providerName} is now the current provider."
+msgstr ""
+
+#: src/session/components/note-input/enhanced/enhance-error.tsx
+msgid "Your last summary is below."
 msgstr ""
 
 #: src/auth/context.tsx

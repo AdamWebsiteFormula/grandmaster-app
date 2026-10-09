@@ -40,6 +40,7 @@ import { getScheme } from "~/shared/utils";
 import type { EditorView, Tab } from "~/store/zustand/tabs/schema";
 import { useListener } from "~/stt/contexts";
 import { useStartListening } from "~/stt/useStartListening";
+import { refuseWhileAnotherNoteRecords } from "~/stt/recording-request-toasts";
 import {
   isMainWebviewWindow,
   requestMainListenerControl,
@@ -211,6 +212,9 @@ function HeaderMeetingAction({
   const joiningMeetingRef = useRef(false);
   const [joiningMeeting, setJoiningMeeting] = useState(false);
   const start = useCallback(async () => {
+    if (refuseWhileAnotherNoteRecords(sessionId)) {
+      return;
+    }
     if (!isMainWebviewWindow()) {
       await requestMainListenerControl("start", sessionId);
       return;

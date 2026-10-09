@@ -9,6 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@anlg/ui/components/ui/tooltip";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
 import {
@@ -26,6 +27,7 @@ import {
 import { useAITaskTask } from "~/ai/hooks";
 import { getEnhancerService } from "~/services/enhancer";
 import { useEnhancedNoteActions } from "~/session/components/note-input/enhanced-actions";
+import { showModelNotReadyToast } from "~/session/components/note-input/enhanced/model-not-ready";
 import { refuseTemplateSwitchOffline } from "~/session/components/note-input/template-switch-offline";
 import { useEnhancedNote } from "~/session/queries";
 import {
@@ -133,7 +135,10 @@ function HeaderViewEnhancedInactive({
             arrow's space (picture review, Oct 7: 10.5 and 25.5 pt sides;
             Apple HIG, Segmented controls). */}
         <span className="grid min-w-0 place-items-center [&>*]:[grid-area:1/1]">
-          <span aria-hidden className="invisible inline-flex items-center gap-1">
+          <span
+            aria-hidden
+            className="invisible inline-flex items-center gap-1"
+          >
             <Sparkle />
             <span className="whitespace-nowrap">{viewTitle}</span>
             <CaretDown className="!size-3" />
@@ -210,19 +215,29 @@ function HeaderViewEnhancedActive({
       { html: true },
     );
   }, [noteMarkdown, viewTitle]);
+  // Fork: a new summary replaced the one on screen, edits included, with
+  // no warning and no undo. Ask first when there is a summary to lose, as
+  // Granola does before it overwrites notes you edited and as Transcribe
+  // again does here (task test, Oct 8; Apple HIG, Alerts; NN/g #5).
+  const [pendingReplace, setPendingReplace] = useState<(() => void) | null>(
+    null,
+  );
+  const hasSummary = noteMarkdown.trim().length > 0;
+  const confirmReplace = useCallback(
+    (run: () => void) => {
+      if (hasSummary) {
+        setPendingReplace(() => run);
+      } else {
+        run();
+      }
+    },
+    [hasSummary],
+  );
   const handleRegenerate = useCallback(() => {
-    void onRegenerate(null);
-  }, [onRegenerate]);
-  const handleSelectTemplate = useCallback(
+    confirmReplace(() => void onRegenerate(null));
+  }, [confirmReplace, onRegenerate]);
+  const replaceWithTemplate = useCallback(
     (selection: TemplateSelection) => {
-      if (isGenerating) {
-        return;
-      }
-
-      if (refuseTemplateSwitchOffline(enhancedNoteId)) {
-        return;
-      }
-
       const service = getEnhancerService();
       if (!service) {
         return;
@@ -238,6 +253,12 @@ function HeaderViewEnhancedActive({
         }),
       )
         .then((result) => {
+          // Fork: say so when no model is ready, as Regenerate does
+          // (task test, Oct 8; NN/g #1).
+          if (result.type === "no_model") {
+            showModelNotReadyToast();
+            return;
+          }
           if (
             (result.type === "started" || result.type === "already_active") &&
             result.noteId !== enhancedNoteId
@@ -249,7 +270,29 @@ function HeaderViewEnhancedActive({
           console.error("[enhancer] failed to replace summary template", error);
         });
     },
-    [enhancedNoteId, isGenerating, onSelectNote, sessionId],
+    [enhancedNoteId, onSelectNote, sessionId],
+  );
+  const handleSelectTemplate = useCallback(
+    (selection: TemplateSelection) => {
+      // Fork: picking a template while a summary is being written did
+      // nothing; say why (task test, Oct 8; NN/g #1).
+      if (isGenerating) {
+        toast(
+          t`Upshot is still writing this summary. Pick a template when it's done.`,
+          {
+            id: `template-switch-busy-${enhancedNoteId}`,
+          },
+        );
+        return;
+      }
+
+      if (refuseTemplateSwitchOffline(enhancedNoteId)) {
+        return;
+      }
+
+      confirmReplace(() => replaceWithTemplate(selection));
+    },
+    [confirmReplace, enhancedNoteId, isGenerating, replaceWithTemplate, t],
   );
   const contextMenu = useMemo<MenuItemDef[]>(() => {
     const items: MenuItemDef[] = [
@@ -364,6 +407,23 @@ function HeaderViewEnhancedActive({
       </button>
     );
 
+  const replaceConfirmDialog = (
+    <DestructiveConfirmationDialog
+      open={pendingReplace !== null}
+      onOpenChange={(open) => {
+        if (!open) setPendingReplace(null);
+      }}
+      title={t`Replace this summary?`}
+      description={t`A new summary replaces this one, including any edits you made.`}
+      confirmLabel={t`Replace`}
+      onConfirm={() => {
+        const run = pendingReplace;
+        setPendingReplace(null);
+        run?.();
+      }}
+    />
+  );
+
   const removeConfirmDialog = canRemove ? (
     <DestructiveConfirmationDialog
       open={confirmRemoveOpen}
@@ -390,6 +450,7 @@ function HeaderViewEnhancedActive({
           trigger={templateMenuTrigger}
         />
         {removeConfirmDialog}
+        {replaceConfirmDialog}
       </>
     );
   }
@@ -410,6 +471,7 @@ function HeaderViewEnhancedActive({
         }}
       />
       {removeConfirmDialog}
+      {replaceConfirmDialog}
     </>
   );
 }

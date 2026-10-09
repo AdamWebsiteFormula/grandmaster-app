@@ -4,6 +4,7 @@ import { Microphone } from "@anlg/ui/components/icons";
 
 import { useListener } from "~/stt/contexts";
 import { useStartListeningWithBatchOverride } from "~/stt/useStartListeningWithBatchOverride";
+import { refuseWhileAnotherNoteRecords } from "~/stt/recording-request-toasts";
 import {
   isMainWebviewWindow,
   requestMainListenerControl,
@@ -48,6 +49,7 @@ function MainWindowResumeButton(props: ResumeButtonProps) {
     <ResumeButtonView
       {...props}
       onResume={() => {
+        if (refuseWhileAnotherNoteRecords(props.sessionId)) return;
         void startListening();
       }}
     />

@@ -228,4 +228,25 @@ describe("EnhanceError", () => {
     ).toBeTruthy();
     expect(screen.getByText("Failed to fetch")).toBeTruthy();
   });
+
+  // Fork test: task test, Oct 8.
+  it("shows a banner over the last summary when inline", () => {
+    const queryClient = new QueryClient();
+    render(
+      <QueryClientProvider client={queryClient}>
+        <EnhanceError
+          sessionId="session-1"
+          enhancedNoteId="note-1"
+          error={new Error("Failed to fetch")}
+          isUnauthenticated={false}
+          inline
+        />
+      </QueryClientProvider>,
+    );
+
+    const alert = screen.getByRole("alert");
+    expect(alert.textContent).toContain("Your last summary is below.");
+    expect(screen.getByRole("button", { name: /Try again/ })).toBeTruthy();
+    expect(screen.queryByText("Summary generation failed")).toBeNull();
+  });
 });

@@ -4,17 +4,22 @@ const mocks = vi.hoisted(() => ({
   toast: Object.assign(vi.fn(), { error: vi.fn() }),
   openNew: vi.fn(),
   preloadSession: vi.fn(),
+  live: { status: "inactive", sessionId: null as string | null },
 }));
 
 vi.mock("@anlg/ui/components/ui/toast", () => ({ toast: mocks.toast }));
 vi.mock("~/store/zustand/tabs", () => ({
   useTabs: { getState: () => ({ openNew: mocks.openNew }) },
 }));
+vi.mock("~/store/zustand/listener/instance", () => ({
+  listenerStore: { getState: () => ({ live: mocks.live }) },
+}));
 vi.mock("~/session/queries", () => ({
   preloadSession: mocks.preloadSession,
 }));
 
 import {
+  refuseWhileAnotherNoteRecords,
   showRecordingDidNotStartToast,
   showStillRecordingToast,
 } from "./recording-request-toasts";
@@ -68,5 +73,27 @@ describe("recording request toasts", () => {
 
     await vi.waitFor(() => expect(mocks.toast).toHaveBeenCalled());
     expect(mocks.toast.mock.calls[0][0]).toBe("Still recording another note");
+  });
+
+  // Fork test: task test, Oct 8 (Start recording in a note did nothing
+  // while another note recorded).
+  it("refuses and says so while another note records", async () => {
+    mocks.preloadSession.mockResolvedValue({ title: "Design review" });
+    mocks.live = { status: "active", sessionId: "other" };
+    expect(refuseWhileAnotherNoteRecords("session-1")).toBe(true);
+    await vi.waitFor(() =>
+      expect(mocks.toast).toHaveBeenCalledWith(
+        'Still recording "Design review"',
+        expect.anything(),
+      ),
+    );
+  });
+
+  it("lets the recording note and an idle app start", () => {
+    mocks.live = { status: "active", sessionId: "session-1" };
+    expect(refuseWhileAnotherNoteRecords("session-1")).toBe(false);
+    mocks.live = { status: "inactive", sessionId: null };
+    expect(refuseWhileAnotherNoteRecords("session-1")).toBe(false);
+    expect(mocks.toast).not.toHaveBeenCalled();
   });
 });

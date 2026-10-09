@@ -223,6 +223,38 @@ describe("Enhanced", () => {
     expect(hoisted.enhancedEditorMountCount).toBe(1);
   });
 
+  // Fork test: task test, Oct 8 (a failed regenerate hid the summary).
+  it("keeps the saved summary on screen when a new one fails", () => {
+    hoisted.content = "Stored summary";
+    hoisted.enhanceTask = {
+      status: "error",
+      error: new Error("Failed to fetch"),
+      streamedText: "",
+      currentStep: undefined,
+      isGenerating: false,
+    };
+
+    render(<Enhanced sessionId="session-1" enhancedNoteId="note-1" />);
+
+    expect(screen.getByText("Enhance error")).not.toBeNull();
+    expect(screen.getByText("Stored summary")).not.toBeNull();
+  });
+
+  it("shows only the error when there is no saved summary", () => {
+    hoisted.enhanceTask = {
+      status: "error",
+      error: new Error("Failed to fetch"),
+      streamedText: "",
+      currentStep: undefined,
+      isGenerating: false,
+    };
+
+    render(<Enhanced sessionId="session-1" enhancedNoteId="note-1" />);
+
+    expect(screen.getByText("Enhance error")).not.toBeNull();
+    expect(screen.queryByTestId("enhanced-editor")).toBeNull();
+  });
+
   it("remounts the editor with persisted content after generation", () => {
     hoisted.content = "Stored summary";
     const view = render(

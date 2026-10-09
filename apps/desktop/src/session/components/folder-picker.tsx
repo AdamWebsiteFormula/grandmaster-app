@@ -232,6 +232,22 @@ function FolderPickerContent({
             setSelectedPath(normalized);
           }
           await updateSession({ folder_id: normalized });
+          // Fork: unchecking the note's folder (Granola's way to remove)
+          // happened with no word and no way back, and Enter right after
+          // opening the picker did it. Say so, with Undo, as Delete note
+          // does (task test, Oct 8; NN/g #3, #1).
+          if (!normalized && folderId) {
+            const previous = folderId;
+            toast(t`Removed from “${previous}”`, {
+              id: `folder-removed-${sessionId}`,
+              action: {
+                label: t`Undo`,
+                onClick: () => {
+                  void updateSession({ folder_id: previous });
+                },
+              },
+            });
+          }
         } catch (error) {
           console.error("[folder-picker] failed to update folder", error);
           // Fork: say it failed; the chip alone doesn't (journey-after P3
@@ -240,7 +256,15 @@ function FolderPickerContent({
         }
       })();
     },
-    [folderId, folderPaths, onClose, setSelectedPath, t, updateSession],
+    [
+      folderId,
+      folderPaths,
+      onClose,
+      sessionId,
+      setSelectedPath,
+      t,
+      updateSession,
+    ],
   );
 
   const handleSeeAllFolders = useCallback(() => {

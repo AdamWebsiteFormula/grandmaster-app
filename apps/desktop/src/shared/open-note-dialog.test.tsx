@@ -447,6 +447,67 @@ describe("OpenNoteDialog", () => {
     expect(selected).toEqual([options[0]]);
   });
 
+  // Fork test: task test, Oct 8 (the arrowed-to row jumped back to the
+  // top when note-text matches arrived, so Return opened another note).
+  it("keeps the arrowed-to row when note-text matches arrive", async () => {
+    mocks.sessions = [
+      {
+        id: "pricing-review",
+        title: "Pricing review",
+        created_at: "2026-07-16T09:00:00.000Z",
+      },
+      {
+        id: "pricing-plan",
+        title: "Pricing plan",
+        created_at: "2026-07-15T09:00:00.000Z",
+      },
+      {
+        id: "weekly-sync",
+        title: "Weekly sync",
+        created_at: "2026-07-14T09:00:00.000Z",
+      },
+    ];
+    mocks.search.mockImplementation(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(
+            () =>
+              resolve([
+                {
+                  score: 1,
+                  document: {
+                    id: "weekly-sync",
+                    type: "session",
+                    title: "Weekly sync",
+                    content: "We talked about pricing.",
+                    created_at: 0,
+                  },
+                },
+              ]),
+            150,
+          ),
+        ),
+    );
+
+    render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
+    const input = screen.getByPlaceholderText("Search notes and settings…");
+    fireEvent.change(input, { target: { value: "pricing" } });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    const selectedText = () =>
+      screen
+        .getAllByRole("option")
+        .find((option) => option.getAttribute("aria-selected") === "true")
+        ?.textContent ?? "";
+    const before = selectedText();
+
+    await waitFor(() => expect(screen.getByText("In notes")).toBeTruthy());
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(before).not.toBe("");
+    expect(selectedText()).toBe(before);
+  });
+
   it("does not run content search for short or empty queries", async () => {
     render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
 

@@ -49,7 +49,7 @@ export const Enhanced = forwardRef<
       status === "success" && streamedText.trim().length > 0 && !hasContent;
     const showStreaming = status === "generating" || isAwaitingPersistedContent;
 
-    if (status === "error") {
+    if (status === "error" && !hasContent) {
       return (
         <EnhanceError
           sessionId={sessionId}
@@ -103,6 +103,24 @@ export const Enhanced = forwardRef<
         onViewDisposed={onViewDisposed}
       />
     );
+
+    if (status === "error") {
+      return (
+        <div className="flex flex-col gap-3">
+          <EnhanceError
+            sessionId={sessionId}
+            enhancedNoteId={enhancedNoteId}
+            error={error}
+            isUnauthenticated={
+              llmStatus.status === "error" &&
+              llmStatus.reason === "unauthenticated"
+            }
+            inline
+          />
+          {editor}
+        </div>
+      );
+    }
 
     // Fork: an empty, idle summary keeps the editor and offers to generate.
     if (status === "idle" && !hasContent) {

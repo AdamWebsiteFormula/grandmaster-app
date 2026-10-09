@@ -527,7 +527,28 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
     filteredOtherNotes.length,
     contentResults.length,
   ].join("|");
+  // Fork: when more results arrive for the same words (note text comes
+  // about 200 ms later), the row the user arrowed to stays selected; it
+  // jumped back to the top, so Return opened another note (task test,
+  // Oct 8; NN/g #3).
+  const resultValues = new Set<string>([
+    ...filteredRecentSessions.map((session) => `recent-${session.id}`),
+    ...filteredPages.map((page) => `page-${page.id}`),
+    ...filteredOtherNotes.map((note) => `${note.resourceType}-${note.id}`),
+    ...contentResults.map((result) => `content-${result.note.id}`),
+  ]);
+  const selectedValueRef = useRef(selectedValue);
+  selectedValueRef.current = selectedValue;
+  const resultValuesRef = useRef(resultValues);
+  resultValuesRef.current = resultValues;
+  const lastQueryRef = useRef(query);
   useLayoutEffect(() => {
+    const sameQuery = lastQueryRef.current === query;
+    lastQueryRef.current = query;
+    const current = selectedValueRef.current;
+    if (sameQuery && current && resultValuesRef.current.has(current)) {
+      return;
+    }
     setSelectedValue(firstResultValue);
     const list = listRef.current;
     if (!list) return;

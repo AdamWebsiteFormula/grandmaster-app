@@ -10,10 +10,7 @@ import { useLanguageModel } from "~/ai/hooks";
 import { useEnhancedNote } from "~/session/queries";
 import { createTaskId } from "~/store/zustand/ai-task/task-configs";
 import { openUpshotSignIn } from "~/upshot-plan";
-import {
-  isSignInRequiredError,
-  useUpshotAccount,
-} from "~/upshot-plan/session";
+import { isSignInRequiredError, useUpshotAccount } from "~/upshot-plan/session";
 
 const NETWORK_ERROR_PATTERN =
   /failed to fetch|load failed|network|offline|internet|ENOTFOUND|ECONNREFUSED|ECONNRESET|EAI_AGAIN|could not connect|couldn't connect|unable to connect|dns/i;
@@ -31,11 +28,14 @@ export function EnhanceError({
   enhancedNoteId,
   error,
   isUnauthenticated,
+  inline = false,
 }: {
   sessionId: string;
   enhancedNoteId: string;
   error: Error | undefined;
   isUnauthenticated: boolean;
+  /** A banner above the summary that is still saved, not a full card. */
+  inline?: boolean;
 }) {
   const model = useLanguageModel("enhance");
   const generate = useAITask((state) => state.generate);
@@ -62,6 +62,75 @@ export function EnhanceError({
     });
   };
 
+  const message = needsSignIn ? (
+    <Trans>Upshot AI needs a free account. Sign in, then try again.</Trans>
+  ) : signedInSince ? (
+    <Trans>Try again to write this summary.</Trans>
+  ) : errorKind === "too_long" ? (
+    // Fork: Retry can't fix a 413, so say what can
+    // (journey-meeting P3; NN/g #9).
+    <Trans>
+      This meeting is too long for one summary. Try a shorter template, or ask
+      in chat.
+    </Trans>
+  ) : errorKind === "out_of_credit" ? (
+    <Trans>Upshot AI is paused for now. Try again later.</Trans>
+  ) : isNetworkError(error) ? (
+    // Fork: plain-language errors with the raw text kept small below (ux-audit-oct3 C, NN/g #9).
+    // Both messages and the button say "try again", as the
+    // not-ready state does (NN/g heuristic #4; Apple HIG, Alerts).
+    <Trans>
+      Upshot can't reach the internet. Check your connection, then try again.
+    </Trans>
+  ) : (
+    <Trans>Upshot couldn't write this summary. Try again.</Trans>
+  );
+
+  const action =
+    errorKind === "too_long" && !askedToSignIn ? null : needsSignIn ? (
+      <Button
+        onClick={() => openUpshotSignIn("hosted")}
+        size="sm"
+        variant="default"
+        className="shrink-0"
+      >
+        <Trans>Sign in</Trans>
+      </Button>
+    ) : (
+      <Button
+        onClick={handleRetry}
+        size="sm"
+        className="shrink-0 gap-2"
+        // Fork: one orange accent per screen (ux-audit-oct3 C, design-system).
+        variant="secondary"
+      >
+        <ArrowsClockwise size={16} />
+        {/* Fork: "Try again", as config-error.tsx and Apple HIG Alerts
+            (NN/g heuristic #4, one word for one thing). */}
+        <span>
+          <Trans>Try again</Trans>
+        </span>
+      </Button>
+    );
+
+  // Fork: when a new summary fails, the last one stays on screen under a
+  // banner, the same as the Generate summary banner, so nothing the user
+  // had disappears (task test, Oct 8; NN/g #9; Granola keeps the old notes
+  // until a regenerate succeeds).
+  if (inline) {
+    return (
+      <div
+        role="alert"
+        className="bg-muted/60 flex items-center justify-between gap-4 rounded-xl px-4 py-3"
+      >
+        <p className="text-muted-foreground text-sm text-pretty">
+          {message} <Trans>Your last summary is below.</Trans>
+        </p>
+        {action}
+      </div>
+    );
+  }
+
   return (
     <div
       role="alert"
@@ -82,32 +151,7 @@ export function EnhanceError({
           )}
         </p>
         <p className="text-muted-foreground text-sm leading-relaxed">
-          {needsSignIn ? (
-            <Trans>
-              Upshot AI needs a free account. Sign in, then try again.
-            </Trans>
-          ) : signedInSince ? (
-            <Trans>Try again to write this summary.</Trans>
-          ) : errorKind === "too_long" ? (
-            // Fork: Retry can't fix a 413, so say what can
-            // (journey-meeting P3; NN/g #9).
-            <Trans>
-              This meeting is too long for one summary. Try a shorter template,
-              or ask in chat.
-            </Trans>
-          ) : errorKind === "out_of_credit" ? (
-            <Trans>Upshot AI is paused for now. Try again later.</Trans>
-          ) : isNetworkError(error) ? (
-            // Fork: plain-language errors with the raw text kept small below (ux-audit-oct3 C, NN/g #9).
-            // Both messages and the button say "try again", as the
-            // not-ready state does (NN/g heuristic #4; Apple HIG, Alerts).
-            <Trans>
-              Upshot can't reach the internet. Check your connection, then try
-              again.
-            </Trans>
-          ) : (
-            <Trans>Upshot couldn't write this summary. Try again.</Trans>
-          )}
+          {message}
         </p>
         {!askedToSignIn && errorKind === "other" && error?.message ? (
           <p className="text-muted-foreground text-xs break-words">
@@ -115,30 +159,7 @@ export function EnhanceError({
           </p>
         ) : null}
       </div>
-      {errorKind === "too_long" && !askedToSignIn ? null : needsSignIn ? (
-        <Button
-          onClick={() => openUpshotSignIn("hosted")}
-          size="sm"
-          variant="default"
-        >
-          <Trans>Sign in</Trans>
-        </Button>
-      ) : (
-        <Button
-          onClick={handleRetry}
-          size="sm"
-          className="gap-2"
-          // Fork: one orange accent per screen (ux-audit-oct3 C, design-system).
-          variant="secondary"
-        >
-          <ArrowsClockwise size={16} />
-          {/* Fork: "Try again", as config-error.tsx and Apple HIG Alerts
-              (NN/g heuristic #4, one word for one thing). */}
-          <span>
-            <Trans>Try again</Trans>
-          </span>
-        </Button>
-      )}
+      {action}
     </div>
   );
 }

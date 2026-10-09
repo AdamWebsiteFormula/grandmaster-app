@@ -374,6 +374,10 @@ msgstr "a month ago"
 msgid "a month, billed ${YEARLY_PRICE} yearly"
 msgstr "a month, billed ${YEARLY_PRICE} yearly"
 
+#: src/session/components/note-input/header-enhanced.tsx
+msgid "A new summary replaces this one, including any edits you made."
+msgstr "A new summary replaces this one, including any edits you made."
+
 #: src/automations/starters.tsx
 msgid "A Slack message with the meeting title and recap."
 msgstr "A Slack message with the meeting title and recap."
@@ -2302,6 +2306,10 @@ msgstr "Couldn't open your mail app. Try again."
 #: src/settings/ai/stt/health.tsx
 msgid "Couldn’t reach the on-device model. Quit and reopen Upshot, or pick another model."
 msgstr "Couldn’t reach the on-device model. Quit and reopen Upshot, or pick another model."
+
+#: src/session/components/title-input.tsx
+#~ msgid "Couldn't rename the note. Try again."
+#~ msgstr "Couldn't rename the note. Try again."
 
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 msgid "Couldn't restore these lines. Try again."
@@ -5974,6 +5982,10 @@ msgstr "Remove workspace logo"
 msgid "Remove your {0} key?"
 msgstr "Remove your {0} key?"
 
+#: src/session/components/folder-picker.tsx
+msgid "Removed from “{previous}”"
+msgstr "Removed from “{previous}”"
+
 #: src/settings/ai/shared/index.tsx
 msgid "Removing…"
 msgstr "Removing…"
@@ -6032,6 +6044,7 @@ msgstr "Repair Keychain access"
 msgid "Repair Keychain Access"
 msgstr "Repair Keychain Access"
 
+#: src/session/components/note-input/header-enhanced.tsx
 #: src/session/components/note-input/search/bar.tsx
 #: src/settings/sync/index.tsx
 msgid "Replace"
@@ -6044,6 +6057,10 @@ msgstr "Replace all"
 #: src/settings/todo/github.tsx
 msgid "Replace repository"
 msgstr "Replace repository"
+
+#: src/session/components/note-input/header-enhanced.tsx
+msgid "Replace this summary?"
+msgstr "Replace this summary?"
 
 #: src/session/components/note-input/search/bar.tsx
 msgid "Replace with..."
@@ -7145,6 +7162,10 @@ msgstr "Start with permissions"
 msgid "Start writing…"
 msgstr "Start writing…"
 
+#: src/services/event-notification/index.ts
+msgid "Started"
+msgstr "Started"
+
 #: src/settings/ai/stt/select.tsx
 msgid "Starting"
 msgstr "Starting"
@@ -7162,8 +7183,8 @@ msgid "Starting microphone…"
 msgstr "Starting microphone…"
 
 #: src/services/event-notification/index.ts
-msgid "Starting now"
-msgstr "Starting now"
+#~ msgid "Starting now"
+#~ msgstr "Starting now"
 
 #: src/settings/ai/stt/health.tsx
 msgid "Starting the on-device model…"
@@ -7991,6 +8012,7 @@ msgstr "Unavailable"
 
 #: src/calendar/components/event-chip.tsx
 #: src/main/windows-title-bar.tsx
+#: src/session/components/folder-picker.tsx
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 #: src/settings/ai/shared/provider-selection-prompt.ts
 #: src/sidebar/toast/undo-delete-toast.tsx
@@ -8320,6 +8342,10 @@ msgstr "Upshot is locked"
 #: src/main/move-to-applications.ts
 msgid "Upshot is running from the disk image, so it quits when you eject it. Click Move to quit Upshot and open Applications, then drag Upshot there and open it again."
 msgstr "Upshot is running from the disk image, so it quits when you eject it. Click Move to quit Upshot and open Applications, then drag Upshot there and open it again."
+
+#: src/session/components/note-input/header-enhanced.tsx
+msgid "Upshot is still writing this summary. Pick a template when it's done."
+msgstr "Upshot is still writing this summary. Pick a template when it's done."
 
 #: src/session-sharing/access-management.tsx
 msgid "Upshot member"
@@ -8828,6 +8854,10 @@ msgstr "Your info"
 #: src/settings/ai/shared/provider-selection-prompt.ts
 msgid "Your key works. {providerName} is now the current provider."
 msgstr "Your key works. {providerName} is now the current provider."
+
+#: src/session/components/note-input/enhanced/enhance-error.tsx
+msgid "Your last summary is below."
+msgstr "Your last summary is below."
 
 #: src/auth/context.tsx
 msgid "Your local notes are available. Connect this library to sync with your current account."
