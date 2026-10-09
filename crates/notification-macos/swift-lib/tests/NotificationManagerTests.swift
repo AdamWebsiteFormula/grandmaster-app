@@ -107,6 +107,20 @@ final class NotificationManagerTests: XCTestCase {
       0)
   }
 
+  func testPayloadDecodesPromptPresentation() throws {
+    let base = """
+      {"key":"k","title":"Meeting detected","message":"","timeoutSeconds":120,
+      "source":null,"startTime":null,"participants":null,"eventDetails":null,
+      "actionLabel":"Take notes","actionVariant":null,"options":null,"footer":null,
+      "icon":null
+      """
+    let prompt = try JSONDecoder().decode(
+      NotificationPayload.self, from: Data((base + #","presentation":"prompt"}"#).utf8))
+    XCTAssertEqual(prompt.presentation, .prompt)
+    let card = try JSONDecoder().decode(NotificationPayload.self, from: Data((base + "}").utf8))
+    XCTAssertNil(card.presentation)
+  }
+
   private func makeNotification(index: Int, key: String? = nil) -> NotificationInstance {
     let payload = NotificationPayload(
       key: key ?? "notification-\(index)",
@@ -121,7 +135,8 @@ final class NotificationManagerTests: XCTestCase {
       actionVariant: nil,
       options: nil,
       footer: nil,
-      icon: nil
+      icon: nil,
+      presentation: nil
     )
     return NotificationInstance(
       payload: payload,

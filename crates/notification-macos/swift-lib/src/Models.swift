@@ -215,6 +215,11 @@ enum NotificationSchedule {
   }
 }
 
+enum NotificationPresentation: String, Codable {
+  case card
+  case prompt
+}
+
 struct NotificationPayload: Codable {
   let key: String
   let title: String
@@ -229,6 +234,7 @@ struct NotificationPayload: Codable {
   let options: [String]?
   let footer: NotificationFooter?
   let icon: NotificationIcon?
+  let presentation: NotificationPresentation?
 
   var isPersistent: Bool {
     return timeoutSeconds <= 0

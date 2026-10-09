@@ -1257,6 +1257,9 @@ describe("ListenerProvider detect events", () => {
         source: expect.objectContaining({
           app_names: ["Jitsi"],
         }),
+        // Granola's nub, kept up for 2 minutes (Granola 7.637).
+        presentation: "prompt",
+        timeout: { secs: 120, nanos: 0 },
       }),
     );
   });

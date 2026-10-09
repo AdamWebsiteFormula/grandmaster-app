@@ -23,6 +23,11 @@ class NotificationManager {
     DispatchQueue.main.async { [weak self] in
       guard let self else { return }
       self.setupApplicationIfNeeded()
+      if payload.presentation == .prompt {
+        self.dismissExistingNotification(forKey: payload.key)
+        MeetingPromptController.shared.show(payload: payload, manager: self)
+        return
+      }
       self.createAndShowNotification(payload: payload)
     }
   }
@@ -37,6 +42,7 @@ class NotificationManager {
   func dismissAll() {
     let dismiss = { [self] in
       Array(activeNotifications.values).forEach { $0.dismiss() }
+      MeetingPromptController.shared.close()
     }
     if Thread.isMainThread {
       dismiss()
@@ -47,6 +53,7 @@ class NotificationManager {
 
   func dismissExistingNotification(forKey key: String) {
     activeNotifications[key]?.dismiss()
+    MeetingPromptController.shared.dismiss(forKey: key)
   }
 
   @discardableResult

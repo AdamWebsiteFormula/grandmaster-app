@@ -450,6 +450,9 @@ export const useHandleDetectEvents = (store: ListenerStore) => {
                 footer,
                 // Fork: only the Upshot logo, as Granola (owner test, Oct 5).
                 icon: null,
+                // Fork: the small card at the right screen edge, as Granola's
+                // nub (Granola 7.637). Windows and Linux show the usual card.
+                presentation: "prompt",
               });
             } finally {
               pendingMicDetectedPromptRef.current = false;

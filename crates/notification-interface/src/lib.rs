@@ -179,6 +179,19 @@ pub enum NotificationActionVariant {
     Destructive,
 }
 
+// Fork: how the notice looks. A prompt is the small card at the right screen
+// edge (Granola's nub); a card is the usual top-right notification. Platforms
+// without a prompt show the card.
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize, specta::Type,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum NotificationPresentation {
+    #[default]
+    Card,
+    Prompt,
+}
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct Notification {
     pub key: Option<String>,
@@ -194,6 +207,9 @@ pub struct Notification {
     pub options: Option<Vec<String>>,
     pub footer: Option<NotificationFooter>,
     pub icon: Option<NotificationIcon>,
+    #[serde(default)]
+    #[specta(optional)]
+    pub presentation: Option<NotificationPresentation>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -452,6 +468,7 @@ pub struct NotificationBuilder {
     options: Option<Vec<String>>,
     footer: Option<NotificationFooter>,
     icon: Option<NotificationIcon>,
+    presentation: Option<NotificationPresentation>,
 }
 
 impl NotificationBuilder {
@@ -520,6 +537,11 @@ impl NotificationBuilder {
         self
     }
 
+    pub fn presentation(mut self, presentation: NotificationPresentation) -> Self {
+        self.presentation = Some(presentation);
+        self
+    }
+
     pub fn build(self) -> Notification {
         let source = self.source;
         let icon = self
@@ -540,6 +562,7 @@ impl NotificationBuilder {
             options: self.options,
             footer: self.footer,
             icon,
+            presentation: self.presentation,
         }
     }
 }

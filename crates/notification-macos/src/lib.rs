@@ -85,6 +85,7 @@ struct NotificationPayload<'a> {
     options: Option<&'a [String]>,
     footer: Option<&'a NotificationFooter>,
     icon: Option<&'a NotificationIcon>,
+    presentation: NotificationPresentation,
 }
 
 fn resolve_default_icon(
@@ -125,6 +126,7 @@ pub fn show(notification: &anlg_notification_interface::Notification) {
         options: notification.options.as_deref(),
         footer: notification.footer.as_ref(),
         icon: notification.icon.as_ref(),
+        presentation: notification.presentation.unwrap_or_default(),
     };
 
     let json = serde_json::to_string(&payload).unwrap();
