@@ -211,9 +211,19 @@ export function OrganizationDetailsColumn({
                               />
                             )}
                             <div className="w-full">
-                              <div className="truncate text-sm font-semibold">
+                              {/* Fork: the card opened by mouse only; the
+                                  name is the keyboard way in (task sweep,
+                                  Oct 9; WCAG 2.2 SC 2.1.1). */}
+                              <button
+                                type="button"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  onPersonClick?.(human.id);
+                                }}
+                                className="focus-visible:ring-ring block w-full truncate rounded-sm text-sm font-semibold focus-visible:ring-2 focus-visible:outline-none"
+                              >
                                 {human.name || human.email || t`Unnamed`}
-                              </div>
+                              </button>
                               {human.jobTitle && (
                                 <div className="text-muted-foreground mt-1 truncate text-xs">
                                   {human.jobTitle}
