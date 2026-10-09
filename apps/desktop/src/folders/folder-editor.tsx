@@ -530,7 +530,9 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
                 }
               }}
             >
-              <Trans>Confirm</Trans>
+              {/* Fork: the button names the action, not "Confirm" (Apple
+                  HIG, Alerts: use a verb that describes the result). */}
+              <Trans>Share folder</Trans>
             </Button>
           </DialogFooter>
         </DialogContent>

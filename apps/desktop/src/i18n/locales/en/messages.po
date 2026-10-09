@@ -1810,8 +1810,8 @@ msgid "Configure providers"
 msgstr "Configure providers"
 
 #: src/folders/folder-editor.tsx
-msgid "Confirm"
-msgstr "Confirm"
+#~ msgid "Confirm"
+#~ msgstr "Confirm"
 
 #: src/imports/screen.tsx
 #: src/onboarding/calendar.tsx
@@ -7122,6 +7122,10 @@ msgstr "Share a meeting recap in Slack"
 #: src/session-sharing/attachment-controls.tsx
 msgid "Share audio"
 msgstr "Share audio"
+
+#: src/folders/folder-editor.tsx
+msgid "Share folder"
+msgstr "Share folder"
 
 #: src/session-sharing/index.tsx
 #: src/session-sharing/management-panel.tsx

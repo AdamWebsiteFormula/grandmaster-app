@@ -1810,8 +1810,8 @@ msgid "Configure providers"
 msgstr ""
 
 #: src/folders/folder-editor.tsx
-msgid "Confirm"
-msgstr ""
+#~ msgid "Confirm"
+#~ msgstr ""
 
 #: src/imports/screen.tsx
 #: src/onboarding/calendar.tsx
@@ -7121,6 +7121,10 @@ msgstr ""
 
 #: src/session-sharing/attachment-controls.tsx
 msgid "Share audio"
+msgstr ""
+
+#: src/folders/folder-editor.tsx
+msgid "Share folder"
 msgstr ""
 
 #: src/session-sharing/index.tsx
