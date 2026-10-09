@@ -60,6 +60,12 @@ msgstr ""
 msgid "{0} must accept before becoming Primary owner. Until then, ownership and permissions stay the same. After acceptance, you remain an Owner and they can delete the workspace."
 msgstr ""
 
+#. placeholder {0}: formatTime(time.current)
+#. placeholder {1}: formatTime(time.total)
+#: src/audio-player/timeline.tsx
+msgid "{0} of {1}"
+msgstr ""
+
 #. placeholder {0}: access.usedSeats
 #. placeholder {1}: access.seatLimit
 #: src/settings/general/billing.tsx
@@ -849,6 +855,10 @@ msgstr ""
 
 #: src/session-sharing/access-management.tsx
 msgid "Approve"
+msgstr ""
+
+#: src/settings/connectors/index.tsx
+msgid "Apps and tools"
 msgstr ""
 
 #: src/folders/folder-ask.tsx
@@ -2305,6 +2315,10 @@ msgstr ""
 
 #: src/audio-player/delete-recording-confirm.tsx
 msgid "Couldn't delete the recording. Stop playback and try again."
+msgstr ""
+
+#: src/templates/template-sidebar.tsx
+msgid "Couldn't delete the template. Try again."
 msgstr ""
 
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
@@ -5146,12 +5160,12 @@ msgstr ""
 #~ msgstr ""
 
 #: src/settings/connectors/index.tsx
-msgid "On this computer"
-msgstr ""
+#~ msgid "On this computer"
+#~ msgstr ""
 
 #: src/settings/connectors/index.tsx
-msgid "On this Mac"
-msgstr ""
+#~ msgid "On this Mac"
+#~ msgstr ""
 
 #: src/settings/dictation.tsx
 msgid "On Wayland, approve the shortcuts in your desktop's prompt. Use Control + Alt + Escape to cancel. On X11, press Escape to cancel. The target app must expose an editable accessibility field."
@@ -5543,6 +5557,10 @@ msgstr ""
 
 #: src/shared/keyboard-shortcuts-dialog.tsx
 msgid "Play or pause (Transcript tab)"
+msgstr ""
+
+#: src/audio-player/timeline.tsx
+msgid "Playback position"
 msgstr ""
 
 #: src/audio-player/timeline.tsx

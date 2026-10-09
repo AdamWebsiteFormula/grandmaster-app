@@ -88,7 +88,9 @@ export function ResourcePreviewHeader({
                   // own color in light, so the tag drew no chip (NN/g #4).
                   className={cn([
                     STATUS_BADGE_CLASS,
-                    "inline-flex h-6 items-center px-2 py-0.5",
+                    // The shared badge size: 20 pt tall, 6 pt sides (picture
+                    // review, Oct 9: 24 pt here).
+                    "inline-flex h-5 items-center px-1.5",
                   ])}
                 >
                   {target}

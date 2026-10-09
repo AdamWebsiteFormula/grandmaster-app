@@ -4,7 +4,9 @@
 // review, Oct 9; Apple HIG, Consistency; NN/g #4). The fill is a tint of
 // the text color, so it shows on any surface: on a white card, the gray
 // canvas and a raised dark field alike (a fixed gray vanished on the dark
-// dropdown; Apple HIG, Dark Mode). Text stays 4.5:1 or more on it; `!`
+// dropdown; Apple HIG, Dark Mode). Text stays 4.5:1 or more on it; in
+// dark it is 70% white, so the badge stays quiet beside secondary labels
+// rather than brighter than them (picture review, Oct 9); `!`
 // because @anlg/ui's .text-muted-foreground loads later and won in dark.
 export const STATUS_BADGE_CLASS =
-  "bg-foreground/5 text-muted-foreground dark:bg-foreground/10 dark:text-foreground/85! rounded-md border-transparent text-xs font-normal";
+  "bg-foreground/5 text-muted-foreground dark:bg-foreground/10 dark:text-foreground/70! rounded-md border-transparent text-xs font-normal";

@@ -41,7 +41,7 @@ describe("Settings › Connectors", () => {
   // Mac's Calendar (Google, Outlook, iCloud).
   it("says Not connected for Calendar without access, Connected with it", () => {
     render(<SettingsConnectors />);
-    expect(screen.getByText("On this Mac")).toBeTruthy();
+    expect(screen.getByText("Apps and tools")).toBeTruthy();
     expect(screen.queryByText("Apple Calendar")).toBeNull();
     const off = screen.getByRole("button", { name: /^Calendar/ }).textContent;
     expect(off).toContain("Not connected");
@@ -63,7 +63,7 @@ describe("Settings › Connectors", () => {
       render(<SettingsConnectors />);
 
       expect(screen.queryByText("On this Mac")).toBeNull();
-      expect(screen.getByText("On this computer")).toBeTruthy();
+      expect(screen.getByText("Apps and tools")).toBeTruthy();
       expect(screen.queryByRole("button", { name: /^Calendar/ })).toBeNull();
       expect(screen.queryByRole("button", { name: /Glaido/ })).toBeNull();
       expect(screen.getByRole("button", { name: /MCP and CLI/ })).toBeTruthy();

@@ -60,6 +60,12 @@ msgstr "{0} min"
 msgid "{0} must accept before becoming Primary owner. Until then, ownership and permissions stay the same. After acceptance, you remain an Owner and they can delete the workspace."
 msgstr "{0} must accept before becoming Primary owner. Until then, ownership and permissions stay the same. After acceptance, you remain an Owner and they can delete the workspace."
 
+#. placeholder {0}: formatTime(time.current)
+#. placeholder {1}: formatTime(time.total)
+#: src/audio-player/timeline.tsx
+msgid "{0} of {1}"
+msgstr "{0} of {1}"
+
 #. placeholder {0}: access.usedSeats
 #. placeholder {1}: access.seatLimit
 #: src/settings/general/billing.tsx
@@ -850,6 +856,10 @@ msgstr "Apply to summary"
 #: src/session-sharing/access-management.tsx
 msgid "Approve"
 msgstr "Approve"
+
+#: src/settings/connectors/index.tsx
+msgid "Apps and tools"
+msgstr "Apps and tools"
 
 #: src/folders/folder-ask.tsx
 msgid "Ask about notes in {name}"
@@ -2306,6 +2316,10 @@ msgstr "Couldn’t delete the model"
 #: src/audio-player/delete-recording-confirm.tsx
 msgid "Couldn't delete the recording. Stop playback and try again."
 msgstr "Couldn't delete the recording. Stop playback and try again."
+
+#: src/templates/template-sidebar.tsx
+msgid "Couldn't delete the template. Try again."
+msgstr "Couldn't delete the template. Try again."
 
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 msgid "Couldn't delete these lines. Try again."
@@ -5146,12 +5160,12 @@ msgstr "On {date}"
 #~ msgstr "On Home, right-click a note and choose Add to folder. Or open a note and click Add to folder under its title."
 
 #: src/settings/connectors/index.tsx
-msgid "On this computer"
-msgstr "On this computer"
+#~ msgid "On this computer"
+#~ msgstr "On this computer"
 
 #: src/settings/connectors/index.tsx
-msgid "On this Mac"
-msgstr "On this Mac"
+#~ msgid "On this Mac"
+#~ msgstr "On this Mac"
 
 #: src/settings/dictation.tsx
 msgid "On Wayland, approve the shortcuts in your desktop's prompt. Use Control + Alt + Escape to cancel. On X11, press Escape to cancel. The target app must expose an editable accessibility field."
@@ -5544,6 +5558,10 @@ msgstr "Play from here"
 #: src/shared/keyboard-shortcuts-dialog.tsx
 msgid "Play or pause (Transcript tab)"
 msgstr "Play or pause (Transcript tab)"
+
+#: src/audio-player/timeline.tsx
+msgid "Playback position"
+msgstr "Playback position"
 
 #: src/audio-player/timeline.tsx
 msgid "Playback speed"

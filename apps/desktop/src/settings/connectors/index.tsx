@@ -47,9 +47,10 @@ export function SettingsConnectors() {
         description={<Trans>Connect Upshot to the tools you use.</Trans>}
       />
       <SettingsGroup
-        title={
-          mac ? <Trans>On this Mac</Trans> : <Trans>On this computer</Trans>
-        }
+        // Fork: "Apps and tools" on every system; "On this Mac" did not fit
+        // webhooks, which send notes elsewhere (picture review, Oct 9; NN/g
+        // #2).
+        title={<Trans>Apps and tools</Trans>}
       >
         {mac ? (
           <>

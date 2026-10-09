@@ -1,3 +1,4 @@
+import { t as tm } from "@lingui/core/macro";
 import { Trans, useLingui } from "@lingui/react/macro";
 import {
   Fragment,
@@ -16,6 +17,7 @@ import {
   Sparkle,
   X,
 } from "@anlg/ui/components/icons";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { Button } from "@anlg/ui/components/ui/button";
 import {
   AppFloatingPanel,
@@ -52,6 +54,7 @@ export function TemplatesSidebarContent({
   const { t } = useLingui();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const searchRef = useSquircleRef<HTMLDivElement>();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState("");
   const [sortOption, setSortOption] = useState<SortOption>("alphabetical");
   const autoPrompt = useConfigValue("auto_summary_prompt");
@@ -91,11 +94,23 @@ export function TemplatesSidebarContent({
 
   const handleDeleteTemplate = useCallback(
     async (id: string) => {
-      await deleteTemplate(id);
+      // Fork: a failed delete says so, and after a delete the keyboard lands
+      // in the template search field, not on the page; the row that opened
+      // the menu is gone (task test, Oct 9; NN/g #9; WCAG 2.2 SC 2.4.3).
+      try {
+        await deleteTemplate(id);
+      } catch (error) {
+        console.error("[templates] failed to delete", error);
+        toast.error(tm`Couldn't delete the template. Try again.`);
+        return;
+      }
 
       if (effectiveSelectedMineId === id) {
         setSelectedMineId(null);
       }
+      window.setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 0);
     },
     [deleteTemplate, effectiveSelectedMineId, setSelectedMineId],
   );
@@ -433,6 +448,7 @@ export function TemplatesSidebarContent({
           >
             <MagnifyingGlass className="text-muted-foreground h-4 w-4 shrink-0" />
             <input
+              ref={searchInputRef}
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}

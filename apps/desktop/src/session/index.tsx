@@ -319,11 +319,12 @@ function TabContentNoteInner({
                           card (picture review, Oct 6: the dark fill matched
                           the page; NN/g #4). */}
                       <div className="border-border bg-card dark:bg-muted overflow-hidden rounded-[22px] border">
-                        {/* Fork: the play button sits 12 pt from the player's
-                            left edge, as the waveform ends 12 pt from its right
-                            (picture review, Oct 7: 9 and 12 pt). `!` because
-                            the shell's px-2 wins over a plain pl (measured). */}
-                        <AudioPlayer.Timeline contentClassName="py-1.5 pl-[11px]!" />
+                        {/* Fork: the play circle sits 6 pt from the capsule on
+                            every side, so their curves share one center (picture
+                            review, Oct 9: 11 pt left, 6 pt top and bottom; Apple
+                            HIG, Layout, concentric corners). `!` because the
+                            shell's px-2 wins over a plain pl (measured). */}
+                        <AudioPlayer.Timeline contentClassName="py-1.5 pl-1.5!" />
                       </div>
                     </div>
                   ) : null

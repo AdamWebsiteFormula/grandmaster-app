@@ -36,6 +36,7 @@ export function Timeline({
     setPlaybackRate,
     requestDeleteRecording,
     isDeletingRecording,
+    seek,
   } = useAudioPlayer();
   const time = useAudioTime();
   const [showRateMenu, setShowRateMenu] = useState(false);
@@ -180,9 +181,38 @@ export function Timeline({
         </>
       }
       main={
+        // Fork: the waveform is a slider a keyboard can reach and move:
+        // arrows step 5 seconds, Home and End jump to the ends; it was
+        // mouse-only (task test, Oct 9; WCAG 2.2 SC 2.1.1, 4.1.2; Apple HIG,
+        // Sliders).
         <div
           ref={registerContainer}
-          className="h-6 min-w-0 flex-1"
+          role="slider"
+          tabIndex={0}
+          aria-label={t`Playback position`}
+          aria-valuemin={0}
+          aria-valuemax={Math.round(time.total)}
+          aria-valuenow={Math.round(time.current)}
+          aria-valuetext={t`${formatTime(time.current)} of ${formatTime(time.total)}`}
+          onKeyDown={(event) => {
+            const step =
+              event.key === "ArrowRight" || event.key === "ArrowUp"
+                ? 5
+                : event.key === "ArrowLeft" || event.key === "ArrowDown"
+                  ? -5
+                  : null;
+            if (step !== null) {
+              event.preventDefault();
+              seek(Math.min(Math.max(time.current + step, 0), time.total || 0));
+            } else if (event.key === "Home") {
+              event.preventDefault();
+              seek(0);
+            } else if (event.key === "End") {
+              event.preventDefault();
+              seek(time.total);
+            }
+          }}
+          className="focus-visible:ring-ring h-6 min-w-0 flex-1 rounded-sm focus-visible:ring-2 focus-visible:outline-none"
           style={{ width: "100%" }}
         />
       }
