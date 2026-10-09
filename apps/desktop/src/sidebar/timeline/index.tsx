@@ -48,6 +48,10 @@ import { useSidebarNotes } from "~/sidebar/note-filter";
 import { useTabs } from "~/store/zustand/tabs";
 import { useTimelineSelection } from "~/store/zustand/timeline-selection";
 import { useListener } from "~/stt/contexts";
+import { preloadSession } from "~/session/queries";
+import { useAppLock } from "~/lock/store";
+import { isLockedFlag } from "~/lock/flag";
+import { DEVICE_AUTH_REASON } from "~/lock/auth";
 
 export const TimelineView = memo(function TimelineView({
   folderFilter = null,
@@ -159,11 +163,24 @@ export const TimelineView = memo(function TimelineView({
     }
   }, [selectedIds]);
 
-  const handleConfirmDeleteSelected = useCallback(() => {
+  const handleConfirmDeleteSelected = useCallback(async () => {
     const sessionIds = pendingDeleteSessionIds;
     const batchId = sessionIds.length > 1 ? crypto.randomUUID() : undefined;
 
     setPendingDeleteSessionIds([]);
+    // Fork: a selection that holds a locked note asks for the device unlock
+    // first, as Delete on one locked note does (task test, Oct 8; NN/g #4).
+    const records = await Promise.all(
+      sessionIds.map((sessionId) =>
+        preloadSession(sessionId).catch(() => null),
+      ),
+    );
+    if (records.some((record) => isLockedFlag(record?.locked))) {
+      const ok = await useAppLock
+        .getState()
+        .authenticate(DEVICE_AUTH_REASON.deleteNotes);
+      if (!ok) return;
+    }
     for (const sessionId of sessionIds) {
       deleteSession(sessionId, {
         batchId,

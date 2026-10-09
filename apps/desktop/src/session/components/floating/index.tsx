@@ -407,7 +407,9 @@ function NoteAskField({
 }
 
 const barChipClassName = cn([
-  "border-border text-foreground hover:bg-accent inline-flex h-7 max-w-full min-w-0 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border px-2.5 text-xs whitespace-nowrap transition-colors",
+  // Fork: a secondary label, as Home's and Chat's suggestion chips have
+  // (picture review, Oct 9; NN/g #4).
+  "border-border text-muted-foreground hover:text-foreground hover:bg-accent inline-flex h-7 max-w-full min-w-0 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border px-2.5 text-xs whitespace-nowrap transition-colors",
   "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
 ]);
 

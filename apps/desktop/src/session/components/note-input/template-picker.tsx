@@ -22,6 +22,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@anlg/ui/components/ui/tooltip";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
 import { useWebResources } from "~/shared/ui/resource-list";
@@ -109,6 +110,9 @@ export function TemplatePickerPopover({
           sections: template.sections ?? [],
         });
         if (!templateId) {
+          // Fork: the menu has closed, so say the template wasn't made
+          // (task test, Oct 8; NN/g #9).
+          toast.error(t`Couldn't add the template. Try again.`);
           return;
         }
 
@@ -118,7 +122,7 @@ export function TemplatePickerPopover({
         });
       })();
     },
-    [createTemplate, onSelectTemplate],
+    [createTemplate, onSelectTemplate, t],
   );
 
   const handleCreateTemplate = useCallback(
@@ -137,6 +141,7 @@ export function TemplatePickerPopover({
           sections: [],
         });
         if (!templateId) {
+          toast.error(t`Couldn't create the template. Try again.`);
           return;
         }
 
@@ -148,7 +153,7 @@ export function TemplatePickerPopover({
         });
       })();
     },
-    [createTemplate, openTemplatesTab],
+    [createTemplate, openTemplatesTab, t],
   );
   const handleSeeAllTemplates = useCallback(() => {
     setOpen(false);

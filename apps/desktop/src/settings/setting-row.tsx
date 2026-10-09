@@ -143,7 +143,10 @@ export function SettingIconTile({
       aria-hidden
       data-testid="setting-icon"
       className={cn([
-        "border-border bg-card flex size-8 shrink-0 items-center justify-center rounded-lg border",
+        // Fork: flush with the card in both themes; in dark the 6% card
+        // color read as sunken on the 10% card (picture review, Oct 9;
+        // Apple HIG, Dark Mode).
+        "border-border bg-card flex size-8 shrink-0 items-center justify-center rounded-lg border dark:bg-transparent",
         // Fork: a disabled row's icon dims with its title, as macOS dims
         // a whole unavailable control (picture review, Oct 8; Apple HIG,
         // Color).

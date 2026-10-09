@@ -5,13 +5,20 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TemplatePickerPopover } from "./template-picker";
 
 const mocks = vi.hoisted(() => ({
-  createTemplate: vi.fn(() => Promise.resolve("new-template")),
+  createTemplate: vi.fn(
+    (): Promise<string | null> => Promise.resolve("new-template"),
+  ),
+  toastError: vi.fn(),
   openTemplatesTab: vi.fn(),
   templates: [
     { id: "t-1on1", title: "1 to 1", icon: null },
     { id: "t-hiring", title: "Hiring", icon: null },
     { id: "t-standup", title: "Stand-up", icon: null },
   ],
+}));
+
+vi.mock("@anlg/ui/components/ui/toast", () => ({
+  toast: Object.assign(vi.fn(), { error: mocks.toastError }),
 }));
 
 vi.mock("@anlg/ui/components/ui/popover", () => ({
@@ -142,6 +149,21 @@ describe("TemplatePickerPopover", () => {
     expect(mocks.openTemplatesTab).toHaveBeenCalledWith(
       expect.objectContaining({ selectedMineId: "new-template" }),
     );
+  });
+
+  // Fork test: task test, Oct 8 (a failed create closed the menu silently).
+  it("says so when a new template could not be made", async () => {
+    mocks.createTemplate.mockResolvedValueOnce(null);
+    renderPicker();
+
+    fireEvent.click(screen.getByRole("button", { name: "New template" }));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(mocks.toastError).toHaveBeenCalledWith(
+      "Couldn't create the template. Try again.",
+    );
+    expect(mocks.openTemplatesTab).not.toHaveBeenCalled();
   });
 
   it("opens all templates from the footer row", () => {

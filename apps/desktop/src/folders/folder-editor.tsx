@@ -403,7 +403,7 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
                 <Trans>Context</Trans>
               </h4>
               <p className="text-muted-foreground text-xs">
-                <Trans>What these notes are usually about</Trans>
+                <Trans>What these notes are usually about.</Trans>
               </p>
             </div>
             <FolderInstructionsField folderPath={folderPath} rows={4} />

@@ -13,6 +13,8 @@ const mocks = vi.hoisted(() => ({
   model: { modelId: "test-model" } as any,
   openSignIn: vi.fn(),
   toast: vi.fn(),
+  isMain: true,
+  requestMainEnhance: vi.fn(() => Promise.resolve()),
 }));
 
 vi.mock("@anlg/ui/components/ui/toast", () => ({
@@ -30,6 +32,11 @@ vi.mock("~/ai/hooks", () => ({
 }));
 
 vi.mock("~/upshot-plan", () => ({ openUpshotSignIn: mocks.openSignIn }));
+
+vi.mock("~/ai/task-window-sync", () => ({
+  isMainAITaskHostWindow: () => mocks.isMain,
+  requestMainEnhance: mocks.requestMainEnhance,
+}));
 
 vi.mock("~/session/queries", () => ({
   useEnhancedNote: () => ({ templateId: "template-1" }),
@@ -248,5 +255,20 @@ describe("EnhanceError", () => {
     expect(alert.textContent).toContain("Your last summary is below.");
     expect(screen.getByRole("button", { name: /Try again/ })).toBeTruthy();
     expect(screen.queryByText("Summary generation failed")).toBeNull();
+  });
+
+  // Fork test: task test, Oct 8 (Try again in a note window ran locally).
+  it("asks the main window to write the summary from a note window", () => {
+    mocks.isMain = false;
+    renderError(false, new Error("boom"));
+
+    fireEvent.click(screen.getByRole("button", { name: /Try again/ }));
+
+    expect(mocks.requestMainEnhance).toHaveBeenCalledWith("session-1", {
+      templateId: "template-1",
+      targetNoteId: "note-1",
+    });
+    expect(mocks.generate).not.toHaveBeenCalled();
+    mocks.isMain = true;
   });
 });

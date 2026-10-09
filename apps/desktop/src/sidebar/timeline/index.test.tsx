@@ -1,8 +1,16 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  lockedIds: [] as string[],
+  authenticate: vi.fn(async (_reason: string) => false),
   anchorNode: null as HTMLDivElement | null,
   openNew: vi.fn(),
   registerAnchor: vi.fn(),
@@ -118,6 +126,15 @@ vi.mock("~/calendar/queries", () => ({
     timelineEventsTable: mocks.timelineEventsTable,
     timelineSessionsTable: mocks.timelineSessionsTable,
   }),
+}));
+
+vi.mock("~/session/queries", () => ({
+  preloadSession: (id: string) =>
+    Promise.resolve({ id, locked: mocks.lockedIds.includes(id) }),
+}));
+
+vi.mock("~/lock/store", () => ({
+  useAppLock: { getState: () => ({ authenticate: mocks.authenticate }) },
 }));
 
 vi.mock("~/session/hooks/useDeleteSession", () => ({
@@ -400,9 +417,33 @@ describe("TimelineView", () => {
     editor.remove();
   });
 
+  // Fork test: task test, Oct 8 (deleting a selection skipped the lock).
+  it("asks for the device unlock when a selection holds a locked note", async () => {
+    freezeTime("2024-01-15T09:00:00.000Z");
+    mocks.timelineSelectionSelectedIds = [
+      "session-selected-note",
+      "session-other-note",
+    ];
+    mocks.timelineSessionsTable = twoSelectableNotes;
+    mocks.lockedIds = ["other-note"];
+    mocks.authenticate.mockResolvedValueOnce(false);
+
+    render(<TimelineView />);
+    fireEvent.keyDown(window, { key: "Delete" });
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mocks.authenticate).toHaveBeenCalledWith("delete locked notes");
+    expect(mocks.deleteSession).not.toHaveBeenCalled();
+    mocks.lockedIds = [];
+  });
+
   it.each(["Backspace", "Delete"])(
     "confirms selected note deletion with %s",
-    (key) => {
+    async (key) => {
       freezeTime("2024-01-15T09:00:00.000Z");
       mocks.timelineSelectionSelectedIds = [
         "session-selected-note",
@@ -419,6 +460,10 @@ describe("TimelineView", () => {
       ).toBeTruthy();
 
       fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
 
       expect(mocks.deleteSession).toHaveBeenCalledWith("selected-note", {
         batchId: expect.any(String),

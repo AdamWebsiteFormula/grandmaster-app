@@ -24,7 +24,7 @@ export function PrivacySection() {
   const available = useAppLock((state) => state.available);
   const authenticating = useAppLock((state) => state.authenticating);
   const authenticate = useAppLock((state) => state.authenticate);
-  const lockApp = useAppLock((state) => state.lockApp);
+  const unlockApp = useAppLock((state) => state.unlockApp);
   const refreshAvailability = useAppLock((state) => state.refreshAvailability);
 
   useMountEffect(() => {
@@ -76,12 +76,15 @@ export function PrivacySection() {
             void (async () => {
               const canAuth = await refreshAvailability();
               if (!canAuth) return;
-              const ok = await authenticate(
-                DEVICE_AUTH_REASON.changeLockSettings,
-              );
+              // Fork: turning the lock on asked for Touch ID, locked the app
+              // at once and asked again. The first prompt now counts as the
+              // unlock; the lock applies the next time the app is hidden or
+              // opened (task test, Oct 8; NN/g #7).
+              const ok = next
+                ? await unlockApp(DEVICE_AUTH_REASON.changeLockSettings)
+                : await authenticate(DEVICE_AUTH_REASON.changeLockSettings);
               if (!ok) return;
               setSettingValues({ lock_app: next });
-              if (next) lockApp();
             })();
           }}
         />

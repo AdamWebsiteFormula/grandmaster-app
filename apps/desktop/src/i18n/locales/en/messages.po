@@ -2234,6 +2234,10 @@ msgstr "Could not update this person's access."
 msgid "Could not use the selected model"
 msgstr "Could not use the selected model"
 
+#: src/session/components/note-input/template-picker.tsx
+msgid "Couldn't add the template. Try again."
+msgstr "Couldn't add the template. Try again."
+
 #: src/settings/team/index.tsx
 msgid "Couldn’t check availability. You can still try Save."
 msgstr "Couldn’t check availability. You can still try Save."
@@ -2258,6 +2262,10 @@ msgstr "Couldn't copy your full notes. Try again."
 #: src/session/components/outer-header/share-actions.ts
 msgid "Couldn't copy your notes. Try again."
 msgstr "Couldn't copy your notes. Try again."
+
+#: src/session/components/note-input/template-picker.tsx
+msgid "Couldn't create the template. Try again."
+msgstr "Couldn't create the template. Try again."
 
 #: src/folders/folder-editor.tsx
 msgid "Couldn't delete the folder. Try again."
@@ -8703,8 +8711,12 @@ msgid "What did I commit to this week?"
 msgstr "What did I commit to this week?"
 
 #: src/folders/folder-editor.tsx
-msgid "What these notes are usually about"
-msgstr "What these notes are usually about"
+#~ msgid "What these notes are usually about"
+#~ msgstr "What these notes are usually about"
+
+#: src/folders/folder-editor.tsx
+msgid "What these notes are usually about."
+msgstr "What these notes are usually about."
 
 #: src/templates/sections-editor.tsx
 msgid "What this section should cover, e.g. decisions made and who owns each"

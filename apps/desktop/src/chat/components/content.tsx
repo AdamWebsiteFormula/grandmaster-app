@@ -160,8 +160,11 @@ export function ChatContent({
       return;
     }
 
+    // Fork: after a failed reply the chat sits in "error", and messages
+    // queued behind it never sent; send them then too (task test, Oct 8;
+    // NN/g #1).
     if (
-      status !== "ready" ||
+      (status !== "ready" && status !== "error") ||
       queuedMessages.length === 0 ||
       dequeueInFlightRef.current
     ) {

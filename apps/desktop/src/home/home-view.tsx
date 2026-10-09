@@ -731,7 +731,7 @@ function RecentNoteRow({
           <span
             aria-hidden="true"
             data-note-avatar
-            className="bg-muted text-muted-foreground border-border flex size-8 shrink-0 items-center justify-center rounded-lg border text-sm font-medium uppercase"
+            className="bg-muted text-muted-foreground border-border flex size-8 shrink-0 items-center justify-center rounded-lg border text-sm font-medium uppercase dark:bg-transparent"
           >
             {initial}
           </span>
@@ -739,7 +739,7 @@ function RecentNoteRow({
           <span
             aria-hidden="true"
             data-note-avatar
-            className="bg-muted text-muted-foreground border-border flex size-8 shrink-0 items-center justify-center rounded-lg border"
+            className="bg-muted text-muted-foreground border-border flex size-8 shrink-0 items-center justify-center rounded-lg border dark:bg-transparent"
           >
             <FileText className="size-4" />
           </span>

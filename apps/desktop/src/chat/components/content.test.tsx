@@ -216,6 +216,30 @@ describe("ChatContent", () => {
     expect(handleSendMessage).not.toHaveBeenCalled();
   });
 
+  // Fork test: task test, Oct 8 (queued messages never sent after an error).
+  it("sends a queued message after the reply before it fails", () => {
+    const handleSendMessage = vi.fn();
+    const props = {
+      sessionId: "active-session",
+      messages: [],
+      sendMessage: vi.fn(),
+      regenerate: vi.fn(),
+      stop: vi.fn(),
+      model: {} as never,
+      handleSendMessage,
+      pendingRefs: [],
+      isSystemPromptReady: true,
+    };
+    const { rerender } = render(<ChatContent {...props} status="streaming" />);
+    fireEvent.click(screen.getByTestId("chat-input"));
+    expect(handleSendMessage).not.toHaveBeenCalled();
+
+    rerender(<ChatContent {...props} status="error" />);
+
+    expect(handleSendMessage).toHaveBeenCalledTimes(1);
+    expect(handleSendMessage.mock.calls[0][0]).toBe("Queued follow-up");
+  });
+
   it("removes queued messages before they are sent", () => {
     const handleSendMessage = vi.fn();
     const { rerender } = render(

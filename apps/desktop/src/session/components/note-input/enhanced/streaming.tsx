@@ -8,6 +8,10 @@ import { cn } from "@anlg/utils";
 import { streamdownComponents } from "../../streamdown";
 
 import { useAITaskTask, useLLMConnection } from "~/ai/hooks";
+import {
+  isMainAITaskHostWindow,
+  requestMainAITaskCancel,
+} from "~/ai/task-window-sync";
 import { createTaskId } from "~/store/zustand/ai-task/task-configs";
 import { getPersistableGeneratedTitle } from "~/store/zustand/ai-task/task-configs/title-success";
 import { isLocalModelProviderId } from "~/store/zustand/ai-task/tasks";
@@ -64,6 +68,17 @@ export function StreamingView({
     : getPersistableGeneratedTitle(streamedTitle);
   const visibleTitle = title || generatedTitle;
 
+  // Fork: in a note in its own window the summary runs in the main window,
+  // so Stop asks the main window to stop it; it only stopped the local copy
+  // and "Writing your summary…" came back (task test, Oct 8; NN/g #3).
+  const stop = () => {
+    if (!isMainAITaskHostWindow()) {
+      void requestMainAITaskCancel(taskId);
+      return;
+    }
+    cancel();
+  };
+
   // Fork: a running summary can be stopped (ux-audit-oct3 C, NN/g #3).
   const stopButton = isGenerating ? (
     <Button
@@ -71,7 +86,7 @@ export function StreamingView({
       variant="ghost"
       size="sm"
       className="h-7 shrink-0 px-2 text-xs"
-      onClick={cancel}
+      onClick={stop}
     >
       <Trans>Stop</Trans>
     </Button>

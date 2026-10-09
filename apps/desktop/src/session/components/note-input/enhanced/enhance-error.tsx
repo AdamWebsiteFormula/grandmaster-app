@@ -7,6 +7,10 @@ import { getEnhanceErrorKind, showModelNotReadyToast } from "./model-not-ready";
 
 import { useAITask } from "~/ai/contexts";
 import { useLanguageModel } from "~/ai/hooks";
+import {
+  isMainAITaskHostWindow,
+  requestMainEnhance,
+} from "~/ai/task-window-sync";
 import { useEnhancedNote } from "~/session/queries";
 import { isNetworkError } from "~/shared/network-error";
 import { createTaskId } from "~/store/zustand/ai-task/task-configs";
@@ -41,6 +45,15 @@ export function EnhanceError({
   const signedInSince = askedToSignIn && signedIn;
   const errorKind = getEnhanceErrorKind(error);
   const handleRetry = () => {
+    // Fork: in a note in its own window, Try again asks the main window to
+    // write the summary, as Regenerate does (task test, Oct 8).
+    if (!isMainAITaskHostWindow()) {
+      void requestMainEnhance(sessionId, {
+        templateId,
+        targetNoteId: enhancedNoteId,
+      });
+      return;
+    }
     if (!model) {
       showModelNotReadyToast();
       return;

@@ -269,7 +269,8 @@ export function TemplateIconPicker({
               : // Fork: no folded-corner triangle; drawn in the window color
                 // on the page's gray it read as a broken corner (picture
                 // review, Oct 6).
-                "border-border bg-muted/60 hover:bg-accent size-9 border",
+                // Flush with the page in dark too (picture review, Oct 9).
+                "border-border bg-muted/60 hover:bg-accent size-9 border dark:bg-transparent",
           ])}
           aria-label={label ?? t`Choose template icon`}
         >

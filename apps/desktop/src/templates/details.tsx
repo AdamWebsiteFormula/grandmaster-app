@@ -163,7 +163,10 @@ function WebTemplatePreview({
               size="icon"
               variant="ghost"
               onClick={() => onFavorite(nextTemplate)}
-              className="text-muted-foreground hover:text-foreground"
+              // Fork: 4 pt off "Set as default", as the note header spaces
+              // More from Share (picture review, Oct 9: 7.5 vs 16.5 pt gaps;
+              // Apple HIG, Layout).
+              className="text-muted-foreground hover:text-foreground ml-1"
               title={t`Favorite template`}
               aria-label={t`Favorite template`}
             >
