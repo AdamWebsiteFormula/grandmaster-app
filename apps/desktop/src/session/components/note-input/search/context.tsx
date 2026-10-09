@@ -165,17 +165,29 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  // Fork: Escape inside a popover or menu closes that first; it also
+  // closed the search bar and cleared the words (task test, Oct 9; Apple
+  // HIG, Popovers: Escape dismisses the topmost layer).
   useHotkeys(
     "esc",
-    () => {
+    (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      if (
+        target?.closest(
+          "[role='dialog'], [role='menu'], [role='listbox'], [data-radix-popper-content-wrapper]",
+        )
+      ) {
+        return;
+      }
+      event.preventDefault();
       dispatch({ type: "close" });
     },
     {
-      preventDefault: true,
+      enabled: state.isVisible,
       enableOnFormTags: true,
       enableOnContentEditable: true,
     },
-    [],
+    [state.isVisible],
   );
 
   const runSearch = useCallback(() => {

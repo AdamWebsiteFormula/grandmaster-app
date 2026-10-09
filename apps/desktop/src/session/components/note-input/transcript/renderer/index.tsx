@@ -134,6 +134,17 @@ export function TranscriptViewer({
   useHotkeys(
     "space",
     (e) => {
+      // Fork: Space on a focused button presses that button, as on every
+      // Mac control; it played the recording instead (task test, Oct 9;
+      // Apple HIG, Keyboards).
+      const target = e.target instanceof Element ? e.target : null;
+      if (
+        target?.closest(
+          "button, a, [role='button'], [role='menuitem'], [role='switch'], [role='checkbox'], [role='tab'], [role='slider']",
+        )
+      ) {
+        return;
+      }
       e.preventDefault();
       if (playerState === "playing") {
         pause();

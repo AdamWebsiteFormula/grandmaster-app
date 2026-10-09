@@ -2246,6 +2246,10 @@ msgstr "Couldn't add that file. Try again."
 msgid "Couldn't add the template. Try again."
 msgstr "Couldn't add the template. Try again."
 
+#: src/settings/developers/webhooks.tsx
+msgid "Couldn't add the webhook. Try again."
+msgstr "Couldn't add the webhook. Try again."
+
 #: src/folders/folder-editor.tsx
 msgid "Couldn't change the icon. Try again."
 msgstr "Couldn't change the icon. Try again."
@@ -2253,6 +2257,10 @@ msgstr "Couldn't change the icon. Try again."
 #: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
 msgid "Couldn't change the speaker. Try again."
 msgstr "Couldn't change the speaker. Try again."
+
+#: src/settings/developers/webhooks.tsx
+msgid "Couldn't change the webhook. Try again."
+msgstr "Couldn't change the webhook. Try again."
 
 #: src/settings/team/index.tsx
 msgid "Couldn’t check availability. You can still try Save."
@@ -2347,13 +2355,25 @@ msgstr "Couldn't open device add-ons. Try again."
 msgid "Couldn't open System Settings. Open it from the Apple menu."
 msgstr "Couldn't open System Settings. Open it from the Apple menu."
 
+#: src/settings/developers/glaido.tsx
+msgid "Couldn't open the folder. Try again."
+msgstr "Couldn't open the folder. Try again."
+
 #: src/session/components/outer-header/share-actions.ts
 msgid "Couldn't open your mail app. Try again."
 msgstr "Couldn't open your mail app. Try again."
 
+#: src/audio-player/provider.tsx
+msgid "Couldn't play this recording. Try again."
+msgstr "Couldn't play this recording. Try again."
+
 #: src/settings/ai/stt/health.tsx
 msgid "Couldn’t reach the on-device model. Quit and reopen Upshot, or pick another model."
 msgstr "Couldn’t reach the on-device model. Quit and reopen Upshot, or pick another model."
+
+#: src/settings/developers/webhooks.tsx
+msgid "Couldn't remove the webhook. Try again."
+msgstr "Couldn't remove the webhook. Try again."
 
 #: src/session/components/title-input.tsx
 #~ msgid "Couldn't rename the note. Try again."
@@ -2396,9 +2416,17 @@ msgstr "Couldn't save your transcript edit. Try again."
 msgid "Couldn't search your notes. Try again."
 msgstr "Couldn't search your notes. Try again."
 
+#: src/settings/developers/webhooks.tsx
+msgid "Couldn't send the test. Try again."
+msgstr "Couldn't send the test. Try again."
+
 #: src/onboarding/transcription.tsx
 msgid "Couldn’t set up {name}. You can pick an engine later in Settings › Transcription."
 msgstr "Couldn’t set up {name}. You can pick an engine later in Settings › Transcription."
+
+#: src/settings/developers/glaido.tsx
+msgid "Couldn't set up the Glaido folder. Try again."
+msgstr "Couldn't set up the Glaido folder. Try again."
 
 #: src/session/components/note-input/transcript/actions.ts
 msgid "Couldn't transcribe this recording again"
@@ -5180,6 +5208,10 @@ msgstr "Open {noteTitle}"
 msgid "Open {shownPath} in Finder"
 msgstr "Open {shownPath} in Finder"
 
+#: src/folders/folder-notes.tsx
+msgid "Open a note and click Add to folder."
+msgstr "Open a note and click Add to folder."
+
 #: src/settings/calendar/index.tsx
 #: src/sidebar/timeline/index.tsx
 msgid "Open calendar"
@@ -6303,8 +6335,8 @@ msgid "Right Command"
 msgstr "Right Command"
 
 #: src/folders/folder-notes.tsx
-msgid "Right-click a note on Home and choose Add to folder."
-msgstr "Right-click a note on Home and choose Add to folder."
+#~ msgid "Right-click a note on Home and choose Add to folder."
+#~ msgstr "Right-click a note on Home and choose Add to folder."
 
 #. placeholder {0}: formatToolName(name)
 #: src/chat/components/message/tool/generic.tsx
@@ -6597,6 +6629,10 @@ msgstr "Section actions"
 #: src/templates/sections-editor.tsx
 msgid "Section content"
 msgstr "Section content"
+
+#: src/templates/sections-editor.tsx
+msgid "Section deleted"
+msgstr "Section deleted"
 
 #: src/chat/components/chat-page.tsx
 msgid "See all"
@@ -8138,6 +8174,7 @@ msgstr "Unavailable"
 #: src/settings/ai/shared/provider-selection-prompt.ts
 #: src/settings/dictionary/index.tsx
 #: src/sidebar/toast/undo-delete-toast.tsx
+#: src/templates/sections-editor.tsx
 msgid "Undo"
 msgstr "Undo"
 

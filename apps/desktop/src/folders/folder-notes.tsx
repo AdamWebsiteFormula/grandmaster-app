@@ -38,7 +38,10 @@ export function FolderNotes({ folderPath }: { folderPath: string }) {
             <Trans>No notes in this folder yet</Trans>
           </p>
           <p className="text-muted-foreground mt-0.5 text-xs text-pretty">
-            <Trans>Right-click a note on Home and choose Add to folder.</Trans>
+            {/* Fork: name the button every note shows, not only the hidden
+                right-click menu (picture review, Oct 9; NN/g #6; Apple HIG,
+                Context menus). */}
+            <Trans>Open a note and click Add to folder.</Trans>
           </p>
         </div>
       </section>

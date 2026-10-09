@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
@@ -12,6 +13,7 @@ import {
 } from "react";
 import WaveSurfer from "wavesurfer.js";
 
+import { toast } from "@anlg/ui/components/ui/toast";
 import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
 import type { SessionAudioRetentionEvent } from "@anlg/plugin-transcription";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
@@ -328,6 +330,15 @@ export function AudioPlayerProvider({
       return;
     }
 
+    // Fork: a recording that can't play says so; Play did nothing (task
+    // test, Oct 9; NN/g #9).
+    const playFailed = (error: unknown) => {
+      console.error("[audio-player] failed to play", error);
+      toast.error(t`Couldn't play this recording. Try again.`, {
+        id: "audio-play-failed",
+      });
+    };
+
     const audioContext = audioContextRef.current;
     if (audioContext?.state === "suspended") {
       void audioContext
@@ -337,11 +348,11 @@ export function AudioPlayerProvider({
             return wavesurfer.play();
           }
         })
-        .catch(() => {});
+        .catch(playFailed);
       return;
     }
 
-    void wavesurfer.play();
+    void wavesurfer.play().catch(playFailed);
   }, [wavesurfer]);
 
   const pause = useCallback(() => {

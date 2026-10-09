@@ -1,3 +1,4 @@
+import { t as tm } from "@lingui/core/macro";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { Reorder, useDragControls } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -14,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@anlg/ui/components/ui/dropdown-menu";
 import { Input } from "@anlg/ui/components/ui/input";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
 type SectionDraft = TemplateSection & { key: string };
@@ -87,9 +89,30 @@ function useEditableSections({
         commit((prev) => prev.map((s) => (s.key === draft.key ? draft : s))),
       [commit],
     ),
+    // Fork: Delete took the section and its text at once, and autosave
+    // kept it gone. Offer Undo, as Delete note does (task test, Oct 9;
+    // NN/g #3).
     deleteSection: useCallback(
-      (key: string) => commit((prev) => prev.filter((s) => s.key !== key)),
-      [commit],
+      (key: string) => {
+        const index = drafts.findIndex((s) => s.key === key);
+        if (index < 0) return;
+        const removed = drafts[index]!;
+        commit((prev) => prev.filter((s) => s.key !== key));
+        toast(tm`Section deleted`, {
+          id: `section-deleted-${key}`,
+          action: {
+            label: tm`Undo`,
+            onClick: () =>
+              commit((prev) => {
+                if (prev.some((s) => s.key === key)) return prev;
+                const next = [...prev];
+                next.splice(Math.min(index, next.length), 0, removed);
+                return next;
+              }),
+          },
+        });
+      },
+      [commit, drafts],
     ),
     insertSectionAt: useCallback(
       (index: number) =>

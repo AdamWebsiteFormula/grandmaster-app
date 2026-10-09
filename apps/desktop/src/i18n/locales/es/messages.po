@@ -2246,12 +2246,20 @@ msgstr ""
 msgid "Couldn't add the template. Try again."
 msgstr ""
 
+#: src/settings/developers/webhooks.tsx
+msgid "Couldn't add the webhook. Try again."
+msgstr ""
+
 #: src/folders/folder-editor.tsx
 msgid "Couldn't change the icon. Try again."
 msgstr ""
 
 #: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
 msgid "Couldn't change the speaker. Try again."
+msgstr ""
+
+#: src/settings/developers/webhooks.tsx
+msgid "Couldn't change the webhook. Try again."
 msgstr ""
 
 #: src/settings/team/index.tsx
@@ -2347,12 +2355,24 @@ msgstr ""
 msgid "Couldn't open System Settings. Open it from the Apple menu."
 msgstr ""
 
+#: src/settings/developers/glaido.tsx
+msgid "Couldn't open the folder. Try again."
+msgstr ""
+
 #: src/session/components/outer-header/share-actions.ts
 msgid "Couldn't open your mail app. Try again."
 msgstr ""
 
+#: src/audio-player/provider.tsx
+msgid "Couldn't play this recording. Try again."
+msgstr ""
+
 #: src/settings/ai/stt/health.tsx
 msgid "Couldn’t reach the on-device model. Quit and reopen Upshot, or pick another model."
+msgstr ""
+
+#: src/settings/developers/webhooks.tsx
+msgid "Couldn't remove the webhook. Try again."
 msgstr ""
 
 #: src/session/components/title-input.tsx
@@ -2396,8 +2416,16 @@ msgstr ""
 msgid "Couldn't search your notes. Try again."
 msgstr ""
 
+#: src/settings/developers/webhooks.tsx
+msgid "Couldn't send the test. Try again."
+msgstr ""
+
 #: src/onboarding/transcription.tsx
 msgid "Couldn’t set up {name}. You can pick an engine later in Settings › Transcription."
+msgstr ""
+
+#: src/settings/developers/glaido.tsx
+msgid "Couldn't set up the Glaido folder. Try again."
 msgstr ""
 
 #: src/session/components/note-input/transcript/actions.ts
@@ -5180,6 +5208,10 @@ msgstr ""
 msgid "Open {shownPath} in Finder"
 msgstr ""
 
+#: src/folders/folder-notes.tsx
+msgid "Open a note and click Add to folder."
+msgstr ""
+
 #: src/settings/calendar/index.tsx
 #: src/sidebar/timeline/index.tsx
 msgid "Open calendar"
@@ -6303,8 +6335,8 @@ msgid "Right Command"
 msgstr "Comando derecho"
 
 #: src/folders/folder-notes.tsx
-msgid "Right-click a note on Home and choose Add to folder."
-msgstr ""
+#~ msgid "Right-click a note on Home and choose Add to folder."
+#~ msgstr ""
 
 #. placeholder {0}: formatToolName(name)
 #: src/chat/components/message/tool/generic.tsx
@@ -6596,6 +6628,10 @@ msgstr ""
 
 #: src/templates/sections-editor.tsx
 msgid "Section content"
+msgstr ""
+
+#: src/templates/sections-editor.tsx
+msgid "Section deleted"
 msgstr ""
 
 #: src/chat/components/chat-page.tsx
@@ -8138,6 +8174,7 @@ msgstr ""
 #: src/settings/ai/shared/provider-selection-prompt.ts
 #: src/settings/dictionary/index.tsx
 #: src/sidebar/toast/undo-delete-toast.tsx
+#: src/templates/sections-editor.tsx
 msgid "Undo"
 msgstr ""
 

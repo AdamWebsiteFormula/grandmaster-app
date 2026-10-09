@@ -107,14 +107,23 @@ export function GlaidoSection() {
   const connect = useMutation({
     mutationFn: writeGlaidoFolder,
     onSuccess: () => toast.success(t`Glaido folder is ready`),
-    onError: (error) => toast.error(error.message),
+    // Fork: plain words, with the raw error small below (task test, Oct 9;
+    // NN/g #9).
+    onError: (error) =>
+      toast.error(t`Couldn't set up the Glaido folder. Try again.`, {
+        description: error.message,
+      }),
   });
   const folder = connect.data ?? existing.data ?? undefined;
 
   const reveal = async () => {
     if (!folder) return;
     const result = await openerCommands.revealItemInDir(folder);
-    if (result.status === "error") toast.error(result.error);
+    if (result.status === "error") {
+      toast.error(t`Couldn't open the folder. Try again.`, {
+        description: result.error,
+      });
+    }
   };
 
   return (

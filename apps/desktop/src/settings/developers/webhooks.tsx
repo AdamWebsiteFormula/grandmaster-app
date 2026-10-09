@@ -45,20 +45,31 @@ export function WebhooksSection() {
     mutationFn: (url: string) => unwrap(webhookCommands.createWebhook(url, [])),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: WEBHOOKS_QUERY_KEY }),
-    onError: (error) => toast.error(error.message),
+    // Fork: plain words, with the raw error small below (task test,
+    // Oct 9; NN/g #9).
+    onError: (error) =>
+      toast.error(t`Couldn't add the webhook. Try again.`, {
+        description: error.message,
+      }),
   });
   const deleteMutation = useMutation({
     mutationFn: (id: string) => unwrap(webhookCommands.deleteWebhook(id)),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: WEBHOOKS_QUERY_KEY }),
-    onError: (error) => toast.error(error.message),
+    onError: (error) =>
+      toast.error(t`Couldn't remove the webhook. Try again.`, {
+        description: error.message,
+      }),
   });
   const setActiveMutation = useMutation({
     mutationFn: ({ id, active }: { id: string; active: boolean }) =>
       unwrap(webhookCommands.setWebhookActive(id, active)),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: WEBHOOKS_QUERY_KEY }),
-    onError: (error) => toast.error(error.message),
+    onError: (error) =>
+      toast.error(t`Couldn't change the webhook. Try again.`, {
+        description: error.message,
+      }),
   });
   const testMutation = useMutation({
     mutationFn: (id: string) => unwrap(webhookCommands.testWebhook(id)),
@@ -70,7 +81,10 @@ export function WebhooksSection() {
       }
       void queryClient.invalidateQueries({ queryKey: WEBHOOKS_QUERY_KEY });
     },
-    onError: (error) => toast.error(error.message),
+    onError: (error) =>
+      toast.error(t`Couldn't send the test. Try again.`, {
+        description: error.message,
+      }),
   });
 
   const form = useForm({
