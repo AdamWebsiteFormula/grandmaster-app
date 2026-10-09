@@ -170,6 +170,19 @@ mod tests {
         ));
     }
 
+    // Fork: Next steps only for real commitments, like Granola's Auto notes (Oct 9).
+    #[test]
+    fn test_default_format_keeps_advice_out_of_next_steps() {
+        let rendered = render_enhance_system(&EnhanceSystem {
+            language: Some("en".to_string()),
+            format_override: String::new(),
+        })
+        .unwrap();
+        assert!(rendered.contains("only when the meeting produced commitments"));
+        assert!(rendered.contains("Advice, recommendations, tips, and ideas are not next steps"));
+        assert!(rendered.contains("leave out # Next steps entirely"));
+    }
+
     // Fork: summary headings in sentence case (redline-oct3, H2).
     #[test]
     fn test_headings_in_sentence_case_for_every_format() {

@@ -53,7 +53,7 @@ export function formatSummaryLengthModeGuidance(
 ): string {
   const templateGuidance = hasTemplateSections
     ? "Preserve every requested template section and do not add sections based on this mode."
-    : "Follow the requested format and include only explicitly stated or unambiguous owners, commitments, and deadlines; do not turn proposals into commitments.";
+    : "Follow the requested format and include only explicitly stated or unambiguous owners, commitments, and deadlines; do not turn proposals or advice into commitments.";
 
   if (mode === "crisp") {
     return [
