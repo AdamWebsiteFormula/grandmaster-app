@@ -401,6 +401,33 @@ export function TranscriptViewer({
     { enabled: editMode && selectedEntries.size > 0 },
   );
 
+  // Fork: Delete or Backspace deletes the selected lines, as in a Mac list;
+  // the Undo toast already covers it (task test, Oct 9; WCAG 2.2 SC 2.1.1).
+  useHotkeys(
+    "backspace, delete",
+    (event) => {
+      if (
+        event.target instanceof Element &&
+        event.target.closest("[data-transcript-editor], [contenteditable=true]")
+      ) {
+        return;
+      }
+      const selection = mergeTranscriptSelections([
+        ...selectedEntries.values(),
+      ]);
+      if (!selection) return;
+      event.preventDefault();
+      clearSelectedEntries();
+      void handleDeleteSelection(selection);
+    },
+    {
+      enabled: editMode && selectedEntries.size > 0,
+      enableOnFormTags: false,
+      enableOnContentEditable: false,
+    },
+    [selectedEntries, clearSelectedEntries, handleDeleteSelection],
+  );
+
   useHotkeys(
     "mod+shift+up, mod+shift+down",
     (event) => {

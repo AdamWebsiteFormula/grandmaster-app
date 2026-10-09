@@ -1,3 +1,5 @@
+import { t } from "@lingui/core/macro";
+
 import { Check } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
@@ -37,10 +39,47 @@ export function SegmentHeader({
   return (
     <div className={headerClassName} style={colorVars}>
       {selectMode ? (
+        // Fork: a checkbox a keyboard can reach: Space or Return selects
+        // the line (Shift+Space selects a range, as Shift-click does), the
+        // up and down arrows move between lines. Selecting lines was
+        // mouse-only (task test, Oct 9; WCAG 2.2 SC 2.1.1; Apple HIG,
+        // Keyboards; macOS list selection).
         <span
-          aria-hidden="true"
+          role="checkbox"
+          tabIndex={0}
+          aria-checked={selected}
+          aria-label={t`Select line from ${label}`}
+          data-transcript-line-checkbox
+          onKeyDown={(event) => {
+            if (event.key === " " || event.key === "Enter") {
+              event.preventDefault();
+              event.currentTarget.dispatchEvent(
+                new MouseEvent("click", {
+                  bubbles: true,
+                  cancelable: true,
+                  shiftKey: event.shiftKey,
+                }),
+              );
+              return;
+            }
+            if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+              const boxes = Array.from(
+                document.querySelectorAll<HTMLElement>(
+                  "[data-transcript-line-checkbox]",
+                ),
+              );
+              const index = boxes.indexOf(event.currentTarget);
+              const next =
+                boxes[event.key === "ArrowDown" ? index + 1 : index - 1];
+              if (next) {
+                event.preventDefault();
+                next.focus();
+              }
+            }
+          }}
           className={cn([
             "flex size-4 shrink-0 items-center justify-center rounded-full border",
+            "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none",
             selected
               ? "border-primary bg-primary text-primary-foreground"
               : "border-muted-foreground",

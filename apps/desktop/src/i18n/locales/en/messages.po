@@ -2248,9 +2248,14 @@ msgstr "Could not update this person's access."
 msgid "Could not use the selected model"
 msgstr "Could not use the selected model"
 
+#. placeholder {0}: file.name
 #: src/folders/folder-editor.tsx
-msgid "Couldn't add that file. Try again."
-msgstr "Couldn't add that file. Try again."
+msgid "Couldn't add {0}. Try again."
+msgstr "Couldn't add {0}. Try again."
+
+#: src/folders/folder-editor.tsx
+#~ msgid "Couldn't add that file. Try again."
+#~ msgstr "Couldn't add that file. Try again."
 
 #: src/session/components/note-input/template-picker.tsx
 msgid "Couldn't add the template. Try again."
@@ -2357,6 +2362,11 @@ msgstr "Couldn't merge these lines. Try again."
 msgid "Couldn't move the note. Try again."
 msgstr "Couldn't move the note. Try again."
 
+#. placeholder {0}: material.filename
+#: src/folders/folder-material-tile.tsx
+msgid "Couldn't open {0}. Try again."
+msgstr "Couldn't open {0}. Try again."
+
 #: src/settings/general/account.tsx
 msgid "Couldn't open connected accounts. Try again."
 msgstr "Couldn't open connected accounts. Try again."
@@ -2441,6 +2451,11 @@ msgstr "Couldn’t set up {name}. You can pick an engine later in Settings › T
 #: src/settings/developers/glaido.tsx
 msgid "Couldn't set up the Glaido folder. Try again."
 msgstr "Couldn't set up the Glaido folder. Try again."
+
+#. placeholder {0}: material.filename
+#: src/folders/folder-material-tile.tsx
+msgid "Couldn't show {0}. Try again."
+msgstr "Couldn't show {0}. Try again."
 
 #: src/session/components/note-input/transcript/actions.ts
 msgid "Couldn't transcribe this recording again"
@@ -5209,9 +5224,15 @@ msgstr "Only public repositories are supported."
 msgid "Only sync items from this {0}."
 msgstr "Only sync items from this {0}."
 
+#: src/folders/folder-material-tile.tsx
 #: src/task/resource-view.tsx
 msgid "Open"
 msgstr "Open"
+
+#. placeholder {0}: material.filename
+#: src/folders/folder-material-tile.tsx
+msgid "Open {0}"
+msgstr "Open {0}"
 
 #. placeholder {0}: title.toLowerCase()
 #: src/calendar/components/apple/permission.tsx
@@ -6017,7 +6038,7 @@ msgstr "Remove “{0}”?"
 
 #. placeholder {0}: bundleIdToName(bundleId)
 #. placeholder {0}: material.filename
-#: src/folders/folder-editor.tsx
+#: src/folders/folder-material-tile.tsx
 #: src/settings/general/notification.tsx
 #: src/sidebar/folder-materials.tsx
 msgid "Remove {0}"
@@ -6107,6 +6128,10 @@ msgstr "Remove workspace logo"
 #: src/settings/ai/shared/index.tsx
 msgid "Remove your {0} key?"
 msgstr "Remove your {0} key?"
+
+#: src/folders/folder-material-tile.tsx
+msgid "Remove…"
+msgstr "Remove…"
 
 #: src/settings/dictionary/index.tsx
 msgid "Removed “{term}”"
@@ -6714,6 +6739,10 @@ msgstr "Select folder"
 msgid "Select language"
 msgstr "Select language"
 
+#: src/session/components/note-input/transcript/renderer/segment-header.tsx
+msgid "Select line from {label}"
+msgstr "Select line from {label}"
+
 #: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
 msgid "Select or type to add speaker"
 msgstr "Select or type to add speaker"
@@ -6938,7 +6967,12 @@ msgstr "Show floating bar"
 msgid "Show in Dock"
 msgstr "Show in Dock"
 
+#: src/folders/folder-material-tile.tsx
+msgid "Show in File Explorer"
+msgstr "Show in File Explorer"
+
 #: src/calendar/components/session-chip.tsx
+#: src/folders/folder-material-tile.tsx
 #: src/session/components/outer-header/overflow/misc.tsx
 #: src/settings/ai/stt/select.tsx
 #: src/sidebar/timeline/item.tsx
@@ -6946,6 +6980,7 @@ msgid "Show in Finder"
 msgstr "Show in Finder"
 
 #: src/calendar/components/session-chip.tsx
+#: src/folders/folder-material-tile.tsx
 #: src/session/components/outer-header/overflow/misc.tsx
 #: src/sidebar/timeline/item.tsx
 msgid "Show in folder"

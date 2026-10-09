@@ -2,7 +2,7 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { DotsThree, File, Plus, X } from "@anlg/ui/components/icons";
+import { DotsThree, Plus } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 import {
   Dialog,
@@ -32,6 +32,7 @@ import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
 import { FolderAskComposer } from "./folder-ask";
+import { FolderMaterialTile } from "./folder-material-tile";
 import { FolderNotes } from "./folder-notes";
 import { useFolderNoteCount } from "./folder-stats";
 import { useFolderSelection } from "./selection";
@@ -417,24 +418,34 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
             <h4 className="text-muted-foreground text-sm font-medium">
               <Trans>Materials</Trans>
             </h4>
+            {/* Fork: Add file takes several files at once, as a Mac open
+                panel does (task test, Oct 9; Apple HIG, File management). */}
             <input
               ref={inputRef}
               type="file"
+              multiple
               className="hidden"
               onChange={async (event) => {
-                const file = event.target.files?.[0];
+                const files = Array.from(event.target.files ?? []);
                 event.target.value = "";
-                if (!file) {
+                if (files.length === 0) {
                   return;
                 }
                 setBusy(true);
                 try {
-                  await upload(file);
-                } catch (error) {
-                  // Fork: a failed upload said nothing (task test, Oct 9;
-                  // NN/g #9).
-                  console.error("[folder-editor] failed to add file", error);
-                  toast.error(t`Couldn't add that file. Try again.`);
+                  for (const file of files) {
+                    try {
+                      await upload(file);
+                    } catch (error) {
+                      // Fork: a failed upload said nothing (task test, Oct
+                      // 9; NN/g #9).
+                      console.error(
+                        "[folder-editor] failed to add file",
+                        error,
+                      );
+                      toast.error(t`Couldn't add ${file.name}. Try again.`);
+                    }
+                  }
                 } finally {
                   setBusy(false);
                 }
@@ -464,39 +475,17 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
               </li>
               {materials.map((material) => (
                 <li key={material.id}>
-                  <div className="border-border relative flex aspect-[4/3] flex-col items-center justify-center gap-1.5 rounded-lg border px-3 py-2">
-                    <File
-                      className="text-muted-foreground size-6 shrink-0"
-                      aria-hidden
-                    />
-                    <span
-                      className="w-full truncate text-center text-xs"
-                      title={material.filename}
-                    >
-                      {material.filename}
-                    </span>
-                    <button
-                      type="button"
-                      aria-label={t`Remove ${material.filename}`}
-                      disabled={busy}
-                      className={cn([
-                        "text-muted-foreground hover:bg-accent hover:text-foreground",
-                        "absolute top-1.5 right-1.5 flex size-6 items-center justify-center rounded-full",
-                        "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-hidden",
-                        "disabled:opacity-50",
-                      ])}
-                      // Fork: confirm before deleting a file (ux-audit-oct3 B;
-                      // NN/g #5, error prevention).
-                      onClick={() =>
-                        setRemovingMaterial({
-                          filename: material.filename,
-                          relativePath: material.relativePath,
-                        })
-                      }
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
+                  <FolderMaterialTile
+                    folderPath={folderPath}
+                    material={material}
+                    busy={busy}
+                    onRemove={() =>
+                      setRemovingMaterial({
+                        filename: material.filename,
+                        relativePath: material.relativePath,
+                      })
+                    }
+                  />
                 </li>
               ))}
             </ul>

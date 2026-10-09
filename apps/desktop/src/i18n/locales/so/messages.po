@@ -2248,9 +2248,14 @@ msgstr ""
 msgid "Could not use the selected model"
 msgstr ""
 
+#. placeholder {0}: file.name
 #: src/folders/folder-editor.tsx
-msgid "Couldn't add that file. Try again."
+msgid "Couldn't add {0}. Try again."
 msgstr ""
+
+#: src/folders/folder-editor.tsx
+#~ msgid "Couldn't add that file. Try again."
+#~ msgstr ""
 
 #: src/session/components/note-input/template-picker.tsx
 msgid "Couldn't add the template. Try again."
@@ -2357,6 +2362,11 @@ msgstr ""
 msgid "Couldn't move the note. Try again."
 msgstr ""
 
+#. placeholder {0}: material.filename
+#: src/folders/folder-material-tile.tsx
+msgid "Couldn't open {0}. Try again."
+msgstr ""
+
 #: src/settings/general/account.tsx
 msgid "Couldn't open connected accounts. Try again."
 msgstr ""
@@ -2440,6 +2450,11 @@ msgstr ""
 
 #: src/settings/developers/glaido.tsx
 msgid "Couldn't set up the Glaido folder. Try again."
+msgstr ""
+
+#. placeholder {0}: material.filename
+#: src/folders/folder-material-tile.tsx
+msgid "Couldn't show {0}. Try again."
 msgstr ""
 
 #: src/session/components/note-input/transcript/actions.ts
@@ -5209,8 +5224,14 @@ msgstr ""
 msgid "Only sync items from this {0}."
 msgstr ""
 
+#: src/folders/folder-material-tile.tsx
 #: src/task/resource-view.tsx
 msgid "Open"
+msgstr ""
+
+#. placeholder {0}: material.filename
+#: src/folders/folder-material-tile.tsx
+msgid "Open {0}"
 msgstr ""
 
 #. placeholder {0}: title.toLowerCase()
@@ -6017,7 +6038,7 @@ msgstr ""
 
 #. placeholder {0}: bundleIdToName(bundleId)
 #. placeholder {0}: material.filename
-#: src/folders/folder-editor.tsx
+#: src/folders/folder-material-tile.tsx
 #: src/settings/general/notification.tsx
 #: src/sidebar/folder-materials.tsx
 msgid "Remove {0}"
@@ -6106,6 +6127,10 @@ msgstr ""
 #. placeholder {0}: config.displayName
 #: src/settings/ai/shared/index.tsx
 msgid "Remove your {0} key?"
+msgstr ""
+
+#: src/folders/folder-material-tile.tsx
+msgid "Remove…"
 msgstr ""
 
 #: src/settings/dictionary/index.tsx
@@ -6714,6 +6739,10 @@ msgstr ""
 msgid "Select language"
 msgstr "Dooro luqadda"
 
+#: src/session/components/note-input/transcript/renderer/segment-header.tsx
+msgid "Select line from {label}"
+msgstr ""
+
 #: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
 msgid "Select or type to add speaker"
 msgstr ""
@@ -6938,7 +6967,12 @@ msgstr ""
 msgid "Show in Dock"
 msgstr ""
 
+#: src/folders/folder-material-tile.tsx
+msgid "Show in File Explorer"
+msgstr ""
+
 #: src/calendar/components/session-chip.tsx
+#: src/folders/folder-material-tile.tsx
 #: src/session/components/outer-header/overflow/misc.tsx
 #: src/settings/ai/stt/select.tsx
 #: src/sidebar/timeline/item.tsx
@@ -6946,6 +6980,7 @@ msgid "Show in Finder"
 msgstr ""
 
 #: src/calendar/components/session-chip.tsx
+#: src/folders/folder-material-tile.tsx
 #: src/session/components/outer-header/overflow/misc.tsx
 #: src/sidebar/timeline/item.tsx
 msgid "Show in folder"

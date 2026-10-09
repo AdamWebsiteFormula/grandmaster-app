@@ -119,7 +119,14 @@ impl FsSyncCore {
             return Err(Error::Path("folder_source_missing".into()));
         }
 
-        if target.exists() {
+        // Fork: a rename that only changes capital letters ("clients" to
+        // "Clients") is allowed. On a case-insensitive disk the target
+        // already "exists" because it is the same folder, so it moves through
+        // a temporary name, the usual two-step rename (Finder allows it; Git
+        // and other tools trip on it).
+        let case_only = old_path.to_lowercase() == new_path.to_lowercase();
+
+        if target.exists() && !case_only {
             return Err(Error::Path("folder_target_exists".into()));
         }
 
@@ -127,7 +134,19 @@ impl FsSyncCore {
             std::fs::create_dir_all(parent)?;
         }
 
-        std::fs::rename(&source, &target)?;
+        if case_only {
+            let temp = source.with_file_name(format!(
+                ".upshot-rename-{}",
+                uuid::Uuid::new_v4().simple()
+            ));
+            std::fs::rename(&source, &temp)?;
+            if let Err(error) = std::fs::rename(&temp, &target) {
+                let _ = std::fs::rename(&temp, &source);
+                return Err(error.into());
+            }
+        } else {
+            std::fs::rename(&source, &target)?;
+        }
         tracing::info!("Renamed folder from {:?} to {:?}", source, target);
 
         let mut updates = Vec::new();
@@ -562,6 +581,35 @@ mod tests {
         let result = core.rename_folder("old", "new");
 
         assert!(matches!(result, Err(Error::Path(message)) if message == "folder_target_exists"));
+    }
+
+    #[test]
+    fn rename_folder_changes_only_capital_letters() {
+        let temp = TempDir::new().unwrap();
+        temp.child("sessions")
+            .child("clients")
+            .child(UUID_1)
+            .create_dir_all()
+            .unwrap();
+        temp.child("sessions")
+            .child("clients")
+            .child(UUID_1)
+            .child("_meta.json")
+            .write_str("{}")
+            .unwrap();
+
+        let core = FsSyncCore::new(temp.path().to_path_buf());
+        core.rename_folder("clients", "Clients").unwrap();
+
+        let names: Vec<String> = std::fs::read_dir(temp.path().join("sessions"))
+            .unwrap()
+            .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        assert_eq!(names, vec!["Clients".to_string()]);
+        temp.child("sessions")
+            .child("Clients")
+            .child(UUID_1)
+            .assert(predicates::path::exists());
     }
 
     #[test]
