@@ -2,14 +2,10 @@ import { useCallback } from "react";
 
 import type { ContactsSelection } from "@anlg/plugin-windows";
 
+import { confirmContactDelete, deleteContactOrSay } from "./contact-actions";
 import { DetailsColumn } from "./details";
 import { OrganizationDetailsColumn } from "./organization-details";
-import {
-  deleteHuman,
-  deleteOrganization,
-  useHumans,
-  useOrganizations,
-} from "./queries";
+import { useHumans, useOrganizations } from "./queries";
 
 import { useOptionalAuth } from "~/auth";
 import { StandardContentWrapper } from "~/shared/main";
@@ -59,22 +55,24 @@ function ContactView({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
 
   const handleDeletePerson = useCallback(
     (id: string) => {
-      invalidateResource("humans", id);
-      void deleteHuman(id).catch((error) => {
-        console.error("[contacts] failed to delete contact", error);
-      });
-      setSelected(null);
+      void (async () => {
+        if (!(await confirmContactDelete("person"))) return;
+        invalidateResource("humans", id);
+        setSelected(null);
+        await deleteContactOrSay("person", id);
+      })();
     },
     [invalidateResource, setSelected],
   );
 
   const handleDeleteOrganization = useCallback(
     (id: string) => {
-      invalidateResource("organizations", id);
-      void deleteOrganization(id).catch((error) => {
-        console.error("[contacts] failed to delete organization", error);
-      });
-      setSelected(null);
+      void (async () => {
+        if (!(await confirmContactDelete("organization"))) return;
+        invalidateResource("organizations", id);
+        setSelected(null);
+        await deleteContactOrSay("organization", id);
+      })();
     },
     [invalidateResource, setSelected],
   );

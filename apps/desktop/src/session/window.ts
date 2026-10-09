@@ -1,4 +1,7 @@
+import { t } from "@lingui/core/macro";
+
 import { commands as windowsCommands } from "@anlg/plugin-windows";
+import { toast } from "@anlg/ui/components/ui/toast";
 
 import {
   beginCanonicalSessionEditorActivation,
@@ -19,7 +22,10 @@ export async function openStandaloneNoteWindow(sessionId: string) {
     })
     .finally(finishActivation);
 
+  // Fork: a window that failed to open said nothing (task sweep, Oct 9;
+  // NN/g #9).
   if (result.status === "error") {
     console.error("Failed to open note window:", result.error);
+    toast.error(t`Couldn't open this note in a new window. Try again.`);
   }
 }

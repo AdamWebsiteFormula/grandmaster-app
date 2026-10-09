@@ -1212,6 +1212,7 @@ msgid "Can't hear the other side. Check your computer's sound output."
 msgstr ""
 
 #: src/calendar/components/apple/permission.tsx
+#: src/contacts/contact-actions.ts
 #: src/folders/folder-editor.tsx
 #: src/imports/screen.tsx
 #: src/main/move-to-applications.ts
@@ -1466,6 +1467,10 @@ msgstr ""
 
 #: src/settings/ai/stt/select.tsx
 msgid "Choose a transcription model to start recording."
+msgstr ""
+
+#: src/session/components/outer-header/metadata/participants/input.tsx
+msgid "Choose an AI model in Settings first."
 msgstr ""
 
 #: src/settings/automations/index.tsx
@@ -1956,8 +1961,20 @@ msgstr ""
 msgid "Connectors"
 msgstr ""
 
+#: src/session/components/outer-header/metadata/participants/input.tsx
+msgid "Contact created"
+msgstr ""
+
+#: src/session/components/outer-header/metadata/participants/input.tsx
+msgid "Contact is already up to date"
+msgstr ""
+
 #: src/contacts/contact-page-header.tsx
 msgid "Contact options"
+msgstr ""
+
+#: src/session/components/outer-header/metadata/participants/input.tsx
+msgid "Contact updated"
 msgstr ""
 
 #: src/sidebar/settings-nav-groups.ts
@@ -2265,6 +2282,18 @@ msgstr ""
 msgid "Couldn't add the webhook. Try again."
 msgstr ""
 
+#: src/contacts/details.tsx
+msgid "Couldn't add this organization. Try again."
+msgstr ""
+
+#: src/session/components/outer-header/metadata/participants/input.tsx
+msgid "Couldn't add this person. Try again."
+msgstr ""
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Couldn't apply this edit. Try again."
+msgstr ""
+
 #: src/folders/folder-editor.tsx
 msgid "Couldn't change the icon. Try again."
 msgstr ""
@@ -2307,6 +2336,7 @@ msgid "Couldn't copy. Try again."
 msgstr ""
 
 #: src/session/components/note-input/template-picker.tsx
+#: src/templates/queries.ts
 msgid "Couldn't create the template. Try again."
 msgstr ""
 
@@ -2330,12 +2360,36 @@ msgstr ""
 msgid "Couldn't delete these lines. Try again."
 msgstr ""
 
+#: src/session-sharing/comments.tsx
+msgid "Couldn't delete this comment. Try again."
+msgstr ""
+
+#: src/contacts/contact-actions.ts
+msgid "Couldn't delete this contact. Try again."
+msgstr ""
+
+#: src/contacts/contact-actions.ts
+msgid "Couldn't delete this organization. Try again."
+msgstr ""
+
+#: src/chat/components/message/tool/edit-summary.tsx
+msgid "Couldn't discard this edit. Try again."
+msgstr ""
+
+#: src/settings/ai/shared/index.tsx
+msgid "Couldn't disconnect. Try again."
+msgstr ""
+
 #: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "Couldn't export the PDF. Try again, or pick another format or folder."
 msgstr ""
 
 #: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "Couldn't export this note. Pick another folder and try again."
+msgstr ""
+
+#: src/session/components/note-conflict-banner.tsx
+msgid "Couldn't keep this version. Try again."
 msgstr ""
 
 #: src/settings/ai/stt/health.tsx
@@ -2352,6 +2406,10 @@ msgstr ""
 
 #: src/settings/general/account-profile.tsx
 msgid "Couldn't load your profile. Reopen this page to try again."
+msgstr ""
+
+#: src/lock/notes.ts
+msgid "Couldn't lock this note. Try again."
 msgstr ""
 
 #: src/session/components/note-input/transcript/renderer/index.tsx
@@ -2383,6 +2441,10 @@ msgstr ""
 msgid "Couldn't open the folder. Try again."
 msgstr ""
 
+#: src/session/window.ts
+msgid "Couldn't open this note in a new window. Try again."
+msgstr ""
+
 #: src/session/components/outer-header/share-actions.ts
 msgid "Couldn't open your mail app. Try again."
 msgstr ""
@@ -2397,6 +2459,11 @@ msgstr ""
 
 #: src/settings/developers/webhooks.tsx
 msgid "Couldn't remove the webhook. Try again."
+msgstr ""
+
+#: src/session/components/outer-header/metadata/participants/chip.tsx
+#: src/session/components/outer-header/metadata/participants/input.tsx
+msgid "Couldn't remove this person. Try again."
 msgstr ""
 
 #: src/session/components/title-input.tsx
@@ -2417,6 +2484,10 @@ msgstr ""
 
 #: src/session/folder-instructions.tsx
 msgid "Couldn't save the folder context. Try again."
+msgstr ""
+
+#: src/contacts/contact-actions.ts
+msgid "Couldn't save this contact. Try again."
 msgstr ""
 
 #: src/templates/queries.ts
@@ -2457,12 +2528,29 @@ msgstr ""
 msgid "Couldn't show {0}. Try again."
 msgstr ""
 
+#: src/session/components/outer-header/overflow/misc.tsx
+#: src/sidebar/timeline/item.tsx
+msgid "Couldn't show this note. Try again."
+msgstr ""
+
 #: src/session/components/note-input/transcript/actions.ts
 msgid "Couldn't transcribe this recording again"
 msgstr ""
 
+#: src/lock/notes.ts
+msgid "Couldn't unlock this note. Try again."
+msgstr ""
+
 #: src/settings/calendar/index.tsx
 msgid "Couldn't update {title}. Try again."
+msgstr ""
+
+#: src/session/components/outer-header/metadata/participants/input.tsx
+msgid "Couldn't update this contact. Try again."
+msgstr ""
+
+#: src/session/components/note-conflict-banner.tsx
+msgid "Couldn't use the other version. Try again."
 msgstr ""
 
 #: src/folders/index.tsx
@@ -2637,7 +2725,7 @@ msgstr ""
 msgid "Default sharing"
 msgstr ""
 
-#: src/contacts/contact-page-header.tsx
+#: src/contacts/contact-actions.ts
 #: src/folders/folder-editor.tsx
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 #: src/settings/ai/stt/select.tsx
@@ -2694,6 +2782,10 @@ msgstr ""
 msgid "Delete comment"
 msgstr ""
 
+#: src/contacts/person-item.tsx
+msgid "Delete contact…"
+msgstr ""
+
 #: src/sidebar/timeline/item.tsx
 msgid "Delete event"
 msgstr ""
@@ -2713,6 +2805,10 @@ msgstr ""
 msgid "Delete note"
 msgstr ""
 
+#: src/contacts/organization-item.tsx
+msgid "Delete organization…"
+msgstr ""
+
 #: src/audio-player/delete-recording-confirm.tsx
 #: src/session/components/note-input/header-transcript.tsx
 #: src/session/components/outer-header/overflow/index.tsx
@@ -2727,8 +2823,16 @@ msgstr ""
 msgid "Delete template"
 msgstr ""
 
+#: src/contacts/contact-actions.ts
+msgid "Delete this contact?"
+msgstr ""
+
 #: src/sidebar/timeline/item.tsx
 msgid "Delete this event"
+msgstr ""
+
+#: src/contacts/contact-actions.ts
+msgid "Delete this organization?"
 msgstr ""
 
 #: src/audio-player/delete-recording-confirm.tsx
@@ -2751,6 +2855,7 @@ msgstr ""
 msgid "Delete your Upshot account?"
 msgstr ""
 
+#: src/contacts/contact-page-header.tsx
 #: src/sidebar/home-nav.tsx
 msgid "Delete…"
 msgstr ""
@@ -2852,6 +2957,7 @@ msgstr ""
 #: src/calendar/components/oauth/provider-content.tsx
 #: src/calendar/components/sidebar.tsx
 #: src/imports/screen.tsx
+#: src/settings/ai/shared/index.tsx
 #: src/settings/crm/index.tsx
 #: src/settings/sync/index.tsx
 #: src/settings/todo/provider-content.tsx
@@ -2860,6 +2966,15 @@ msgstr ""
 
 #: src/settings/todo/github.tsx
 msgid "Disconnect private repo access."
+msgstr ""
+
+#. placeholder {0}: subscriptionProvider.displayName
+#: src/settings/ai/shared/index.tsx
+msgid "Disconnect your {0} subscription?"
+msgstr ""
+
+#: src/settings/ai/shared/index.tsx
+msgid "Disconnecting…"
 msgstr ""
 
 #: src/session/components/floating/recording-bar.tsx
@@ -4821,6 +4936,10 @@ msgstr ""
 msgid "No community templates available"
 msgstr ""
 
+#: src/session/components/outer-header/metadata/participants/input.tsx
+msgid "No contact details found"
+msgstr ""
+
 #: src/task/resource-view.tsx
 msgid "No content."
 msgstr ""
@@ -5553,6 +5672,14 @@ msgstr ""
 
 #: src/contacts/contact-page-header.tsx
 msgid "Pin"
+msgstr ""
+
+#: src/contacts/person-item.tsx
+msgid "Pin contact"
+msgstr ""
+
+#: src/contacts/organization-item.tsx
+msgid "Pin organization"
 msgstr ""
 
 #: src/sidebar/settings.tsx
@@ -6968,6 +7095,8 @@ msgid "Show in Dock"
 msgstr ""
 
 #: src/folders/folder-material-tile.tsx
+#: src/session/components/outer-header/overflow/misc.tsx
+#: src/sidebar/timeline/item.tsx
 msgid "Show in File Explorer"
 msgstr ""
 
@@ -8297,6 +8426,14 @@ msgstr ""
 msgid "Unpin"
 msgstr ""
 
+#: src/contacts/person-item.tsx
+msgid "Unpin contact"
+msgstr ""
+
+#: src/contacts/organization-item.tsx
+msgid "Unpin organization"
+msgstr ""
+
 #: src/session/components/outer-header/audio-saved.tsx
 msgid "until transcribed"
 msgstr ""
@@ -8632,6 +8769,10 @@ msgstr ""
 #. placeholder {0}: config.displayName
 #: src/settings/ai/shared/index.tsx
 msgid "Upshot stops using {0} until you add a key again."
+msgstr ""
+
+#: src/settings/ai/shared/index.tsx
+msgid "Upshot stops using it until you connect again."
 msgstr ""
 
 #: src/onboarding/index.tsx
@@ -8977,6 +9118,7 @@ msgstr ""
 msgid "You can use up to three example summaries."
 msgstr ""
 
+#: src/contacts/contact-actions.ts
 #: src/session/components/note-input/header-enhanced.tsx
 msgid "You can't undo this."
 msgstr ""

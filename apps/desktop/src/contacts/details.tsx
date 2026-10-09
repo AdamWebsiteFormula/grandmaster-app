@@ -17,6 +17,7 @@ import {
   PopoverTrigger,
 } from "@anlg/ui/components/ui/popover";
 import { Textarea } from "@anlg/ui/components/ui/textarea";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
 import {
@@ -24,6 +25,7 @@ import {
   ContactImage,
   persistContactAvatar,
 } from "./contact-avatar";
+import { showContactNotSavedToast } from "./contact-actions";
 import { ContactPageHeader } from "./contact-page-header";
 import { useContactSummary } from "./contact-summary";
 import {
@@ -694,7 +696,10 @@ function OrganizationControl({
       onChange(organizationId);
       closePopover();
     } catch (error) {
+      // Fork: say it failed instead of leaving the picker open (task sweep,
+      // Oct 9; NN/g #9).
       console.error("[contacts] failed to create organization", error);
+      toast.error(t`Couldn't add this organization. Try again.`);
     }
   };
 
@@ -826,7 +831,5 @@ function persistHumanUpdate(
   personId: string,
   changes: Parameters<typeof updateHuman>[1],
 ): void {
-  void updateHuman(personId, changes).catch((error) => {
-    console.error("[contacts] failed to update contact", error);
-  });
+  void updateHuman(personId, changes).catch(showContactNotSavedToast);
 }

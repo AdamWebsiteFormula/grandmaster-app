@@ -9,6 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@anlg/ui/components/ui/tooltip";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
 import {
@@ -172,6 +173,7 @@ function useRemoveParticipant({
   assignedHumanId: string | undefined;
   sessionId: string | undefined;
 }) {
+  const { t } = useLingui();
   const [isRemoving, setIsRemoving] = useState(false);
 
   const remove = useCallback(() => {
@@ -182,10 +184,12 @@ function useRemoveParticipant({
       }
       await removeSessionParticipant(mappingId);
     })().catch((error) => {
+      // Fork: a failed remove said nothing (task sweep, Oct 9; NN/g #9).
       setIsRemoving(false);
       console.error("[participants] failed to remove participant", error);
+      toast.error(t`Couldn't remove this person. Try again.`);
     });
-  }, [mappingId, assignedHumanId, sessionId]);
+  }, [mappingId, assignedHumanId, sessionId, t]);
 
   return { remove, isRemoving };
 }

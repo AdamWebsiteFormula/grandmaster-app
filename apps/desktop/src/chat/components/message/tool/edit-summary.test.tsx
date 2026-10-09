@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const tabState = vi.hoisted(() => ({
@@ -20,6 +26,12 @@ vi.mock("~/store/zustand/tabs", () => ({
   useTabs: {
     getState: () => tabState,
   },
+}));
+
+const toastMocks = vi.hoisted(() => ({ error: vi.fn() }));
+
+vi.mock("@anlg/ui/components/ui/toast", () => ({
+  toast: { error: toastMocks.error },
 }));
 
 vi.mock("~/session/proposal-review", () => ({
@@ -95,6 +107,33 @@ describe("ToolEditSummary", () => {
     expect(reviewMocks.declineProposalReview).toHaveBeenCalledWith(
       "tool-call-1",
     );
+  });
+
+  it("says so when applying from the chat card fails", async () => {
+    reviewMocks.applyProposalReview.mockRejectedValueOnce(new Error("offline"));
+    usePendingEditStore.getState().addEdit({
+      requestId: "tool-call-1",
+      sessionId: "session-1",
+      target: { kind: "summary", enhancedNoteId: "summary-1" },
+      currentContent: "Current summary",
+      proposedContent: "Updated summary",
+      source: "chat",
+      resolve: vi.fn(),
+    });
+
+    render(<ToolEditSummary part={part} />);
+    fireEvent.click(screen.getByRole("button", { name: "Apply to summary" }));
+
+    await waitFor(() =>
+      expect(toastMocks.error).toHaveBeenCalledWith(
+        "Couldn't apply this edit. Try again.",
+      ),
+    );
+    expect(
+      screen
+        .getByRole("button", { name: "Apply to summary" })
+        .hasAttribute("disabled"),
+    ).toBe(false);
   });
 
   it("hides review actions when the edit is no longer pending", () => {

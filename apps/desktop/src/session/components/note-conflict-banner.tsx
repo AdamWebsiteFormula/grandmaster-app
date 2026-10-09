@@ -1,9 +1,10 @@
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { Warning } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
+import { toast } from "@anlg/ui/components/ui/toast";
 
 import { VersionHistoryDialog } from "./version-history-dialog";
 
@@ -19,13 +20,24 @@ export function NoteConflictBanner({ sessionId }: { sessionId: string }) {
   const conflicts = useSessionConflicts(sessionId);
   const newestConflict = conflicts[0];
 
+  const { t } = useLingui();
+  // Fork: a failed choice left the banner up and said nothing (task sweep,
+  // Oct 9; NN/g #1, #9).
   const keepMutation = useMutation({
     mutationFn: () => resolveSessionConflicts(sessionId),
+    onError: (error) => {
+      console.error("[note] keep version failed", error);
+      toast.error(t`Couldn't keep this version. Try again.`);
+    },
   });
   const useOtherMutation = useMutation({
     mutationFn: () => {
       if (!newestConflict) return Promise.resolve();
       return applySessionConflict(sessionId, newestConflict);
+    },
+    onError: (error) => {
+      console.error("[note] use other version failed", error);
+      toast.error(t`Couldn't use the other version. Try again.`);
     },
   });
   const busy = keepMutation.isPending || useOtherMutation.isPending;

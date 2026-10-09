@@ -1,3 +1,4 @@
+import { useLingui } from "@lingui/react/macro";
 import React, { useCallback } from "react";
 
 import { Buildings, PushPin } from "@anlg/ui/components/icons";
@@ -20,6 +21,9 @@ export function OrganizationItem({
   onClick: () => void;
   onDelete?: (id: string) => void;
 }) {
+  // Fork: sentence case, translated, and an ellipsis on Delete because it
+  // asks first (task sweep, Oct 9; Apple HIG, Menus).
+  const { t } = useLingui();
   const isPinned = readOnly || Boolean(organization.pinned);
 
   const togglePin = useCallback(() => {
@@ -31,12 +35,12 @@ export function OrganizationItem({
   const showContextMenu = useNativeContextMenu([
     {
       id: "toggle-pin-org",
-      text: isPinned ? "Unpin Organization" : "Pin Organization",
+      text: isPinned ? t`Unpin organization` : t`Pin organization`,
       action: togglePin,
     },
     {
       id: "delete-org",
-      text: "Delete Organization",
+      text: t`Delete organization…`,
       action: () => onDelete?.(organization.id),
     },
   ]);

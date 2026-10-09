@@ -5,7 +5,7 @@ import { Lock, LockOpen } from "@anlg/ui/components/icons";
 import { DropdownMenuItem } from "@anlg/ui/components/ui/dropdown-menu";
 
 import { isLockedFlag } from "~/lock/flag";
-import { setSessionLocked } from "~/lock/notes";
+import { toggleSessionLock } from "~/lock/notes";
 import { useAppLock } from "~/lock/store";
 import { useSession } from "~/session/queries";
 
@@ -16,7 +16,7 @@ export function LockNote({ sessionId }: { sessionId: string }) {
   const authenticating = useAppLock((state) => state.authenticating);
 
   const handleToggle = useCallback(() => {
-    void setSessionLocked(sessionId, !locked);
+    void toggleSessionLock(sessionId, !locked);
   }, [locked, sessionId]);
 
   if (!available) return null;

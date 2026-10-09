@@ -40,6 +40,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@anlg/ui/components/ui/tooltip";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
 import {
@@ -476,12 +477,16 @@ export function NonAnarlogProviderCard({
             : { current_stt_provider: "", current_stt_model: "" },
         );
       }
-    } catch {
-      return;
+      setConfirmSubscriptionReset(false);
+    } catch (error) {
+      console.error("[settings] failed to disconnect subscription", error);
+      toast.error(t`Couldn't disconnect. Try again.`);
     }
   };
 
   const [confirmReset, setConfirmReset] = useState(false);
+  const [confirmSubscriptionReset, setConfirmSubscriptionReset] =
+    useState(false);
 
   const handleReset = async () => {
     if (clearProvider.isPending) {
@@ -667,7 +672,7 @@ export function NonAnarlogProviderCard({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => void handleResetSubscription()}
+                    onClick={() => setConfirmSubscriptionReset(true)}
                     disabled={clearSubscription.isPending}
                     className="text-destructive h-7 shrink-0 px-0 hover:bg-transparent hover:underline"
                   >
@@ -677,7 +682,7 @@ export function NonAnarlogProviderCard({
                         aria-hidden="true"
                       />
                     ) : null}
-                    <Trans>Reset</Trans>
+                    <Trans>Disconnect</Trans>
                   </Button>
                 </div>
               ) : (
@@ -776,6 +781,21 @@ export function NonAnarlogProviderCard({
         </form>
       </AccordionContent>
       {resetConfirmation}
+      {subscriptionProvider ? (
+        // Fork: disconnecting a subscription ran at once and failed silently;
+        // it now asks first and says when it fails, like Remove key (task
+        // sweep, Oct 9; Apple HIG, Alerts and Buttons; NN/g #5, #9).
+        <DestructiveConfirmationDialog
+          open={confirmSubscriptionReset}
+          onOpenChange={setConfirmSubscriptionReset}
+          title={t`Disconnect your ${subscriptionProvider.displayName} subscription?`}
+          description={t`Upshot stops using it until you connect again.`}
+          confirmLabel={t`Disconnect`}
+          pendingLabel={t`Disconnecting…`}
+          isPending={clearSubscription.isPending}
+          onConfirm={() => void handleResetSubscription()}
+        />
+      ) : null}
     </AccordionItem>
   );
 }

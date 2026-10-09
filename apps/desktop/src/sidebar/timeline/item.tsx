@@ -22,6 +22,7 @@ import {
 } from "@anlg/ui/components/icons";
 import { DancingSticks } from "@anlg/ui/components/ui/dancing-sticks";
 import { Spinner } from "@anlg/ui/components/ui/spinner";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { cn, format, getYear, safeParseDate, TZDate } from "@anlg/utils";
 
 import {
@@ -36,7 +37,7 @@ import { useIgnoredEvents } from "~/calendar/ignored-events";
 import { writeSessionContextDragData } from "~/chat/context/session-drag";
 import { DEVICE_AUTH_REASON } from "~/lock/auth";
 import { isLockedFlag } from "~/lock/flag";
-import { revealLockedNote, setSessionLocked } from "~/lock/notes";
+import { revealLockedNote, toggleSessionLock } from "~/lock/notes";
 import { useAppLock } from "~/lock/store";
 import { openMoveToFolderDialog } from "~/session/components/folder-picker";
 import { useDeleteSession } from "~/session/hooks/useDeleteSession";
@@ -842,7 +843,7 @@ export function useSessionContextMenu({
   }, [deleteSession, noteLocked, sessionId, trackingId, title]);
 
   const handleToggleLock = useCallback(() => {
-    void setSessionLocked(sessionId, !noteLocked);
+    void toggleSessionLock(sessionId, !noteLocked);
   }, [noteLocked, sessionId]);
 
   const handleShowInFolder = useCallback(async () => {
@@ -852,11 +853,18 @@ export function useSessionContextMenu({
         .authenticate(DEVICE_AUTH_REASON.openApp);
       if (!ok) return;
     }
+    // Fork: a note folder that could not be shown said nothing (task sweep,
+    // Oct 9; NN/g #9).
     const result = await fsSyncCommands.sessionDir(sessionId);
-    if (result.status === "ok") {
-      await openerCommands.openPath(result.data, null);
-    }
-  }, [noteLocked, sessionId]);
+    const opened =
+      result.status === "ok"
+        ? await openerCommands.openPath(result.data, null).then(
+            (res) => res.status === "ok",
+            () => false,
+          )
+        : false;
+    if (!opened) toast.error(t`Couldn't show this note. Try again.`);
+  }, [noteLocked, sessionId, t]);
 
   const contextMenu = useMemo(() => {
     const menu: MenuItemDef[] = [
@@ -867,7 +875,12 @@ export function useSessionContextMenu({
       },
       {
         id: "show",
-        text: platform() === "macos" ? t`Show in Finder` : t`Show in folder`,
+        text:
+          platform() === "macos"
+            ? t`Show in Finder`
+            : platform() === "windows"
+              ? t`Show in File Explorer`
+              : t`Show in folder`,
         action: handleShowInFolder,
       },
       // Fork: move a note from its row, as Granola rows offer Add to folder

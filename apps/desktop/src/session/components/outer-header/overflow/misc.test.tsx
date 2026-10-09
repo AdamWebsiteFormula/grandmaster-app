@@ -28,8 +28,17 @@ import { ShowInFolder } from "./misc";
 describe("ShowInFolder", () => {
   afterEach(cleanup);
 
-  it("uses platform-neutral folder copy and iconography", () => {
+  it("uses the native File Explorer term on Windows", () => {
     mocks.platform = "windows";
+    render(<ShowInFolder sessionId="session-1" />);
+
+    expect(
+      screen.getByRole("button", { name: "Show in File Explorer" }),
+    ).toBeTruthy();
+  });
+
+  it("uses platform-neutral folder copy and iconography", () => {
+    mocks.platform = "linux";
     render(<ShowInFolder sessionId="session-1" />);
 
     const action = screen.getByRole("button", { name: "Show in folder" });

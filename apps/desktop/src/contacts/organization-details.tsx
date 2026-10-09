@@ -13,6 +13,7 @@ import {
   ContactImage,
   persistContactAvatar,
 } from "./contact-avatar";
+import { showContactNotSavedToast } from "./contact-actions";
 import { ContactPageHeader } from "./contact-page-header";
 import {
   type HumanRecord,
@@ -298,9 +299,7 @@ function EditableOrganizationNameField({
       onChange={(event) => {
         void updateOrganization(organization.id, {
           name: event.target.value,
-        }).catch((error) => {
-          console.error("[contacts] failed to update organization", error);
-        });
+        }).catch(showContactNotSavedToast);
       }}
       onBlur={(event) => {
         const name = event.target.value.trim();

@@ -1,3 +1,4 @@
+import { useLingui } from "@lingui/react/macro";
 import React, { useCallback } from "react";
 
 import { PushPin } from "@anlg/ui/components/icons";
@@ -21,6 +22,9 @@ export function PersonItem({
   onClick: () => void;
   onDelete?: (id: string) => void;
 }) {
+  // Fork: sentence case, translated, and an ellipsis on Delete because it
+  // asks first (task sweep, Oct 9; Apple HIG, Menus).
+  const { t } = useLingui();
   const isPinned = readOnly || Boolean(person.pinned);
   const personName = person.name;
   const personEmail = person.email;
@@ -35,12 +39,12 @@ export function PersonItem({
   const showContextMenu = useNativeContextMenu([
     {
       id: "toggle-pin-person",
-      text: isPinned ? "Unpin Contact" : "Pin Contact",
+      text: isPinned ? t`Unpin contact` : t`Pin contact`,
       action: togglePin,
     },
     {
       id: "delete-person",
-      text: "Delete Contact",
+      text: t`Delete contact…`,
       action: () => onDelete?.(person.id),
     },
   ]);

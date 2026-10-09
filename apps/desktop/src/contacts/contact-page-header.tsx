@@ -101,7 +101,7 @@ export function ContactPageHeader({
                 >
                   <Trash />
                   <span>
-                    <Trans>Delete</Trans>
+                    <Trans>Delete…</Trans>
                   </span>
                 </DropdownMenuItem>
               </AppFloatingPanel>

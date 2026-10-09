@@ -210,8 +210,11 @@ export function useCreateTemplate(
       });
       return id;
     },
+    // Fork: Duplicate and New template failed with no message (task sweep,
+    // Oct 9; NN/g #9).
     onError: (error) => {
       console.error("[useCreateTemplate]", error);
+      toast.error(t`Couldn't create the template. Try again.`);
     },
   });
 

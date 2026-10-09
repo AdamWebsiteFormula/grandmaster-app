@@ -23,6 +23,7 @@ import {
   PopoverContent,
 } from "@anlg/ui/components/ui/popover";
 import { Textarea } from "@anlg/ui/components/ui/textarea";
+import { toast } from "@anlg/ui/components/ui/toast";
 
 import {
   createSessionShareComment,
@@ -127,6 +128,7 @@ function useSessionComments({
   manageAccess: boolean;
   shareId: string | null;
 }): SessionCommentsController {
+  const { t } = useLingui();
   const auth = useAuth();
   const queryClient = useQueryClient();
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -238,6 +240,12 @@ function useSessionComments({
         const commentIds = current.commentIds.filter((id) => id !== commentId);
         return commentIds.length > 0 ? { ...current, commentIds } : null;
       });
+    },
+    // Fork: a comment that failed to delete just stayed (task sweep, Oct 9;
+    // NN/g #9).
+    onError: (error) => {
+      console.error("[comments] delete failed", error);
+      toast.error(t`Couldn't delete this comment. Try again.`);
     },
   });
 

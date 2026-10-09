@@ -1,7 +1,9 @@
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
+import { useState } from "react";
 
 import { Pencil } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
+import { toast } from "@anlg/ui/components/ui/toast";
 
 import { defineTool } from "./define-tool";
 import {
@@ -40,9 +42,33 @@ function EditActions({
   toolCallId: string;
   target: "memo" | "summary";
 }) {
+  const { t } = useLingui();
   const editPending = usePendingEditStore((state) =>
     state.edits.has(toolCallId),
   );
+  const [busy, setBusy] = useState(false);
+
+  // Fork: a failed Apply or Discard left the card as it was and said nothing;
+  // the review tab already shows its error (task sweep, Oct 9; NN/g #1, #9).
+  const review = async (approved: boolean) => {
+    setBusy(true);
+    try {
+      if (approved) {
+        await applyProposalReview(toolCallId);
+      } else {
+        await declineProposalReview(toolCallId);
+      }
+    } catch (error) {
+      console.error("[chat] edit review failed", error);
+      toast.error(
+        approved
+          ? t`Couldn't apply this edit. Try again.`
+          : t`Couldn't discard this edit. Try again.`,
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
 
   if (!editPending) {
     return null;
@@ -54,7 +80,8 @@ function EditActions({
         type="button"
         size="sm"
         variant="outline"
-        onClick={() => void declineProposalReview(toolCallId)}
+        disabled={busy}
+        onClick={() => void review(false)}
       >
         {/* Fork: same "Discard" as the other approval cards (ux-audit-oct3 D). */}
         <Trans>Discard</Trans>
@@ -62,7 +89,8 @@ function EditActions({
       <Button
         type="button"
         size="sm"
-        onClick={() => void applyProposalReview(toolCallId)}
+        disabled={busy}
+        onClick={() => void review(true)}
       >
         {/* Fork: the tab is "My notes", not "memo" (NN/g #4). */}
         {target === "summary" ? (

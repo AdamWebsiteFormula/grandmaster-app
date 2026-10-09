@@ -5,12 +5,14 @@ import { useHotkeys } from "react-hotkeys-hook";
 import type { ContactsSelection } from "@anlg/plugin-windows";
 
 import { useOptionalAuth } from "~/auth";
+import {
+  confirmContactDelete,
+  deleteContactOrSay,
+} from "~/contacts/contact-actions";
 import { NewPersonForm } from "~/contacts/new-person-form";
 import { OrganizationItem } from "~/contacts/organization-item";
 import { PersonItem } from "~/contacts/person-item";
 import {
-  deleteHuman,
-  deleteOrganization,
   type HumanRecord,
   type OrganizationRecord,
   reorderPinnedContacts,
@@ -50,22 +52,24 @@ export function ContactsNav() {
 
   const handleDeletePerson = useCallback(
     (id: string) => {
-      invalidateResource("humans", id);
-      void deleteHuman(id).catch((error) => {
-        console.error("[contacts] failed to delete contact", error);
-      });
-      setSelected(null);
+      void (async () => {
+        if (!(await confirmContactDelete("person"))) return;
+        invalidateResource("humans", id);
+        setSelected(null);
+        await deleteContactOrSay("person", id);
+      })();
     },
     [invalidateResource, setSelected],
   );
 
   const handleDeleteOrganization = useCallback(
     (id: string) => {
-      invalidateResource("organizations" as const, id);
-      void deleteOrganization(id).catch((error) => {
-        console.error("[contacts] failed to delete organization", error);
-      });
-      setSelected(null);
+      void (async () => {
+        if (!(await confirmContactDelete("organization"))) return;
+        invalidateResource("organizations" as const, id);
+        setSelected(null);
+        await deleteContactOrSay("organization", id);
+      })();
     },
     [invalidateResource, setSelected],
   );
