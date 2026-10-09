@@ -60,6 +60,7 @@ vi.mock("~/stt/speaker-context-query", () => ({
 
 import {
   getSessionTranscriptRenderRequest,
+  toTranscriptRows,
   useSessionTranscriptRenderData,
   useTranscriptRenderData,
 } from "./render-request-hooks";
@@ -78,6 +79,26 @@ describe("SQLite transcript render data", () => {
     renderHook(() => useTranscriptRenderData("transcript-1", false));
 
     expect(mocks.transcriptQueryArgs).toEqual(["transcript-1", false]);
+  });
+
+  it("leaves deleted (blank) words out of the render", () => {
+    const rows = toTranscriptRows([
+      {
+        ...mocks.transcript,
+        words: [
+          { id: "gone", text: "", start_ms: 0, end_ms: 400, channel: 0 },
+          {
+            id: "kept",
+            text: " Hi",
+            start_ms: 21000,
+            end_ms: 21400,
+            channel: 0,
+          },
+        ],
+      },
+    ]);
+
+    expect(rows[0]?.row.words?.map((word) => word.id)).toEqual(["kept"]);
   });
 
   it("builds a renderer request from one canonical transcript", () => {

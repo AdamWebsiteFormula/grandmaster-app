@@ -27,6 +27,10 @@ export type TranscriptRowWithId = {
   row: TranscriptRow;
 };
 
+// Fork: deleting lines blanks their words (so Undo can restore them); blank
+// words left in the render gave the next line the deleted line's time and
+// split it in two (task test, Oct 9). Speaker hints key on word ids, so
+// dropping blank words here keeps every visible word's speaker.
 export function toTranscriptRows(
   transcripts: readonly TranscriptRecord[],
 ): TranscriptRowWithId[] {
@@ -34,7 +38,9 @@ export function toTranscriptRows(
     transcriptId: transcript.id,
     row: {
       started_at: transcript.startedAt,
-      words: transcript.words,
+      words: transcript.words.filter(
+        (word) => word.text === undefined || word.text.trim() !== "",
+      ),
       speaker_hints: transcript.speakerHints,
     },
   }));
