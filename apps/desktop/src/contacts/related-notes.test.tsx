@@ -47,7 +47,7 @@ describe("RelatedNotesSection", () => {
         onSessionClick={mocks.onSessionClick}
       />,
     );
-    const search = screen.getByPlaceholderText("Search...");
+    const search = screen.getByRole("textbox", { name: "Search notes" });
 
     fireEvent.change(search, { target: { value: "alpha" } });
     expect(noteTitles(container)).toEqual(["Alpha review"]);

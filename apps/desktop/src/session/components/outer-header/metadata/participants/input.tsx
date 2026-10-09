@@ -145,6 +145,7 @@ export function ParticipantInput({ sessionId }: { sessionId: string }) {
         ))}
 
         <input
+          aria-label={t`Add participant`}
           ref={inputRef}
           type="text"
           className="placeholder:text-muted-foreground min-w-[120px] flex-1 bg-transparent text-sm outline-hidden"

@@ -144,7 +144,8 @@ function useSaveTarget(settingKey: TargetSettingKey) {
     mutationKey: ["automation-target", settingKey],
     mutationFn: (target: AutomationTargetRef) =>
       setSettingValue(settingKey, JSON.stringify(target)),
-    onError: () => toast.error(t`Couldn't save the automation setting. Try again.`),
+    onError: () =>
+      toast.error(t`Couldn't save the automation setting. Try again.`),
   });
 }
 
@@ -206,7 +207,8 @@ export function MarkdownExportConfig({
         await setSettingValue("automation_markdown_export_directory", selected);
       }
     },
-    onError: () => toast.error(t`Couldn't update the export folder. Try again.`),
+    onError: () =>
+      toast.error(t`Couldn't update the export folder. Try again.`),
   });
 
   return (
@@ -511,6 +513,7 @@ function NotionPageSearch({
     <div className="flex flex-col gap-2">
       <div className="flex gap-2">
         <input
+          aria-label={t`Search pages shared with Upshot`}
           type="text"
           value={query}
           onChange={(event) => setQuery(event.target.value)}

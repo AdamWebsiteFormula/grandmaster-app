@@ -220,12 +220,13 @@ export function SearchBar({
     <div className="flex flex-col gap-1">
       <div className="bg-muted flex h-7 items-center gap-1.5 rounded-lg px-2">
         <input
+          aria-label={t`Find in note`}
           ref={searchInputRef}
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleSearchKeyDown}
-          placeholder={t`Search...`}
+          placeholder={t`Search`}
           className="placeholder:text-muted-foreground h-full min-w-0 flex-1 bg-transparent text-xs focus:outline-hidden"
         />
         <div className="flex items-center gap-0.5">
@@ -324,6 +325,7 @@ export function SearchBar({
       {allowReplace && showReplace && (
         <div className="bg-muted flex h-7 items-center gap-1.5 rounded-lg px-2">
           <input
+            aria-label={t`Replace with`}
             ref={replaceInputRef}
             type="text"
             value={replaceQuery}

@@ -1,3 +1,4 @@
+import { useLingui } from "@lingui/react/macro";
 import { useForm } from "@tanstack/react-form";
 
 import { Input } from "@anlg/ui/components/ui/input";
@@ -25,6 +26,7 @@ export function TodoFilterField({
   placeholder: string;
   invalidMessage?: string;
 }) {
+  const { t } = useLingui();
   const storedValue = useConfigValue(settingKey) ?? "";
   const setValue = useSetSettingValue(settingKey);
 
@@ -53,6 +55,7 @@ export function TodoFilterField({
       <form.Field name="value">
         {(field) => (
           <Input
+            aria-label={t`Filter`}
             className="w-52"
             placeholder={placeholder}
             value={field.state.value}

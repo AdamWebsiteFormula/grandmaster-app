@@ -49,6 +49,7 @@ export function NewPersonForm({
       <form onSubmit={handleSubmit}>
         <div className="border-border bg-accent/50 focus-within:bg-accent flex h-8 w-full items-center gap-2 rounded-lg border px-3 transition-colors">
           <input
+            aria-label={t`New person`}
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}

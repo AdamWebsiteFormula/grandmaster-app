@@ -453,6 +453,7 @@ export function TemplatePickerPopover({
               >
                 <MagnifyingGlass className="text-muted-foreground h-4 w-4" />
                 <input
+                  aria-label={t`Search templates`}
                   ref={searchInputRef}
                   autoFocus
                   type="text"

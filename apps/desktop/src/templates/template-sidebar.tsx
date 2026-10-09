@@ -448,6 +448,7 @@ export function TemplatesSidebarContent({
           >
             <MagnifyingGlass className="text-muted-foreground h-4 w-4 shrink-0" />
             <input
+              aria-label={t`Search templates`}
               ref={searchInputRef}
               type="text"
               value={search}

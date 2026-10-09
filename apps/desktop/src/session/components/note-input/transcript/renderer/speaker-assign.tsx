@@ -522,6 +522,7 @@ export function SpeakerParticipantPicker({
               className="text-muted-foreground shrink-0"
             />
             <input
+              aria-label={t`Speaker`}
               ref={searchInputRef}
               autoFocus
               type="search"

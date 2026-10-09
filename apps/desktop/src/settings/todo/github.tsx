@@ -198,6 +198,7 @@ export function GitHubTodoProviderContent({
               className="flex items-center gap-2"
             >
               <Input
+                aria-label={t`Repository`}
                 autoFocus
                 className="flex-1"
                 placeholder={t`Search or type owner/repo`}

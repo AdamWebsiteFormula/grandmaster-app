@@ -128,6 +128,7 @@ function EditableDateForm({
         {(field) => (
           <div className="flex min-w-0 flex-col gap-1">
             <Input
+              aria-label={t`Date and time`}
               autoFocus
               type="datetime-local"
               className="h-7 w-full min-w-0 border-0 px-0 py-0 shadow-none focus-visible:ring-0"

@@ -148,6 +148,7 @@ function SearchField({
     <div className="border-border flex h-12 items-center gap-2 border-b px-4">
       <MagnifyingGlass className="text-muted-foreground size-4 shrink-0" />
       <input
+        aria-label={t`Search icons`}
         type="text"
         value={value}
         onChange={(event) => onChange(event.target.value)}

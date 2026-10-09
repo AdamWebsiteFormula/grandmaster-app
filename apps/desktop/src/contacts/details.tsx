@@ -443,6 +443,7 @@ function EditablePersonNameField({
 
   return (
     <Input
+      aria-label={t`Name`}
       defaultValue={value}
       onChange={(event) =>
         persistHumanUpdate(personId, { name: event.target.value })
@@ -469,6 +470,7 @@ function EditablePersonJobTitleField({
       </div>
       <div className="flex-1">
         <Input
+          aria-label={t`Job title`}
           defaultValue={value}
           onChange={(event) =>
             persistHumanUpdate(personId, { jobTitle: event.target.value })
@@ -488,6 +490,7 @@ function EditablePersonEmailField({
   personId: string;
   value: string;
 }) {
+  const { t } = useLingui();
   return (
     <div className="border-border flex items-center border-b px-4 py-3">
       <div className="text-muted-foreground w-28 text-sm">
@@ -495,6 +498,7 @@ function EditablePersonEmailField({
       </div>
       <div className="flex-1">
         <Input
+          aria-label={t`Email`}
           type="email"
           defaultValue={value}
           onChange={(event) =>
@@ -515,6 +519,7 @@ function EditablePersonPhoneField({
   personId: string;
   value: string;
 }) {
+  const { t } = useLingui();
   return (
     <div className="border-border flex items-center border-b px-4 py-3">
       <div className="text-muted-foreground w-28 text-sm">
@@ -522,6 +527,7 @@ function EditablePersonPhoneField({
       </div>
       <div className="flex-1">
         <Input
+          aria-label={t`Phone`}
           type="tel"
           defaultValue={value}
           onChange={(event) =>
@@ -542,6 +548,7 @@ function EditablePersonLinkedInField({
   personId: string;
   value: string;
 }) {
+  const { t } = useLingui();
   return (
     <div className="border-border flex items-center border-b px-4 py-3">
       <div className="text-muted-foreground w-28 text-sm">
@@ -549,6 +556,7 @@ function EditablePersonLinkedInField({
       </div>
       <div className="flex-1">
         <Input
+          aria-label={t`LinkedIn`}
           defaultValue={value}
           onChange={(event) =>
             persistHumanUpdate(personId, {
@@ -579,11 +587,12 @@ function EditablePersonMemoField({
       </div>
       <div className="flex-1">
         <Textarea
+          aria-label={t`Notes`}
           defaultValue={value}
           onChange={(event) =>
             persistHumanUpdate(personId, { memo: event.target.value })
           }
-          placeholder={t`Add notes about this contact...`}
+          placeholder={t`Add notes about this contact`}
           className="min-h-[80px] resize-none border-none px-0 py-2 text-base shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
           rows={3}
         />
@@ -742,6 +751,7 @@ function OrganizationControl({
               <MagnifyingGlass className="size-4" />
             </span>
             <input
+              aria-label={t`Company`}
               type="text"
               value={searchTerm}
               onChange={(e) => {

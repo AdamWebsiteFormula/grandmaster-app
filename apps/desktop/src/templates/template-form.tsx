@@ -130,6 +130,7 @@ function TemplateTargetsInput({
         </button>
       ) : (
         <input
+          aria-label={t`New tag`}
           ref={inputRef}
           type="text"
           autoFocus
@@ -358,6 +359,7 @@ export function TemplateForm({
             <form.Field name="description">
               {(field) => (
                 <Textarea
+                  aria-label={t`Description`}
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   placeholder={t`Describe the template purpose`}

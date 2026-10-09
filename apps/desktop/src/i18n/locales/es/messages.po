@@ -598,11 +598,19 @@ msgid "Add members"
 msgstr ""
 
 #: src/contacts/details.tsx
-msgid "Add notes about this contact..."
+msgid "Add notes about this contact"
 msgstr ""
 
 #: src/contacts/details.tsx
+#~ msgid "Add notes about this contact..."
+#~ msgstr ""
+
+#: src/contacts/details.tsx
 msgid "Add organization"
+msgstr ""
+
+#: src/session/components/outer-header/metadata/participants/input.tsx
+msgid "Add participant"
 msgstr ""
 
 #: src/billing/trial-payment-reminder-dialog.tsx
@@ -2786,6 +2794,10 @@ msgid "Date and attendees"
 msgstr ""
 
 #: src/session/components/outer-header/metadata/date.tsx
+msgid "Date and time"
+msgstr ""
+
+#: src/session/components/outer-header/metadata/date.tsx
 msgid "Date and time are required"
 msgstr ""
 
@@ -2971,6 +2983,10 @@ msgstr ""
 #: src/templates/template-form.tsx
 #~ msgid "Describe the template purpose…"
 #~ msgstr ""
+
+#: src/templates/template-form.tsx
+msgid "Description"
+msgstr ""
 
 #: src/session-sharing/management-panel.tsx
 msgid "Desktop edits published. Sharing resumed."
@@ -3499,12 +3515,20 @@ msgstr ""
 msgid "Filled {filled} from {provider}."
 msgstr ""
 
+#: src/settings/todo/filter-field.tsx
+msgid "Filter"
+msgstr ""
+
 #: src/shared/keyboard-shortcuts-dialog.tsx
 msgid "Find"
 msgstr ""
 
 #: src/shared/keyboard-shortcuts-dialog.tsx
 msgid "Find and replace"
+msgstr ""
+
+#: src/session/components/note-input/search/bar.tsx
+msgid "Find in note"
 msgstr ""
 
 #: src/chat/components/recipes.tsx
@@ -4246,6 +4270,10 @@ msgid "Keep your recovery key saved somewhere safe. You can still use it if anot
 msgstr ""
 
 #: src/settings/developers/cloud-api.tsx
+msgid "Key name"
+msgstr ""
+
+#: src/settings/developers/cloud-api.tsx
 msgid "Key name (e.g. Claude Code)"
 msgstr ""
 
@@ -4950,6 +4978,14 @@ msgstr ""
 #. placeholder {0}: workspaceConfirmation?.name
 #: src/folders/folder-editor.tsx
 msgid "New notes in this folder will sync to everyone in {0}. Notes already in the folder are not moved."
+msgstr ""
+
+#: src/contacts/new-person-form.tsx
+msgid "New person"
+msgstr ""
+
+#: src/templates/template-form.tsx
+msgid "New tag"
 msgstr ""
 
 #: src/session/components/note-input/raw.tsx
@@ -6477,6 +6513,10 @@ msgstr ""
 msgid "Report a bug"
 msgstr ""
 
+#: src/settings/todo/github.tsx
+msgid "Repository"
+msgstr ""
+
 #. placeholder {0}: title.toLowerCase()
 #: src/calendar/components/apple/permission.tsx
 msgid "Request {0}"
@@ -6754,7 +6794,9 @@ msgstr ""
 msgid "Scroll to top"
 msgstr ""
 
+#: src/contacts/related-notes.tsx
 #: src/main/sidebar-timeline-chrome.tsx
+#: src/session/components/note-input/search/bar.tsx
 #: src/settings/automations/starter-config.tsx
 #: src/settings/general/searchable-select.tsx
 #: src/sidebar/home-nav.tsx
@@ -6771,8 +6813,12 @@ msgstr ""
 #~ msgstr ""
 
 #: src/contacts/shared.tsx
-msgid "Search contacts..."
+msgid "Search contacts"
 msgstr ""
+
+#: src/contacts/shared.tsx
+#~ msgid "Search contacts..."
+#~ msgstr ""
 
 #: src/templates/template-icon-picker.tsx
 msgid "Search emoji"
@@ -6818,6 +6864,7 @@ msgstr ""
 #~ msgid "Search languages…"
 #~ msgstr ""
 
+#: src/contacts/related-notes.tsx
 #: src/shared/keyboard-shortcuts-dialog.tsx
 msgid "Search notes"
 msgstr ""
@@ -6886,8 +6933,8 @@ msgstr ""
 
 #: src/contacts/related-notes.tsx
 #: src/session/components/note-input/search/bar.tsx
-msgid "Search..."
-msgstr ""
+#~ msgid "Search..."
+#~ msgstr ""
 
 #: src/settings/general/searchable-select.tsx
 #~ msgid "Search…"
@@ -7575,6 +7622,10 @@ msgstr ""
 #: src/settings/dictation.tsx
 msgid "Speak into the focused text field in your apps. Your transcript appears when you finish."
 msgstr "Dicta en el campo de texto activo de tus aplicaciones. La transcripción aparece cuando terminas."
+
+#: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
+msgid "Speaker"
+msgstr ""
 
 #: src/session/components/note-input/transcript-toolbar.tsx
 msgid "Spoken language"

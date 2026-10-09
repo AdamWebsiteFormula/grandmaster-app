@@ -77,13 +77,14 @@ export function RelatedNotesSection({
         >
           <MagnifyingGlass className="text-muted-foreground size-3.5 shrink-0" />
           <input
+            aria-label={t`Search notes`}
             type="text"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Escape") setSearch("");
             }}
-            placeholder={t`Search...`}
+            placeholder={t`Search`}
             className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm focus:outline-hidden"
           />
           {search && (

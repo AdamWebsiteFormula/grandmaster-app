@@ -157,12 +157,13 @@ export function ColumnHeader({
           >
             <MagnifyingGlass className="text-muted-foreground h-4 w-4 shrink-0" />
             <input
+              aria-label={t`Search contacts`}
               ref={searchInputRef}
               type="text"
               value={searchValue || ""}
               onChange={(e) => onSearchChange(e.target.value)}
               onKeyDown={handleSearchKeyDown}
-              placeholder={t`Search contacts...`}
+              placeholder={t`Search contacts`}
               className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm placeholder:text-sm focus:outline-hidden"
             />
             {searchValue && (

@@ -128,6 +128,7 @@ export function AutomationsNav() {
         >
           <MagnifyingGlass className="text-muted-foreground h-4 w-4 shrink-0" />
           <input
+            aria-label={t`Search automations`}
             type="text"
             value={search}
             onChange={(event) => setSearch(event.target.value)}

@@ -295,6 +295,7 @@ function EditableOrganizationNameField({
 
   return (
     <Input
+      aria-label={t`Organization name`}
       defaultValue={organization.name}
       onChange={(event) => {
         void updateOrganization(organization.id, {

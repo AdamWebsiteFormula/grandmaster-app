@@ -416,6 +416,7 @@ function CreateWorkspaceForm({
   error?: string;
   placeholder: string;
 }) {
+  const { t } = useLingui();
   const [name, setName] = useState("");
   const trimmed = name.trim();
 
@@ -438,6 +439,7 @@ function CreateWorkspaceForm({
         }}
       >
         <Input
+          aria-label={t`Workspace name`}
           value={name}
           onChange={(event) => setName(event.target.value)}
           placeholder={placeholder}

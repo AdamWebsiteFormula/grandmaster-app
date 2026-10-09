@@ -247,6 +247,7 @@ function CloudApiKeys() {
         <form.Field name="name">
           {(field) => (
             <Input
+              aria-label={t`Key name`}
               className="h-8 max-w-64 text-sm"
               placeholder={t`Key name (e.g. Claude Code)`}
               value={field.state.value}
