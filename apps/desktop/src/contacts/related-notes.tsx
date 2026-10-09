@@ -110,7 +110,7 @@ export function RelatedNotesSection({
               >
                 <span className="bg-muted-foreground size-1.5 shrink-0 rounded-full" />
                 <span className="min-w-0 flex-1 truncate text-sm">
-                  {session.title || t`Untitled Note`}
+                  {session.title || t`Untitled`}
                 </span>
                 {session.createdAt && (
                   <time className="text-muted-foreground shrink-0 text-xs">

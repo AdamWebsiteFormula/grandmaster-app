@@ -153,7 +153,9 @@ export function AutoFormatForm({
               the main action (design-system.md The one accent; Apple HIG
               Color). */}
           <Sparkle className="text-muted-foreground size-4 shrink-0" />
-          <span className="truncate text-sm font-semibold">Auto</span>
+          <span className="truncate text-sm font-semibold">
+            <Trans>Auto</Trans>
+          </span>
         </div>
         <div className="flex shrink-0 items-center gap-1">
           <Button

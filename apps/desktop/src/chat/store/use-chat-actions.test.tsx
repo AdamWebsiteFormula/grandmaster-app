@@ -178,7 +178,7 @@ describe("useChatActions", () => {
       error,
     );
     expect(mocks.toastError).toHaveBeenCalledWith(
-      "Could not save this chat message.",
+      "Couldn't save this message. Try again.",
     );
     expect(mocks.createChatGroupWithMessage).toHaveBeenCalledTimes(3);
     expect(onGroupCreateFailed).toHaveBeenCalledWith("group-1");

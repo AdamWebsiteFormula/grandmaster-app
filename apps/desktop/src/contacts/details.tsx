@@ -230,7 +230,7 @@ export function DetailsColumn({
               <div>
                 {[
                   [t`Name`, human.name],
-                  [t`Job Title`, human.jobTitle],
+                  [t`Job title`, human.jobTitle],
                   [t`Company`, organizationName],
                   [t`Email`, human.email],
                   [t`Phone`, human.phone],
@@ -465,7 +465,7 @@ function EditablePersonJobTitleField({
   return (
     <div className="border-border flex items-center border-b px-4 py-3">
       <div className="text-muted-foreground w-28 text-sm">
-        <Trans>Job Title</Trans>
+        <Trans>Job title</Trans>
       </div>
       <div className="flex-1">
         <Input
@@ -473,7 +473,7 @@ function EditablePersonJobTitleField({
           onChange={(event) =>
             persistHumanUpdate(personId, { jobTitle: event.target.value })
           }
-          placeholder={t`Software Engineer`}
+          placeholder={t`Software engineer`}
           className="h-7 border-none p-0 text-base shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
         />
       </div>

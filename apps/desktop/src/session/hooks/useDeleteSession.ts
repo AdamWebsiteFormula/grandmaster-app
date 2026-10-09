@@ -69,7 +69,7 @@ async function revokeManagedShare(sessionId: string) {
     .catch((error: unknown) => {
       console.error("[delete-session] failed to look up managed share", error);
       toast.warning(
-        "Note deleted, but its shared link could not be verified as removed.",
+        t`Note deleted, but Upshot couldn't confirm its shared link was removed.`,
         { id: "shared-link-removal-unverified", duration: Infinity },
       );
       return null;
@@ -93,7 +93,7 @@ async function revokeManagedShare(sessionId: string) {
       "[delete-session] failed to revoke shared link",
       error instanceof Error ? error.name : typeof error,
     );
-    toast.warning("Note deleted, but its shared link could not be removed.", {
+    toast.warning(t`Note deleted, but its shared link couldn't be removed.`, {
       id: "shared-link-removal-failed",
       duration: Infinity,
     });

@@ -126,7 +126,7 @@ function TemplateTargetsInput({
           onClick={() => setIsAddingTag(true)}
         >
           <Plus className="h-3 w-3" />
-          Add tag
+          <Trans>Add tag</Trans>
         </button>
       ) : (
         <input

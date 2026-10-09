@@ -103,7 +103,7 @@ function HeaderViewRawActive({
     () => [
       {
         id: `copy-memo-${sessionId}`,
-        text: "Copy",
+        text: t`Copy`,
         action: () => {
           void copyTextToClipboard(
             memoMarkdown,

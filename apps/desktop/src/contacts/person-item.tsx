@@ -92,7 +92,7 @@ export function PersonItem({
       {readOnly ? (
         <span
           role="img"
-          aria-label="Pinned contact"
+          aria-label={t`Pinned contact`}
           className="shrink-0 p-1 text-blue-600"
         >
           <PushPin className="size-3.5" weight="bold" />

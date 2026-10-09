@@ -358,7 +358,7 @@ export function SettingsAccountHeader() {
           <button
             type="button"
             data-testid="settings-plan-badge"
-            title={t`Open Plan`}
+            title={t`Open plan`}
             onClick={openPlan}
             className="border-input text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground focus-visible:ring-ring shrink-0 cursor-pointer rounded-full border px-1.5 text-xs leading-4 font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none"
           >

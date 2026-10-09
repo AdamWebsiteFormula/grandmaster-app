@@ -499,7 +499,7 @@ export function TemplatesSidebarContent({
                 onClick={createDefaultTemplate}
                 className="text-muted-foreground hover:text-foreground mt-3 text-sm underline"
               >
-                Create my first template
+                <Trans>Create my first template</Trans>
               </button>
             )}
           </div>

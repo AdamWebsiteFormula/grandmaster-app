@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { useMutation } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -63,12 +64,12 @@ function AuthenticatedSharedResourceLibrarySection({
       await onImport(selected);
     },
     onSuccess: () => {
-      toast.success("Added a copy to your library");
+      toast.success(t`Added a copy to your library.`);
       setSelected(null);
     },
     onError: (error) => {
       toast.error(
-        error instanceof Error ? error.message : "Could not add this item",
+        error instanceof Error ? error.message : t`Couldn't add this item. Try again.`,
       );
     },
   });

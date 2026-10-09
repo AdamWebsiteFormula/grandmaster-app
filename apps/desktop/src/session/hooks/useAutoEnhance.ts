@@ -17,7 +17,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
       if (event.sessionId !== sessionId) return;
       if (event.type === "auto-enhance-skipped") {
         if (event.reasonCode === "transcript_too_short") {
-          toast.warning("Summary wasn't generated", {
+          toast.warning(t`Summary wasn't generated`, {
             id: `auto-summary-too-short-${sessionId}`,
             description: event.reason,
           });

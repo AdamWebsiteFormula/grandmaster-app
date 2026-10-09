@@ -83,7 +83,7 @@ export function OrganizationItem({
       {readOnly ? (
         <span
           role="img"
-          aria-label="Pinned organization"
+          aria-label={t`Pinned organization`}
           className="shrink-0 p-1 text-blue-600"
         >
           <PushPin className="size-3.5" weight="bold" />

@@ -630,6 +630,10 @@ msgstr "Add skill to…"
 msgid "Add step"
 msgstr "Add step"
 
+#: src/templates/template-form.tsx
+msgid "Add tag"
+msgstr "Add tag"
+
 #: src/settings/calendar/index.tsx
 msgid "Add the account in System Settings › Internet Accounts. Its calendars show up here."
 msgstr "Add the account in System Settings › Internet Accounts. Its calendars show up here."
@@ -645,6 +649,10 @@ msgstr "Add to folder…"
 #: src/settings/developers/webhooks.tsx
 msgid "Add webhook"
 msgstr "Add webhook"
+
+#: src/resource-sharing/library.tsx
+msgid "Added a copy to your library."
+msgstr "Added a copy to your library."
 
 #: src/settings/general/spoken-languages.tsx
 msgid "Additional spoken languages"
@@ -933,6 +941,10 @@ msgstr "Attach up to three past summaries you like. Upshot will learn how you pr
 msgid "Attachment settings updated."
 msgstr "Attachment settings updated."
 
+#: src/shared-notes/index.tsx
+msgid "Attachments"
+msgstr "Attachments"
+
 #: src/session/components/note-input/meta-chips.tsx
 msgid "attendee"
 msgstr "attendee"
@@ -983,6 +995,7 @@ msgstr "Authorize access in your browser, then return to Upshot."
 
 #: src/chat/components/input/model-menu.tsx
 #: src/settings/appearance/theme.tsx
+#: src/templates/auto-form.tsx
 msgid "Auto"
 msgstr "Auto"
 
@@ -2031,6 +2044,7 @@ msgid "Copied to clipboard"
 msgstr "Copied to clipboard"
 
 #: src/main/windows-title-bar.tsx
+#: src/session/components/note-input/header-raw.tsx
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 #: src/settings/ai/llm/subscriptions/connect.tsx
 #: src/settings/developers/cloud-api.tsx
@@ -2282,6 +2296,10 @@ msgstr "Couldn't add the template. Try again."
 msgid "Couldn't add the webhook. Try again."
 msgstr "Couldn't add the webhook. Try again."
 
+#: src/resource-sharing/library.tsx
+msgid "Couldn't add this item. Try again."
+msgstr "Couldn't add this item. Try again."
+
 #: src/contacts/details.tsx
 msgid "Couldn't add this organization. Try again."
 msgstr "Couldn't add this organization. Try again."
@@ -2379,6 +2397,10 @@ msgstr "Couldn't discard this edit. Try again."
 #: src/settings/ai/shared/index.tsx
 msgid "Couldn't disconnect. Try again."
 msgstr "Couldn't disconnect. Try again."
+
+#: src/contexts/notifications.tsx
+msgid "Couldn't download {modelName}"
+msgstr "Couldn't download {modelName}"
 
 #: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "Couldn't export the PDF. Try again, or pick another format or folder."
@@ -2489,6 +2511,10 @@ msgstr "Couldn't save the folder context. Try again."
 #: src/contacts/contact-actions.ts
 msgid "Couldn't save this contact. Try again."
 msgstr "Couldn't save this contact. Try again."
+
+#: src/chat/store/use-chat-actions.ts
+msgid "Couldn't save this message. Try again."
+msgstr "Couldn't save this message. Try again."
 
 #: src/templates/queries.ts
 msgid "Couldn't save this template. Try again."
@@ -2604,6 +2630,10 @@ msgstr "Create Linear issues"
 #: src/settings/automations/workflow-builder.tsx
 msgid "Create Linear issues from action items"
 msgstr "Create Linear issues from action items"
+
+#: src/templates/template-sidebar.tsx
+msgid "Create my first template"
+msgstr "Create my first template"
 
 #: src/templates/details.tsx
 msgid "Create template"
@@ -2814,6 +2844,10 @@ msgstr "Delete organization…"
 #: src/session/components/outer-header/overflow/index.tsx
 msgid "Delete recording"
 msgstr "Delete recording"
+
+#: src/audio-player/timeline.tsx
+msgid "Delete recording…"
+msgstr "Delete recording…"
 
 #: src/sidebar/timeline/index.tsx
 msgid "Delete selected ({sessionCount})"
@@ -3075,6 +3109,10 @@ msgstr "Draft follow-up email"
 #: src/templates/sections-editor.tsx
 msgid "Drag to reorder"
 msgstr "Drag to reorder"
+
+#: src/session/components/note-input/audio-drop-target.tsx
+msgid "Drop to upload and transcribe audio"
+msgstr "Drop to upload and transcribe audio"
 
 #: src/templates/details.tsx
 #: src/templates/template-form.tsx
@@ -3371,8 +3409,12 @@ msgid "Fewer models"
 msgstr "Fewer models"
 
 #: src/settings/appearance/app-icon.tsx
-msgid "Field Journal"
-msgstr "Field Journal"
+msgid "Field journal"
+msgstr "Field journal"
+
+#: src/settings/appearance/app-icon.tsx
+#~ msgid "Field Journal"
+#~ msgstr "Field Journal"
 
 #: src/main/windows-title-bar.tsx
 msgid "File"
@@ -4087,13 +4129,14 @@ msgstr "Invited to join"
 msgid "job title"
 msgstr "job title"
 
+#: src/contacts/details.tsx
 #: src/settings/general/account-profile.tsx
 msgid "Job title"
 msgstr "Job title"
 
 #: src/contacts/details.tsx
-msgid "Job Title"
-msgstr "Job Title"
+#~ msgid "Job Title"
+#~ msgstr "Job Title"
 
 #: src/session/components/outer-header/index.tsx
 msgid "Join & record"
@@ -5092,6 +5135,10 @@ msgstr "No recent chats"
 msgid "No related notes found"
 msgstr "No related notes found"
 
+#: src/chat/components/message/tool/search-meetings.tsx
+msgid "No results found"
+msgstr "No results found"
+
 #: src/contacts/related-notes.tsx
 #: src/settings/ai/shared/model-combobox.tsx
 #: src/settings/general/searchable-select.tsx
@@ -5190,6 +5237,14 @@ msgstr "Not signed in"
 #: src/sidebar/toast/undo-delete-toast.tsx
 msgid "note"
 msgstr "note"
+
+#: src/session/hooks/useDeleteSession.ts
+msgid "Note deleted, but its shared link couldn't be removed."
+msgstr "Note deleted, but its shared link couldn't be removed."
+
+#: src/session/hooks/useDeleteSession.ts
+msgid "Note deleted, but Upshot couldn't confirm its shared link was removed."
+msgstr "Note deleted, but Upshot couldn't confirm its shared link was removed."
 
 #: src/session/components/note-input/meta-chips.tsx
 msgid "Note details"
@@ -5402,8 +5457,12 @@ msgid "Open on GitHub"
 msgstr "Open on GitHub"
 
 #: src/sidebar/settings.tsx
-msgid "Open Plan"
-msgstr "Open Plan"
+msgid "Open plan"
+msgstr "Open plan"
+
+#: src/sidebar/settings.tsx
+#~ msgid "Open Plan"
+#~ msgstr "Open Plan"
 
 #: src/crm/enrich-contact.tsx
 msgid "Open record"
@@ -5681,6 +5740,14 @@ msgstr "Pin contact"
 #: src/contacts/organization-item.tsx
 msgid "Pin organization"
 msgstr "Pin organization"
+
+#: src/contacts/person-item.tsx
+msgid "Pinned contact"
+msgstr "Pinned contact"
+
+#: src/contacts/organization-item.tsx
+msgid "Pinned organization"
+msgstr "Pinned organization"
 
 #: src/sidebar/settings.tsx
 msgid "plan"
@@ -6239,6 +6306,10 @@ msgstr "Remove queued message: {0}"
 msgid "Remove repository"
 msgstr "Remove repository"
 
+#: src/settings/automations/workflow-builder.tsx
+msgid "Remove step"
+msgstr "Remove step"
+
 #: src/session/components/note-input/header-enhanced.tsx
 msgid "Remove summary"
 msgstr "Remove summary"
@@ -6450,6 +6521,7 @@ msgstr "Restore"
 msgid "Restoring cloud sync…"
 msgstr "Restoring cloud sync…"
 
+#: src/audio-player/timeline.tsx
 #: src/session/components/resume-recording.tsx
 #: src/settings/developers/webhooks.tsx
 #: src/settings/general/billing.tsx
@@ -7417,8 +7489,12 @@ msgid "Smileys & People"
 msgstr "Smileys & People"
 
 #: src/contacts/details.tsx
-msgid "Software Engineer"
-msgstr "Software Engineer"
+msgid "Software engineer"
+msgstr "Software engineer"
+
+#: src/contacts/details.tsx
+#~ msgid "Software Engineer"
+#~ msgstr "Software Engineer"
 
 #: src/shared/control.tsx
 msgid "Something went wrong"
@@ -7583,6 +7659,7 @@ msgstr "Still recording another note"
 msgid "Stone"
 msgstr "Stone"
 
+#: src/audio-player/timeline.tsx
 #: src/composer/index.tsx
 #: src/session/components/floating/recording-bar.tsx
 #: src/session/components/note-input/enhanced/streaming.tsx
@@ -7698,6 +7775,7 @@ msgstr "Summary length"
 msgid "Summary ready"
 msgstr "Summary ready"
 
+#: src/session/components/note-input/enhanced-actions.ts
 #: src/session/components/note-input/generate-summary-offer.tsx
 #: src/session/hooks/useAutoEnhance.ts
 msgid "Summary wasn't generated"
@@ -8350,8 +8428,12 @@ msgid "Type a name to add a speaker"
 msgstr "Type a name to add a speaker"
 
 #: src/settings/appearance/app-icon.tsx
-msgid "Typewriter Key"
-msgstr "Typewriter Key"
+msgid "Typewriter key"
+msgstr "Typewriter key"
+
+#: src/settings/appearance/app-icon.tsx
+#~ msgid "Typewriter Key"
+#~ msgstr "Typewriter Key"
 
 #: src/settings/stats/insights.tsx
 msgid "Typical meeting length"
@@ -8438,6 +8520,7 @@ msgstr "Unpin organization"
 msgid "until transcribed"
 msgstr "until transcribed"
 
+#: src/contacts/related-notes.tsx
 #: src/home/home-view.tsx
 #: src/session/components/note-input/raw.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
@@ -8471,8 +8554,8 @@ msgid "Untitled note"
 msgstr "Untitled note"
 
 #: src/contacts/related-notes.tsx
-msgid "Untitled Note"
-msgstr "Untitled Note"
+#~ msgid "Untitled Note"
+#~ msgstr "Untitled Note"
 
 #: src/edit/tab-content.tsx
 msgid "Untitled session"

@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { useQuery } from "@tanstack/react-query";
 import {
   createContext,
@@ -110,7 +111,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       const isCancelled = isFailed && /cancel/i.test(status.failed);
       if (isFailed && !isCancelled && !isOnboardingVisible()) {
         const modelName = MODEL_DISPLAY_NAMES[eventModel] ?? eventModel;
-        toast.error(`Couldn’t download ${modelName}`, {
+        toast.error(t`Couldn't download ${modelName}`, {
           description: status.failed,
         });
       }

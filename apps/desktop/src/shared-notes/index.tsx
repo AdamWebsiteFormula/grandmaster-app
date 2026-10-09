@@ -353,7 +353,9 @@ function SharedAttachmentList({
   if (unreferenced.length === 0) return null;
   return (
     <section className="border-border/60 mt-8 border-t pt-5">
-      <h2 className="mb-2 text-sm font-medium">Attachments</h2>
+      <h2 className="mb-2 text-sm font-medium">
+        <Trans>Attachments</Trans>
+      </h2>
       <div className="space-y-2">
         {unreferenced.map((attachment) => {
           const resolution = resolveAttachment(attachment.id);

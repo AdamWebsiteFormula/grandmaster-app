@@ -56,10 +56,10 @@ export function AppIconSelector() {
     anagram: t`Anagram`,
     dev: t`Blueprint`,
     staging: t`Sketch`,
-    journal: t`Field Journal`,
+    journal: t`Field journal`,
     notepad: t`Notepad`,
     stone: t`Stone`,
-    "typewriter-key": t`Typewriter Key`,
+    "typewriter-key": t`Typewriter key`,
     walnut: t`Walnut`,
   };
   const defaultIconName = resolveAppIconName("default", appIdentifier);

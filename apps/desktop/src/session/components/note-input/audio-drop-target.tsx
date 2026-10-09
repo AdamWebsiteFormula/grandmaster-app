@@ -1,3 +1,4 @@
+import { Trans } from "@lingui/react/macro";
 import type { HTMLAttributes, ReactNode } from "react";
 
 import { Waveform } from "@anlg/ui/components/icons";
@@ -34,7 +35,7 @@ export function AudioDropTarget({
             <Waveform className="text-muted-foreground size-5 shrink-0" />
             <div className="flex min-w-0 flex-col gap-0.5">
               <p className="text-sm font-medium">
-                Drop to upload and transcribe audio
+                <Trans>Drop to upload and transcribe audio</Trans>
               </p>
               <p className="text-muted-foreground text-xs">
                 {supportedAudioFormats} audio

@@ -90,7 +90,7 @@ describe("NotificationProvider", () => {
     });
 
     expect(mocks.toastError).toHaveBeenCalledWith(
-      "Couldn’t download Parakeet",
+      "Couldn't download Parakeet",
       { description: "download server rejected the model" },
     );
   });

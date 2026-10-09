@@ -169,7 +169,7 @@ function RenderContent({ part }: { part: Part }) {
             </div>
           )}
           <div className="text-muted-foreground flex items-center justify-center py-2 text-xs">
-            No results found
+            {t`No results found`}
           </div>
         </div>
       );
