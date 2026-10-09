@@ -151,7 +151,7 @@ export function HomeComposer() {
               }}
               placeholder={t`Ask anything`}
               aria-label={t`Ask anything`}
-              // Fork: ⌘ J on a Mac, Ctrl+J elsewhere (Apple HIG, Keyboards;
+              // Fork: ⌘J on a Mac, Ctrl+J elsewhere (Apple HIG, Keyboards;
               // Microsoft Writing Style Guide, Keys and keyboard shortcuts).
               aria-keyshortcuts={ariaKeyShortcut(["mod", "J"])}
               className="text-foreground placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm outline-none"

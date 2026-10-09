@@ -2276,6 +2276,10 @@ msgid "Couldn't delete these lines. Try again."
 msgstr "Couldn't delete these lines. Try again."
 
 #: src/session/components/outer-header/overflow/export-modal.tsx
+msgid "Couldn't export the PDF. Try again, or pick another format or folder."
+msgstr "Couldn't export the PDF. Try again, or pick another format or folder."
+
+#: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "Couldn't export this note. Pick another folder and try again."
 msgstr "Couldn't export this note. Pick another folder and try again."
 
@@ -2347,6 +2351,10 @@ msgstr "Couldn't save your profile. Try again."
 #: src/session/components/note-input/transcript/renderer/segment.tsx
 msgid "Couldn't save your transcript edit. Try again."
 msgstr "Couldn't save your transcript edit. Try again."
+
+#: src/shared/open-note-dialog.tsx
+msgid "Couldn't search your notes. Try again."
+msgstr "Couldn't search your notes. Try again."
 
 #: src/onboarding/transcription.tsx
 msgid "Couldn’t set up {name}. You can pick an engine later in Settings › Transcription."
@@ -7254,6 +7262,10 @@ msgstr "Starting microphone…"
 msgid "Starting the on-device model…"
 msgstr "Starting the on-device model…"
 
+#: src/session/components/outer-header/index.tsx
+msgid "Starting to record"
+msgstr "Starting to record"
+
 #: src/sidebar/toast/registry.tsx
 msgid "Starting transcription…"
 msgstr "Starting transcription…"
@@ -7267,6 +7279,7 @@ msgstr "Starting voice input"
 #~ msgstr "Starting your trial..."
 
 #: src/chat/components/input/index.tsx
+#: src/session/components/outer-header/index.tsx
 msgid "Starting…"
 msgstr "Starting…"
 

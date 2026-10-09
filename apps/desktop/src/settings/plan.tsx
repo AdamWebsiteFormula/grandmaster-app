@@ -455,17 +455,16 @@ function PlanComparison({
           table, so it never overlaps the Free column in a narrow window
           (journey-account-settings P2; WCAG 2.2 SC 1.4.10; Apple HIG
           Layout). The title sits on the page title's edge (backlog item 6), and the toggle ends flush
-          with the card's right edge. It overhangs the 24 pt title row by 4 pt
-          instead of growing it, so this section keeps every section's
-          spacing (picture review, Oct 8: 4 pt more above and below). */}
-      <div className="flex min-h-6 flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          with the card's right edge. The 32 pt row is pulled up 4 pt, so
+          the title keeps every section's line and the control clears the
+          card by 8 pt (picture review, Oct 8 and 9: 4 pt more spacing, then
+          a 4.5 pt gap to the card). */}
+      <div className="-mt-1 flex min-h-6 flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <SettingsSectionTitle id={titleId}>
           <Trans>Compare plans</Trans>
         </SettingsSectionTitle>
         {isPro ? null : (
-          <div className="-my-1">
-            <IntervalToggle value={interval} onChange={onIntervalChange} />
-          </div>
+          <IntervalToggle value={interval} onChange={onIntervalChange} />
         )}
       </div>
       <div

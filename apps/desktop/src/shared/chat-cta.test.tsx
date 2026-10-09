@@ -49,7 +49,7 @@ describe("ChatCTA", () => {
       name: "Ask anything",
     });
     expect(button.getAttribute("aria-keyshortcuts")).toBe("Meta+J");
-    expect(button.textContent).toContain("⌘ J");
+    expect(button.textContent).toContain("⌘J");
 
     fireEvent.click(button);
 

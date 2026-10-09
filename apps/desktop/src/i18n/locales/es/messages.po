@@ -2276,6 +2276,10 @@ msgid "Couldn't delete these lines. Try again."
 msgstr ""
 
 #: src/session/components/outer-header/overflow/export-modal.tsx
+msgid "Couldn't export the PDF. Try again, or pick another format or folder."
+msgstr ""
+
+#: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "Couldn't export this note. Pick another folder and try again."
 msgstr ""
 
@@ -2346,6 +2350,10 @@ msgstr ""
 
 #: src/session/components/note-input/transcript/renderer/segment.tsx
 msgid "Couldn't save your transcript edit. Try again."
+msgstr ""
+
+#: src/shared/open-note-dialog.tsx
+msgid "Couldn't search your notes. Try again."
 msgstr ""
 
 #: src/onboarding/transcription.tsx
@@ -7254,6 +7262,10 @@ msgstr "Iniciando micrófono…"
 msgid "Starting the on-device model…"
 msgstr ""
 
+#: src/session/components/outer-header/index.tsx
+msgid "Starting to record"
+msgstr ""
+
 #: src/sidebar/toast/registry.tsx
 msgid "Starting transcription…"
 msgstr ""
@@ -7267,6 +7279,7 @@ msgstr ""
 #~ msgstr ""
 
 #: src/chat/components/input/index.tsx
+#: src/session/components/outer-header/index.tsx
 msgid "Starting…"
 msgstr ""
 

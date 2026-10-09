@@ -826,12 +826,20 @@ export function useSessionContextMenu({
     void openStandaloneNoteWindow(sessionId);
   }, [sessionId]);
 
-  const handleDelete = useCallback(() => {
+  // Fork: a locked note asks for the device unlock before Delete, as Show
+  // in Finder does; it went at once (task test, Oct 8; NN/g #4).
+  const handleDelete = useCallback(async () => {
+    if (noteLocked) {
+      const ok = await useAppLock
+        .getState()
+        .authenticate(DEVICE_AUTH_REASON.deleteNote);
+      if (!ok) return;
+    }
     deleteSession(sessionId, {
       trackingId: trackingId,
       title,
     });
-  }, [deleteSession, sessionId, trackingId, title]);
+  }, [deleteSession, noteLocked, sessionId, trackingId, title]);
 
   const handleToggleLock = useCallback(() => {
     void setSessionLocked(sessionId, !noteLocked);

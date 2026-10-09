@@ -324,6 +324,34 @@ describe("OuterHeader", () => {
     expect(mocks.openUrl).not.toHaveBeenCalled();
   });
 
+  // Fork test: task test, Oct 8 (no feedback while starting; a second
+  // click started again).
+  it("says Starting… and ignores a second click while it starts", async () => {
+    let finish: (() => void) | undefined;
+    mocks.startListening.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    arrange({});
+    renderHeader();
+
+    fireEvent.click(screen.getByRole("button", { name: "Start recording" }));
+
+    const starting = await screen.findByRole("button", { name: "Starting…" });
+    expect(starting.hasAttribute("disabled")).toBe(true);
+    fireEvent.click(starting);
+    expect(mocks.startListening).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      finish?.();
+    });
+    expect(
+      await screen.findByRole("button", { name: "Start recording" }),
+    ).toBeTruthy();
+  });
+
   it("opens the meeting link and starts listening from join & record", () => {
     arrange({ event: scheduled(MEET_LINK) });
     renderHeader();

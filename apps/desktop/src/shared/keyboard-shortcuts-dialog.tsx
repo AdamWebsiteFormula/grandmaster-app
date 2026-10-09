@@ -40,18 +40,18 @@ export function KeyboardShortcutsDialog() {
     {
       title: t`Notes`,
       rows: [
-        [t`Record meeting`, "⌘ N"],
-        [t`Blank note`, "⇧ ⌘ N"],
-        [t`Search notes`, "⌘ K"],
-        [t`Ask Upshot AI`, "⌘ J"],
+        [t`Record meeting`, "⌘N"],
+        [t`Blank note`, "⇧⌘N"],
+        [t`Search notes`, "⌘K"],
+        [t`Ask Upshot AI`, "⌘J"],
       ],
     },
     {
       title: t`In a note`,
       rows: [
-        [t`Find`, "⌘ F"],
-        [t`Find and replace`, "⌥ ⌘ F"],
-        [t`Previous or next view`, "⌥ ⌘ ← →"],
+        [t`Find`, "⌘F"],
+        [t`Find and replace`, "⌥⌘F"],
+        [t`Previous or next view`, "⌥⌘← ⌥⌘→"],
         // Fork: Space plays the recording only on the Transcript tab.
         [t`Play or pause (Transcript tab)`, "Space"],
       ],
@@ -59,10 +59,10 @@ export function KeyboardShortcutsDialog() {
     {
       title: t`App`,
       rows: [
-        [t`Show or hide the sidebar`, "⌘ \\"],
-        [t`Settings`, "⌘ ,"],
-        [t`Zoom in, zoom out, actual size`, "⌘ = − 0"],
-        [t`Keyboard shortcuts`, "⌘ /"],
+        [t`Show or hide the sidebar`, "⌘\\"],
+        [t`Settings`, "⌘,"],
+        [t`Zoom in, zoom out, actual size`, "⌘= ⌘− ⌘0"],
+        [t`Keyboard shortcuts`, "⌘/"],
         [t`Close`, "Esc"],
       ],
     },

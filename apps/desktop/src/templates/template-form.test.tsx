@@ -174,7 +174,7 @@ describe("TemplateForm", () => {
 
     const chip = screen.getByText("Engineering").className.split(/\s+/);
     expect(chip).toEqual(
-      expect.arrayContaining(["bg-sidebar-accent", "text-muted-foreground"]),
+      expect.arrayContaining(["bg-foreground/5", "text-muted-foreground"]),
     );
     expect(chip).not.toContain("border-border");
     // The outline variant has no hover fill, so the white chip stays white.

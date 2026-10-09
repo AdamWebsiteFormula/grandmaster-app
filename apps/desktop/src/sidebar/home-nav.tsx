@@ -106,7 +106,7 @@ export function SidebarHomeNav() {
         >
           <Trans>Home</Trans>
         </NavItem>
-        {/* Fork: ⌘ K on a Mac, Ctrl+K elsewhere (Apple HIG, Keyboards;
+        {/* Fork: ⌘K on a Mac, Ctrl+K elsewhere (Apple HIG, Keyboards;
           Microsoft Writing Style Guide, Keys and keyboard shortcuts). */}
         <ShortcutTooltip label={t`Search`} keys={kbdLabel(["mod", "K"])}>
           <NavItem

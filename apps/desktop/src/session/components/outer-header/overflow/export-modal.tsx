@@ -377,7 +377,7 @@ export function ExportModal({
     };
   };
 
-  const { mutate, isPending, error } = useMutation({
+  const { mutate, isPending, error, reset } = useMutation({
     mutationFn: async () => {
       const { values } = await getStoredSettingValues();
       const directory = values.export_directory || (await downloadDir());
@@ -429,6 +429,11 @@ export function ExportModal({
     },
     onError: console.error,
   });
+  // Fork: the dialog stays mounted, so an old failure showed again when it
+  // reopened. Each opening starts clean (task test, Oct 8; NN/g #1).
+  useEffect(() => {
+    if (open) reset();
+  }, [open, reset]);
 
   const hasAnyContentSelected =
     includeMemo || (includeSummary && hasSummary) || includeTranscript;
@@ -549,9 +554,19 @@ export function ExportModal({
             (NN/g heuristic #9, help users recover from errors). */}
         {error && (
           <p role="alert" className="text-destructive text-xs">
-            <Trans>
-              Couldn't export this note. Pick another folder and try again.
-            </Trans>
+            {format === "pdf" ? (
+              // Fork: a PDF can fail to render, which another folder
+              // doesn't fix, so name both ways out (task test, Oct 8; NN/g
+              // #9).
+              <Trans>
+                Couldn't export the PDF. Try again, or pick another format or
+                folder.
+              </Trans>
+            ) : (
+              <Trans>
+                Couldn't export this note. Pick another folder and try again.
+              </Trans>
+            )}
           </p>
         )}
         <DialogFooter className="grid grid-cols-2 gap-2 sm:grid-cols-2 sm:justify-normal">

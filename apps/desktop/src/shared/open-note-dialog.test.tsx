@@ -493,6 +493,24 @@ describe("OpenNoteDialog", () => {
     expect(selectedText()).toBe(before);
   });
 
+  // Fork test: task test, Oct 8.
+  it("says the search failed instead of that nothing matched", async () => {
+    mocks.sessions = [];
+    mocks.search.mockRejectedValue(new Error("index unavailable"));
+
+    render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
+    fireEvent.change(screen.getByPlaceholderText("Search notes and settings"), {
+      target: { value: "pricing" },
+    });
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("Couldn't search your notes. Try again."),
+      ).toBeTruthy(),
+    );
+    expect(screen.queryByText(/No notes match/)).toBeNull();
+  });
+
   it("does not run content search for short or empty queries", async () => {
     render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
 

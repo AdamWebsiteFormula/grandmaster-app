@@ -26,9 +26,9 @@ describe("shortcut labels", () => {
     expect(shortcutLabel(["mod", "N"], "macos")).toBe("⌘N");
     expect(shortcutLabel(["shift", "mod", "N"], "macos")).toBe("⇧⌘N");
     expect(shortcutLabel(["mod", "shift", "N"], "macos")).toBe("⇧⌘N");
-    expect(kbdLabel(["mod", "J"], "macos")).toBe("⌘ J");
-    expect(kbdLabel(["mod", "alt", "F"], "macos")).toBe("⌥ ⌘ F");
-    expect(kbdLabel(["shift", "enter"], "macos")).toBe("⇧ ↵");
+    expect(kbdLabel(["mod", "J"], "macos")).toBe("⌘J");
+    expect(kbdLabel(["mod", "alt", "F"], "macos")).toBe("⌥⌘F");
+    expect(kbdLabel(["shift", "enter"], "macos")).toBe("⇧↵");
   });
 
   it.each(["windows", "linux"] as const)(
@@ -59,7 +59,7 @@ describe("shortcut labels", () => {
     expect(isMac()).toBe(false);
 
     mocks.platform.mockReturnValue("macos");
-    expect(kbdLabel(["mod", "J"])).toBe("⌘ J");
+    expect(kbdLabel(["mod", "J"])).toBe("⌘J");
     expect(isMac()).toBe(true);
   });
 

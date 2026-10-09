@@ -37,6 +37,7 @@ const mocks = vi.hoisted(() => ({
   },
   windowShow: vi.fn(() => Promise.resolve({ status: "ok", data: null })),
   authAvailable: false as boolean | null,
+  authenticate: vi.fn((_reason: string) => Promise.resolve(false)),
   revealedNoteIds: {} as Record<string, true>,
 }));
 
@@ -93,16 +94,19 @@ vi.mock("~/lock/notes", () => ({
 }));
 
 vi.mock("~/lock/store", () => ({
-  useAppLock: (
-    selector: (state: {
-      available: boolean | null;
-      revealedNoteIds: Record<string, true>;
-    }) => unknown,
-  ) =>
-    selector({
-      available: mocks.authAvailable,
-      revealedNoteIds: mocks.revealedNoteIds,
-    }),
+  useAppLock: Object.assign(
+    (
+      selector: (state: {
+        available: boolean | null;
+        revealedNoteIds: Record<string, true>;
+      }) => unknown,
+    ) =>
+      selector({
+        available: mocks.authAvailable,
+        revealedNoteIds: mocks.revealedNoteIds,
+      }),
+    { getState: () => ({ authenticate: mocks.authenticate }) },
+  ),
 }));
 
 vi.mock("~/shared/hooks/useNativeContextMenu", () => ({
@@ -321,6 +325,16 @@ describe("TimelineItemComponent", () => {
 
     expect(useMoveToFolderDialog.getState().sessionId).toBe("session-move");
     useMoveToFolderDialog.setState({ sessionId: null });
+  });
+
+  // Fork test: task test, Oct 8 (a locked note was deleted with no unlock).
+  it("asks for the device unlock before deleting a locked note", async () => {
+    renderSession("session-locked", { locked: 1 });
+
+    await findMenuItem("delete")?.action?.();
+
+    expect(mocks.authenticate).toHaveBeenCalledWith("delete this note");
+    expect(mocks.addDeletion).not.toHaveBeenCalled();
   });
 
   it("opens a session in a new window from the context menu", () => {

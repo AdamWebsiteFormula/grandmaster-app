@@ -100,15 +100,15 @@ describe("SearchBar", () => {
   it("shows the Mac replace key, ⌥⌘F, not ⌘H", () => {
     const { container } = render(<SearchBar />);
 
-    expect(container.textContent).toContain("Replace⌥ ⌘ F");
-    expect(container.textContent).toContain("Previous match⇧ ↵");
-    expect(container.textContent).not.toContain("⌘ H");
+    expect(container.textContent).toContain("Replace⌥⌘F");
+    expect(container.textContent).toContain("Previous match⇧↵");
+    expect(container.textContent).not.toContain("⌘H");
   });
 
   it("hides replace controls for find-only surfaces", () => {
     const { container } = render(<SearchBar allowReplace={false} />);
 
     expect(container.textContent).not.toContain("Replace");
-    expect(container.textContent).not.toContain("⌥ ⌘ F");
+    expect(container.textContent).not.toContain("⌥⌘F");
   });
 });

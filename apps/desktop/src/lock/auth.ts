@@ -4,6 +4,7 @@ export const DEVICE_AUTH_REASON = {
   openApp: "open",
   lockNote: "lock this note",
   unlockNote: "unlock this note",
+  deleteNote: "delete this note",
   changeLockSettings: "change lock settings",
 } as const;
 

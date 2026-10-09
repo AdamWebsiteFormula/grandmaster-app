@@ -61,13 +61,16 @@ export function shortcutLabel(
   return keyNames(keys, mac).join(mac ? "" : "+");
 }
 
-/** "⇧ ⌘ N" on a Mac, "Ctrl+Shift+N" elsewhere: the text of a <Kbd>. */
+/** "⇧⌘N" on a Mac, "Ctrl+Shift+N" elsewhere: the text of a <Kbd>. */
 export function kbdLabel(
   keys: readonly string[],
   currentPlatform = runtimePlatform(),
 ) {
   const mac = isMac(currentPlatform);
-  return keyNames(keys, mac).join(mac ? " " : "+");
+  // Fork: on a Mac the glyphs sit together, "⇧⌘N", as macOS menus draw
+  // them; a space read as two keys (picture review, Oct 9; Apple HIG,
+  // Keyboards).
+  return keyNames(keys, mac).join(mac ? "" : "+");
 }
 
 /** "Meta+J" on a Mac, "Control+J" elsewhere, for aria-keyshortcuts. */

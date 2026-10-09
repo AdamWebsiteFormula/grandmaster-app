@@ -70,7 +70,7 @@ describe("HomeComposer", () => {
     render(<HomeComposer />);
 
     expect(screen.getByText("Ctrl+J")).toBeTruthy();
-    expect(screen.queryByText("⌘ J")).toBeNull();
+    expect(screen.queryByText("⌘J")).toBeNull();
     expect(
       screen
         .getByRole("textbox", { name: "Ask anything" })
@@ -90,7 +90,7 @@ describe("HomeComposer", () => {
       expect(screen.getByRole("button", { name })).toBeTruthy();
     }
     expect(screen.getByRole("textbox", { name: "Ask anything" })).toBeTruthy();
-    expect(screen.getByText("⌘ J")).toBeTruthy();
+    expect(screen.getByText("⌘J")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Recent chats" })).toBeNull();
   });
 

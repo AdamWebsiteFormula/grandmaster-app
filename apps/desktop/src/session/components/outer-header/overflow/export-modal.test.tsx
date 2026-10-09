@@ -233,6 +233,36 @@ describe("ExportModal destination", () => {
     expect(mocks.revealItemInDir).not.toHaveBeenCalled();
   });
 
+  // Fork test: task test, Oct 8 (an old failure showed on reopen).
+  it("clears a failure when the dialog opens again", async () => {
+    mocks.writeTextFile.mockResolvedValue({
+      status: "error",
+      error: "Permission denied",
+    });
+    const client = new QueryClient({
+      defaultOptions: { mutations: { retry: false } },
+    });
+    const view = (open: boolean) => (
+      <QueryClientProvider client={client}>
+        <ExportModal
+          sessionId="session-1"
+          currentView={{ type: "raw" }}
+          open={open}
+          onOpenChange={mocks.onOpenChange}
+        />
+      </QueryClientProvider>
+    );
+    const { rerender } = render(view(true));
+    fireEvent.click(screen.getByRole("radio", { name: "Markdown" }));
+    fireEvent.click(screen.getByRole("button", { name: "Export" }));
+    await screen.findByRole("alert");
+
+    rerender(view(false));
+    rerender(view(true));
+
+    await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
+  });
+
   it("uses the saved folder as the save dialog default", async () => {
     mocks.settings.mockResolvedValue({
       values: { export_directory: "/Users/test/Documents" },

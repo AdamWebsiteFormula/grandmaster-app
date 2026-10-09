@@ -171,7 +171,7 @@ describe("SidebarHomeNav", () => {
     const search = screen.getByRole("button", { name: "Search" });
     expect(search.textContent).toBe("Search");
     expect(search.getAttribute("aria-keyshortcuts")).toBe("Meta+K");
-    expect(screen.queryByText("⌘ K")).toBeNull();
+    expect(screen.queryByText("⌘K")).toBeNull();
   });
 
   // Microsoft Writing Style Guide, Keys and keyboard shortcuts: Ctrl+K.

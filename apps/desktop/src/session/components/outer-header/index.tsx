@@ -211,16 +211,32 @@ function HeaderMeetingAction({
   const { t } = useLingui();
   const joiningMeetingRef = useRef(false);
   const [joiningMeeting, setJoiningMeeting] = useState(false);
+  // Fork: the sign-in token, microphone check and setup take seconds, and
+  // the button still said Start recording and took a second click. Say
+  // Starting… and ignore repeats until it settles (task test, Oct 8; NN/g
+  // #1; Apple HIG, Progress indicators).
+  const startingRef = useRef(false);
+  const [starting, setStarting] = useState(false);
   const start = useCallback(async () => {
     if (refuseWhileAnotherNoteRecords(sessionId)) {
       return;
     }
-    if (!isMainWebviewWindow()) {
-      await requestMainListenerControl("start", sessionId);
+    if (startingRef.current) {
       return;
     }
+    startingRef.current = true;
+    setStarting(true);
+    try {
+      if (!isMainWebviewWindow()) {
+        await requestMainListenerControl("start", sessionId);
+        return;
+      }
 
-    await startListening();
+      await startListening();
+    } finally {
+      startingRef.current = false;
+      setStarting(false);
+    }
   }, [sessionId, startListening]);
   const openMeeting = useCallback(async () => {
     if (!meetingLink) {
@@ -279,6 +295,15 @@ function HeaderMeetingAction({
       };
     }
 
+    if (starting) {
+      return {
+        label: t`Starting…`,
+        title: t`Starting to record`,
+        icon: <RecordingIcon />,
+        onClick: () => {},
+      };
+    }
+
     if (
       canJoinFromHeader &&
       (isWelcomeDemo || !meetingStarted || !meetingMicInUse)
@@ -309,7 +334,10 @@ function HeaderMeetingAction({
       onClick: start,
     };
   })();
-  const disabled = sessionMode === "finalizing" || joiningMeeting;
+  const disabled =
+    sessionMode === "finalizing" ||
+    joiningMeeting ||
+    (starting && sessionMode !== "active");
   const isPrimaryCta = sessionMode === "inactive";
   const showCountdown =
     Boolean(countdown.label) &&

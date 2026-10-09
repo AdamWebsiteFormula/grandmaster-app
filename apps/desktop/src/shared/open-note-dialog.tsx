@@ -167,6 +167,7 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
   // Fork: the query the content hits belong to, so "No results" doesn't
   // flash while the debounced search runs (ux-audit-oct3 B; NN/g #1).
   const [searchedQuery, setSearchedQuery] = useState("");
+  const [failedQuery, setFailedQuery] = useState<string | null>(null);
 
   const pageResults = useMemo<PageResult[]>(
     () => [
@@ -364,11 +365,13 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
               })),
           );
           setSearchedQuery(trimmed);
+          setFailedQuery(null);
         })
         .catch((error) => {
           if (cancelled) return;
           console.error("[open-note-dialog] content search failed", error);
           setSearchedQuery(trimmed);
+          setFailedQuery(trimmed);
         });
     }, CONTENT_SEARCH_DEBOUNCE_MS);
 
@@ -388,8 +391,12 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
     ]);
     const seen = new Set<string>();
     const results: ContentResult[] = [];
+    // Fork: note-text matches belong to the words they were found for; old
+    // matches for "bud" no longer show while "budget" is searched (task
+    // test, Oct 8; NN/g #1).
+    const hits = searchedQuery === query.trim() ? contentHits : [];
 
-    for (const hit of contentHits) {
+    for (const hit of hits) {
       if (results.length >= MAX_CONTENT_RESULTS) break;
       if (titleMatchIds.has(hit.id) || seen.has(hit.id)) continue;
       const note = sessionsMap.get(hit.id);
@@ -404,6 +411,7 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
     filteredOtherNotes,
     filteredRecentSessions,
     query,
+    searchedQuery,
     sessionsMap,
   ]);
 
@@ -723,6 +731,10 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
                 <CommandPrimitive.Empty className="text-muted-foreground py-6 text-center text-sm">
                   {isSearchPending ? (
                     <Trans>Searching notes…</Trans>
+                  ) : failedQuery === trimmedQuery ? (
+                    // Fork: a failed search said no notes matched (task
+                    // test, Oct 8; NN/g #9).
+                    <Trans>Couldn't search your notes. Try again.</Trans>
                   ) : (
                     <Trans>
                       No notes match “{trimmedQuery}”. Try fewer words.

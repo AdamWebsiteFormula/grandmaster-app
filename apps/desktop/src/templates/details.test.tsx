@@ -76,7 +76,7 @@ describe("TemplateDetailsColumn", () => {
 
     const chip = chips[0].className.split(/\s+/);
     expect(chip).toEqual(
-      expect.arrayContaining(["bg-sidebar-accent", "text-muted-foreground"]),
+      expect.arrayContaining(["bg-foreground/5", "text-muted-foreground"]),
     );
     expect(chip).not.toContain("border-border");
     // The header's "Created by" line stays off: the title row says "by".
