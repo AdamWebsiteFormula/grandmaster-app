@@ -179,6 +179,24 @@ describe("ClassicMainBody", () => {
     );
   });
 
+  it("corrects a stray sidebar width that no drag caused", async () => {
+    render(<ClassicMainBody />);
+    mocks.leftSidebarPanelHandle.resize.mockClear();
+
+    act(() => {
+      mocks.onPanelLayout?.([27, 73]);
+    });
+    await act(async () => {
+      window.dispatchEvent(new Event("resize"));
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+
+    const defaultSize = (200 / window.innerWidth) * 100;
+    expect(mocks.leftSidebarPanelHandle.resize).toHaveBeenCalledWith(
+      defaultSize,
+    );
+  });
+
   it("collapses the sidebar when the resize handle snaps below the threshold", () => {
     render(<ClassicMainBody />);
 

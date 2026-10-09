@@ -156,16 +156,11 @@ export function ClassicMainBody() {
           pendingLeftSidebarDefaultSizeRef.current = null;
         }
 
-        if (
-          !leftSidebarResizeDraggingRef.current &&
-          !panelSizesAreEqual(
-            sidebarSize,
-            leftSidebarPanelConstraintsRef.current.defaultSize,
-          )
-        ) {
-          leftSidebarDefaultSizeTrackingRef.current = false;
-        }
-
+        // Fork: only a real drag (handleLeftSidebarResizeDragging) stops the
+        // sidebar tracking its default width. A layout pass taken before the
+        // window settled used to stop it too, leaving the sidebar 32 pt wide
+        // until Settings reset it (picture review, Oct 9; Apple HIG,
+        // Sidebars; NN/g #4).
         leftSidebarPanelSizeRef.current = sidebarSize;
         applyLeftSidebarPanelSize(sidebarSize);
 
@@ -272,19 +267,16 @@ export function ClassicMainBody() {
       return;
     }
 
-    const currentConstraints = leftSidebarPanelConstraintsRef.current;
-
-    if (
-      canResizeLeftSidebarPanel &&
-      !panelSizesAreEqual(
-        leftSidebarPanelSizeRef.current,
-        currentConstraints.defaultSize,
-      )
-    ) {
-      leftSidebarDefaultSizeTrackingRef.current = false;
+    // A collapsed sidebar keeps its last width for reopening; don't open it.
+    if (leftSidebarPanelSizeRef.current <= LEFT_SIDEBAR_COLLAPSED_SIZE) {
       return;
     }
 
+    const currentConstraints = leftSidebarPanelConstraintsRef.current;
+
+    // Fork: still tracking means no drag happened, so a size off the default
+    // is a stale layout to correct, not a width to keep (picture review,
+    // Oct 9; Apple HIG, Sidebars).
     const measuredWidth = getMeasuredMainAreaWidthPx(bodyRootRef.current);
     const nextConstraints = createLeftSidebarPanelConstraints(measuredWidth);
 
@@ -294,7 +286,11 @@ export function ClassicMainBody() {
         currentConstraints.defaultSize,
       ) &&
       panelSizesAreEqual(nextConstraints.minSize, currentConstraints.minSize) &&
-      panelSizesAreEqual(nextConstraints.maxSize, currentConstraints.maxSize)
+      panelSizesAreEqual(nextConstraints.maxSize, currentConstraints.maxSize) &&
+      panelSizesAreEqual(
+        leftSidebarPanelSizeRef.current,
+        currentConstraints.defaultSize,
+      )
     ) {
       return;
     }
