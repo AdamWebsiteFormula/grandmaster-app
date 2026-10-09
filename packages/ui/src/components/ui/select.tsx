@@ -32,7 +32,10 @@ const SelectTrigger = React.forwardRef<
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <CaretDown className="-mr-1 h-4 w-4 shrink-0 opacity-50" />
+        {/* Fork: the secondary text color, as every other menu chevron
+            ("Auto", "English"); half opacity drew a cooler, fainter gray
+            (picture review, Oct 9; NN/g #4). */}
+        <CaretDown className="text-muted-foreground -mr-1 h-4 w-4 shrink-0" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );
