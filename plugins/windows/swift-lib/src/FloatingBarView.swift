@@ -30,6 +30,28 @@ enum FloatingBarLayout {
   static let hoverHandleDotRowSpacing: CGFloat = 7
   static let hoverHandleHorizontalPadding: CGFloat = 8
   static let dragClickThreshold: CGFloat = 4
+  // Fork: while recording, the resting bar is a vertical pill on the screen
+  // edge, as Granola's nub (Granola 7.637): the emblem on top, the level bars
+  // under it, the transcript toggle last.
+  static let pillWidth: CGFloat = 36
+  static let pillCell: CGFloat = 30
+  static let pillPadding: CGFloat = 3
+  static let pillEmblemSize: CGFloat = 16
+  // Granola puts the nub 70% of the way down the screen.
+  static let pillVerticalRatio: CGFloat = 0.7
+
+  static func pillHeight(showsExpand: Bool) -> CGFloat {
+    pillPadding * 2 + pillCell * (showsExpand ? 3 : 2)
+  }
+
+  static func usesPill(isExpanded: Bool, pillMode: Bool) -> Bool {
+    pillMode && !isExpanded
+  }
+
+  static func controlsHeight(isExpanded: Bool, showsExpand: Bool, pillMode: Bool) -> CGFloat {
+    usesPill(isExpanded: isExpanded, pillMode: pillMode)
+      ? pillHeight(showsExpand: showsExpand) : compactHeight
+  }
 
   static func compactControlsWidth(showsExpand: Bool) -> CGFloat {
     showsExpand ? compactStopWidth + compactGap + compactIconSize : compactSoloStopWidth
@@ -40,10 +62,15 @@ enum FloatingBarLayout {
       + compactHorizontalPadding * 2
   }
 
-  static func containerSize(isExpanded: Bool, showsExpand: Bool)
+  static func containerSize(isExpanded: Bool, showsExpand: Bool, pillMode: Bool = false)
     -> NSSize
   {
-    NSSize(
+    if usesPill(isExpanded: isExpanded, pillMode: pillMode) {
+      return NSSize(
+        width: pillWidth + inset * 2,
+        height: pillHeight(showsExpand: showsExpand) + hoverHandleReservedHeight + inset * 2)
+    }
+    return NSSize(
       width: (isExpanded
         ? expandedWidth : compactWidth(showsExpand: showsExpand)) + inset
         * 2,
@@ -71,12 +98,17 @@ struct FloatingBarView: View {
 
   private var expandsUpward: Bool { model.placement?.expandsUpward ?? true }
 
+  private var usesPill: Bool {
+    FloatingBarLayout.usesPill(isExpanded: model.isExpanded, pillMode: model.dictation == nil)
+  }
+
   var body: some View {
     let showsHoverHandle = isBarHovered && !model.isExpanded
     let width = containerSize.width - FloatingBarLayout.inset * 2
     let radius =
       model.isExpanded
-      ? FloatingBarLayout.expandedCornerRadius : FloatingBarLayout.compactCornerRadius
+      ? FloatingBarLayout.expandedCornerRadius
+      : usesPill ? FloatingBarLayout.pillWidth / 2 : FloatingBarLayout.compactCornerRadius
     let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
     ZStack(alignment: .bottom) {
       if showsHoverHandle {
@@ -86,6 +118,9 @@ struct FloatingBarView: View {
           .frame(maxHeight: .infinity, alignment: .top)
           .accessibilityHidden(true)
       }
+      if usesPill {
+        pill.frame(width: width, height: bodyHeight)
+      } else {
       ZStack(alignment: .topLeading) {
         if model.isExpanded {
           expandedPanel
@@ -99,20 +134,24 @@ struct FloatingBarView: View {
             height: FloatingBarLayout.compactHeight
           )
           .position(
-            x: (model.placement?.controlsCenterX ?? containerSize.width / 2)
-              - FloatingBarLayout.inset,
+            x: controlsX(width: width),
             y: expandsUpward
               ? bodyHeight - FloatingBarLayout.compactHeight / 2
               : FloatingBarLayout.compactHeight / 2)
       }
       .frame(width: width, height: bodyHeight, alignment: .topLeading)
+      }
     }
     .frame(
       width: width,
       height: bodyHeight + (showsHoverHandle ? FloatingBarLayout.hoverHandleReservedHeight : 0),
       alignment: .bottom
     )
-    .background(shape.fill(isBarHovered && !model.isExpanded ? envelopeSurfaceColor : surfaceColor))
+    .background(
+      shape.fill(
+        usesPill
+          ? pillSurfaceColor
+          : isBarHovered && !model.isExpanded ? envelopeSurfaceColor : surfaceColor))
     .overlay(shape.strokeBorder(outerStrokeColor, lineWidth: 0.5))
     .overlay(
       RoundedRectangle(
@@ -207,6 +246,45 @@ struct FloatingBarView: View {
     }
   }
 
+  // The row stays inside the panel when the pill sat at the screen edge.
+  private func controlsX(width: CGFloat) -> CGFloat {
+    let center =
+      (model.placement?.controlsCenterX ?? containerSize.width / 2) - FloatingBarLayout.inset
+    let half =
+      FloatingBarLayout.compactControlsWidth(showsExpand: model.liveCaptionToggleVisible) / 2
+    return min(max(center, half), max(half, width - half))
+  }
+
+  private var pill: some View {
+    VStack(spacing: 0) {
+      Button(action: { performClick { RustBridge.openMainWindow() } }) {
+        UpshotEmblemView(color: Color.white.opacity(0.8))
+          .frame(
+            width: FloatingBarLayout.pillEmblemSize, height: FloatingBarLayout.pillEmblemSize
+          )
+          .frame(width: FloatingBarLayout.pillCell, height: FloatingBarLayout.pillCell)
+          .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel("Open Upshot")
+
+      audioControl(
+        width: FloatingBarLayout.pillCell, height: FloatingBarLayout.pillCell, showsLabel: false)
+
+      if model.liveCaptionToggleVisible {
+        FloatingIconButton(
+          systemName: "arrow.up.left.and.arrow.down.right",
+          accessibilityLabel: "Expand live transcript",
+          color: Color.white.opacity(0.8),
+          hoverFill: Color.white.opacity(0.12),
+          size: FloatingBarLayout.pillCell,
+          action: { performClick { setExpanded(true) } }
+        )
+      }
+    }
+    .padding(.vertical, FloatingBarLayout.pillPadding)
+  }
+
   private func floatingControls(isExpanded: Bool) -> some View {
     HStack(spacing: FloatingBarLayout.compactGap) {
       audioControl(
@@ -229,7 +307,9 @@ struct FloatingBarView: View {
     }
   }
 
-  private func audioControl(width: CGFloat, height: CGFloat) -> some View {
+  private func audioControl(width: CGFloat, height: CGFloat, showsLabel: Bool = true)
+    -> some View
+  {
     let shape = RoundedRectangle(
       cornerRadius: FloatingBarLayout.controlCornerRadius,
       style: .continuous
@@ -247,8 +327,10 @@ struct FloatingBarView: View {
           HStack(spacing: 6) {
             Image(systemName: "stop.fill")
               .font(.system(size: FloatingBarLayout.stopSquareSize, weight: .bold))
-            Text(model.dictation == nil ? "Stop" : "Done")
-              .font(.system(size: 12, weight: .semibold))
+            if showsLabel {
+              Text(model.dictation == nil ? "Stop" : "Done")
+                .font(.system(size: 12, weight: .semibold))
+            }
           }
           .foregroundStyle(stopColor)
         } else if model.status == .reconnecting {
@@ -261,7 +343,7 @@ struct FloatingBarView: View {
               height: FloatingBarLayout.waveformHeight
             )
         } else {
-          DancingBars(color: accentColor, amplitude: model.amplitude)
+          DancingBars(color: usesPill ? pillBarColor : accentColor, amplitude: model.amplitude)
             .frame(
               width: FloatingBarLayout.waveformWidth,
               height: FloatingBarLayout.waveformHeight
@@ -271,7 +353,9 @@ struct FloatingBarView: View {
       .frame(width: width, height: height)
       .background(
         shape
-          .fill(isStopHovered ? accentColor.opacity(0.18) : controlHoverFill)
+          .fill(
+            isStopHovered
+              ? accentColor.opacity(0.18) : usesPill ? Color.clear : controlHoverFill)
       )
       .contentShape(shape)
     }
@@ -291,8 +375,21 @@ struct FloatingBarView: View {
     model.placement?.frame.size
       ?? FloatingBarLayout.containerSize(
         isExpanded: model.isExpanded,
-        showsExpand: model.liveCaptionToggleVisible
+        showsExpand: model.liveCaptionToggleVisible,
+        pillMode: model.dictation == nil
       )
+  }
+
+  // The pill is near-black in both themes, as Granola's nub and the design
+  // system's near-black base; the bars use the orange that marks the live
+  // recording state (grandmaster/design-system.md).
+  private var pillSurfaceColor: Color {
+    Color(red: 0.09, green: 0.09, blue: 0.09)
+      .opacity(max(settings.floatingBarOpacity, 0.94))
+  }
+
+  private var pillBarColor: Color {
+    model.status == .error ? errorAccentColor : Color(red: 1, green: 0.416, blue: 0.122)
   }
 
   private var accentColor: Color {

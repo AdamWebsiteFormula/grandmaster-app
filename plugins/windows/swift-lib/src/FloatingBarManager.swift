@@ -203,9 +203,20 @@ final class FloatingBarManager {
       followsPointer: followsPointer
     ) { screen, size in
       let frame = screen.visibleFrame
-      let x = frame.midX - size.width / 2
-      let y = frame.minY + FloatingBarLayout.screenMargin
-      return NSPoint(x: x, y: y)
+      guard layout.pillMode else {
+        let x = frame.midX - size.width / 2
+        let y = frame.minY + FloatingBarLayout.screenMargin
+        return NSPoint(x: x, y: y)
+      }
+      // Fork: the pill rests on the right edge, 70% of the way down, as
+      // Granola's nub; 8 pt in, since nothing touches an edge (design system).
+      let pillHeight = FloatingBarLayout.pillHeight(showsExpand: layout.showsExpand)
+      let pillTop = frame.maxY - (frame.height - pillHeight) * FloatingBarLayout.pillVerticalRatio
+      let x =
+        frame.maxX - size.width + FloatingBarLayout.inset - FloatingBarLayout.screenMargin
+      let y = pillTop + FloatingBarLayout.inset + FloatingBarLayout.hoverHandleReservedHeight
+        - size.height
+      return NSPoint(x: x, y: max(frame.minY, y))
     }
     resize(panel, to: layout)
   }
@@ -216,17 +227,18 @@ final class FloatingBarManager {
     let offset = controlAnchorOffset(for: nextLayout)
     let anchor = NSPoint(x: panel.frame.minX + offset.x, y: panel.frame.minY + offset.y)
     let workArea = (panel.screen ?? NSScreen.main)?.visibleFrame ?? panel.frame
-    let grows =
-      nextLayout.isExpanded
-      && panel.frame.height
-        <= FloatingBarLayout.containerSize(isExpanded: false, showsExpand: true).height
+    let compactSize = FloatingBarLayout.containerSize(
+      isExpanded: false, showsExpand: nextLayout.showsExpand, pillMode: nextLayout.pillMode)
+    let grows = nextLayout.isExpanded && panel.frame.height <= compactSize.height
     let expandsUpward =
       grows
       ? workArea.maxY - anchor.y > anchor.y - workArea.minY
       : model.placement?.expandsUpward ?? true
     let next = FloatingControlPlacement.layout(
       anchor: anchor, size: requestedSize,
-      workArea: workArea, expandsUpward: expandsUpward)
+      workArea: workArea, expandsUpward: expandsUpward,
+      controlsHeight: controlsHeight(for: nextLayout),
+      compactSize: compactSize)
     model.placement = next
     panel.minSize = next.frame.size
     placement.setFrame(
@@ -245,22 +257,29 @@ final class FloatingBarManager {
   private func layout(isExpanded: Bool) -> FloatingBarWindowLayout {
     FloatingBarWindowLayout(
       isExpanded: isExpanded,
-      showsExpand: model.liveCaptionToggleVisible
+      showsExpand: model.liveCaptionToggleVisible,
+      pillMode: model.dictation == nil
     )
   }
 
   private func size(for layout: FloatingBarWindowLayout) -> NSSize {
     FloatingBarLayout.containerSize(
       isExpanded: layout.isExpanded,
-      showsExpand: layout.showsExpand
+      showsExpand: layout.showsExpand,
+      pillMode: layout.pillMode
     )
+  }
+
+  private func controlsHeight(for layout: FloatingBarWindowLayout) -> CGFloat {
+    FloatingBarLayout.controlsHeight(
+      isExpanded: layout.isExpanded, showsExpand: layout.showsExpand, pillMode: layout.pillMode)
   }
 
   private func controlAnchorOffset(for layout: FloatingBarWindowLayout) -> NSPoint {
     model.placement?.controlOffset
       ?? NSPoint(
         x: (panel?.frame.width ?? size(for: layout).width) / 2,
-        y: FloatingBarLayout.inset + FloatingBarLayout.compactHeight / 2)
+        y: FloatingBarLayout.inset + controlsHeight(for: layout) / 2)
   }
 
   private func startObservingDisplayChanges() {
@@ -288,6 +307,7 @@ final class FloatingBarManager {
 private struct FloatingBarWindowLayout {
   let isExpanded: Bool
   let showsExpand: Bool
+  let pillMode: Bool
 }
 
 final class FloatingBarPanel: NSPanel {

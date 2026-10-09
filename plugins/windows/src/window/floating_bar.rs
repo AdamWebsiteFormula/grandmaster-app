@@ -99,8 +99,58 @@ pub(crate) mod layout {
     pub const HOVER_HANDLE_RESERVED_HEIGHT: f64 =
         HOVER_HANDLE_TOP_PADDING + HOVER_HANDLE_HEIGHT + HOVER_HANDLE_GAP;
 
+    // Fork: while recording, the resting bar is a vertical pill on the screen
+    // edge, as Granola's nub (Granola 7.637); mirrors FloatingBarLayout in Swift.
+    pub const PILL_WIDTH: f64 = 36.0;
+    pub const PILL_CELL: f64 = 30.0;
+    pub const PILL_PADDING: f64 = 3.0;
+    // Granola puts the nub 70% of the way down the screen.
+    pub const PILL_VERTICAL_RATIO: f64 = 0.7;
+
     pub fn is_expanded(state: &FloatingBarState) -> bool {
         state.live_caption_toggle_visible && !state.live_caption_minimized
+    }
+
+    pub fn pill_height(shows_expand: bool) -> f64 {
+        PILL_PADDING * 2.0 + PILL_CELL * if shows_expand { 3.0 } else { 2.0 }
+    }
+
+    pub fn pill_container_size(shows_expand: bool) -> (f64, f64) {
+        (
+            PILL_WIDTH + INSET * 2.0,
+            pill_height(shows_expand) + HOVER_HANDLE_RESERVED_HEIGHT + INSET * 2.0,
+        )
+    }
+
+    /// The pill shows for a resting meeting bar; dictation and the open
+    /// transcript keep the row of controls.
+    pub fn uses_pill(state: Option<&FloatingBarState>) -> bool {
+        state.is_none_or(|state| state.dictation.is_none() && !is_expanded(state))
+    }
+
+    pub fn controls_height(state: Option<&FloatingBarState>) -> f64 {
+        if uses_pill(state) {
+            pill_height(state.is_some_and(|state| state.live_caption_toggle_visible))
+        } else {
+            COMPACT_HEIGHT
+        }
+    }
+
+    /// Right edge, 70% of the way down, `SCREEN_MARGIN` in from the edge (the
+    /// design system: nothing touches an edge).
+    pub fn right_edge_origin(
+        work: (f64, f64, f64, f64),
+        window_width: f64,
+        window_height: f64,
+        pill_height: f64,
+    ) -> (f64, f64) {
+        let (work_x, work_y, work_width, work_height) = work;
+        let pill_top = work_y + (work_height - pill_height) * PILL_VERTICAL_RATIO;
+        let y = pill_top - INSET - HOVER_HANDLE_RESERVED_HEIGHT;
+        (
+            work_x + work_width - window_width + INSET - SCREEN_MARGIN,
+            y.clamp(work_y, work_y + work_height - window_height),
+        )
     }
 
     pub fn compact_controls_width(shows_expand: bool) -> f64 {
@@ -133,29 +183,53 @@ pub(crate) mod layout {
         }
     }
 
+    #[cfg_attr(not(test), allow(dead_code))]
     pub fn controls_center_y(height: f64, expands_upward: bool) -> f64 {
+        controls_center_y_for(height, expands_upward, COMPACT_HEIGHT)
+    }
+
+    pub fn controls_center_y_for(height: f64, expands_upward: bool, controls_height: f64) -> f64 {
         if expands_upward {
-            height - INSET - COMPACT_HEIGHT / 2.0
+            height - INSET - controls_height / 2.0
         } else {
-            INSET + HOVER_HANDLE_RESERVED_HEIGHT + COMPACT_HEIGHT / 2.0
+            INSET + HOVER_HANDLE_RESERVED_HEIGHT + controls_height / 2.0
         }
     }
 
+    #[cfg_attr(not(test), allow(dead_code))]
     pub fn frame_at_controls(
         anchor: (f64, f64),
         size: (f64, f64),
         work: (f64, f64, f64, f64),
         expands_upward: bool,
     ) -> (f64, f64, f64, f64) {
+        frame_at_controls_for(
+            anchor,
+            size,
+            work,
+            expands_upward,
+            COMPACT_HEIGHT,
+            container_size(false, true).1,
+        )
+    }
+
+    pub fn frame_at_controls_for(
+        anchor: (f64, f64),
+        size: (f64, f64),
+        work: (f64, f64, f64, f64),
+        expands_upward: bool,
+        controls_height: f64,
+        compact_height: f64,
+    ) -> (f64, f64, f64, f64) {
         let width = size.0.min(work.2);
-        let min_height = size.1.min(container_size(false, true).1).min(work.3);
+        let min_height = size.1.min(compact_height).min(work.3);
         let (y, height) = if expands_upward {
-            let bottom = (anchor.1 + INSET + COMPACT_HEIGHT / 2.0)
+            let bottom = (anchor.1 + INSET + controls_height / 2.0)
                 .clamp(work.1 + min_height, work.1 + work.3);
             let height = size.1.min(bottom - work.1);
             (bottom - height, height)
         } else {
-            let y = (anchor.1 - controls_center_y(size.1, false))
+            let y = (anchor.1 - controls_center_y_for(size.1, false, controls_height))
                 .clamp(work.1, work.1 + work.3 - min_height);
             (y, size.1.min(work.1 + work.3 - y))
         };
@@ -312,7 +386,9 @@ mod cross_platform {
     use tauri_specta::Event;
 
     use super::layout::{
-        bottom_center_origin, container_size, controls_center_y, frame_at_controls, is_expanded,
+        bottom_center_origin, container_size, controls_center_y_for, controls_height,
+        frame_at_controls_for, is_expanded, pill_container_size, pill_height, right_edge_origin,
+        uses_pill,
     };
     use super::{FloatingBarOverlayLayout, FloatingBarState, WINDOW_LABEL};
     use crate::Error;
@@ -451,8 +527,11 @@ mod cross_platform {
         let shows_expand = state.is_some_and(|value| value.live_caption_toggle_visible);
         let dictation = state.is_some_and(|state| state.dictation.is_some());
         window.set_focusable(!dictation)?;
+        let pill = uses_pill(state);
         let (width, height) = if dictation {
             super::layout::dictation_container_size(is_expanded)
+        } else if pill {
+            pill_container_size(shows_expand)
         } else {
             container_size(is_expanded, shows_expand)
         };
@@ -471,7 +550,8 @@ mod cross_platform {
                     expands_upward: true,
                 });
         if force_default_position {
-            let (x, y) = default_origin(window, size.0, size.1)?;
+            let pill_height = pill.then(|| pill_height(shows_expand));
+            let (x, y) = default_origin(window, size.0, size.1, pill_height)?;
             window.set_size(Size::Logical(LogicalSize::new(size.0, size.1)))?;
             window.set_position(Position::Logical(LogicalPosition::new(x, y)))?;
             return Ok(FloatingBarOverlayLayout {
@@ -481,7 +561,12 @@ mod cross_platform {
         }
         let anchor = (
             current_position.x + old_layout.controls_center_x,
-            current_position.y + controls_center_y(current_size.height, old_layout.expands_upward),
+            current_position.y
+                + controls_center_y_for(
+                    current_size.height,
+                    old_layout.expands_upward,
+                    controls_height(previous.as_ref()),
+                ),
         );
         let monitor = window
             .current_monitor()?
@@ -496,11 +581,18 @@ mod cross_platform {
         } else {
             old_layout.expands_upward
         };
-        let frame = frame_at_controls(
+        let compact_height = if dictation {
+            super::layout::dictation_container_size(false).1
+        } else {
+            pill_container_size(shows_expand).1
+        };
+        let frame = frame_at_controls_for(
             anchor,
             size,
             (origin.x, origin.y, work_size.width, work_size.height),
             upwards,
+            controls_height(state),
+            compact_height,
         );
         if (current_size.width - frame.2).abs() >= 0.5
             || (current_size.height - frame.3).abs() >= 0.5
@@ -522,6 +614,7 @@ mod cross_platform {
         window: &WebviewWindow<tauri::Wry>,
         width: f64,
         height: f64,
+        pill_height: Option<f64>,
     ) -> Result<(f64, f64), Error> {
         let pointer_monitor = current_state()
             .is_some_and(|state| state.dictation.is_some())
@@ -547,6 +640,14 @@ mod cross_platform {
         let work_area = monitor.work_area();
         let origin = work_area.position.to_logical::<f64>(scale);
         let size = work_area.size.to_logical::<f64>(scale);
+        if let Some(pill_height) = pill_height {
+            return Ok(right_edge_origin(
+                (origin.x, origin.y, size.width, size.height),
+                width,
+                height,
+                pill_height,
+            ));
+        }
         Ok(bottom_center_origin(
             origin.x,
             origin.y,
@@ -665,6 +766,35 @@ mod tests {
         let moved_anchor = (expanded.0 - 100.0 + controls_x, 1049.0);
         let collapsed = layout::frame_at_controls(moved_anchor, (144.0, 67.0), work, true);
         assert_eq!(collapsed.0 + collapsed.2 / 2.0, 1756.0);
+    }
+
+    #[test]
+    fn pill_rests_on_the_right_edge_seventy_percent_down() {
+        let pill = layout::pill_height(true);
+        let (width, height) = layout::pill_container_size(true);
+        let (x, y) =
+            layout::right_edge_origin((-1920.0, 40.0, 1920.0, 1040.0), width, height, pill);
+        // The pill (inside the inset) ends SCREEN_MARGIN before the edge.
+        assert_eq!(x + width - layout::INSET, -layout::SCREEN_MARGIN);
+        let pill_top = y + layout::INSET + layout::HOVER_HANDLE_RESERVED_HEIGHT;
+        assert_eq!(pill_top, 40.0 + (1040.0 - pill) * layout::PILL_VERTICAL_RATIO);
+        assert!(height > width * 2.0);
+    }
+
+    #[test]
+    fn pill_keeps_its_center_through_resizes() {
+        let work = (0.0, 0.0, 1920.0, 1080.0);
+        let pill = layout::pill_height(true);
+        let size = layout::pill_container_size(true);
+        for upwards in [true, false] {
+            let frame =
+                layout::frame_at_controls_for((1880.0, 600.0), size, work, upwards, pill, size.1);
+            assert_eq!(
+                frame.1 + layout::controls_center_y_for(frame.3, upwards, pill),
+                600.0
+            );
+            assert_eq!((frame.2, frame.3), size);
+        }
     }
 
     #[test]

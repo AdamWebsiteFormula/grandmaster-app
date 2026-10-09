@@ -57,4 +57,24 @@ final class FloatingControlPlacementTests: XCTestCase {
     )
     XCTAssertEqual(compact.frame.midX, 1756)
   }
+
+  // Granola's nub: a narrow vertical pill whose centre stays put as it sizes.
+  func testPillIsANarrowVerticalPillAnchoredAtItsCenter() {
+    let size = FloatingBarLayout.containerSize(
+      isExpanded: false, showsExpand: true, pillMode: true)
+    XCTAssertEqual(size.width, FloatingBarLayout.pillWidth + FloatingBarLayout.inset * 2)
+    XCTAssertGreaterThan(size.height, size.width * 2)
+    let pillHeight = FloatingBarLayout.pillHeight(showsExpand: true)
+    let work = NSRect(x: 0, y: 0, width: 1512, height: 944)
+    let anchor = NSPoint(x: 1486, y: 330)
+    let layout = FloatingControlPlacement.layout(
+      anchor: anchor, size: size, workArea: work, expandsUpward: true,
+      controlsHeight: pillHeight, compactSize: size)
+    XCTAssertEqual(layout.frame.minX + layout.controlOffset.x, anchor.x)
+    XCTAssertEqual(layout.frame.minY + layout.controlOffset.y, anchor.y)
+    XCTAssertEqual(layout.frame.size, size)
+    XCTAssertEqual(
+      FloatingBarLayout.containerSize(isExpanded: true, showsExpand: true, pillMode: true),
+      FloatingBarLayout.containerSize(isExpanded: true, showsExpand: true))
+  }
 }
