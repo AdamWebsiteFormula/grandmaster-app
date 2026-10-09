@@ -705,7 +705,10 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
                 aria-label={t`Close`}
                 onClick={() => handleOpenChange(false)}
                 className={cn([
-                  "size-6 shrink-0 rounded-full",
+                  // Fork: -mr-[5px] ends the X on the magnifier's mirror inset
+                  // and the results column; with no resting fill it sat 6.5 pt
+                  // further in (picture review, Oct 9; Apple HIG, Layout).
+                  "-mr-[5px] size-6 shrink-0 rounded-full",
                   "flex items-center justify-center",
                   // Fork: no resting fill, as every other icon button; in dark
                   // the fill sat darker than the palette (picture review,
