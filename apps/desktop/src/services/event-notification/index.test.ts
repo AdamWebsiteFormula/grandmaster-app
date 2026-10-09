@@ -84,11 +84,11 @@ describe("checkEventNotifications", () => {
     expect(mocks.showNotification).not.toHaveBeenCalled();
   });
 
-  test("still reminds in the first minute when the check runs late", async () => {
+  test("still reminds up to four minutes late when the check runs late", async () => {
     mocks.execute.mockResolvedValueOnce([
       {
         id: "event-1",
-        started_at: "2026-05-15T11:59:30.000Z",
+        started_at: "2026-05-15T11:56:30.000Z",
         tracking_id_event: "tracking-1",
         recurrence_series_id: "",
         title: "Design Review",
@@ -97,7 +97,7 @@ describe("checkEventNotifications", () => {
       },
       {
         id: "event-2",
-        started_at: "2026-05-15T11:58:30.000Z",
+        started_at: "2026-05-15T11:55:30.000Z",
         tracking_id_event: "tracking-2",
         recurrence_series_id: "",
         title: "Earlier call",
@@ -112,7 +112,8 @@ describe("checkEventNotifications", () => {
     expect(mocks.showNotification).toHaveBeenCalledWith(
       expect.objectContaining({
         source: { type: "calendar_event", event_id: "event-1" },
-        message: "Starting now",
+        message: "Started",
+        timeout: { secs: 240, nanos: 0 },
       }),
     );
   });

@@ -16,9 +16,12 @@ export const EVENT_NOTIFICATION_INTERVAL = 30 * 1000;
 
 // Fork: remind one minute before, as Granola does ("one minute before a
 // meeting in your calendar", docs.granola.ai/help-center/taking-notes/notifications).
-// The 30-second check shows it 30 to 60 seconds before the start. A late check
-// (a hidden window can slow timers) still shows it in the first minute.
+// The 30-second check shows it 30 to 60 seconds before the start. Granola 7.637
+// still reminds up to 4 minutes after the start and hides the card after 4
+// minutes; a late check (a hidden window can slow timers) does the same here.
 const NOTIFY_WINDOW_MS = 60 * 1000;
+const LATE_WINDOW_MS = 4 * 60 * 1000;
+const REMINDER_VISIBLE_SECS = 4 * 60;
 const NOTIFIED_EVENTS_TTL_MS = 10 * 60 * 1000;
 
 export type NotifiedEventsMap = Map<string, number>;
@@ -182,7 +185,7 @@ export async function checkEventNotifications(
     }
 
     if (
-      timeUntilStart > -NOTIFY_WINDOW_MS &&
+      timeUntilStart > -LATE_WINDOW_MS &&
       timeUntilStart <= NOTIFY_WINDOW_MS
     ) {
       if (notifiedEvents.has(notificationKey)) continue;
@@ -197,11 +200,11 @@ export async function checkEventNotifications(
         title,
         message:
           minutesUntil <= 0
-            ? t`Starting now`
+            ? t`Started`
             : minutesUntil === 1
               ? t`Starting in 1 minute`
               : t`Starting in ${minutesUntil} minutes`,
-        timeout: null,
+        timeout: { secs: REMINDER_VISIBLE_SECS, nanos: 0 },
         source: { type: "calendar_event", event_id: event.id },
         start_time: Math.floor(startTime.getTime() / 1000),
         participants: participants.length > 0 ? participants : null,
@@ -214,7 +217,7 @@ export async function checkEventNotifications(
         footer: null,
         icon: null,
       });
-    } else if (timeUntilStart <= -NOTIFY_WINDOW_MS) {
+    } else if (timeUntilStart <= -LATE_WINDOW_MS) {
       notifiedEvents.delete(notificationKey);
     }
   }

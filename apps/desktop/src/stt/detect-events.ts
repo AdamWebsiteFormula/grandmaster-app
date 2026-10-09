@@ -430,7 +430,9 @@ export const useHandleDetectEvents = (store: ListenerStore) => {
                   firstAppName,
                 ),
                 message: getMicDetectedNotificationMessage(firstAppName),
-                timeout: { secs: 15, nanos: 0 },
+                // Fork: Granola 7.637 keeps this prompt up for 2 minutes; 15
+                // seconds was easy to miss while joining a call.
+                timeout: { secs: 120, nanos: 0 },
                 source: {
                   type: "mic_detected",
                   app_names: displayApps.map((app) =>
