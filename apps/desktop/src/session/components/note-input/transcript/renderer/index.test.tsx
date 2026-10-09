@@ -13,6 +13,7 @@ import type { TranscriptWordSelection } from "./selection";
 
 const mocks = vi.hoisted(() => ({
   updateTranscriptSegmentText: vi.fn().mockResolvedValue(undefined),
+  showLinesDeletedToast: vi.fn(),
   scrollToBottom: vi.fn(),
   scrollToTop: vi.fn(),
   scrollDetection: {
@@ -118,6 +119,8 @@ vi.mock("./selection-menu", () => ({
       )}
     </div>
   ),
+  showLinesDeletedToast: mocks.showLinesDeletedToast,
+  showLinesNotDeletedToast: vi.fn(),
 }));
 
 vi.mock("./transcript", () => ({
@@ -462,6 +465,30 @@ describe("TranscriptViewer", () => {
     expect(mocks.updateTranscriptSegmentText).toHaveBeenCalledWith({
       transcriptId: "3",
       wordIds: ["word-3"],
+      text: "",
+    });
+  });
+
+  it("offers Undo after the Delete key removes selected lines", async () => {
+    render(
+      <TranscriptViewer
+        transcriptIds={["1", "2"]}
+        liveSegments={[]}
+        currentActive={false}
+        editMode
+        scrollRef={createRef()}
+      />,
+    );
+    fireEvent.click(screen.getByTestId("segment-header-1"));
+    fireEvent.keyDown(document, { key: "Backspace", code: "Backspace" });
+    await waitFor(() =>
+      expect(mocks.showLinesDeletedToast).toHaveBeenCalledWith(
+        expect.any(Function),
+      ),
+    );
+    expect(mocks.updateTranscriptSegmentText).toHaveBeenCalledWith({
+      transcriptId: "1",
+      wordIds: ["word-1"],
       text: "",
     });
   });

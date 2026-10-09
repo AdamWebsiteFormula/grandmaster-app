@@ -29,7 +29,12 @@ import {
   TranscriptSelectionProvider,
   useTranscriptSelectionSources,
 } from "./selection-context";
-import { MultiSelectionBar, SelectionMenu } from "./selection-menu";
+import {
+  MultiSelectionBar,
+  SelectionMenu,
+  showLinesDeletedToast,
+  showLinesNotDeletedToast,
+} from "./selection-menu";
 import type { TranscriptContextMenuRequest } from "./selection-menu";
 import { TranscriptSeparator } from "./separator";
 import { RenderTranscript } from "./transcript";
@@ -401,8 +406,9 @@ export function TranscriptViewer({
     { enabled: editMode && selectedEntries.size > 0 },
   );
 
-  // Fork: Delete or Backspace deletes the selected lines, as in a Mac list;
-  // the Undo toast already covers it (task test, Oct 9; WCAG 2.2 SC 2.1.1).
+  // Fork: Delete or Backspace deletes the selected lines, as in a Mac list,
+  // with the same Undo toast as the Delete button (task test, Oct 9; WCAG 2.2
+  // SC 2.1.1, NN/g #3).
   useHotkeys(
     "backspace, delete",
     (event) => {
@@ -418,7 +424,10 @@ export function TranscriptViewer({
       if (!selection) return;
       event.preventDefault();
       clearSelectedEntries();
-      void handleDeleteSelection(selection);
+      handleDeleteSelection(selection).then(
+        showLinesDeletedToast,
+        showLinesNotDeletedToast,
+      );
     },
     {
       enabled: editMode && selectedEntries.size > 0,

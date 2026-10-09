@@ -115,6 +115,27 @@ export function SelectionMenu({
   );
 }
 
+// Fork: one "Lines deleted" toast with Undo for the Delete button and the
+// Delete key alike (ux-audit-oct3 C, task test Oct 9; NN/g #3, #5, #9).
+export function showLinesDeletedToast(undo: (() => Promise<void>) | void) {
+  if (!undo) return;
+  toast(t`Lines deleted`, {
+    action: {
+      label: t`Undo`,
+      onClick: () => {
+        undo().catch((error: unknown) => {
+          console.error("[transcript] undo delete failed", error);
+          toast.error(t`Couldn't restore these lines. Try again.`);
+        });
+      },
+    },
+  });
+}
+
+export function showLinesNotDeletedToast() {
+  toast.error(t`Couldn't delete these lines. Try again.`);
+}
+
 export function MultiSelectionBar({
   selection,
   entryCount,
@@ -161,20 +182,9 @@ export function MultiSelectionBar({
     mutationFn: async () => onDelete?.(selection),
     onSuccess: (undo) => {
       onClear();
-      if (!undo) return;
-      toast(t`Lines deleted`, {
-        action: {
-          label: t`Undo`,
-          onClick: () => {
-            undo().catch((error: unknown) => {
-              console.error("[transcript] undo delete failed", error);
-              toast.error(t`Couldn't restore these lines. Try again.`);
-            });
-          },
-        },
-      });
+      showLinesDeletedToast(undo);
     },
-    onError: () => toast.error(t`Couldn't delete these lines. Try again.`),
+    onError: () => showLinesNotDeletedToast(),
   });
 
   const bar = (
