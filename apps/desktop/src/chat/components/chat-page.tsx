@@ -209,7 +209,11 @@ export function ChatPage() {
                   "inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition disabled:cursor-default",
                   value.trim()
                     ? "bg-primary text-primary-foreground hover:brightness-90"
-                    : "bg-foreground/10 text-foreground/40 dark:bg-foreground/15",
+                    : // Fork: the arrow dims to about 3.2:1, as the disabled Add
+                      // does; `!` because @anlg/ui's text color loaded later
+                      // and drew it at 4.9:1, reading as enabled (picture
+                      // review, Oct 9; NN/g #4).
+                      "bg-foreground/10 text-foreground/30! dark:bg-foreground/15",
                 ])}
               >
                 <ArrowUp className="size-4" weight="bold" />

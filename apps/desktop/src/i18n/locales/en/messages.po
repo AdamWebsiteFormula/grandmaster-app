@@ -5103,8 +5103,12 @@ msgid "Notes stay on Home. This folder, its nested folders and their materials w
 msgstr "Notes stay on Home. This folder, its nested folders and their materials will be deleted."
 
 #: src/folders/folder-editor.tsx
-msgid "Notes, files, and context for this folder"
-msgstr "Notes, files, and context for this folder"
+#~ msgid "Notes, files, and context for this folder"
+#~ msgstr "Notes, files, and context for this folder"
+
+#: src/folders/folder-editor.tsx
+msgid "Notes, files, and context for this folder."
+msgstr "Notes, files, and context for this folder."
 
 #: src/session/components/outer-header/share-menu.tsx
 msgid "Nothing to share yet"

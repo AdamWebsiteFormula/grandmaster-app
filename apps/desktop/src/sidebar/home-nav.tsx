@@ -144,7 +144,8 @@ export function SidebarHomeNav() {
             onClick={() => setCreatingFolder(true)}
             className="text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-ring flex size-6 cursor-pointer items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-hidden"
           >
-            <Plus size={14} />
+            {/* 16 pt, as the Templates list's + (picture review, Oct 9). */}
+            <Plus size={16} />
           </button>
         </div>
         {folders.length > 0 ? (

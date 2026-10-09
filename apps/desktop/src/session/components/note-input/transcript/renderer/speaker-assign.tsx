@@ -93,6 +93,22 @@ export function SpeakerAssignPopover({
           });
           onAssigned?.(humanId);
           handleOpenChange(false);
+          // Fork: the line redraws with its new speaker, so the button that
+          // opened the picker is gone and focus fell to the page. Put it on
+          // the redrawn line's speaker button (task test, Oct 9; WCAG 2.2
+          // SC 2.4.3).
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => {
+              if (triggerRef.current?.isConnected) return;
+              document
+                .querySelector(
+                  `[data-transcript-word-id="${CSS.escape(anchorWordId)}"]`,
+                )
+                ?.closest("section")
+                ?.querySelector<HTMLElement>("[data-transcript-speaker-assign]")
+                ?.focus();
+            }),
+          );
         })
         .catch((error) => {
           console.error("[transcript] failed to assign speaker", error);

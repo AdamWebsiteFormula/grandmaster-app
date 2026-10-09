@@ -152,7 +152,10 @@ export function Timeline({
                     "text-muted-foreground text-xs tabular-nums select-none",
                   ])}
                 >
-                  {playbackRate}x
+                  {/* Fork: the multiplication sign, "1×", as Apple Podcasts
+                      labels speed (picture review, Oct 9; Apple HIG,
+                      Typography). */}
+                  {playbackRate}×
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -172,7 +175,7 @@ export function Timeline({
                         : "text-muted-foreground",
                     ])}
                   >
-                    {rate}x
+                    {rate}×
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>

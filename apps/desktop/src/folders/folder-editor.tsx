@@ -329,7 +329,7 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
               />
             </div>
             <p className="text-muted-foreground line-clamp-2 max-w-[60ch] text-sm text-pretty">
-              {description || t`Notes, files, and context for this folder`}
+              {description || t`Notes, files, and context for this folder.`}
             </p>
             {/* Fork: no "0 notes · 0 files" while the folder is empty; the
                 empty sections below already say so (picture review, Oct 6;
