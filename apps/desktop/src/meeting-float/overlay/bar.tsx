@@ -28,6 +28,10 @@ import {
   FLOATING_BAR_HOVER_HANDLE_TOP_PADDING,
   FLOATING_BAR_HOVER_HANDLE_RESERVED_HEIGHT,
   FLOATING_BAR_INSET,
+  FLOATING_BAR_PILL_CELL,
+  FLOATING_BAR_PILL_EMBLEM_SIZE,
+  FLOATING_BAR_PILL_PADDING,
+  FLOATING_BAR_PILL_WIDTH,
   compactControlsWidth,
 } from "./layout";
 
@@ -49,6 +53,44 @@ export function FloatingBarOverlay({
   const colors = barColors(state);
   const controlsWidth = compactControlsWidth(state.liveCaptionToggleVisible);
   const expandsUpward = state.layout?.expandsUpward ?? false;
+
+  if (!isExpanded && !state.dictation) {
+    return (
+      <div
+        className="relative h-full w-full"
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        <div
+          className="absolute flex flex-col items-center overflow-hidden"
+          style={{
+            left: FLOATING_BAR_INSET,
+            right: FLOATING_BAR_INSET,
+            bottom: FLOATING_BAR_INSET,
+            top:
+              FLOATING_BAR_INSET +
+              (showsHoverHandle ? 0 : FLOATING_BAR_HOVER_HANDLE_RESERVED_HEIGHT),
+            borderRadius: FLOATING_BAR_PILL_WIDTH / 2,
+            background: PILL_SURFACE,
+            boxShadow: `inset 0 0 0 0.5px ${PILL_STROKE}`,
+          }}
+          // Granola's nub opens the app from anywhere on the pill.
+          onClick={(event) => {
+            if ((event.target as HTMLElement).closest("button")) return;
+            onOpenMain?.();
+          }}
+        >
+          {showsHoverHandle && <HoverHandle color={PILL_HANDLE} />}
+          <PillControls
+            state={state}
+            onStop={onStop}
+            onOpenMain={onOpenMain}
+            onToggleExpanded={onToggleExpanded}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -184,6 +226,109 @@ function FloatingControls({
           ) : (
             <ArrowsOutSimple size={14} weight="bold" />
           )}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+// The pill is near-black in both themes, as Granola's nub and the design
+// system's near-black base; the bars use the orange that marks the live
+// recording state (grandmaster/design-system.md).
+const PILL_SURFACE = "rgba(23, 23, 23, 0.94)";
+const PILL_STROKE = "rgba(255, 255, 255, 0.28)";
+const PILL_HANDLE = "rgba(255, 255, 255, 0.48)";
+const PILL_CONTENT = "rgba(255, 255, 255, 0.8)";
+const PILL_BARS = "rgb(255, 106, 31)";
+
+function PillControls({
+  state,
+  onStop,
+  onOpenMain,
+  onToggleExpanded,
+}: {
+  state: FloatingBarState;
+  onStop: () => void;
+  onOpenMain?: () => void;
+  onToggleExpanded: (expanded: boolean) => void;
+}) {
+  const [stopHovered, setStopHovered] = useState(false);
+  const cell = { width: FLOATING_BAR_PILL_CELL, height: FLOATING_BAR_PILL_CELL };
+
+  return (
+    <div
+      className="flex flex-col items-center"
+      style={{ paddingBlock: FLOATING_BAR_PILL_PADDING }}
+    >
+      <button
+        type="button"
+        data-tauri-drag-region="false"
+        aria-label="Open Upshot"
+        title="Open Upshot"
+        onClick={() => onOpenMain?.()}
+        className="flex items-center justify-center"
+        style={cell}
+      >
+        <span
+          aria-hidden
+          style={{
+            width: FLOATING_BAR_PILL_EMBLEM_SIZE,
+            height: FLOATING_BAR_PILL_EMBLEM_SIZE,
+            backgroundColor: PILL_CONTENT,
+            maskImage: "url(/assets/upshot-mark.png)",
+            maskSize: "contain",
+            maskRepeat: "no-repeat",
+            maskPosition: "center",
+            WebkitMaskImage: "url(/assets/upshot-mark.png)",
+            WebkitMaskSize: "contain",
+            WebkitMaskRepeat: "no-repeat",
+            WebkitMaskPosition: "center",
+          }}
+        />
+      </button>
+      <button
+        type="button"
+        data-tauri-drag-region="false"
+        aria-label="Stop recording"
+        title="Stop recording"
+        onClick={onStop}
+        onMouseEnter={() => setStopHovered(true)}
+        onMouseLeave={() => setStopHovered(false)}
+        className="flex items-center justify-center"
+        style={{
+          ...cell,
+          borderRadius: FLOATING_BAR_CONTROL_RADIUS,
+          background: stopHovered ? "rgba(255, 51, 77, 0.18)" : "transparent",
+          color: "rgb(255, 51, 77)",
+        }}
+      >
+        {stopHovered ? (
+          <Square size={9} />
+        ) : (
+          <DancingSticks
+            color={PILL_BARS}
+            amplitude={state.amplitude}
+            width={23}
+            height={20}
+            stickWidth={3}
+            gap={2}
+          />
+        )}
+      </button>
+      {state.liveCaptionToggleVisible ? (
+        <button
+          type="button"
+          data-tauri-drag-region="false"
+          aria-label="Expand live transcript"
+          onClick={() => onToggleExpanded(true)}
+          className="flex items-center justify-center"
+          style={{
+            ...cell,
+            borderRadius: FLOATING_BAR_CONTROL_RADIUS,
+            color: PILL_CONTENT,
+          }}
+        >
+          <ArrowsOutSimple size={14} weight="bold" />
         </button>
       ) : null}
     </div>

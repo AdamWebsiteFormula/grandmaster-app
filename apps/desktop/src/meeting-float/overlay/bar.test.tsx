@@ -137,4 +137,21 @@ describe("FloatingBarOverlay", () => {
     fireEvent.click(body);
     expect(onOpenMain).toHaveBeenCalledOnce();
   });
+
+  // Granola's nub (Granola 7.637): a vertical pill with the logo on top.
+  it("rests as a pill whose emblem opens Upshot", () => {
+    const onOpenMain = vi.fn();
+    render(
+      <FloatingBarOverlay
+        state={state()}
+        onStop={vi.fn()}
+        onToggleExpanded={vi.fn()}
+        onOpenMain={onOpenMain}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Open Upshot" }));
+    expect(onOpenMain).toHaveBeenCalledOnce();
+    expect(screen.getByRole("button", { name: "Stop recording" })).toBeTruthy();
+  });
 });

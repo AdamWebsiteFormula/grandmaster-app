@@ -121,25 +121,25 @@ struct FloatingBarView: View {
       if usesPill {
         pill.frame(width: width, height: bodyHeight)
       } else {
-      ZStack(alignment: .topLeading) {
-        if model.isExpanded {
-          expandedPanel
-            .frame(width: width, height: max(0, bodyHeight - FloatingBarLayout.compactHeight))
-            .offset(y: expandsUpward ? 0 : FloatingBarLayout.compactHeight)
+        ZStack(alignment: .topLeading) {
+          if model.isExpanded {
+            expandedPanel
+              .frame(width: width, height: max(0, bodyHeight - FloatingBarLayout.compactHeight))
+              .offset(y: expandsUpward ? 0 : FloatingBarLayout.compactHeight)
+          }
+          floatingControls(isExpanded: model.isExpanded)
+            .frame(
+              width: FloatingBarLayout.compactControlsWidth(
+                showsExpand: model.liveCaptionToggleVisible),
+              height: FloatingBarLayout.compactHeight
+            )
+            .position(
+              x: controlsX(width: width),
+              y: expandsUpward
+                ? bodyHeight - FloatingBarLayout.compactHeight / 2
+                : FloatingBarLayout.compactHeight / 2)
         }
-        floatingControls(isExpanded: model.isExpanded)
-          .frame(
-            width: FloatingBarLayout.compactControlsWidth(
-              showsExpand: model.liveCaptionToggleVisible),
-            height: FloatingBarLayout.compactHeight
-          )
-          .position(
-            x: controlsX(width: width),
-            y: expandsUpward
-              ? bodyHeight - FloatingBarLayout.compactHeight / 2
-              : FloatingBarLayout.compactHeight / 2)
-      }
-      .frame(width: width, height: bodyHeight, alignment: .topLeading)
+        .frame(width: width, height: bodyHeight, alignment: .topLeading)
       }
     }
     .frame(
