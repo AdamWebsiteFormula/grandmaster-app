@@ -103,11 +103,14 @@ export function Timeline({
           title={state === "playing" ? t`Pause` : t`Play`}
           className={cn([
             "flex items-center justify-center",
-            "h-7 w-7 rounded-full",
+            // Fork: a circle, concentric with the player capsule, with the
+            // field border other bordered buttons use; 1x matches its 28 pt
+            // height (picture review, Oct 8; Apple HIG, concentric corners).
+            "rounded-pill h-7 w-7",
             // Fork: the raised fill in dark, as other controls on a card
             // (picture review, Oct 8: 6% inside a 10% bar read as sunken;
             // Apple HIG, Dark Mode).
-            "border-border bg-card dark:bg-muted border",
+            "border-input bg-card dark:bg-muted border",
             "hover:bg-accent transition-all hover:scale-110",
             // Fork: no shadow on black (journey-meeting P3; design-system.md).
             "shrink-0 select-none",
@@ -140,8 +143,8 @@ export function Timeline({
                   title={t`Playback speed`}
                   className={cn([
                     "flex shrink-0 items-center justify-center",
-                    "h-6 rounded-full px-2",
-                    "border-border bg-card dark:bg-muted border",
+                    "h-7 rounded-full px-2",
+                    "border-input bg-card dark:bg-muted border",
                     "hover:bg-accent transition-colors",
                     // Fork: Geist Mono is for keys and code only; no shadow
                     // on black (journey-meeting P3; design-system.md).

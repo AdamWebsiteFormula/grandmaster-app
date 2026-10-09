@@ -242,7 +242,7 @@ describe("FloatingActionButton (note bar)", () => {
     const bar = document.querySelector("[data-note-bar]")!;
     for (const name of [
       "h-10",
-      "rounded-full",
+      "rounded-2xl",
       "border",
       "border-input",
       "bg-card",
@@ -400,9 +400,10 @@ describe("FloatingActionButton (note bar)", () => {
     const toggle = screen.getByRole("button", { name: "Transcript" });
     expect(toggle.hasAttribute("aria-pressed")).toBe(false);
     expect(toggle.hasAttribute("aria-label")).toBe(false);
-    const label = Array.from(toggle.querySelectorAll("span")).find(
-      (span) => span.textContent === "Transcript",
-    )!;
+    // The innermost span: the outer ones also hold the width sizer.
+    const label = Array.from(toggle.querySelectorAll("span"))
+      .filter((span) => span.textContent === "Transcript")
+      .pop()!;
     expect(label.className).toContain("@max-[480px]:sr-only");
   });
 

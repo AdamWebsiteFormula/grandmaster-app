@@ -550,7 +550,7 @@ describe("Settings › Plan", () => {
       .find((button) => button.getAttribute("aria-pressed") === "true");
     expect(pressed?.className).toContain("bg-card");
     expect(pressed?.className).toContain("border-input");
-    expect(pressed?.className).toContain("dark:bg-sidebar-accent");
+    expect(pressed?.className).toContain("dark:bg-[hsl(0_0%_24%)]");
   });
 
   it("P3 Pro shows the price and who is billed", () => {

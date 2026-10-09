@@ -122,7 +122,7 @@ const NOTE_VIEW_SEGMENT_CLASS = cn([
   "[&>button]:h-5 [&>button]:rounded-[5px] [&>button]:border-transparent [&>button]:bg-transparent",
   "[&>button[aria-pressed=true]]:bg-card [&>button[aria-pressed=true]]:border-input [&>button[aria-pressed=true]]:text-foreground",
   "[&>button[aria-current=page]]:bg-card [&>button[aria-current=page]]:border-input",
-  "dark:[&>button[aria-pressed=true]]:bg-sidebar-accent dark:[&>button[aria-current=page]]:bg-sidebar-accent",
+  "dark:[&>button[aria-pressed=true]]:bg-[hsl(0_0%_24%)] dark:[&>button[aria-current=page]]:bg-[hsl(0_0%_24%)]",
 ]);
 
 export function NoteMetaChips({

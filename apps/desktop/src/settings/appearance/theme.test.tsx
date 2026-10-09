@@ -83,7 +83,7 @@ describe("ThemeSelector", () => {
     const selected = screen.getByRole("radio", { name: "Dark" });
     expect(selected.className).toContain("bg-card");
     expect(selected.className).toContain("border-input");
-    expect(selected.className).toContain("dark:bg-sidebar-accent");
+    expect(selected.className).toContain("dark:bg-[hsl(0_0%_24%)]");
     const idle = screen.getByRole("radio", { name: "Light" });
     expect(idle.className).toContain("border-transparent");
     expect(idle.className).not.toContain("bg-card");

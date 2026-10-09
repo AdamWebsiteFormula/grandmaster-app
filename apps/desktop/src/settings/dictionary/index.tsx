@@ -155,8 +155,9 @@ export function DictionarySettings({
                       // Fork: dims to about 3.4:1 in dark, as it does in light
                       // (picture review, Oct 8: 50% opacity left it at 5.05:1
                       // on the dark card, reading as enabled; Apple HIG,
-                      // Dark Mode: same state in both).
-                      className="dark:disabled:opacity-40"
+                      // Dark Mode: same state in both). `!` because
+                      // @anlg/ui's disabled:opacity-50 loads later.
+                      className="dark:disabled:opacity-40!"
                       disabled={!canAdd}
                       aria-label={t`Add`}
                     >

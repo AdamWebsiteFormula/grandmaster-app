@@ -44,7 +44,7 @@ export const SEGMENT_BASE_CLASS = "border border-transparent";
 // Visual hierarchy). The field border marks it, as in light: the fill alone
 // measured 1.22:1 on its track, the border 3.02:1 (WCAG 2.2 SC 1.4.11).
 export const SEGMENT_SELECTED_CLASS =
-  "bg-card text-foreground border-input hover:bg-card hover:text-foreground dark:bg-sidebar-accent dark:text-foreground! dark:border-input! dark:hover:bg-sidebar-accent dark:hover:text-foreground!";
+  "bg-card text-foreground border-input hover:bg-card hover:text-foreground dark:bg-[hsl(0_0%_24%)] dark:text-foreground! dark:border-input! dark:hover:bg-[hsl(0_0%_24%)] dark:hover:text-foreground!";
 export const SEGMENT_IDLE_CLASS = "text-muted-foreground hover:text-foreground";
 /** A note inside the selected segment, for example "save 21%". */
 export const SEGMENT_SELECTED_NOTE_CLASS =

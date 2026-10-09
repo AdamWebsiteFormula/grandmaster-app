@@ -131,11 +131,12 @@ export function FloatingActionButton(props: {
         <div
           data-note-bar
           className={cn([
-            "peer/session-fab pointer-events-auto relative flex h-10 w-full max-w-full items-center gap-1 rounded-full border px-1",
+            "peer/session-fab pointer-events-auto relative flex h-10 w-full max-w-full items-center gap-1 rounded-2xl border px-1",
             // Fork: opaque card pill with a field border (it holds a text
             // field); soft shadow in light, none on black (design-system.md
             // Contrast and Dialogs). In dark it is lighter than the page, as
-            // the Home composer is (Apple HIG Dark Mode: raised is lighter).
+            // the Home composer is (Apple HIG Dark Mode: raised is lighter),
+            // with the Home composer's corner radius (NN/g #4).
             "border-input bg-card dark:bg-muted shadow-sm dark:shadow-none",
             "ring-offset-background has-[input:focus]:ring-ring has-[input:focus]:ring-2 has-[input:focus]:ring-offset-2",
             (floatingChatOpen || barEmpty) && "hidden",
@@ -269,29 +270,50 @@ function TranscriptToggle({
               "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
             ])}
           >
-            {isTranscribing ? (
-              <Spinner size={16} className="shrink-0" />
-            ) : showingTranscript ? (
-              backToMyNotes ? (
-                <TextAlignLeft aria-hidden className="size-4 shrink-0" />
-              ) : (
-                <Sparkle aria-hidden className="size-4 shrink-0" />
-              )
-            ) : (
-              // Fork: Lucide AudioLines, the bars Granola's toggle shows
-              // (redline-oct3, H2).
-              <TranscriptAudioIcon />
-            )}
-            <span className="@max-[480px]:sr-only">
-              {showingTranscript
-                ? backToMyNotes
-                  ? t`My notes`
-                  : t`Summary`
-                : t`Transcript`}
+            {/* Fork: the button keeps the width of its widest label
+                ("Transcript ^"), so Resume and the Ask field stay put when
+                the label changes (picture review, Oct 8: they moved 21.5
+                pt; Apple HIG, Toolbars; NN/g #4). The visible label sits in
+                the same grid cell, aligned left. */}
+            <span className="grid items-center [&>*]:col-start-1 [&>*]:row-start-1">
+              <span
+                aria-hidden
+                className="invisible inline-flex items-center gap-1.5 @max-[480px]:hidden"
+              >
+                <TranscriptAudioIcon />
+                {/* The label is drawn by CSS, so it is not read twice. */}
+                <span
+                  data-size-label={t`Transcript`}
+                  className="before:content-[attr(data-size-label)]"
+                />
+                <CaretDown className="size-3" />
+              </span>
+              <span className="inline-flex items-center gap-1.5 @max-[480px]:gap-0.5">
+                {isTranscribing ? (
+                  <Spinner size={16} className="shrink-0" />
+                ) : showingTranscript ? (
+                  backToMyNotes ? (
+                    <TextAlignLeft aria-hidden className="size-4 shrink-0" />
+                  ) : (
+                    <Sparkle aria-hidden className="size-4 shrink-0" />
+                  )
+                ) : (
+                  // Fork: Lucide AudioLines, the bars Granola's toggle shows
+                  // (redline-oct3, H2).
+                  <TranscriptAudioIcon />
+                )}
+                <span className="@max-[480px]:sr-only">
+                  {showingTranscript
+                    ? backToMyNotes
+                      ? t`My notes`
+                      : t`Summary`
+                    : t`Transcript`}
+                </span>
+                {!showingTranscript && (
+                  <CaretDown aria-hidden className="size-3 rotate-180" />
+                )}
+              </span>
             </span>
-            {!showingTranscript && (
-              <CaretDown aria-hidden className="size-3 rotate-180" />
-            )}
           </button>
         </TooltipTrigger>
         <TooltipContent side="top">{label}</TooltipContent>

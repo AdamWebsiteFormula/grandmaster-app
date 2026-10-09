@@ -454,13 +454,17 @@ function PlanComparison({
           table, so it never overlaps the Free column in a narrow window
           (journey-account-settings P2; WCAG 2.2 SC 1.4.10; Apple HIG
           Layout). The title sits on the page title's edge (backlog item 6), and the toggle ends flush
-          with the card's right edge. */}
+          with the card's right edge. It overhangs the 24 pt title row by 4 pt
+          instead of growing it, so this section keeps every section's
+          spacing (picture review, Oct 8: 4 pt more above and below). */}
       <div className="flex min-h-6 flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <SettingsSectionTitle id={titleId}>
           <Trans>Compare plans</Trans>
         </SettingsSectionTitle>
         {isPro ? null : (
-          <IntervalToggle value={interval} onChange={onIntervalChange} />
+          <div className="-my-1">
+            <IntervalToggle value={interval} onChange={onIntervalChange} />
+          </div>
         )}
       </div>
       <div
@@ -605,7 +609,11 @@ function Included({ value }: { value: boolean | string }) {
   return value ? (
     // Fork: align-middle centers the check on the row's text, not its
     // baseline (picture review, Oct 6: 2 pt high).
-    <span role="img" aria-label={t`Included`} className="inline-flex align-middle">
+    <span
+      role="img"
+      aria-label={t`Included`}
+      className="inline-flex align-middle"
+    >
       <Check className="text-foreground size-4" weight="bold" aria-hidden />
     </span>
   ) : (

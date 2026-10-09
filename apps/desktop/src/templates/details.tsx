@@ -152,9 +152,9 @@ function WebTemplatePreview({
               variant="outline"
               onClick={() => onSetDefault(nextTemplate)}
               // Fork: a bordered button, as Share is, so it reads as a
-              // command, not a byline (picture review, Oct 8; NN/g, flat UI
-              // signifiers).
-              className="h-7 shrink-0 px-2.5 shadow-none"
+              // command, not a byline, with Share's fill and label size
+              // (picture review, Oct 8; NN/g, flat UI signifiers; NN/g #4).
+              className="bg-card dark:bg-muted h-7 shrink-0 px-2.5 text-sm shadow-none"
             >
               <Trans>Set as default</Trans>
             </Button>
