@@ -210,7 +210,7 @@ function CliStatus({
   if (error) {
     return (
       <p className="text-destructive mt-1 text-xs">
-        {t`Could not check the CLI: ${error.message}`}
+        {t`Couldn't check the CLI: ${error.message}`}
       </p>
     );
   }
@@ -266,7 +266,7 @@ function McpRow({ status }: { status: EmbeddedCliStatus | undefined }) {
             void copyText(
               configuration,
               t`MCP configuration copied`,
-              t`Could not copy the MCP configuration`,
+              t`Couldn't copy the MCP configuration. Try again.`,
             )
           }
         >

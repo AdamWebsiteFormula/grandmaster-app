@@ -1106,7 +1106,7 @@ describe("SettingsTeam", () => {
     renderTeam();
 
     expect(
-      await screen.findByText("Could not load workspace members."),
+      await screen.findByText("Couldn't load workspace members."),
     ).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
 

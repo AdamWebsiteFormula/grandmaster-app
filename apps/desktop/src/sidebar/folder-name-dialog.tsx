@@ -68,7 +68,7 @@ export function FolderNameDialog({
           "folder_target_exists",
         )
           ? t`A folder with this name already exists.`
-          : t`Could not save the folder.`,
+          : t`Couldn't save the folder. Try again.`,
       );
     } finally {
       setBusy(false);

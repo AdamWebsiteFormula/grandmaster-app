@@ -892,7 +892,7 @@ function WorkspacePanel({
         ) : members.isError ? (
           <div className="flex flex-wrap items-center gap-3">
             <p className="text-muted-foreground text-sm">
-              <Trans>Could not load workspace members.</Trans>
+              <Trans>Couldn't load workspace members.</Trans>
             </p>
             <Button
               type="button"

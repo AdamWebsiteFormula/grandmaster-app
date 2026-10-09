@@ -2104,10 +2104,9 @@ msgstr ""
 msgid "Copy transcript"
 msgstr ""
 
-#. placeholder {0}: error.message
 #: src/settings/developers/cli.tsx
-msgid "Could not check the CLI: {0}"
-msgstr ""
+#~ msgid "Could not check the CLI: {0}"
+#~ msgstr ""
 
 #: src/settings/ai/stt/local-file-model.tsx
 msgid "Could not clear the selected model"
@@ -2118,8 +2117,8 @@ msgid "Could not connect this library. Your local notes are unchanged. Try again
 msgstr ""
 
 #: src/settings/developers/cli.tsx
-msgid "Could not copy the MCP configuration"
-msgstr ""
+#~ msgid "Could not copy the MCP configuration"
+#~ msgstr ""
 
 #: src/session-sharing/management-panel.tsx
 msgid "Could not copy the share link."
@@ -2130,8 +2129,8 @@ msgid "Could not copy the transcript. Select the text above to copy it."
 msgstr ""
 
 #: src/settings/developers/clipboard.ts
-msgid "Could not copy to clipboard"
-msgstr ""
+#~ msgid "Could not copy to clipboard"
+#~ msgstr ""
 
 #: src/session/hooks/useCreatePreMeetingBrief.ts
 msgid "Could not create the pre-meeting brief. Try again."
@@ -2174,8 +2173,8 @@ msgid "Could not load sync logs."
 msgstr ""
 
 #: src/settings/team/index.tsx
-msgid "Could not load workspace members."
-msgstr ""
+#~ msgid "Could not load workspace members."
+#~ msgstr ""
 
 #: src/settings/sync/index.tsx
 msgid "Could not load your devices."
@@ -2210,19 +2209,18 @@ msgid "Could not remove the file."
 msgstr ""
 
 #: src/sidebar/toast/undo-delete-toast.tsx
-msgid "Could not restore deleted note"
-msgstr ""
+#~ msgid "Could not restore deleted note"
+#~ msgstr ""
 
 #: src/settings/automations/index.tsx
-msgid "Could not save the automation draft"
-msgstr ""
+#~ msgid "Could not save the automation draft"
+#~ msgstr ""
 
 #: src/settings/automations/starter-config.tsx
-msgid "Could not save the automation setting"
-msgstr ""
+#~ msgid "Could not save the automation setting"
+#~ msgstr ""
 
 #: src/folders/folder-editor.tsx
-#: src/sidebar/folder-name-dialog.tsx
 msgid "Could not save the folder."
 msgstr ""
 
@@ -2243,12 +2241,12 @@ msgstr ""
 #~ msgstr ""
 
 #: src/chat/components/input/use-dictation.ts
-msgid "Could not start voice input"
-msgstr ""
+#~ msgid "Could not start voice input"
+#~ msgstr ""
 
 #: src/chat/components/input/use-dictation.ts
-msgid "Could not transcribe voice input"
-msgstr ""
+#~ msgid "Could not transcribe voice input"
+#~ msgstr ""
 
 #: src/session-sharing/attachment-management.ts
 msgid "Could not update attachment sharing."
@@ -2260,13 +2258,13 @@ msgstr ""
 
 #: src/settings/automations/index.tsx
 #: src/settings/automations/workflow-builder.tsx
-msgid "Could not update the automation"
-msgstr ""
+#~ msgid "Could not update the automation"
+#~ msgstr ""
 
 #: src/settings/automations/starter-config.tsx
 #: src/settings/general/storage/export-location.tsx
-msgid "Could not update the export folder"
-msgstr ""
+#~ msgid "Could not update the export folder"
+#~ msgstr ""
 
 #: src/session/components/outer-header/metadata/date.tsx
 msgid "Could not update the note date."
@@ -2329,12 +2327,21 @@ msgstr ""
 msgid "Couldn’t check availability. You can still try Save."
 msgstr ""
 
+#. placeholder {0}: error.message
+#: src/settings/developers/cli.tsx
+msgid "Couldn't check the CLI: {0}"
+msgstr ""
+
 #: src/settings/plan.tsx
 msgid "Couldn't check your plan. Check your connection."
 msgstr ""
 
 #: src/settings/plan.tsx
 msgid "Couldn't check your plan. Try again in a minute."
+msgstr ""
+
+#: src/settings/developers/cli.tsx
+msgid "Couldn't copy the MCP configuration. Try again."
 msgstr ""
 
 #: src/session/components/note-input/header-transcript.tsx
@@ -2351,6 +2358,7 @@ msgid "Couldn't copy your notes. Try again."
 msgstr ""
 
 #: src/session/components/note-input/transcript/renderer/index.tsx
+#: src/settings/developers/clipboard.ts
 msgid "Couldn't copy. Try again."
 msgstr ""
 
@@ -2417,6 +2425,14 @@ msgstr ""
 
 #: src/settings/ai/stt/health.tsx
 msgid "Couldn’t load the on-device model. Pick another model, or delete and download this one again."
+msgstr ""
+
+#: src/settings/todo/provider-content.tsx
+msgid "Couldn't load this connection. Try again."
+msgstr ""
+
+#: src/settings/team/index.tsx
+msgid "Couldn't load workspace members."
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
@@ -2493,6 +2509,10 @@ msgstr ""
 #~ msgid "Couldn't rename the note. Try again."
 #~ msgstr ""
 
+#: src/sidebar/toast/undo-delete-toast.tsx
+msgid "Couldn't restore the note. Try again."
+msgstr ""
+
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 msgid "Couldn't restore these lines. Try again."
 msgstr ""
@@ -2505,8 +2525,20 @@ msgstr ""
 msgid "Couldn't save that setting. Try again."
 msgstr ""
 
+#: src/settings/automations/index.tsx
+msgid "Couldn't save the automation draft. Try again."
+msgstr ""
+
+#: src/settings/automations/starter-config.tsx
+msgid "Couldn't save the automation setting. Try again."
+msgstr ""
+
 #: src/session/folder-instructions.tsx
 msgid "Couldn't save the folder context. Try again."
+msgstr ""
+
+#: src/sidebar/folder-name-dialog.tsx
+msgid "Couldn't save the folder. Try again."
 msgstr ""
 
 #: src/contacts/contact-actions.ts
@@ -2560,8 +2592,16 @@ msgstr ""
 msgid "Couldn't show this note. Try again."
 msgstr ""
 
+#: src/chat/components/input/use-dictation.ts
+msgid "Couldn't start voice input"
+msgstr ""
+
 #: src/session/components/note-input/transcript/actions.ts
 msgid "Couldn't transcribe this recording again"
+msgstr ""
+
+#: src/chat/components/input/use-dictation.ts
+msgid "Couldn't transcribe voice input"
 msgstr ""
 
 #: src/lock/notes.ts
@@ -2570,6 +2610,16 @@ msgstr ""
 
 #: src/settings/calendar/index.tsx
 msgid "Couldn't update {title}. Try again."
+msgstr ""
+
+#: src/settings/automations/index.tsx
+#: src/settings/automations/workflow-builder.tsx
+msgid "Couldn't update the automation. Try again."
+msgstr ""
+
+#: src/settings/automations/starter-config.tsx
+#: src/settings/general/storage/export-location.tsx
+msgid "Couldn't update the export folder. Try again."
 msgstr ""
 
 #: src/session/components/outer-header/metadata/participants/input.tsx
@@ -3376,7 +3426,6 @@ msgid "Exporting…"
 msgstr ""
 
 #: src/calendar/components/oauth/provider-content.tsx
-#: src/settings/todo/provider-content.tsx
 msgid "Failed to load integration status"
 msgstr ""
 

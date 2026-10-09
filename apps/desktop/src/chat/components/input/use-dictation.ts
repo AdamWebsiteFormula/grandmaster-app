@@ -99,7 +99,7 @@ export function useDictation({
         return;
       }
       setPhase("idle");
-      toast.error(t`Could not start voice input`, {
+      toast.error(t`Couldn't start voice input`, {
         description: t`Check microphone permission and the selected input device, then try again.`,
       });
       console.error("[chat-dictation] failed to start recording", error);
@@ -159,7 +159,7 @@ export function useDictation({
           description: t`Try speaking a little closer to the microphone.`,
         });
       } else {
-        toast.error(t`Could not transcribe voice input`, {
+        toast.error(t`Couldn't transcribe voice input`, {
           description: message,
         });
       }

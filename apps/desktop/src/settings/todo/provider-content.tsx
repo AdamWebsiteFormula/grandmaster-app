@@ -104,7 +104,7 @@ function OAuthTodoProviderContent({ config }: { config: TodoProvider }) {
     return (
       <div className="pt-1 pb-2">
         <span className="text-xs text-destructive">
-          <Trans>Failed to load integration status</Trans>
+          <Trans>Couldn't load this connection. Try again.</Trans>
         </span>
       </div>
     );

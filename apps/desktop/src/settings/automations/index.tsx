@@ -468,7 +468,7 @@ function StarterAutomationDetails({ starterId }: { starterId: StarterId }) {
     });
   const configureDrive = useMutation({
     mutationFn: (step: WorkflowStep) => saveDrive({ steps: [step] }),
-    onError: () => toast.error(t`Could not update the automation`),
+    onError: () => toast.error(t`Couldn't update the automation. Try again.`),
   });
   const { values: settingValues } = useStoredSettingValues();
   const removeStarterDraft = useRemoveStarterDraft();
@@ -480,7 +480,7 @@ function StarterAutomationDetails({ starterId }: { starterId: StarterId }) {
       await setSettingValue("automation_draft_template", starterId);
     },
     onSuccess: () => toast.success(t`Automation draft saved`),
-    onError: () => toast.error(t`Could not save the automation draft`),
+    onError: () => toast.error(t`Couldn't save the automation draft. Try again.`),
   });
 
   const setEnabledMutation = useMutation({
@@ -493,7 +493,7 @@ function StarterAutomationDetails({ starterId }: { starterId: StarterId }) {
     },
     onSuccess: (_, { enabled }) =>
       toast.success(enabled ? t`Automation enabled` : t`Automation disabled`),
-    onError: () => toast.error(t`Could not update the automation`),
+    onError: () => toast.error(t`Couldn't update the automation. Try again.`),
   });
 
   if (!starter) {

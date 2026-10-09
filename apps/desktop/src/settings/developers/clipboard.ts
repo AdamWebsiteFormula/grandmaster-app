@@ -9,7 +9,7 @@ export async function copyText(value: string, message: string) {
     return true;
   } catch (error) {
     toast.error(
-      error instanceof Error ? error.message : t`Could not copy to clipboard`,
+      error instanceof Error ? error.message : t`Couldn't copy. Try again.`,
     );
     return false;
   }

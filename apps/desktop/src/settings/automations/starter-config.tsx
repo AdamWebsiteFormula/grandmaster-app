@@ -144,7 +144,7 @@ function useSaveTarget(settingKey: TargetSettingKey) {
     mutationKey: ["automation-target", settingKey],
     mutationFn: (target: AutomationTargetRef) =>
       setSettingValue(settingKey, JSON.stringify(target)),
-    onError: () => toast.error(t`Could not save the automation setting`),
+    onError: () => toast.error(t`Couldn't save the automation setting. Try again.`),
   });
 }
 
@@ -206,7 +206,7 @@ export function MarkdownExportConfig({
         await setSettingValue("automation_markdown_export_directory", selected);
       }
     },
-    onError: () => toast.error(t`Could not update the export folder`),
+    onError: () => toast.error(t`Couldn't update the export folder. Try again.`),
   });
 
   return (

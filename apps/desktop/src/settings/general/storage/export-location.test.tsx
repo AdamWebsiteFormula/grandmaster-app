@@ -130,7 +130,7 @@ describe("ExportLocationRow", () => {
       await screen.findByText("~/Downloads");
       fireEvent.click(screen.getByRole("button", { name: "Choose folder" }));
       expect((await screen.findByRole("alert")).textContent).toBe(
-        "Could not update the export folder",
+        "Couldn't update the export folder. Try again.",
       );
       expect(screen.getByText("~/Downloads")).toBeTruthy();
     },

@@ -388,6 +388,6 @@ export function useSaveWorkflow() {
           : [updated, ...current];
       });
     },
-    onError: () => toast.error(t`Could not update the automation`),
+    onError: () => toast.error(t`Couldn't update the automation. Try again.`),
   });
 }

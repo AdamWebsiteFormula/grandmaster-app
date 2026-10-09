@@ -81,7 +81,7 @@ export function ExportLocationRow() {
           )}
           {(settings.error || downloads.error || changeMutation.error) && (
             <p role="alert" className="text-destructive mt-1 text-xs">
-              <Trans>Could not update the export folder</Trans>
+              <Trans>Couldn't update the export folder. Try again.</Trans>
             </p>
           )}
         </div>
