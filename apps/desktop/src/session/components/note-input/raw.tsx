@@ -275,7 +275,7 @@ export const RawEditor = forwardRef<
       [syncTasks, sessionId],
     );
     const placeholderComponent = useMemo(
-      () => () => (isGenerating ? t`Creating brief…` : t`Start writing…`),
+      () => () => (isGenerating ? t`Creating brief…` : t`Start writing`),
       [isGenerating, t],
     );
     return (

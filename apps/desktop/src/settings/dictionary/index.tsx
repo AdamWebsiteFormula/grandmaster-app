@@ -12,6 +12,7 @@ import {
 } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 import { Input } from "@anlg/ui/components/ui/input";
+import { toast } from "@anlg/ui/components/ui/toast";
 import {
   InputGroup,
   InputGroupAddon,
@@ -87,7 +88,17 @@ export function DictionarySettings({
 
   const removeTerm = (term: string) => {
     const nextTerms = normalizedTerms.filter((value) => value !== term);
+    const previousTerms = normalizedTerms;
     onSave(JSON.stringify(nextTerms));
+    // Fork: Remove took the term at once with no way back. Offer Undo, as
+    // Delete note and Remove from folder do (task test, Oct 8; NN/g #3).
+    toast(t`Removed “${term}”`, {
+      id: `dictionary-removed-${term}`,
+      action: {
+        label: t`Undo`,
+        onClick: () => onSave(JSON.stringify(previousTerms)),
+      },
+    });
     trackAnalyticsEvent("dictionary_updated", {
       operation: "removed",
       term_count: nextTerms.length,

@@ -76,9 +76,9 @@ describe("TemplateDetailsColumn", () => {
 
     const chip = chips[0].className.split(/\s+/);
     expect(chip).toEqual(
-      expect.arrayContaining(["bg-card", "dark:bg-muted", "border-border"]),
+      expect.arrayContaining(["bg-sidebar-accent", "text-muted-foreground"]),
     );
-    expect(chip).not.toContain("bg-muted");
+    expect(chip).not.toContain("border-border");
     // The header's "Created by" line stays off: the title row says "by".
     expect(screen.queryByText("Created by Upshot")).toBeNull();
   });

@@ -449,7 +449,7 @@ describe("SessionViewSwitcher", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Customer Call" }));
 
-    expect(screen.getByPlaceholderText("Search templates…")).not.toBeNull();
+    expect(screen.getByPlaceholderText("Search templates")).not.toBeNull();
   });
 
   it("copies the summary from the visible Copy notes button", async () => {

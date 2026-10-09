@@ -13,6 +13,10 @@ const mocks = vi.hoisted(() => ({
   groups: [] as unknown[],
   queueChatPrompt: vi.fn(),
   platform: "macos",
+  model: { modelId: "upshot" } as unknown,
+  llmStatus: { status: "success" } as unknown,
+  toast: vi.fn(),
+  openSignIn: vi.fn(),
 }));
 
 vi.mock("@tauri-apps/plugin-os", () => ({ platform: () => mocks.platform }));
@@ -35,6 +39,16 @@ vi.mock("~/chat/components/toolbar-controls", () => ({
   ),
 }));
 vi.mock("./home-view", () => ({ HOME_COLUMN_CLASS: "" }));
+vi.mock("~/ai/hooks", () => ({
+  useLanguageModel: () => mocks.model,
+  useLLMConnectionStatus: () => mocks.llmStatus,
+}));
+vi.mock("@anlg/ui/components/ui/toast", () => ({ toast: mocks.toast }));
+vi.mock("~/upshot-plan", () => ({ openUpshotSignIn: mocks.openSignIn }));
+vi.mock("~/upshot-plan/session", () => ({
+  useUpshotAccount: (select: (state: { session: unknown }) => unknown) =>
+    select({ session: null }),
+}));
 
 import { HomeComposer } from "./home-composer";
 
@@ -44,6 +58,8 @@ describe("HomeComposer", () => {
     mocks.chat.mode = "FloatingClosed";
     mocks.groups = [];
     mocks.platform = "macos";
+    mocks.model = { modelId: "upshot" };
+    mocks.llmStatus = { status: "success" };
   });
   afterEach(cleanup);
 
@@ -102,6 +118,43 @@ describe("HomeComposer", () => {
     fireEvent.click(send);
     expect(mocks.queueChatPrompt).toHaveBeenCalledWith("What's due Friday?");
     expect(mocks.chat.sendEvent).toHaveBeenCalledWith({ type: "OPEN" });
+  });
+
+  // Fork test: task test, Oct 8 (with no model the question was cleared
+  // and sent later in another chat).
+  it("keeps the question and says why when Upshot AI is not ready", () => {
+    mocks.model = null;
+    mocks.llmStatus = { status: "pending", reason: "missing_model" };
+    render(<HomeComposer />);
+
+    const input = screen.getByRole("textbox", {
+      name: "Ask anything",
+    }) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "What is due Friday?" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(mocks.queueChatPrompt).not.toHaveBeenCalled();
+    expect(mocks.chat.sendEvent).not.toHaveBeenCalled();
+    expect(input.value).toBe("What is due Friday?");
+    expect(mocks.toast).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks a signed-out user to sign in instead of sending", () => {
+    mocks.model = null;
+    mocks.llmStatus = {
+      status: "error",
+      reason: "unauthenticated",
+      providerId: "anarlog",
+    };
+    render(<HomeComposer />);
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Ask anything" }), {
+      target: { value: "What is due Friday?" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(mocks.openSignIn).toHaveBeenCalledWith("hosted");
+    expect(mocks.queueChatPrompt).not.toHaveBeenCalled();
   });
 
   it("shows history when there are past chats and hides while chat is open", () => {

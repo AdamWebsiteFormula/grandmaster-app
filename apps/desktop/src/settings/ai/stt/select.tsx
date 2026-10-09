@@ -104,6 +104,7 @@ import {
   getDefaultSttModel,
   getPreferredProviderModel,
 } from "~/stt/model-selection";
+import { STATUS_BADGE_CLASS } from "~/shared/ui/status-badge";
 
 export function SelectProviderAndModel() {
   const { t } = useLingui();
@@ -1096,12 +1097,10 @@ function ModelModeBadge({ mode }: { mode?: ModelEntry["mode"] }) {
         <span
           ref={ref}
           className={cn([
-            "shrink-0 cursor-help rounded-md px-1.5 py-0.5 text-xs font-medium",
-            // Fork: neutral chips that adapt to dark mode, no fixed blue
+            "shrink-0 cursor-help px-1.5 py-0.5",
+            // Fork: the app's one status badge, neutral in both themes
             // (Apple HIG Dark Mode; design-system "The one accent").
-            isRealtime
-              ? "bg-muted text-foreground"
-              : "bg-muted text-muted-foreground",
+            STATUS_BADGE_CLASS,
           ])}
         >
           {isRealtime ? <Trans>Live</Trans> : <Trans>After recording</Trans>}

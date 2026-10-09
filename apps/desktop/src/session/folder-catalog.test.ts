@@ -78,6 +78,17 @@ describe("folder catalog", () => {
     await expect(createNamedFolder("CS 101")).resolves.toBe("CS 101");
   });
 
+  // Fork test: task test, Oct 8.
+  it("refuses to create a folder whose name is taken", async () => {
+    mocks.execute.mockResolvedValue([{ present: 1 }]);
+
+    await expect(createNamedFolder("CS 101")).rejects.toThrow(
+      "folder_target_exists",
+    );
+    expect(mocks.createFolder).not.toHaveBeenCalled();
+    expect(mocks.ensureFolderCatalog).not.toHaveBeenCalled();
+  });
+
   it("rejects the unfiled folder", async () => {
     await expect(ensureFolderCatalog("")).rejects.toThrow(
       "invalid folder path",

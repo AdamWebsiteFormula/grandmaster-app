@@ -68,8 +68,13 @@ export function SettingsCard({
     <div
       data-settings-card
       className={cn([
-        "border-border bg-card dark:bg-muted divide-border flex min-w-0 flex-col divide-y rounded-xl border",
+        "border-border bg-card dark:bg-muted flex min-w-0 flex-col rounded-xl border",
         "[&>*]:px-4 [&>*]:py-3.5",
+        // Fork: row dividers stop 16 pt short of the card's edges, as in
+        // macOS System Settings' grouped forms, instead of running into the
+        // rounded border (picture review, Oct 9; Apple HIG, Lists and
+        // tables).
+        "[&>*+*]:relative [&>*+*]:before:pointer-events-none [&>*+*]:before:absolute [&>*+*]:before:inset-x-4 [&>*+*]:before:top-0 [&>*+*]:before:h-px [&>*+*]:before:bg-border [&>*+*]:before:content-['']",
         className,
       ])}
     >

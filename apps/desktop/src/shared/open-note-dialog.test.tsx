@@ -145,7 +145,7 @@ describe("OpenNoteDialog", () => {
     render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
 
     expect(
-      screen.getByRole("dialog", { name: "Search notes and settings…" }),
+      screen.getByRole("dialog", { name: "Search notes and settings" }),
     ).toBeTruthy();
     expect(
       document.querySelector("[data-open-note-dialog-drag-region]"),
@@ -240,12 +240,9 @@ describe("OpenNoteDialog", () => {
     ).toContain("Ctrl+Shift+N");
     expect(screen.queryByText(/⌘/)).toBeNull();
 
-    fireEvent.change(
-      screen.getByPlaceholderText("Search notes and settings…"),
-      {
-        target: { value: "calendar" },
-      },
-    );
+    fireEvent.change(screen.getByPlaceholderText("Search notes and settings"), {
+      target: { value: "calendar" },
+    });
     expect(screen.queryByRole("option", { name: /Calendar/ })).toBeNull();
   });
 
@@ -274,12 +271,9 @@ describe("OpenNoteDialog", () => {
   it("opens a matching page from the global navigator", () => {
     render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
 
-    fireEvent.change(
-      screen.getByPlaceholderText("Search notes and settings…"),
-      {
-        target: { value: "calendar" },
-      },
-    );
+    fireEvent.change(screen.getByPlaceholderText("Search notes and settings"), {
+      target: { value: "calendar" },
+    });
     fireEvent.click(
       screen.getByRole("option", { name: "Calendar month view" }),
     );
@@ -291,12 +285,9 @@ describe("OpenNoteDialog", () => {
   it("opens a matching settings sub-page", () => {
     render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
 
-    fireEvent.change(
-      screen.getByPlaceholderText("Search notes and settings…"),
-      {
-        target: { value: "transcription" },
-      },
-    );
+    fireEvent.change(screen.getByPlaceholderText("Search notes and settings"), {
+      target: { value: "transcription" },
+    });
     fireEvent.click(screen.getByRole("option", { name: /Transcription/ }));
 
     expect(mocks.openNew).toHaveBeenCalledWith({
@@ -308,12 +299,9 @@ describe("OpenNoteDialog", () => {
   it("says it is searching, then that no notes match", async () => {
     render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
 
-    fireEvent.change(
-      screen.getByPlaceholderText("Search notes and settings…"),
-      {
-        target: { value: "zzzz" },
-      },
-    );
+    fireEvent.change(screen.getByPlaceholderText("Search notes and settings"), {
+      target: { value: "zzzz" },
+    });
 
     expect(screen.getByText("Searching notes…")).toBeTruthy();
     expect(
@@ -369,12 +357,9 @@ describe("OpenNoteDialog", () => {
 
     render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
 
-    fireEvent.change(
-      screen.getByPlaceholderText("Search notes and settings…"),
-      {
-        target: { value: "pricing" },
-      },
-    );
+    fireEvent.change(screen.getByPlaceholderText("Search notes and settings"), {
+      target: { value: "pricing" },
+    });
 
     await waitFor(() => expect(screen.getByText("In notes")).toBeTruthy());
     expect(mocks.search).toHaveBeenCalledWith("pricing");
@@ -431,7 +416,7 @@ describe("OpenNoteDialog", () => {
     ]);
 
     render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
-    const input = screen.getByPlaceholderText("Search notes and settings…");
+    const input = screen.getByPlaceholderText("Search notes and settings");
     for (const value of ["c", "ch", "cha", "chat"]) {
       fireEvent.change(input, { target: { value } });
       await new Promise((resolve) => setTimeout(resolve, 40));
@@ -490,7 +475,7 @@ describe("OpenNoteDialog", () => {
     );
 
     render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
-    const input = screen.getByPlaceholderText("Search notes and settings…");
+    const input = screen.getByPlaceholderText("Search notes and settings");
     fireEvent.change(input, { target: { value: "pricing" } });
     await new Promise((resolve) => setTimeout(resolve, 20));
     fireEvent.keyDown(input, { key: "ArrowDown" });
@@ -511,12 +496,9 @@ describe("OpenNoteDialog", () => {
   it("does not run content search for short or empty queries", async () => {
     render(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
 
-    fireEvent.change(
-      screen.getByPlaceholderText("Search notes and settings…"),
-      {
-        target: { value: "p" },
-      },
-    );
+    fireEvent.change(screen.getByPlaceholderText("Search notes and settings"), {
+      target: { value: "p" },
+    });
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     expect(mocks.search).not.toHaveBeenCalled();

@@ -47,7 +47,7 @@ export function ProviderSearch({
             onChange("");
           }
         }}
-        placeholder={t`Search providers…`}
+        placeholder={t`Search providers`}
         aria-label={t`Search providers`}
         className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm focus:outline-hidden [&::-webkit-search-cancel-button]:hidden"
       />

@@ -441,7 +441,7 @@ export function TemplatesSidebarContent({
                   setSearch("");
                 }
               }}
-              placeholder={t`Search templates…`}
+              placeholder={t`Search templates`}
               className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm placeholder:text-sm focus:outline-hidden"
             />
             {search && (

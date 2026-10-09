@@ -46,7 +46,7 @@ export function FolderAskComposer({ folderPath }: { folderPath: string }) {
         onKeyDown={(event) => {
           if (event.key === "Escape") event.currentTarget.blur();
         }}
-        placeholder={t`Ask about notes in ${name}…`}
+        placeholder={t`Ask about notes in ${name}`}
         aria-label={t`Ask about this folder`}
         className="text-foreground placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm outline-none"
       />

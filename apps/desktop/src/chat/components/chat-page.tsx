@@ -181,7 +181,7 @@ export function ChatPage() {
               rows={2}
               onChange={(event) => setValue(event.target.value)}
               onKeyDown={onKeyDown}
-              placeholder={t`Ask about your meetings…`}
+              placeholder={t`Ask anything`}
               aria-label={t`Ask anything`}
               className="text-foreground placeholder:text-muted-foreground min-h-10 w-full resize-none bg-transparent text-sm outline-none"
             />

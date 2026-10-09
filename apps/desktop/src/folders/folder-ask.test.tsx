@@ -31,7 +31,7 @@ describe("FolderAskComposer", () => {
     const field = screen.getByRole("textbox", {
       name: "Ask about this folder",
     });
-    expect(field.getAttribute("placeholder")).toBe("Ask about notes in Acme…");
+    expect(field.getAttribute("placeholder")).toBe("Ask about notes in Acme");
     const send = screen.getByRole("button", { name: "Send" });
     expect(send.hasAttribute("disabled")).toBe(true);
     expect(send.className).toContain("bg-foreground");

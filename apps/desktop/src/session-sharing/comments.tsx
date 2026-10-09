@@ -520,7 +520,7 @@ function CommentComposer({
                   aria-label={t`Comment on selected text`}
                   aria-invalid={comment.tooLong}
                   className="min-h-20 min-w-0 flex-1 resize-none"
-                  placeholder={t`Comment on the selected text…`}
+                  placeholder={t`Comment on the selected text`}
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(event) => field.handleChange(event.target.value)}

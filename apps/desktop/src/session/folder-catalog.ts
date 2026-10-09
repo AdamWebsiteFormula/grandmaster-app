@@ -22,6 +22,13 @@ export async function ensureFolderCatalog(folderPath: string): Promise<string> {
 }
 
 export async function createNamedFolder(folderPath: string): Promise<string> {
+  // Fork: New folder with a taken name closed the dialog and opened the
+  // existing folder, so the name dialog's "already exists" message never
+  // showed. Refuse it, as Finder does and as rename does (task test, Oct 8;
+  // NN/g #9).
+  if (await folderNameTaken(requireNamedFolderPath(folderPath))) {
+    throw new Error("folder_target_exists");
+  }
   const path = await ensureFolderCatalog(folderPath);
   const result = await fsSyncCommands.createFolder(path);
   if (result.status === "error") {

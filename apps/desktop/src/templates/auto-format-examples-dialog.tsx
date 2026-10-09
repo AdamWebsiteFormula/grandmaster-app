@@ -167,7 +167,7 @@ export function AutoFormatExamplesDialog({
                 value={example}
                 maxLength={MAX_FORMAT_EXAMPLE_LENGTH}
                 onChange={(event) => updateExample(index, event.target.value)}
-                placeholder={t`Paste a past summary you like…`}
+                placeholder={t`Paste a past summary you like`}
                 className="min-h-36 resize-y font-mono text-sm leading-5"
                 disabled={inferenceMutation.isPending}
               />

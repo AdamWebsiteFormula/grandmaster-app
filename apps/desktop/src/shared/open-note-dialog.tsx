@@ -660,7 +660,7 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
         <DialogTitle className="sr-only">
           {/* Fork: says "settings", the app's own word; "pages" is used
               nowhere else (NN/g #2). */}
-          <Trans>Search notes and settings…</Trans>
+          <Trans>Search notes and settings</Trans>
         </DialogTitle>
         {/* Fork: a raised popover surface, flat, no drop shadow
             (journey-after P3 "⌘K search"; design-system Dialogs, Shape). */}
@@ -685,7 +685,7 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
                 value={query}
                 onValueChange={setQuery}
                 // Fork: names what it finds in the app's words (NN/g #2).
-                placeholder={t`Search notes and settings…`}
+                placeholder={t`Search notes and settings`}
                 className={cn([
                   "flex-1 bg-transparent text-sm",
                   "placeholder:text-muted-foreground outline-hidden",

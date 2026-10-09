@@ -94,7 +94,7 @@ export function FoldersSidebar() {
                     setSearch("");
                   }
                 }}
-                placeholder={t`Search folders…`}
+                placeholder={t`Search folders`}
                 className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm placeholder:text-sm focus:outline-hidden"
               />
               {search ? (

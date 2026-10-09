@@ -7,6 +7,9 @@ const mocks = vi.hoisted(() => ({
   generate: vi.fn(),
   model: { modelId: "upshot" } as unknown,
   toast: vi.fn(),
+  llmStatus: { status: "pending", reason: "missing_model" } as unknown,
+  signedIn: false,
+  openSignIn: vi.fn(),
 }));
 
 vi.mock("@anlg/ui/components/ui/toast", () => ({
@@ -18,7 +21,15 @@ vi.mock("~/ai/contexts", () => ({
     selector: (state: { generate: typeof mocks.generate }) => unknown,
   ) => selector({ generate: mocks.generate }),
 }));
-vi.mock("~/ai/hooks", () => ({ useLanguageModel: () => mocks.model }));
+vi.mock("~/ai/hooks", () => ({
+  useLanguageModel: () => mocks.model,
+  useLLMConnectionStatus: () => mocks.llmStatus,
+}));
+vi.mock("~/upshot-plan", () => ({ openUpshotSignIn: mocks.openSignIn }));
+vi.mock("~/upshot-plan/session", () => ({
+  useUpshotAccount: (select: (state: { session: unknown }) => unknown) =>
+    select({ session: mocks.signedIn ? {} : null }),
+}));
 vi.mock("~/session/queries", () => ({
   useEnhancedNote: () => ({ templateId: "template-1" }),
 }));
@@ -30,6 +41,24 @@ describe("ConfigError", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.model = { modelId: "upshot" };
+    mocks.llmStatus = { status: "pending", reason: "missing_model" };
+    mocks.signedIn = false;
+  });
+
+  // Fork test: task test, Oct 8 (signed out, Try again looped on "getting
+  // ready").
+  it("asks a signed-out user to sign in instead of waiting", () => {
+    mocks.llmStatus = {
+      status: "error",
+      reason: "unauthenticated",
+      providerId: "anarlog",
+    };
+    render(<ConfigError sessionId="session-1" enhancedNoteId="note-1" />);
+
+    expect(screen.getByText("Sign in to write this summary")).not.toBeNull();
+    expect(screen.queryByRole("button", { name: "Try again" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    expect(mocks.openSignIn).toHaveBeenCalledWith("hosted");
   });
 
   // Fork test: journey-meeting P3 (model briefly missing).

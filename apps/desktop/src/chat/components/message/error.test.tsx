@@ -144,6 +144,27 @@ describe("ErrorMessage sign-in required", () => {
     expect(screen.queryByRole("button", { name: "Sign in" })).toBeNull();
   });
 
+  // Fork test: task test, Oct 8 (raw "Failed to fetch" in the bubble).
+  it("says a network failure in plain words", () => {
+    render(
+      <ErrorMessage error={new Error("Failed to fetch")} onRetry={vi.fn()} />,
+    );
+
+    expect(
+      screen.getByText(
+        "Upshot can't reach the internet. Check your connection, then try again.",
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByText("Failed to fetch")).toBeNull();
+  });
+
+  it("says other failures plainly and keeps the raw text small", () => {
+    render(<ErrorMessage error={new Error("boom")} onRetry={vi.fn()} />);
+
+    expect(screen.getByText("Upshot couldn't answer. Try again.")).toBeTruthy();
+    expect(screen.getByText("boom").className).toContain("text-xs");
+  });
+
   it("signed out with no retry still offers Sign in", () => {
     render(<ErrorMessage error={SIGN_IN_REQUIRED} />);
     expect(screen.getByRole("button", { name: "Sign in" })).toBeTruthy();

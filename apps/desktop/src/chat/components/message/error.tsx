@@ -5,11 +5,9 @@ import { cn } from "@anlg/utils";
 
 import { MessageBubble, MessageContainer } from "./shared";
 
+import { isNetworkError } from "~/shared/network-error";
 import { openUpshotSignIn } from "~/upshot-plan";
-import {
-  isSignInRequiredError,
-  useUpshotAccount,
-} from "~/upshot-plan/session";
+import { isSignInRequiredError, useUpshotAccount } from "~/upshot-plan/session";
 
 // `useChat().error` is typed as Error but holds whatever the transport threw.
 export function getChatErrorText(error: unknown): string {
@@ -17,6 +15,11 @@ export function getChatErrorText(error: unknown): string {
     return error.message;
   }
   return typeof error === "string" ? error : String(error);
+}
+
+function toError(error: unknown): Error | undefined {
+  if (error instanceof Error) return error;
+  return typeof error === "string" ? new Error(error) : undefined;
 }
 
 export function isContextLengthError(message: string): boolean {
@@ -41,9 +44,22 @@ export function ErrorMessage({
   // Fork: no "Learn how to fix this" link (it opened upstream docs on
   // localhost); a context-length error says what to do instead (ux-audit-oct3
   // D, NN/g #10).
+  // Fork: network and server failures showed the raw text ("Failed to
+  // fetch", JSON). Say it plainly, with the raw text kept small below, as
+  // the summary error card does (task test, Oct 8; NN/g #9).
+  const isSignInMessage = isSignInRequiredError(raw);
+  const isNetwork = !isSignInMessage && isNetworkError(toError(error));
   const message = isContextLengthError(raw)
     ? t`This chat is too long. Start a new chat and try again.`
-    : raw;
+    : isSignInMessage
+      ? raw
+      : isNetwork
+        ? t`Upshot can't reach the internet. Check your connection, then try again.`
+        : t`Upshot couldn't answer. Try again.`;
+  const detail =
+    !isContextLengthError(raw) && !isSignInMessage && !isNetwork && raw
+      ? raw
+      : null;
   // Fork: Upshot AI needs a free account (Adam, Oct 5); the way in sits
   // next to the message (NN/g, error-message guidelines).
   const signedIn = useUpshotAccount((state) => !!state.session);
@@ -59,6 +75,9 @@ export function ErrorMessage({
     <MessageContainer align="start">
       <MessageBubble variant="error">
         <p className="text-sm">{message}</p>
+        {detail ? (
+          <p className="mt-0.5 text-xs break-words opacity-80">{detail}</p>
+        ) : null}
         {needsSignIn ? (
           <button
             type="button"

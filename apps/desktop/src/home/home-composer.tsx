@@ -15,10 +15,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@anlg/ui/components/ui/tooltip";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
 import { HOME_COLUMN_CLASS } from "./home-view";
 
+import { useLanguageModel, useLLMConnectionStatus } from "~/ai/hooks";
 import { homeChatSuggestions } from "~/chat/components/body/empty";
 import { ChatModelMenu } from "~/chat/components/input/model-menu";
 import { ChatGroups } from "~/chat/components/toolbar-controls";
@@ -26,12 +28,17 @@ import { queueChatPrompt } from "~/chat/pending-prompt";
 import { useRecentChatGroups } from "~/chat/store/queries";
 import { useShell } from "~/contexts/shell";
 import { ariaKeyShortcut, kbdLabel } from "~/shared/shortcut-label";
+import { openUpshotSignIn } from "~/upshot-plan";
+import { useUpshotAccount } from "~/upshot-plan/session";
 
 export function HomeComposer() {
   const { t } = useLingui();
   const { chat } = useShell();
   const [value, setValue] = useState("");
   const hasHistory = useRecentChatGroups(chat.scope, 1).length > 0;
+  const model = useLanguageModel("chat");
+  const llmStatus = useLLMConnectionStatus();
+  const signedIn = useUpshotAccount((state) => !!state.session);
 
   // The open chat has its own field; never show two.
   if (chat.mode !== "FloatingClosed") return null;
@@ -39,6 +46,23 @@ export function HomeComposer() {
   const ask = (prompt: string) => {
     const text = prompt.trim();
     if (!text) return;
+    // Fork: with no model ready, the question was cleared and sent later in
+    // whatever chat opened next. Keep it in the field and say why, with
+    // Sign in when that is the fix (task test, Oct 8; NN/g #1, #9).
+    if (!model) {
+      if (
+        llmStatus.status === "error" &&
+        llmStatus.reason === "unauthenticated" &&
+        !signedIn
+      ) {
+        openUpshotSignIn("hosted");
+      } else {
+        toast(t`Upshot AI is getting ready. Try again in a minute.`, {
+          id: "home-chat-model-not-ready",
+        });
+      }
+      return;
+    }
     chat.startNewChat();
     queueChatPrompt(text);
     chat.sendEvent({ type: "OPEN" });

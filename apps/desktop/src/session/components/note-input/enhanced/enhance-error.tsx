@@ -8,20 +8,12 @@ import { getEnhanceErrorKind, showModelNotReadyToast } from "./model-not-ready";
 import { useAITask } from "~/ai/contexts";
 import { useLanguageModel } from "~/ai/hooks";
 import { useEnhancedNote } from "~/session/queries";
+import { isNetworkError } from "~/shared/network-error";
 import { createTaskId } from "~/store/zustand/ai-task/task-configs";
 import { openUpshotSignIn } from "~/upshot-plan";
 import { isSignInRequiredError, useUpshotAccount } from "~/upshot-plan/session";
 
-const NETWORK_ERROR_PATTERN =
-  /failed to fetch|load failed|network|offline|internet|ENOTFOUND|ECONNREFUSED|ECONNRESET|EAI_AGAIN|could not connect|couldn't connect|unable to connect|dns/i;
-
-export function isNetworkError(error: Error | undefined): boolean {
-  if (typeof navigator !== "undefined" && navigator.onLine === false) {
-    return true;
-  }
-
-  return Boolean(error && NETWORK_ERROR_PATTERN.test(error.message));
-}
+export { isNetworkError } from "~/shared/network-error";
 
 export function EnhanceError({
   sessionId,

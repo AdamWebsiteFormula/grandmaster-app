@@ -138,7 +138,7 @@ export function SpokenLanguagesView({
                 >
                   <CommandInput
                     aria-label={t`Search languages`}
-                    placeholder={t`Search languages…`}
+                    placeholder={t`Search languages`}
                     value={query}
                     onValueChange={setQuery}
                   />

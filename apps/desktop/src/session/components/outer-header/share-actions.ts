@@ -176,7 +176,14 @@ export function useNoteShareActions(
       to: attendeeEmails,
     });
     if (truncated) {
-      await copyTextToClipboard(body);
+      // Fork: the draft says the full notes are on the clipboard, so stop
+      // if the copy failed instead of saying it worked (task test, Oct 8;
+      // NN/g #9).
+      const copied = await copyTextToClipboard(body);
+      if (!copied) {
+        toast.error(t`Couldn't copy your full notes. Try again.`);
+        return;
+      }
       toast.success(t`Full notes copied to clipboard`);
     }
     try {

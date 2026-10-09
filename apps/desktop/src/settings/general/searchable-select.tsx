@@ -122,7 +122,7 @@ export function SearchableSelect({
             className="rounded-[inherit] border-0 bg-transparent"
           >
             <CommandInput
-              placeholder={searchPlaceholder ?? t`Search…`}
+              placeholder={searchPlaceholder ?? t`Search`}
               value={query}
               onValueChange={setQuery}
             />

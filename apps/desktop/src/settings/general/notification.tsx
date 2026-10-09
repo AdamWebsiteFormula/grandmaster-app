@@ -495,7 +495,7 @@ export function NotificationSettingsView() {
                                             in one field, as macOS token
                                             fields (picture review, Oct 8). */}
                                         <span className="text-muted-foreground text-xs">
-                                          <Trans>Search installed apps…</Trans>
+                                          <Trans>Search installed apps</Trans>
                                         </span>
                                       </div>
                                     </PopoverTrigger>
@@ -510,7 +510,7 @@ export function NotificationSettingsView() {
                                       <AppFloatingPanel className="overflow-hidden">
                                         <Command className="rounded-[inherit] border-0 bg-transparent">
                                           <CommandInput
-                                            placeholder={t`Search installed apps…`}
+                                            placeholder={t`Search installed apps`}
                                             value={searchQuery}
                                             onValueChange={setSearchQuery}
                                           />

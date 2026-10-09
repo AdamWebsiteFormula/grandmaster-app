@@ -29,12 +29,15 @@ import { TemplateIconPicker } from "./template-icon-picker";
 import { ResourceShareButton, sharedTemplatePayload } from "~/resource-sharing";
 import { useSetSettingValue } from "~/settings/queries";
 import { useConfigValue } from "~/shared/config";
+import { STATUS_BADGE_CLASS } from "~/shared/ui/status-badge";
 
 // Fork: a tag is a raised chip. --muted is the panel's own color in light, so
 // a bg-muted chip vanished there. A card-white chip with a hairline, as the
 // Settings cards and icon tiles, shows in both themes (Apple HIG Dark Mode:
 // raised is lighter; design-system "Contrast"; NN/g #4).
-export const TEMPLATE_TAG_CLASS =
+export const TEMPLATE_TAG_CLASS = STATUS_BADGE_CLASS;
+// Add tag is a button, so it keeps the bordered chip.
+const ADD_TAG_CLASS =
   "border-border bg-card dark:bg-muted rounded-md border text-xs";
 
 function parseTargets(value: string) {
@@ -117,7 +120,7 @@ function TemplateTargetsInput({
         <button
           type="button"
           className={cn([
-            TEMPLATE_TAG_CLASS,
+            ADD_TAG_CLASS,
             "text-muted-foreground hover:bg-accent inline-flex h-6 items-center gap-1 px-2 py-0.5 transition-colors",
           ])}
           onClick={() => setIsAddingTag(true)}
@@ -357,7 +360,7 @@ export function TemplateForm({
                 <Textarea
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder={t`Describe the template purpose…`}
+                  placeholder={t`Describe the template purpose`}
                   className="text-muted-foreground min-h-[24px] resize-none border-0 px-0 py-0 text-sm shadow-none focus-visible:ring-0"
                   rows={1}
                 />

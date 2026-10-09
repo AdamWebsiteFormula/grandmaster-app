@@ -136,7 +136,7 @@ export function AutomationsNav() {
                 setSearch("");
               }
             }}
-            placeholder={t`Search automations…`}
+            placeholder={t`Search automations`}
             className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm placeholder:text-sm focus:outline-hidden"
           />
           {search ? (

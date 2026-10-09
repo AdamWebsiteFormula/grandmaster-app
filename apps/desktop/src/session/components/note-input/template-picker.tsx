@@ -454,7 +454,7 @@ export function TemplatePickerPopover({
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={handleSearchInputKeyDown}
-                  placeholder={t`Search templates…`}
+                  placeholder={t`Search templates`}
                   className="placeholder:text-muted-foreground flex-1 bg-transparent text-sm focus:outline-hidden"
                 />
                 {/* Fork: named, 24 px target (ux-audit-oct3 C, WCAG 4.1.2, 2.5.8). */}

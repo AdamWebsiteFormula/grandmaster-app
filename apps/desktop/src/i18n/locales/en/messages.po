@@ -852,8 +852,12 @@ msgid "Approve"
 msgstr "Approve"
 
 #: src/folders/folder-ask.tsx
-msgid "Ask about notes in {name}…"
-msgstr "Ask about notes in {name}…"
+msgid "Ask about notes in {name}"
+msgstr "Ask about notes in {name}"
+
+#: src/folders/folder-ask.tsx
+#~ msgid "Ask about notes in {name}…"
+#~ msgstr "Ask about notes in {name}…"
 
 #: src/folders/folder-ask.tsx
 msgid "Ask about this folder"
@@ -872,8 +876,8 @@ msgid "Ask about your meetings from Glaido."
 msgstr "Ask about your meetings from Glaido."
 
 #: src/chat/components/chat-page.tsx
-msgid "Ask about your meetings…"
-msgstr "Ask about your meetings…"
+#~ msgid "Ask about your meetings…"
+#~ msgstr "Ask about your meetings…"
 
 #: src/chat/components/chat-page.tsx
 #: src/chat/components/input/index.tsx
@@ -1722,8 +1726,12 @@ msgid "Comment on selected text"
 msgstr "Comment on selected text"
 
 #: src/session-sharing/comments.tsx
-msgid "Comment on the selected text…"
-msgstr "Comment on the selected text…"
+msgid "Comment on the selected text"
+msgstr "Comment on the selected text"
+
+#: src/session-sharing/comments.tsx
+#~ msgid "Comment on the selected text…"
+#~ msgstr "Comment on the selected text…"
 
 #: src/task/resource-view.tsx
 msgid "commented on"
@@ -2242,6 +2250,10 @@ msgstr "Couldn't check your plan. Try again in a minute."
 msgid "Couldn't copy the transcript. Try again."
 msgstr "Couldn't copy the transcript. Try again."
 
+#: src/session/components/outer-header/share-actions.ts
+msgid "Couldn't copy your full notes. Try again."
+msgstr "Couldn't copy your full notes. Try again."
+
 #: src/session/components/note-input/header-raw.tsx
 #: src/session/components/outer-header/share-actions.ts
 msgid "Couldn't copy your notes. Try again."
@@ -2658,8 +2670,12 @@ msgid "Deprecated"
 msgstr "Deprecated"
 
 #: src/templates/template-form.tsx
-msgid "Describe the template purpose…"
-msgstr "Describe the template purpose…"
+msgid "Describe the template purpose"
+msgstr "Describe the template purpose"
+
+#: src/templates/template-form.tsx
+#~ msgid "Describe the template purpose…"
+#~ msgstr "Describe the template purpose…"
 
 #: src/session-sharing/management-panel.tsx
 msgid "Desktop edits published. Sharing resumed."
@@ -5305,8 +5321,12 @@ msgid "Paste"
 msgstr "Paste"
 
 #: src/templates/auto-format-examples-dialog.tsx
-msgid "Paste a past summary you like…"
-msgstr "Paste a past summary you like…"
+msgid "Paste a past summary you like"
+msgstr "Paste a past summary you like"
+
+#: src/templates/auto-format-examples-dialog.tsx
+#~ msgid "Paste a past summary you like…"
+#~ msgstr "Paste a past summary you like…"
 
 #: src/settings/ai/llm/subscriptions/connect.tsx
 msgid "Paste an API key from your Kimi Code membership."
@@ -5982,6 +6002,10 @@ msgstr "Remove workspace logo"
 msgid "Remove your {0} key?"
 msgstr "Remove your {0} key?"
 
+#: src/settings/dictionary/index.tsx
+msgid "Removed “{term}”"
+msgstr "Removed “{term}”"
+
 #: src/session/components/folder-picker.tsx
 msgid "Removed from “{previous}”"
 msgstr "Removed from “{previous}”"
@@ -6348,34 +6372,55 @@ msgstr "Scroll to top"
 
 #: src/main/sidebar-timeline-chrome.tsx
 #: src/settings/automations/starter-config.tsx
+#: src/settings/general/searchable-select.tsx
 #: src/sidebar/home-nav.tsx
 #: src/sidebar/settings.tsx
 msgid "Search"
 msgstr "Search"
 
 #: src/sidebar/automations.tsx
-msgid "Search automations…"
-msgstr "Search automations…"
+msgid "Search automations"
+msgstr "Search automations"
+
+#: src/sidebar/automations.tsx
+#~ msgid "Search automations…"
+#~ msgstr "Search automations…"
 
 #: src/contacts/shared.tsx
 msgid "Search contacts..."
 msgstr "Search contacts..."
 
 #: src/templates/template-icon-picker.tsx
-msgid "Search emoji…"
-msgstr "Search emoji…"
-
-#: src/folders/sidebar.tsx
-msgid "Search folders…"
-msgstr "Search folders…"
+msgid "Search emoji"
+msgstr "Search emoji"
 
 #: src/templates/template-icon-picker.tsx
-msgid "Search icons…"
-msgstr "Search icons…"
+#~ msgid "Search emoji…"
+#~ msgstr "Search emoji…"
+
+#: src/folders/sidebar.tsx
+msgid "Search folders"
+msgstr "Search folders"
+
+#: src/folders/sidebar.tsx
+#~ msgid "Search folders…"
+#~ msgstr "Search folders…"
+
+#: src/templates/template-icon-picker.tsx
+msgid "Search icons"
+msgstr "Search icons"
+
+#: src/templates/template-icon-picker.tsx
+#~ msgid "Search icons…"
+#~ msgstr "Search icons…"
 
 #: src/settings/general/notification.tsx
-msgid "Search installed apps…"
-msgstr "Search installed apps…"
+msgid "Search installed apps"
+msgstr "Search installed apps"
+
+#: src/settings/general/notification.tsx
+#~ msgid "Search installed apps…"
+#~ msgstr "Search installed apps…"
 
 #: src/settings/general/main-language.tsx
 msgid "Search language…"
@@ -6386,16 +6431,20 @@ msgid "Search languages"
 msgstr "Search languages"
 
 #: src/settings/general/spoken-languages.tsx
-msgid "Search languages…"
-msgstr "Search languages…"
+#~ msgid "Search languages…"
+#~ msgstr "Search languages…"
 
 #: src/shared/keyboard-shortcuts-dialog.tsx
 msgid "Search notes"
 msgstr "Search notes"
 
 #: src/shared/open-note-dialog.tsx
-msgid "Search notes and settings…"
-msgstr "Search notes and settings…"
+msgid "Search notes and settings"
+msgstr "Search notes and settings"
+
+#: src/shared/open-note-dialog.tsx
+#~ msgid "Search notes and settings…"
+#~ msgstr "Search notes and settings…"
 
 #: src/contacts/details.tsx
 msgid "Search or add company"
@@ -6414,16 +6463,20 @@ msgid "Search or type owner/repo"
 msgstr "Search or type owner/repo"
 
 #: src/settings/automations/starter-config.tsx
-msgid "Search pages shared with Upshot…"
-msgstr "Search pages shared with Upshot…"
+msgid "Search pages shared with Upshot"
+msgstr "Search pages shared with Upshot"
+
+#: src/settings/automations/starter-config.tsx
+#~ msgid "Search pages shared with Upshot…"
+#~ msgstr "Search pages shared with Upshot…"
 
 #: src/settings/ai/shared/provider-search.tsx
 msgid "Search providers"
 msgstr "Search providers"
 
 #: src/settings/ai/shared/provider-search.tsx
-msgid "Search providers…"
-msgstr "Search providers…"
+#~ msgid "Search providers…"
+#~ msgstr "Search providers…"
 
 #: src/sidebar/settings.tsx
 msgid "Search settings"
@@ -6431,8 +6484,13 @@ msgstr "Search settings"
 
 #: src/session/components/note-input/template-picker.tsx
 #: src/templates/template-sidebar.tsx
-msgid "Search templates…"
-msgstr "Search templates…"
+msgid "Search templates"
+msgstr "Search templates"
+
+#: src/session/components/note-input/template-picker.tsx
+#: src/templates/template-sidebar.tsx
+#~ msgid "Search templates…"
+#~ msgstr "Search templates…"
 
 #: src/settings/general/timezone.tsx
 msgid "Search time zones…"
@@ -6448,8 +6506,8 @@ msgid "Search..."
 msgstr "Search..."
 
 #: src/settings/general/searchable-select.tsx
-msgid "Search…"
-msgstr "Search…"
+#~ msgid "Search…"
+#~ msgstr "Search…"
 
 #: src/chat/components/message/tool/generic.tsx
 msgid "Searched contacts"
@@ -6879,6 +6937,7 @@ msgstr "Showing total of {0} models."
 #: src/chat/components/message/error.tsx
 #: src/resource-sharing/share-dialog.tsx
 #: src/session-sharing/index.tsx
+#: src/session/components/note-input/enhanced/config-error.tsx
 #: src/session/components/note-input/enhanced/enhance-error.tsx
 #: src/settings/plan.tsx
 #: src/settings/profile/index.tsx
@@ -6977,6 +7036,7 @@ msgstr "Sign in to use Upshot AI and transcription."
 msgid "Sign in to view this shared note"
 msgstr "Sign in to view this shared note"
 
+#: src/session/components/note-input/enhanced/config-error.tsx
 #: src/session/components/note-input/enhanced/enhance-error.tsx
 msgid "Sign in to write this summary"
 msgstr "Sign in to write this summary"
@@ -7159,8 +7219,12 @@ msgid "Start with permissions"
 msgstr "Start with permissions"
 
 #: src/session/components/note-input/raw.tsx
-msgid "Start writing…"
-msgstr "Start writing…"
+msgid "Start writing"
+msgstr "Start writing"
+
+#: src/session/components/note-input/raw.tsx
+#~ msgid "Start writing…"
+#~ msgstr "Start writing…"
 
 #: src/services/event-notification/index.ts
 msgid "Started"
@@ -8015,6 +8079,7 @@ msgstr "Unavailable"
 #: src/session/components/folder-picker.tsx
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 #: src/settings/ai/shared/provider-selection-prompt.ts
+#: src/settings/dictionary/index.tsx
 #: src/sidebar/toast/undo-delete-toast.tsx
 msgid "Undo"
 msgstr "Undo"
@@ -8248,6 +8313,7 @@ msgstr "Upshot AI is getting ready"
 
 #: src/chat/components/body/empty.tsx
 #: src/composer/index.tsx
+#: src/home/home-composer.tsx
 #: src/session/components/note-input/enhanced/model-not-ready.ts
 #: src/session/hooks/useAutoEnhance.ts
 #: src/templates/auto-format-examples-dialog.tsx
@@ -8258,6 +8324,7 @@ msgstr "Upshot AI is getting ready. Try again in a minute."
 msgid "Upshot AI is paused for now. Try again later."
 msgstr "Upshot AI is paused for now. Try again later."
 
+#: src/session/components/note-input/enhanced/config-error.tsx
 #: src/session/components/note-input/enhanced/enhance-error.tsx
 msgid "Upshot AI needs a free account. Sign in, then try again."
 msgstr "Upshot AI needs a free account. Sign in, then try again."
@@ -8274,6 +8341,7 @@ msgstr "Upshot can hear your voice"
 msgid "Upshot can read meeting details"
 msgstr "Upshot can read meeting details"
 
+#: src/chat/components/message/error.tsx
 #: src/session/components/note-input/enhanced/enhance-error.tsx
 msgid "Upshot can't reach the internet. Check your connection, then try again."
 msgstr "Upshot can't reach the internet. Check your connection, then try again."
@@ -8314,6 +8382,10 @@ msgstr "Upshot could not start cloud sync on this device."
 #: src/settings/sync/index.tsx
 msgid "Upshot could not start cloud sync on this device. It will keep retrying."
 msgstr "Upshot could not start cloud sync on this device. It will keep retrying."
+
+#: src/chat/components/message/error.tsx
+msgid "Upshot couldn't answer. Try again."
+msgstr "Upshot couldn't answer. Try again."
 
 #: src/session/hooks/useAutoEnhance.ts
 msgid "Upshot couldn't reach Upshot AI. Open the Summary and click Generate summary."

@@ -1,6 +1,7 @@
 import { useLingui } from "@lingui/react/macro";
 
 import {
+  CaretDown,
   CheckCircle,
   Copy,
   Globe,
@@ -158,6 +159,9 @@ function TranscriptLanguageChip() {
         >
           <Globe aria-hidden className="text-muted-foreground size-3.5" />
           <span className="truncate">{label}</span>
+          {/* Fork: a chevron says it opens a menu, as Auto and Summary do
+              (picture review, Oct 9; Apple HIG, Pop-up buttons). */}
+          <CaretDown aria-hidden className="size-3 shrink-0" />
         </button>
       </PopoverTrigger>
       <PopoverContent

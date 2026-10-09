@@ -225,4 +225,24 @@ describe("useNoteShareActions", () => {
     );
     expect(mocks.openUrl).toHaveBeenCalledTimes(1);
   });
+
+  // Fork test: task test, Oct 8 (a failed copy still said it worked).
+  it("does not open a cut email when the full notes could not be copied", async () => {
+    mocks.enhancedContent = Array.from(
+      { length: 300 },
+      (_, i) => `- Point ${i}`,
+    ).join("\n");
+    mocks.copyTextToClipboard.mockResolvedValueOnce(false);
+    const { result } = renderHook(() =>
+      useNoteShareActions("session-1", { type: "enhanced", id: "summary-1" }),
+    );
+
+    await act(() => result.current.sendNotesViaEmail());
+
+    expect(mocks.toastSuccess).not.toHaveBeenCalled();
+    expect(mocks.toastError).toHaveBeenCalledWith(
+      "Couldn't copy your full notes. Try again.",
+    );
+    expect(mocks.openUrl).not.toHaveBeenCalled();
+  });
 });

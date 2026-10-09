@@ -42,6 +42,7 @@ import {
   useUpshotPlan,
 } from "~/upshot-plan";
 import { PrivacyPolicyLink, TestCardNote } from "~/upshot-plan/upgrade-dialog";
+import { STATUS_BADGE_CLASS } from "~/shared/ui/status-badge";
 
 const MONTHLY_PRICE = 14;
 const YEARLY_PRICE = 132;
@@ -633,7 +634,7 @@ function CurrentPlanChip() {
   // (picture review, Oct 7: 5 pt apart; Apple HIG, Layout).
   return (
     <span className="flex h-8 items-center">
-      <span className="border-border text-muted-foreground rounded-full border px-2 text-xs leading-5">
+      <span className={cn([STATUS_BADGE_CLASS, "px-1.5 leading-5"])}>
         <Trans>Current plan</Trans>
       </span>
     </span>

@@ -37,7 +37,8 @@ describe("Settings card groups", () => {
     const card = section.querySelector("[data-settings-card]");
     expect(card).not.toBeNull();
     expect(card?.className).toContain("rounded-xl");
-    expect(card?.className).toContain("divide-y");
+    // Fork: inset dividers drawn by each row after the first (Oct 9).
+    expect(card?.className).toContain("[&>*+*]:before:inset-x-4");
     expect(card?.children).toHaveLength(2);
     expect(
       section.querySelectorAll("[data-testid='setting-icon']"),

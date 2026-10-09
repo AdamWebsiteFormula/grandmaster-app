@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
     upgradeToPro: vi.fn(),
   },
   toastWarning: vi.fn(),
+  toast: vi.fn(),
 }));
 
 vi.mock("@lingui/react/macro", () => ({
@@ -46,7 +47,7 @@ vi.mock("~/auth/billing-context", () => ({
 }));
 
 vi.mock("@anlg/ui/components/ui/toast", () => ({
-  toast: { warning: mocks.toastWarning },
+  toast: Object.assign(mocks.toast, { warning: mocks.toastWarning }),
 }));
 
 vi.mock("~/shared/config", () => ({
@@ -113,6 +114,15 @@ describe("DictionarySettings", () => {
     fireEvent.click(screen.getByRole("button", { name: "Remove Anarlog" }));
 
     expect(onSave).toHaveBeenCalledWith(JSON.stringify(["Parakeet TDT"]));
+
+    // Fork test: task test, Oct 8 (Remove had no Undo).
+    const [title, options] =
+      mocks.toast.mock.calls[mocks.toast.mock.calls.length - 1]!;
+    expect(title).toBe("Removed “Anarlog”");
+    options.action.onClick();
+    expect(onSave).toHaveBeenLastCalledWith(
+      JSON.stringify(["Anarlog", "Parakeet TDT"]),
+    );
   });
 
   it("edits saved terms inline", () => {

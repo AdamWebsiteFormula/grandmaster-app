@@ -3,7 +3,9 @@ import type { ReactNode } from "react";
 
 import { Copy } from "@anlg/ui/components/icons";
 import { Button, type ButtonProps } from "@anlg/ui/components/ui/button";
+import { cn } from "@anlg/utils";
 
+import { STATUS_BADGE_CLASS } from "~/shared/ui/status-badge";
 import { getTemplateCreatorLabel } from "~/templates/utils";
 
 export function ResourcePreviewHeader({
@@ -84,7 +86,10 @@ export function ResourcePreviewHeader({
                   key={index}
                   // Fork: a card chip with a hairline; bg-muted is the panel's
                   // own color in light, so the tag drew no chip (NN/g #4).
-                  className="border-border bg-card dark:bg-muted text-muted-foreground inline-flex h-6 items-center rounded-md border px-2 py-0.5 text-xs"
+                  className={cn([
+                    STATUS_BADGE_CLASS,
+                    "inline-flex h-6 items-center px-2 py-0.5",
+                  ])}
                 >
                   {target}
                 </span>
