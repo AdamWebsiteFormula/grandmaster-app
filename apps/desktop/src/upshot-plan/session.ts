@@ -443,6 +443,29 @@ export async function getUpshotSttToken(): Promise<string | null> {
   }
 }
 
+/**
+ * Fork (Oct 9 bug sweep): what live recording sends to Upshot transcription.
+ * A reconnect reuses the key a recording started with, and the access token
+ * lasts about an hour, so a long meeting asks the Worker for a 3-hour
+ * transcription pass (worker auth.js, "Meeting pass"; AssemblyAI's streaming
+ * tokens work the same way). Null when signed out; the access token when the
+ * Worker gives no pass (offline, or an older Worker).
+ */
+export async function getUpshotSttPass(): Promise<string | null> {
+  try {
+    const { pass } = await upshotAuthedRequest<{ pass?: unknown }>(
+      "/stt/pass",
+      { method: "POST", body: {} },
+    );
+    if (typeof pass === "string" && pass) return pass;
+  } catch (error) {
+    if (error instanceof UpshotRequestError && error.status === 401) {
+      return null;
+    }
+  }
+  return getUpshotSttToken();
+}
+
 /** Call the Worker as the signed-in user. */
 export async function upshotAuthedRequest<T>(
   path: string,

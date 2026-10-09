@@ -19,6 +19,7 @@ import {
   handleGoogleCallback,
   handleOAuthExchange,
   handleOAuthStart,
+  handleSttPass,
   requireAccount,
   signInRequired,
 } from "./auth.js";
@@ -103,6 +104,11 @@ export default {
       return handleBilling(request, env, url.pathname);
     }
     // Upshot transcription for Windows, Linux and Intel Macs: see stt.js.
+    // Fork: a 3-hour transcription pass, so a long meeting can reconnect
+    // after the access token expires (auth.js).
+    if (request.method === "POST" && url.pathname === "/stt/pass") {
+      return handleSttPass(request, env);
+    }
     if (url.pathname.startsWith("/stt/")) {
       return handleStt(request, env, url);
     }

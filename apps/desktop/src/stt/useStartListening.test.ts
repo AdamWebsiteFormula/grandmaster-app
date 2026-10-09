@@ -82,7 +82,7 @@ const {
   idMock,
   openNewMock,
   emptyCaptureMock,
-  getUpshotSttTokenMock,
+  getUpshotSttPassMock,
   openUpshotSignInMock,
 } = vi.hoisted(() => ({
   emptyCaptureMock: vi.fn(),
@@ -147,12 +147,12 @@ const {
   flushCanonicalSessionEditorChangesMock: vi.fn(),
   idMock: vi.fn(() => "generated-id"),
   openNewMock: vi.fn(),
-  getUpshotSttTokenMock: vi.fn(),
+  getUpshotSttPassMock: vi.fn(),
   openUpshotSignInMock: vi.fn(),
 }));
 
 vi.mock("~/upshot-plan/session", () => ({
-  getUpshotSttToken: getUpshotSttTokenMock,
+  getUpshotSttPass: getUpshotSttPassMock,
 }));
 
 vi.mock("~/upshot-plan", () => ({
@@ -551,7 +551,7 @@ describe("getPostCaptureAction", () => {
 describe("useStartListening", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    getUpshotSttTokenMock.mockResolvedValue("upshot-token");
+    getUpshotSttPassMock.mockResolvedValue("upshot-token");
     getCaptureSnapshotMock.mockResolvedValue({
       status: "ok",
       data: { activeSessionId: null, finalizingSessionIds: [] },
@@ -1421,7 +1421,7 @@ describe("useStartListening", () => {
 
     test("asks for sign-in and does not start when signed out", async () => {
       useCloudConnection();
-      getUpshotSttTokenMock.mockResolvedValue(null);
+      getUpshotSttPassMock.mockResolvedValue(null);
       const { result } = renderHook(() => useStartListening("session-1"));
 
       await act(async () => {
@@ -1462,7 +1462,7 @@ describe("useStartListening", () => {
         await result.current();
       });
 
-      expect(getUpshotSttTokenMock).not.toHaveBeenCalled();
+      expect(getUpshotSttPassMock).not.toHaveBeenCalled();
       expect(openUpshotSignInMock).not.toHaveBeenCalled();
       expect(startMock).toHaveBeenCalledTimes(1);
       expect(startMock.mock.calls[0]?.[0]).toEqual(

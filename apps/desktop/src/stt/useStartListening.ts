@@ -34,7 +34,7 @@ import { getBaseLanguageDisplayName } from "~/settings/general/language";
 import { useConfigValue } from "~/shared/config";
 import { useTabs } from "~/store/zustand/tabs";
 import { openUpshotSignIn } from "~/upshot-plan";
-import { getUpshotSttToken } from "~/upshot-plan/session";
+import { getUpshotSttPass } from "~/upshot-plan/session";
 import {
   getLiveTranscriptionConfig,
   getTranscriptionLanguages,
@@ -116,7 +116,7 @@ export function useStartListeningState(
     // the provider key. On-device engines and own keys need no account.
     let apiKey = conn?.apiKey ?? "";
     if (isAnarlogCloudSttModel(conn?.provider, conn?.model)) {
-      const token = await getUpshotSttToken();
+      const token = await getUpshotSttPass();
       if (!token) {
         openUpshotSignIn("hosted");
         return;

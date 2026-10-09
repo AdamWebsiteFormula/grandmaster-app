@@ -29,6 +29,7 @@ import {
   createPkcePair,
   deleteUpshotAccount,
   getUpshotAccessToken,
+  getUpshotSttPass,
   getUpshotSttToken,
   isPasswordOnlySession,
   isSignInRequiredError,
@@ -320,6 +321,42 @@ describe("Upshot account session", () => {
     saveSession(Date.now() / 1000 - 10);
     mocks.fetch.mockRejectedValue(new TypeError("offline"));
     expect(await getUpshotSttToken()).toBe("old-access");
+  });
+
+  // Fork (Oct 9 bug sweep): live recording sends a 3-hour pass, so a
+  // reconnect after the access token expires still works.
+  it("live recording asks the Worker for a transcription pass", async () => {
+    saveSession(Date.now() / 1000 + 3600, "fresh-access");
+    mocks.fetch.mockResolvedValue(
+      Response.json({ pass: "sp1.sealed", expires_at: 1 }),
+    );
+    expect(await getUpshotSttPass()).toBe("sp1.sealed");
+    const [url, init] = mocks.fetch.mock.calls[0]!;
+    expect(url).toBe("https://upshot-ai.example.workers.dev/stt/pass");
+    expect(init.method).toBe("POST");
+    expect(new Headers(init.headers).get("Authorization")).toBe(
+      "Bearer fresh-access",
+    );
+  });
+
+  it("the pass is null signed out, and the access token when the Worker gives none", async () => {
+    expect(await getUpshotSttPass()).toBeNull();
+    expect(mocks.fetch).not.toHaveBeenCalled();
+
+    resetUpshotAccountForTests();
+    saveSession(Date.now() / 1000 + 3600, "fresh-access");
+    mocks.fetch.mockResolvedValue(
+      Response.json({ error: { message: "Not found" } }, { status: 404 }),
+    );
+    expect(await getUpshotSttPass()).toBe("fresh-access");
+
+    mocks.fetch.mockResolvedValue(
+      Response.json(
+        { error: { message: "Sign in", code: "sign_in_required" } },
+        { status: 401 },
+      ),
+    );
+    expect(await getUpshotSttPass()).toBeNull();
   });
 
   describe("password-only sessions", () => {

@@ -1,14 +1,14 @@
-// Upshot accounts: email and password through Supabase Auth (GoTrue).
+// Upshot accounts: Google or Microsoft through Supabase Auth (GoTrue).
 // The app talks only to this Worker, so no Supabase key ships in the app
 // (supabase.com/docs/guides/api/api-keys: the publishable key may be public,
 // but Upshot keeps every key on the server anyway).
 //
-// Routes: POST /auth/login, /auth/refresh; GET /auth/oauth/start and
-// POST /auth/oauth/exchange (Google or Microsoft, PKCE). Fork: new accounts
-// come only from Google or Microsoft, as Granola ("Granola only supports
-// Google and Microsoft single sign on": docs.granola.ai setup guide), so
-// /auth/signup answers 410. Upshot AI and transcription need such an
-// account (requireAccount, below).
+// Routes: POST /auth/refresh; GET /auth/oauth/start and POST
+// /auth/oauth/exchange (Google or Microsoft, PKCE); POST /stt/pass. Fork:
+// accounts come only from Google or Microsoft, as Granola ("Granola only
+// supports Google and Microsoft single sign on": docs.granola.ai setup
+// guide), so /auth/signup and the old password /auth/login answer 410.
+// Upshot AI and transcription need such an account (requireAccount, below).
 // getUser(): supabase.com/docs/guides/auth/jwts, "GET /auth/v1/user" with
 // apikey = publishable key and Authorization: Bearer <access token>.
 
@@ -26,11 +26,6 @@ import {
   sessionToken,
 } from "./http.js";
 
-const EMAIL = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,63}$/;
-// bcrypt, which Supabase Auth uses, reads at most 72 bytes.
-const MIN_PASSWORD = 8;
-const MAX_PASSWORD = 72;
-
 function supabaseHeaders(env) {
   return {
     apikey: env.SUPABASE_PUBLISHABLE_KEY,
@@ -42,34 +37,9 @@ function configured(env) {
   return Boolean(env.SUPABASE_URL && env.SUPABASE_PUBLISHABLE_KEY);
 }
 
-/** Supabase Auth error bodies vary by version: msg, error_description, message. */
-function authErrorMessage(body, fallback) {
-  const text =
-    body?.msg ?? body?.error_description ?? body?.message ?? body?.error;
-  return typeof text === "string" && text.length < 300 ? text : fallback;
-}
-
 // Fork: plain messages instead of raw Supabase errors (ux-audit-oct3 D,
 // NN/g #9).
-export const WRONG_LOGIN = "Wrong email or password.";
 const TOO_MANY = "Too many tries. Wait a minute, then try again.";
-const CONFIRM_EMAIL = "Check your email to confirm your account, then sign in.";
-
-// Supabase Auth error codes (supabase.com/docs/guides/auth/debugging/error-codes)
-// to fixed sentences; any other code gets the generic line, never raw text.
-const KNOWN_ERRORS = {
-  weak_password: "Choose a stronger password. This one is too easy to guess.",
-  email_address_invalid: "This email address can't be used. Try another one.",
-  signup_disabled: "New accounts are paused right now. Try again later.",
-  over_email_send_rate_limit:
-    "Too many sign-up emails were sent. Try again in an hour.",
-};
-
-function knownError(body) {
-  return Object.hasOwn(KNOWN_ERRORS, body?.error_code ?? "")
-    ? KNOWN_ERRORS[body.error_code]
-    : null;
-}
 
 export function sessionPayload(body) {
   const expiresAt =
@@ -81,21 +51,6 @@ export function sessionPayload(body) {
     expires_at: expiresAt,
     user: { id: body.user?.id, email: body.user?.email },
   };
-}
-
-function credentials(body) {
-  const email =
-    typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
-  const password = typeof body?.password === "string" ? body.password : "";
-  if (!EMAIL.test(email) || email.length > 254) {
-    return { error: "Enter a valid email address." };
-  }
-  if (password.length < MIN_PASSWORD || password.length > MAX_PASSWORD) {
-    return {
-      error: `Use a password of ${MIN_PASSWORD} to ${MAX_PASSWORD} characters.`,
-    };
-  }
-  return { email, password };
 }
 
 async function gotrue(env, path, payload) {
@@ -113,7 +68,11 @@ export const DOWNLOAD_URL =
 // Shown by apps from before sign-in existed, too: Upshot 1.0.0 shows this
 // text in chat and under a failed summary, so it says where the new app is.
 export const SIGN_IN_REQUIRED = `Sign in to use Upshot AI and transcription. It's free. Don't see Sign in? Download the new Upshot: ${DOWNLOAD_URL}`;
-const USE_GOOGLE_OR_MICROSOFT = `Upshot now signs in with Google or Microsoft. Download the new Upshot: ${DOWNLOAD_URL}`;
+// Fork (Oct 9): old apps sign in with a password; tell them how to keep
+// their account. Supabase links a Google or Microsoft sign-in to the
+// account with the same confirmed email (supabase.com/docs/guides/auth/
+// auth-identity-linking), so nobody signs up again.
+export const USE_GOOGLE_OR_MICROSOFT = `Upshot now signs in with Google or Microsoft. Use the same email to keep your account and plan. Download the new Upshot: ${DOWNLOAD_URL} No Google or Microsoft email? Write to adam@websiteformula.co.`;
 const NOT_FINISHED = "Sign-in didn't finish. Try again.";
 
 const OAUTH_PROVIDERS = new Set(["google", "azure"]);
@@ -443,7 +402,7 @@ export async function handleOAuthExchange(request, env) {
 
 export async function handleAuth(request, env, pathname) {
   if (!configured(env)) return json(503, "Accounts are not available yet.");
-  if (pathname === "/auth/signup") {
+  if (pathname === "/auth/signup" || pathname === "/auth/login") {
     return json(410, USE_GOOGLE_OR_MICROSOFT, "use_google_or_microsoft");
   }
   if (await rateLimited(request, env, "auth")) {
@@ -468,29 +427,7 @@ export async function handleAuth(request, env, pathname) {
     return ok(sessionPayload(body));
   }
 
-  const parsed = credentials(input);
-  if (parsed.error) return json(400, parsed.error);
-
-  // /auth/login
-  const { response, body } = await gotrue(
-    env,
-    "token?grant_type=password",
-    parsed,
-  );
-  if (!response.ok || !body.access_token) {
-    if (response.status === 429) return json(429, TOO_MANY);
-    if (response.status >= 500) {
-      return json(502, "Could not sign in. Try again in a minute.");
-    }
-    if (body?.error_code === "email_not_confirmed") {
-      return json(400, CONFIRM_EMAIL);
-    }
-    const known = knownError(body);
-    if (known) return json(400, known);
-    // Supabase answers 400 "Invalid login credentials".
-    return json(400, WRONG_LOGIN);
-  }
-  return ok(sessionPayload(body));
+  return json(404, "Not found");
 }
 
 /** The signed-in user for a request's Bearer token, or null. */
@@ -560,4 +497,38 @@ export function accountRequired(env) {
 /** 401 with the sign-in message, for chat and transcription. */
 export function signInRequired() {
   return json(401, SIGN_IN_REQUIRED, "sign_in_required");
+}
+
+// ---------- Meeting pass for Upshot transcription ----------
+//
+// Fork (Oct 9 bug sweep): a meeting can outlast the one-hour access token,
+// and a dropped stream reconnects with the token it started with. Deepgram
+// and AssemblyAI check a token only when a stream opens, and AssemblyAI's
+// streaming token lets one session run up to 3 hours (assemblyai.com/docs/
+// streaming/api-spec/generate-streaming-token). An expired JWT is never
+// accepted (RFC 7519 §4.1.4), so the app asks for this pass when recording
+// starts: sealed here, for transcription only, valid 3 hours.
+const STT_PASS_PREFIX = "sp1.";
+export const STT_PASS_SECONDS = 3 * 60 * 60;
+
+/** POST /stt/pass: a transcription-only pass for the signed-in account. */
+export async function handleSttPass(request, env) {
+  if (!env.OAUTH_STATE_KEY) {
+    return json(503, "Upshot transcription isn't available yet.", "stt_pass_unavailable");
+  }
+  if (await rateLimited(request, env, "auth")) return json(429, TOO_MANY);
+  const account = await requireAccount(request, env);
+  if (!account) return signInRequired();
+  const expiresAt = Math.floor(Date.now() / 1000) + STT_PASS_SECONDS;
+  const pass = await seal(env, { p: "stt", u: account.id, exp: expiresAt });
+  return ok({ pass: `${STT_PASS_PREFIX}${pass}`, expires_at: expiresAt });
+}
+
+/** The account behind a transcription request: a meeting pass or a session. */
+export async function sttAccount(request, env, now = Date.now()) {
+  const token = sessionToken(request);
+  if (!token?.startsWith(STT_PASS_PREFIX)) return requireAccount(request, env, now);
+  if (!env.OAUTH_STATE_KEY) return null;
+  const value = await unseal(env, token.slice(STT_PASS_PREFIX.length), now);
+  return value?.p === "stt" && typeof value.u === "string" ? { id: value.u } : null;
 }

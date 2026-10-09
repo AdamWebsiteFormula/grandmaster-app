@@ -12,7 +12,7 @@ import {
   statusPayload,
   verifyStripeSignature,
 } from "./src/billing.js";
-import { clearAccountCacheForTests } from "./src/auth.js";
+import { clearAccountCacheForTests, STT_PASS_SECONDS } from "./src/auth.js";
 import {
   clearCalendarCacheForTests,
   decryptToken,
@@ -985,89 +985,27 @@ test("webhook after account deletion is ignored, not retried", async () => {
   }
 });
 
-test("auth: wrong password gets a plain message; sign-up is gone", async () => {
-  const mock = mockFetch([
-    [
-      "https://sb.test/auth/v1/token?grant_type=password",
-      () =>
-        Response.json(
-          {
-            error: "invalid_grant",
-            error_description: "Invalid login credentials",
-          },
-          { status: 400 },
-        ),
-    ],
-  ]);
-  const post = (path) =>
-    worker.fetch(
-      new Request(`https://w${path}`, {
-        method: "POST",
-        body: JSON.stringify({
-          email: "judge@example.com",
-          password: "password123",
-        }),
-      }),
-      baseEnv,
-    );
+// Fork (Oct 9): old apps' password sign-in and sign-up both say how to keep
+// the account, and never reach Supabase.
+test("auth: password sign-in and sign-up are gone, with the way forward", async () => {
+  const mock = mockFetch([]);
   try {
-    const login = await post("/auth/login");
-    assert.equal(login.status, 400);
-    assert.deepEqual(await login.json(), {
-      error: { message: "Wrong email or password." },
-    });
-    // Fork: new accounts come only from Google or Microsoft.
-    const signup = await post("/auth/signup");
-    assert.equal(signup.status, 410);
-    const gone = await signup.json();
-    assert.equal(gone.error.code, "use_google_or_microsoft");
-    assert.match(gone.error.message, /releases\/latest/);
-    assert.ok(!mock.calls.some((call) => call.url.includes("/signup")));
-  } finally {
-    mock.restore();
-  }
-});
-
-test("auth: login forwards to Supabase and validates input", async () => {
-  const mock = mockFetch([
-    [
-      "https://sb.test/auth/v1/token?grant_type=password",
-      (_url, init) => {
-        assert.equal(init.headers.apikey, "sb_publishable_test");
-        return Response.json({
-          access_token: "a",
-          refresh_token: "r",
-          expires_at: 123,
-          user: { id: "user-1", email: "judge@example.com" },
-        });
-      },
-    ],
-  ]);
-  try {
-    const bad = await worker.fetch(
-      new Request("https://w/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email: "nope", password: "x" }),
-      }),
-      baseEnv,
-    );
-    assert.equal(bad.status, 400);
-    const good = await worker.fetch(
-      new Request("https://w/auth/login", {
-        method: "POST",
-        body: JSON.stringify({
-          email: "Judge@Example.com",
-          password: "password123",
+    for (const path of ["/auth/login", "/auth/signup"]) {
+      const response = await worker.fetch(
+        new Request(`https://w${path}`, {
+          method: "POST",
+          body: JSON.stringify({ email: "judge@example.com", password: "password123" }),
         }),
-      }),
-      baseEnv,
-    );
-    assert.deepEqual(await good.json(), {
-      access_token: "a",
-      refresh_token: "r",
-      expires_at: 123,
-      user: { id: "user-1", email: "judge@example.com" },
-    });
+        baseEnv,
+      );
+      assert.equal(response.status, 410);
+      const { error } = await response.json();
+      assert.equal(error.code, "use_google_or_microsoft");
+      assert.match(error.message, /Google or Microsoft/);
+      assert.match(error.message, /same email/);
+      assert.match(error.message, /releases\/latest/);
+    }
+    assert.equal(mock.calls.length, 0);
   } finally {
     mock.restore();
   }
@@ -2350,4 +2288,89 @@ test("media: the home page video answers byte ranges with 206, as Safari needs",
   assert.equal(r.headers.get("Accept-Ranges"), "bytes");
   r = await worker.fetch(new Request("https://upshotnotes.com/media/none.mp4"), env);
   assert.equal(r.status, 404);
+});
+
+// ---------- Meeting pass (Oct 9 bug sweep) ----------
+
+test("stt pass: a signed-in account gets a 3-hour pass that opens transcription", async () => {
+  clearAccountCacheForTests();
+  const env = { ...accountEnv, OAUTH_STATE_KEY: STATE_KEY };
+  await withFetch(
+    (url, init) => {
+      if (url.startsWith("https://sb.test/auth/v1/user")) return supabaseUser(url, init);
+      return Object.assign(new Response(null, { status: 200 }), { webSocket: {} });
+    },
+    async (calls) => {
+      const signedOut = await worker.fetch(
+        new Request("https://w/stt/pass", { method: "POST" }),
+        env,
+      );
+      assert.equal(signedOut.status, 401);
+      const password = await worker.fetch(
+        new Request("https://w/stt/pass", {
+          method: "POST",
+          headers: { authorization: `Bearer ${PASSWORD_TOKEN}` },
+        }),
+        env,
+      );
+      assert.equal(password.status, 401);
+
+      const issued = await worker.fetch(
+        new Request("https://w/stt/pass", {
+          method: "POST",
+          headers: { authorization: `Bearer ${GOOGLE_TOKEN}` },
+        }),
+        env,
+      );
+      assert.equal(issued.status, 200);
+      const { pass, expires_at } = await issued.json();
+      assert.match(pass, /^sp1\./);
+      const left = expires_at - Date.now() / 1000;
+      assert.ok(left > STT_PASS_SECONDS - 5 && left <= STT_PASS_SECONDS);
+
+      // Supabase is not asked again: the pass alone opens the stream.
+      const before = calls.filter((c) => c.url.includes("/auth/v1/user")).length;
+      clearAccountCacheForTests();
+      const live = await worker.fetch(
+        new Request("https://w/stt/listen?model=cloud", {
+          headers: { upgrade: "websocket", authorization: `Token ${pass}` },
+        }),
+        env,
+      );
+      assert.equal(live.status, 200);
+      assert.equal(calls.filter((c) => c.url.includes("/auth/v1/user")).length, before);
+      const deepgram = calls.find((c) => c.url.startsWith("https://api.deepgram.com"));
+      assert.equal(deepgram.init.headers.authorization, "Token dg-test");
+    },
+  );
+});
+
+test("stt pass: expired, forged or other sealed values are refused", async () => {
+  clearAccountCacheForTests();
+  const env = { ...accountEnv, OAUTH_STATE_KEY: STATE_KEY };
+  const { seal } = await import("./src/auth.js");
+  const now = Math.floor(Date.now() / 1000);
+  const expired = `sp1.${await seal(env, { p: "stt", u: "u-google", exp: now - 1 })}`;
+  const notStt = `sp1.${await seal(env, { p: "x", u: "u-google", exp: now + 60 })}`;
+  const forged = `sp1.${"A".repeat(80)}`;
+  const otherKey = {
+    ...env,
+    OAUTH_STATE_KEY: Buffer.from(new Uint8Array(32).fill(7)).toString("base64"),
+  };
+  const wrongKey = `sp1.${await seal(otherKey, { p: "stt", u: "u-google", exp: now + 60 })}`;
+  await withFetch(
+    () => Object.assign(new Response(null, { status: 200 }), { webSocket: {} }),
+    async (calls) => {
+      for (const token of [expired, notStt, forged, wrongKey]) {
+        const response = await worker.fetch(
+          new Request("https://w/stt/listen?model=cloud", {
+            headers: { upgrade: "websocket", authorization: `Token ${token}` },
+          }),
+          env,
+        );
+        assert.equal(response.status, 401, token.slice(0, 12));
+      }
+      assert.ok(!calls.some((c) => c.url.startsWith("https://api.deepgram.com")));
+    },
+  );
 });
