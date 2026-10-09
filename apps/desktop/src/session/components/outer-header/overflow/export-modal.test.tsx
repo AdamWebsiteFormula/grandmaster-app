@@ -182,6 +182,16 @@ describe("ExportModal destination", () => {
     ).toBe(true);
   });
 
+  // Fork test: task test, Oct 8 (an empty note exported a title-only file).
+  it("has nothing to export for an empty note", () => {
+    mocks.enhancedNotes = [];
+    renderModal();
+
+    expect(
+      screen.getByRole("button", { name: "Export" }).hasAttribute("disabled"),
+    ).toBe(true);
+  });
+
   it("keeps Summary as the default when the note has one", () => {
     renderModal();
     const summary = screen.getByRole("checkbox", {

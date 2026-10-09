@@ -161,7 +161,11 @@ export function ChatPage() {
       <div className="mx-auto flex w-full max-w-[640px] flex-col gap-8 px-8 pt-24 pb-10">
         {chatOpen ? null : (
           <h1 className="text-foreground font-display text-center text-2xl font-semibold tracking-[-0.01em] text-balance">
-            {firstName ? t`Hi ${firstName}, ask anything` : t`Ask anything`}
+            {/* Fork: the field says "Ask anything", so the heading asks
+                instead of repeating it (picture review, Oct 9; NN/g #8). */}
+            {firstName
+              ? t`Hi ${firstName}, what do you want to know?`
+              : t`What do you want to know?`}
           </h1>
         )}
 

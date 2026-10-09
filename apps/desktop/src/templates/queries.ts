@@ -1,6 +1,8 @@
+import { t } from "@lingui/core/macro";
 import { useMutation } from "@tanstack/react-query";
 import { useCallback } from "react";
 
+import { toast } from "@anlg/ui/components/ui/toast";
 import { eq, max, ne, sql, templates } from "@anlg/db";
 import type { TemplateSection } from "@anlg/store";
 
@@ -247,6 +249,11 @@ export function useSaveTemplate() {
     },
     onError: (error) => {
       console.error("[useSaveTemplate]", error);
+      // Fork: the form autosaves, so a failed save must say so; edits were
+      // lost with no word (task test, Oct 9; NN/g #9).
+      toast.error(t`Couldn't save this template. Try again.`, {
+        id: "template-not-saved",
+      });
     },
   });
 

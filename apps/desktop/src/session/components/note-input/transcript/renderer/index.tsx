@@ -12,6 +12,7 @@ import {
 import { flushSync } from "react-dom";
 import { useHotkeys } from "react-hotkeys-hook";
 
+import { toast } from "@anlg/ui/components/ui/toast";
 import { ArrowDown, ArrowUp } from "@anlg/ui/components/icons";
 import { cn } from "@anlg/utils";
 
@@ -43,6 +44,7 @@ import { trackAnalyticsEvent } from "~/analytics";
 import { useAudioPlayer } from "~/audio-player";
 import { useAudioTime } from "~/audio-player/provider";
 import type { Segment } from "~/stt/live-segment";
+import { copyTextToClipboard } from "~/session/components/note-input/header-shared";
 import {
   assignTranscriptSpeaker,
   getTranscriptRecord,
@@ -164,7 +166,12 @@ export function TranscriptViewer({
   const handleSelectionAction = useCallback(
     (action: "copy" | "play", selection: TranscriptWordSelection) => {
       if (action === "copy") {
-        void navigator.clipboard.writeText(selection.text);
+        // Fork: say it copied, or that it didn't, as the toolbar's Copy
+        // transcript does (task test, Oct 9; NN/g #1, #4).
+        void copyTextToClipboard(selection.text, {
+          success: t`Copied to clipboard`,
+          error: t`Couldn't copy. Try again.`,
+        });
         return;
       }
 
@@ -249,17 +256,25 @@ export function TranscriptViewer({
     const groups = selection.groups.filter(
       (group) => group.transcriptId === targetGroup.transcriptId,
     );
-    await preserveScrollPosition(containerRef.current, () =>
-      Promise.all(
-        groups.map((group) =>
-          mergeTranscriptSegments({
-            transcriptId: group.transcriptId,
-            segmentKey: targetGroup.segmentKey,
-            wordIds: group.wordIds,
-          }),
+    // Fork: a failed merge says so instead of failing in silence (task
+    // test, Oct 9; NN/g #9).
+    try {
+      await preserveScrollPosition(containerRef.current, () =>
+        Promise.all(
+          groups.map((group) =>
+            mergeTranscriptSegments({
+              transcriptId: group.transcriptId,
+              segmentKey: targetGroup.segmentKey,
+              wordIds: group.wordIds,
+            }),
+          ),
         ),
-      ),
-    );
+      );
+    } catch (error) {
+      console.error("[transcript] failed to merge lines", error);
+      toast.error(t`Couldn't merge these lines. Try again.`);
+      return;
+    }
     trackAnalyticsEvent("participant_assigned", {
       assignment_scope: "merge",
       word_count: groups.reduce(

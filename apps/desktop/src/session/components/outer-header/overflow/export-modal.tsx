@@ -435,8 +435,13 @@ export function ExportModal({
     if (open) reset();
   }, [open, reset]);
 
+  // Fork: empty My notes count as nothing to export, so an empty note can't
+  // make a file that holds only its title (task test, Oct 8; NN/g #5).
+  const hasMemo = getMemoMd().trim().length > 0;
   const hasAnyContentSelected =
-    includeMemo || (includeSummary && hasSummary) || includeTranscript;
+    (includeMemo && hasMemo) ||
+    (includeSummary && hasSummary) ||
+    includeTranscript;
   const isTranscriptPending = includeTranscript && isTranscriptLoading;
   if (!open) {
     return null;

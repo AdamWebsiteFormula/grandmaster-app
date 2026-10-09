@@ -1999,6 +1999,10 @@ msgstr "Control recording without reopening Upshot."
 msgid "Copied"
 msgstr "Copied"
 
+#: src/session/components/note-input/transcript/renderer/index.tsx
+msgid "Copied to clipboard"
+msgstr "Copied to clipboard"
+
 #: src/main/windows-title-bar.tsx
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 #: src/settings/ai/llm/subscriptions/connect.tsx
@@ -2234,9 +2238,21 @@ msgstr "Could not update this person's access."
 msgid "Could not use the selected model"
 msgstr "Could not use the selected model"
 
+#: src/folders/folder-editor.tsx
+msgid "Couldn't add that file. Try again."
+msgstr "Couldn't add that file. Try again."
+
 #: src/session/components/note-input/template-picker.tsx
 msgid "Couldn't add the template. Try again."
 msgstr "Couldn't add the template. Try again."
+
+#: src/folders/folder-editor.tsx
+msgid "Couldn't change the icon. Try again."
+msgstr "Couldn't change the icon. Try again."
+
+#: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
+msgid "Couldn't change the speaker. Try again."
+msgstr "Couldn't change the speaker. Try again."
 
 #: src/settings/team/index.tsx
 msgid "Couldn’t check availability. You can still try Save."
@@ -2262,6 +2278,10 @@ msgstr "Couldn't copy your full notes. Try again."
 #: src/session/components/outer-header/share-actions.ts
 msgid "Couldn't copy your notes. Try again."
 msgstr "Couldn't copy your notes. Try again."
+
+#: src/session/components/note-input/transcript/renderer/index.tsx
+msgid "Couldn't copy. Try again."
+msgstr "Couldn't copy. Try again."
 
 #: src/session/components/note-input/template-picker.tsx
 msgid "Couldn't create the template. Try again."
@@ -2307,6 +2327,10 @@ msgstr "Couldn’t load your insights. Reopen this page to try again."
 msgid "Couldn't load your profile. Reopen this page to try again."
 msgstr "Couldn't load your profile. Reopen this page to try again."
 
+#: src/session/components/note-input/transcript/renderer/index.tsx
+msgid "Couldn't merge these lines. Try again."
+msgstr "Couldn't merge these lines. Try again."
+
 #: src/session/components/folder-picker.tsx
 msgid "Couldn't move the note. Try again."
 msgstr "Couldn't move the note. Try again."
@@ -2343,9 +2367,17 @@ msgstr "Couldn't restore these lines. Try again."
 msgid "Couldn't restore this version. Try again."
 msgstr "Couldn't restore this version. Try again."
 
+#: src/settings/queries.ts
+msgid "Couldn't save that setting. Try again."
+msgstr "Couldn't save that setting. Try again."
+
 #: src/session/folder-instructions.tsx
 msgid "Couldn't save the folder context. Try again."
 msgstr "Couldn't save the folder context. Try again."
+
+#: src/templates/queries.ts
+msgid "Couldn't save this template. Try again."
+msgstr "Couldn't save this template. Try again."
 
 #: src/settings/stats/badge-collection.tsx
 msgid "Couldn't save your new badges."
@@ -3579,8 +3611,12 @@ msgid "Help Upshot read meeting details"
 msgstr "Help Upshot read meeting details"
 
 #: src/chat/components/chat-page.tsx
-msgid "Hi {firstName}, ask anything"
-msgstr "Hi {firstName}, ask anything"
+#~ msgid "Hi {firstName}, ask anything"
+#~ msgstr "Hi {firstName}, ask anything"
+
+#: src/chat/components/chat-page.tsx
+msgid "Hi {firstName}, what do you want to know?"
+msgstr "Hi {firstName}, what do you want to know?"
 
 #: src/calendar/components/event-chip.tsx
 msgid "Hide all events in this series"
@@ -8709,6 +8745,10 @@ msgstr "What are my action items from this meeting?"
 #: src/chat/components/recipes.tsx
 msgid "What did I commit to this week?"
 msgstr "What did I commit to this week?"
+
+#: src/chat/components/chat-page.tsx
+msgid "What do you want to know?"
+msgstr "What do you want to know?"
 
 #: src/folders/folder-editor.tsx
 #~ msgid "What these notes are usually about"

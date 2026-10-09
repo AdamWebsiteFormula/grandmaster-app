@@ -89,13 +89,16 @@ export function HomeComposer() {
             light, border-input (design-system.md Contrast; redline3-oct3 S2). */}
         <div
           className={cn([
-            "bg-card dark:bg-muted border-input pointer-events-auto flex flex-col rounded-2xl border p-1",
+            // Fork: pt-3 puts the chips 16 pt below the border, as the field
+            // sits 16 pt from its other edges (picture review, Oct 9: 10 pt;
+            // Apple HIG, Layout).
+            "bg-card dark:bg-muted border-input pointer-events-auto flex flex-col rounded-2xl border p-1 pt-3",
             "has-[input:focus-visible]:ring-ring has-[input:focus-visible]:ring-2",
           ])}
         >
           {/* Fork: chips that do not fit wrap onto a hidden second line, so a
               narrow window shows only whole chips (no cut-off labels). */}
-          <div className="flex h-9 min-w-0 flex-wrap items-center gap-1 overflow-hidden px-1 py-1">
+          <div className="flex h-9 min-w-0 flex-wrap items-center gap-1.5 overflow-hidden px-1 py-1">
             {/* Fork: the icon-only history button says what it is, by name
                 and on hover (redline3-oct3 S2; Apple HIG "Offering help":
                 help tags for icon-only controls; WCAG 2.2 SC 4.1.2). */}

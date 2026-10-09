@@ -1999,6 +1999,10 @@ msgstr ""
 msgid "Copied"
 msgstr ""
 
+#: src/session/components/note-input/transcript/renderer/index.tsx
+msgid "Copied to clipboard"
+msgstr ""
+
 #: src/main/windows-title-bar.tsx
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 #: src/settings/ai/llm/subscriptions/connect.tsx
@@ -2234,8 +2238,20 @@ msgstr ""
 msgid "Could not use the selected model"
 msgstr ""
 
+#: src/folders/folder-editor.tsx
+msgid "Couldn't add that file. Try again."
+msgstr ""
+
 #: src/session/components/note-input/template-picker.tsx
 msgid "Couldn't add the template. Try again."
+msgstr ""
+
+#: src/folders/folder-editor.tsx
+msgid "Couldn't change the icon. Try again."
+msgstr ""
+
+#: src/session/components/note-input/transcript/renderer/speaker-assign.tsx
+msgid "Couldn't change the speaker. Try again."
 msgstr ""
 
 #: src/settings/team/index.tsx
@@ -2261,6 +2277,10 @@ msgstr ""
 #: src/session/components/note-input/header-raw.tsx
 #: src/session/components/outer-header/share-actions.ts
 msgid "Couldn't copy your notes. Try again."
+msgstr ""
+
+#: src/session/components/note-input/transcript/renderer/index.tsx
+msgid "Couldn't copy. Try again."
 msgstr ""
 
 #: src/session/components/note-input/template-picker.tsx
@@ -2307,6 +2327,10 @@ msgstr ""
 msgid "Couldn't load your profile. Reopen this page to try again."
 msgstr ""
 
+#: src/session/components/note-input/transcript/renderer/index.tsx
+msgid "Couldn't merge these lines. Try again."
+msgstr ""
+
 #: src/session/components/folder-picker.tsx
 msgid "Couldn't move the note. Try again."
 msgstr ""
@@ -2343,8 +2367,16 @@ msgstr ""
 msgid "Couldn't restore this version. Try again."
 msgstr ""
 
+#: src/settings/queries.ts
+msgid "Couldn't save that setting. Try again."
+msgstr ""
+
 #: src/session/folder-instructions.tsx
 msgid "Couldn't save the folder context. Try again."
+msgstr ""
+
+#: src/templates/queries.ts
+msgid "Couldn't save this template. Try again."
 msgstr ""
 
 #: src/settings/stats/badge-collection.tsx
@@ -3579,7 +3611,11 @@ msgid "Help Upshot read meeting details"
 msgstr ""
 
 #: src/chat/components/chat-page.tsx
-msgid "Hi {firstName}, ask anything"
+#~ msgid "Hi {firstName}, ask anything"
+#~ msgstr ""
+
+#: src/chat/components/chat-page.tsx
+msgid "Hi {firstName}, what do you want to know?"
 msgstr ""
 
 #: src/calendar/components/event-chip.tsx
@@ -8708,6 +8744,10 @@ msgstr ""
 
 #: src/chat/components/recipes.tsx
 msgid "What did I commit to this week?"
+msgstr ""
+
+#: src/chat/components/chat-page.tsx
+msgid "What do you want to know?"
 msgstr ""
 
 #: src/folders/folder-editor.tsx

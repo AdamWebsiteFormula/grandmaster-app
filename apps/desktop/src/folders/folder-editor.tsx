@@ -230,7 +230,10 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
 
   return (
     <section className="flex h-full flex-1 flex-col" aria-label={folderPath}>
-      <div className="flex h-12 items-center justify-end gap-3 pr-1 pl-3">
+      {/* Fork: pr-2 ends More on the note header's trailing edge, so it
+          doesn't move between a note and a folder (picture review, Oct 9:
+          4.5 pt; Apple HIG, Toolbars). */}
+      <div className="flex h-12 items-center justify-end gap-3 pr-2 pl-3">
         <div className="flex items-center gap-0.5">
           <ResourceShareButton
             resourceType="folder"
@@ -292,6 +295,7 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
                 void updateFolderIcon(folderPath, nextIcon).catch((error) => {
                   clearIconOverride(folderPath, nextIcon);
                   console.error("[folder-editor] failed to update icon", error);
+                  toast.error(t`Couldn't change the icon. Try again.`);
                 });
               }}
             />
@@ -426,6 +430,11 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
                 setBusy(true);
                 try {
                   await upload(file);
+                } catch (error) {
+                  // Fork: a failed upload said nothing (task test, Oct 9;
+                  // NN/g #9).
+                  console.error("[folder-editor] failed to add file", error);
+                  toast.error(t`Couldn't add that file. Try again.`);
                 } finally {
                   setBusy(false);
                 }

@@ -1,3 +1,4 @@
+import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -16,6 +17,11 @@ const mocks = vi.hoisted(() => ({
   // Not a desktop platform by default, so only the tests below that set one
   // get the Upshot transcription default.
   platform: vi.fn(() => "ios"),
+  toastError: vi.fn(),
+}));
+
+vi.mock("@anlg/ui/components/ui/toast", () => ({
+  toast: Object.assign(vi.fn(), { error: mocks.toastError }),
 }));
 
 vi.mock("@tauri-apps/plugin-os", () => ({
@@ -70,6 +76,7 @@ import {
   parseSettingRows,
   setSettingValues,
   updateSettingValue,
+  useSetSettingValues,
 } from "./queries";
 
 describe("SQLite settings", () => {
@@ -206,6 +213,21 @@ describe("SQLite settings", () => {
     expect(result.values.ai_language).toBe("fr");
     expect(result.values.spoken_languages).toBe('["fr"]');
     expect(result.values.theme).toBe("dark");
+  });
+
+  // Fork test: task test, Oct 9 (a failed setting save said nothing).
+  it("says so when a setting could not be saved", async () => {
+    mocks.executeTransaction.mockRejectedValueOnce(new Error("disk full"));
+    const { result } = renderHook(() => useSetSettingValues());
+
+    result.current({ theme: "dark" });
+
+    await vi.waitFor(() =>
+      expect(mocks.toastError).toHaveBeenCalledWith(
+        "Couldn't save that setting. Try again.",
+        { id: "setting-not-saved" },
+      ),
+    );
   });
 
   it("writes multiple independent values in one transaction", async () => {

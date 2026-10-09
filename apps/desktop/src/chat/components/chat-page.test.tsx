@@ -117,16 +117,18 @@ describe("ChatPage", () => {
     render(<TabContentChat />);
 
     expect(
-      screen.getByRole("heading", { name: "Hi Adam, ask anything" }),
+      screen.getByRole("heading", {
+        name: "Hi Adam, what do you want to know?",
+      }),
     ).toBeTruthy();
     expect(screen.getByRole("textbox", { name: "Ask anything" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Auto" })).toBeTruthy();
   });
 
-  it("says Ask anything when signed out and hides Recents until a chat exists", () => {
+  it("says What do you want to know? when signed out and hides Recents until a chat exists", () => {
     render(<ChatPage />);
 
-    expect(screen.getByRole("heading", { name: "Ask anything" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "What do you want to know?" })).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Recent" })).toBeNull();
     expect(screen.queryByText("Your chats show up here")).toBeNull();
   });
@@ -234,7 +236,9 @@ describe("ChatPage", () => {
     mocks.email = "info@project-go.com";
     render(<ChatPage />);
     expect(
-      screen.getByRole("heading", { name: "Hi Taylor, ask anything" }),
+      screen.getByRole("heading", {
+        name: "Hi Taylor, what do you want to know?",
+      }),
     ).toBeTruthy();
   });
 
@@ -243,7 +247,9 @@ describe("ChatPage", () => {
     mocks.email = "adam@project-go.com";
     render(<ChatPage />);
     expect(
-      screen.getByRole("heading", { name: "Hi Adam, ask anything" }),
+      screen.getByRole("heading", {
+        name: "Hi Adam, what do you want to know?",
+      }),
     ).toBeTruthy();
   });
 

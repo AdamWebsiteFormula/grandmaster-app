@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 import { arch, platform } from "@tauri-apps/plugin-os";
 import { useCallback } from "react";
@@ -9,6 +10,7 @@ import { commands as templateCommands } from "@anlg/plugin-template";
 import { commands as trayCommands } from "@anlg/plugin-tray";
 import { commands as updaterCommands } from "@anlg/plugin-updater2";
 import { commands as windowsCommands } from "@anlg/plugin-windows";
+import { toast } from "@anlg/ui/components/ui/toast";
 
 import { normalizeUpshotModel, UPSHOT_AUTO_MODEL } from "~/ai/upshot-models";
 import { executeTransaction, liveQueryClient, useLiveQuery } from "~/db";
@@ -276,11 +278,21 @@ export function updateSettingValue<K extends SettingKey>(
   });
 }
 
+// Fork: a setting that fails to save says so; the switch kept the new
+// value and Settings showed the old one next time, with no word (task
+// test, Oct 9; NN/g #9).
+function showSettingNotSavedToast() {
+  toast.error(t`Couldn't save that setting. Try again.`, {
+    id: "setting-not-saved",
+  });
+}
+
 export function useSetSettingValue<K extends SettingKey>(key: K) {
   return useCallback(
     (value: SettingValue<K>) => {
       void setSettingValue(key, value).catch((error) => {
         console.error(`[settings] failed to update ${key}`, error);
+        showSettingNotSavedToast();
       });
     },
     [key],
@@ -291,6 +303,7 @@ export function useSetSettingValues() {
   return useCallback((values: SettingValues) => {
     void setSettingValues(values).catch((error) => {
       console.error("[settings] failed to update values", error);
+      showSettingNotSavedToast();
     });
   }, []);
 }

@@ -1,6 +1,8 @@
+import { t as tm } from "@lingui/core/macro";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useCallback, useMemo, useRef, useState } from "react";
 
+import { toast } from "@anlg/ui/components/ui/toast";
 import type { EventParticipant } from "@anlg/store";
 import { MagnifyingGlass, Plus } from "@anlg/ui/components/icons";
 import { Checkbox } from "@anlg/ui/components/ui/checkbox";
@@ -94,6 +96,9 @@ export function SpeakerAssignPopover({
         })
         .catch((error) => {
           console.error("[transcript] failed to assign speaker", error);
+          // Fork: say it failed; the picker stayed open with no word (task
+          // test, Oct 9; NN/g #9).
+          toast.error(tm`Couldn't change the speaker. Try again.`);
         });
     },
     [handleOpenChange, onAssigned, sessionId, transcriptId, segment],
@@ -479,6 +484,7 @@ export function SpeakerParticipantPicker({
       })
       .catch((error) => {
         console.error("[transcript] failed to prepare speaker", error);
+        toast.error(tm`Couldn't change the speaker. Try again.`);
       })
       .finally(() => setAssigning(false));
   }, [
