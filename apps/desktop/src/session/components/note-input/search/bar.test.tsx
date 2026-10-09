@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const hoisted = vi.hoisted(() => ({
@@ -54,6 +54,7 @@ vi.mock("./context", () => ({
 import { SearchBar } from "./bar";
 
 afterEach(() => {
+  cleanup();
   hoisted.setSearch.mockClear();
   hoisted.platform.mockReturnValue("macos");
 });
@@ -110,5 +111,19 @@ describe("SearchBar", () => {
 
     expect(container.textContent).not.toContain("Replace");
     expect(container.textContent).not.toContain("⌥⌘F");
+  });
+
+  it("names every icon button and says whether toggles are on", () => {
+    const { getByRole } = render(<SearchBar />);
+
+    for (const name of ["Previous match", "Next match", "Close"]) {
+      expect(getByRole("button", { name })).toBeTruthy();
+    }
+    expect(
+      getByRole("button", { name: "Match case" }).getAttribute("aria-pressed"),
+    ).toBe("false");
+    expect(
+      getByRole("button", { name: "Replace" }).getAttribute("aria-pressed"),
+    ).toBe("false");
   });
 });

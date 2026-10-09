@@ -24,14 +24,18 @@ import { useSearch } from "./context";
 
 import { kbdLabel } from "~/shared/shortcut-label";
 
+// Fork: icon-only buttons get a spoken name, and toggles say whether they are
+// on; the tooltip alone is hover-only (task sweep, Oct 9; WCAG 2.2 SC 4.1.2).
 function ToggleButton({
   active,
   onClick,
+  label,
   tooltip,
   children,
 }: {
   active: boolean;
   onClick: () => void;
+  label: string;
   tooltip: React.ReactNode;
   children: React.ReactNode;
 }) {
@@ -39,6 +43,9 @@ function ToggleButton({
     <Tooltip>
       <TooltipTrigger asChild>
         <button
+          type="button"
+          aria-label={label}
+          aria-pressed={active}
           onClick={onClick}
           className={cn([
             "rounded-sm p-0.5 transition-colors",
@@ -60,16 +67,20 @@ function ToggleButton({
 function IconButton({
   onClick,
   disabled,
+  label,
   tooltip,
   children,
 }: {
   onClick: () => void;
   disabled?: boolean;
+  label: string;
   tooltip: React.ReactNode;
   children: React.ReactNode;
 }) {
   const btn = (
     <button
+      type="button"
+      aria-label={label}
       onClick={onClick}
       disabled={disabled}
       className={cn([
@@ -221,6 +232,7 @@ export function SearchBar({
           <ToggleButton
             active={caseSensitive}
             onClick={toggleCaseSensitive}
+            label={t`Match case`}
             tooltip={t`Match case`}
           >
             <TextAa className="size-3.5" />
@@ -228,6 +240,7 @@ export function SearchBar({
           <ToggleButton
             active={wholeWord}
             onClick={toggleWholeWord}
+            label={t`Match whole word`}
             tooltip={t`Match whole word`}
           >
             <Textbox className="size-3.5" />
@@ -236,6 +249,7 @@ export function SearchBar({
             <ToggleButton
               active={showReplace}
               onClick={toggleReplace}
+              label={t`Replace`}
               tooltip={
                 <>
                   <span>
@@ -261,6 +275,7 @@ export function SearchBar({
           <IconButton
             onClick={onPrev}
             disabled={totalMatches === 0}
+            label={t`Previous match`}
             tooltip={
               <>
                 <span>
@@ -277,6 +292,7 @@ export function SearchBar({
           <IconButton
             onClick={onNext}
             disabled={totalMatches === 0}
+            label={t`Next match`}
             tooltip={
               <>
                 <span>
@@ -291,6 +307,7 @@ export function SearchBar({
         </div>
         <IconButton
           onClick={close}
+          label={t`Close`}
           tooltip={
             <>
               <span>
@@ -312,12 +329,13 @@ export function SearchBar({
             value={replaceQuery}
             onChange={(e) => setReplaceQuery(e.target.value)}
             onKeyDown={handleReplaceKeyDown}
-            placeholder={t`Replace with...`}
+            placeholder={t`Replace with`}
             className="placeholder:text-muted-foreground h-full min-w-0 flex-1 bg-transparent text-xs focus:outline-hidden"
           />
           <div className="flex items-center gap-0.5">
             <IconButton
               onClick={replaceCurrent}
+              label={t`Replace`}
               tooltip={
                 <>
                   <span>
@@ -331,6 +349,7 @@ export function SearchBar({
             </IconButton>
             <IconButton
               onClick={replaceAll}
+              label={t`Replace all`}
               tooltip={
                 <>
                   <span>

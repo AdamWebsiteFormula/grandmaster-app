@@ -1634,6 +1634,7 @@ msgid "Clone"
 msgstr "Clone"
 
 #: src/changelog/index.tsx
+#: src/composer/index.tsx
 #: src/main/windows-title-bar.tsx
 #: src/main/windows-window-controls.tsx
 #: src/session/components/note-input/search/bar.tsx
@@ -6416,8 +6417,12 @@ msgid "Replace this summary?"
 msgstr "Replace this summary?"
 
 #: src/session/components/note-input/search/bar.tsx
-msgid "Replace with..."
-msgstr "Replace with..."
+msgid "Replace with"
+msgstr "Replace with"
+
+#: src/session/components/note-input/search/bar.tsx
+#~ msgid "Replace with..."
+#~ msgstr "Replace with..."
 
 #: src/main/windows-title-bar.tsx
 msgid "Report a bug"
@@ -6959,6 +6964,7 @@ msgid "Select…"
 msgstr "Select…"
 
 #: src/chat/components/chat-page.tsx
+#: src/composer/index.tsx
 #: src/folders/folder-ask.tsx
 #: src/home/home-composer.tsx
 #: src/session-sharing/delivery-panel.tsx
