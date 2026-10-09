@@ -6919,8 +6919,8 @@ msgid "Show all recurring events"
 msgstr ""
 
 #: src/settings/general/app-settings.tsx
-msgid "Show app in Dock"
-msgstr ""
+#~ msgid "Show app in Dock"
+#~ msgstr ""
 
 #: src/sidebar/timeline/index.tsx
 msgid "Show deleted events"
@@ -6932,6 +6932,10 @@ msgstr ""
 
 #: src/settings/general/meeting-settings.tsx
 msgid "Show floating bar"
+msgstr ""
+
+#: src/settings/general/app-settings.tsx
+msgid "Show in Dock"
 msgstr ""
 
 #: src/calendar/components/session-chip.tsx
@@ -8132,7 +8136,11 @@ msgid "Turn off any calendar you don't meet from."
 msgstr ""
 
 #: src/settings/general/app-settings.tsx
-msgid "Turn on “Show app in Dock” first."
+#~ msgid "Turn on “Show app in Dock” first."
+#~ msgstr ""
+
+#: src/settings/general/app-settings.tsx
+msgid "Turn on “Show in Dock” first."
 msgstr ""
 
 #: src/settings/general/app-settings.tsx

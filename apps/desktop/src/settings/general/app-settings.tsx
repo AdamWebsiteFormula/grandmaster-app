@@ -39,7 +39,7 @@ export function AppSettingsView({
   // Fork: a locked switch says what to turn on, as Meetings' "Join scheduled
   // meetings" does (picture review, Oct 8; NN/g #1, #4).
   const dockLockedReason = <Trans>Turn on “Show in menu bar” first.</Trans>;
-  const trayLockedReason = <Trans>Turn on “Show app in Dock” first.</Trans>;
+  const trayLockedReason = <Trans>Turn on “Show in Dock” first.</Trans>;
 
   return (
     <SettingsGroup title={<Trans>App</Trans>}>
@@ -68,7 +68,7 @@ export function AppSettingsView({
       {isMacos && (
         <SettingSwitchRow
           icon={DockBar}
-          title={<Trans>Show app in Dock</Trans>}
+          title={<Trans>Show in Dock</Trans>}
           description={
             dockIsLastOn ? (
               dockLockedReason

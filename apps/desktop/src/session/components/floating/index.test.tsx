@@ -237,7 +237,7 @@ describe("FloatingActionButton (note bar)", () => {
     ).toBeTruthy();
   });
 
-  it("is one card pill with a light-only shadow", () => {
+  it("is one flat card pill, as Home's and Chat's composers", () => {
     renderBar();
     const bar = document.querySelector("[data-note-bar]")!;
     for (const name of [
@@ -246,11 +246,10 @@ describe("FloatingActionButton (note bar)", () => {
       "border",
       "border-input",
       "bg-card",
-      "shadow-sm",
-      "dark:shadow-none",
     ]) {
       expect(bar.className).toContain(name);
     }
+    expect(bar.className).not.toContain("shadow-sm");
     // The toggle and the field are segments of the bar, not pills of
     // their own.
     const ask = document.querySelector("[data-note-ask]")!;

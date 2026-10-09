@@ -133,11 +133,12 @@ export function FloatingActionButton(props: {
           className={cn([
             "peer/session-fab pointer-events-auto relative flex h-10 w-full max-w-full items-center gap-1 rounded-2xl border px-1",
             // Fork: opaque card pill with a field border (it holds a text
-            // field); soft shadow in light, none on black (design-system.md
-            // Contrast and Dialogs). In dark it is lighter than the page, as
-            // the Home composer is (Apple HIG Dark Mode: raised is lighter),
-            // with the Home composer's corner radius (NN/g #4).
-            "border-input bg-card dark:bg-muted shadow-sm dark:shadow-none",
+            // field). Flat, as Home's Ask bar and Chat's composer are; the
+            // light shadow made this one composer the only raised one
+            // (picture review, Oct 9; NN/g #4). In dark it is lighter than
+            // the page, as the Home composer is (Apple HIG Dark Mode: raised
+            // is lighter), with the Home composer's corner radius.
+            "border-input bg-card dark:bg-muted",
             "ring-offset-background has-[input:focus]:ring-ring has-[input:focus]:ring-2 has-[input:focus]:ring-offset-2",
             (floatingChatOpen || barEmpty) && "hidden",
           ])}
@@ -437,7 +438,11 @@ function FollowUpEmailChip() {
             // envelope, which read as a send button beside the field
             // (picture review, Oct 6; NN/g "Icon Usability"). Chat's
             // recipes keep the same prompt one click away.
-            className={cn([barChipClassName, "@max-[21rem]/ask:hidden!"])}
+            // Fork: mr-2 ends the chip 12 pt inside the bar, clear of the
+            // bar's rounded end, as Transcript sits on the left (picture
+            // review, Oct 9: 4 pt, pinched into the curve; Apple HIG,
+            // Layout).
+            className={cn([barChipClassName, "mr-2 @max-[21rem]/ask:hidden!"])}
           >
             <Envelope aria-hidden className="text-muted-foreground size-3.5" />
             <span className="truncate">{label}</span>
