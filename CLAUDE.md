@@ -23,6 +23,7 @@ Blueprint: grandmaster/blueprint.md before code. Link: gate test green. Architec
 - Must not touch: audio capture, transcription, crates/cloudsync, LICENSE files, @anlg/* and anlg-* names.
 - No API keys in repo, build or bundle.
 - Commit and push to the `grandmaster` branch of `AdamWebsiteFormula/grandmaster-app` yourself after each round, but only when vitest, tsc and rebrand-check pass (Adam, Oct 3). Never commit secrets or anything from `~/code/grandmaster-private/`.
+- Release blockers (Adam, Oct 10): before committing a feature or fix, run the change check in grandmaster/sops/release-blockers.md (code review of the diff, the S1 list for the areas touched, an in-app test). Log any S1 or S2 you find in grandmaster/sops/bug-ledger.md.
 - Same error for 20 minutes: stop and ask me.
 - When a different model would suit the next task better (for example Sonnet for mechanical rebrand or release work), tell me at the start of that task.
 - Design: nothing touches edges; one type ratio; 3-second glanceability; sentence case, no eyebrow labels.
