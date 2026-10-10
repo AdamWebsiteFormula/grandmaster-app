@@ -299,6 +299,95 @@ describe("SpeakerAssignPopover", () => {
     });
   });
 
+  // Fork test: live task test, Oct 10 (Return did nothing in the picker).
+  it("assigns the first match when Return is pressed in the search", async () => {
+    render(
+      createElement(SpeakerAssignPopover, {
+        segment: {
+          id: "segment-1",
+          key: {
+            channel: "RemoteParty",
+            speaker_index: 2,
+            speaker_human_id: null,
+          },
+          start_ms: 0,
+          end_ms: 100,
+          text: "hello",
+          words: [
+            {
+              id: "word-1",
+              text: "hello",
+              start_ms: 0,
+              end_ms: 100,
+              channel: "RemoteParty",
+              is_final: true,
+            },
+          ],
+        } as Segment,
+        transcriptId: "transcript-1",
+        sessionId: "session-1",
+        color: "red",
+        label: "Speaker 2",
+      }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Speaker 2" }));
+    const searchInput = screen.getByPlaceholderText(
+      "Select or type to add speaker",
+    );
+    fireEvent.change(searchInput, { target: { value: "Ali" } });
+    fireEvent.keyDown(searchInput, { key: "Enter" });
+
+    await waitFor(() => {
+      expect(assignSessionTranscriptSpeakerMock).toHaveBeenCalledWith(
+        expect.objectContaining({ humanId: "human-1" }),
+      );
+    });
+  });
+
+  it("adds and assigns a new name when Return is pressed", async () => {
+    render(
+      createElement(SpeakerAssignPopover, {
+        segment: {
+          id: "segment-1",
+          key: {
+            channel: "RemoteParty",
+            speaker_index: 2,
+            speaker_human_id: null,
+          },
+          start_ms: 0,
+          end_ms: 100,
+          text: "hello",
+          words: [
+            {
+              id: "word-1",
+              text: "hello",
+              start_ms: 0,
+              end_ms: 100,
+              channel: "RemoteParty",
+              is_final: true,
+            },
+          ],
+        } as Segment,
+        transcriptId: "transcript-1",
+        sessionId: "session-1",
+        color: "red",
+        label: "Speaker 2",
+      }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Speaker 2" }));
+    const searchInput = screen.getByPlaceholderText(
+      "Select or type to add speaker",
+    );
+    fireEvent.change(searchInput, { target: { value: "Zelda Quinn" } });
+    fireEvent.keyDown(searchInput, { key: "Enter" });
+
+    await waitFor(() => {
+      expect(assignSessionTranscriptSpeakerMock).toHaveBeenCalled();
+    });
+  });
+
   it("uses segment scope when the matching-segments checkbox is off", async () => {
     render(
       createElement(SpeakerAssignPopover, {

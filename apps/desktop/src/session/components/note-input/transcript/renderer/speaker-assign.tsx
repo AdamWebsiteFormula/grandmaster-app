@@ -100,10 +100,13 @@ export function SpeakerAssignPopover({
           requestAnimationFrame(() =>
             requestAnimationFrame(() => {
               if (triggerRef.current?.isConnected) return;
+              // Word ids are UUIDs; escape them where CSS.escape exists.
+              const escapedId =
+                typeof globalThis.CSS?.escape === "function"
+                  ? globalThis.CSS.escape(anchorWordId)
+                  : anchorWordId;
               document
-                .querySelector(
-                  `[data-transcript-word-id="${CSS.escape(anchorWordId)}"]`,
-                )
+                .querySelector(`[data-transcript-word-id="${escapedId}"]`)
                 ?.closest("section")
                 ?.querySelector<HTMLElement>("[data-transcript-speaker-assign]")
                 ?.focus();
@@ -483,34 +486,38 @@ export function SpeakerParticipantPicker({
     [contacts, session?.user_id],
   );
 
-  const handleConfirm = useCallback(() => {
-    if (!selectedOption) {
-      return;
-    }
+  const handleConfirm = useCallback(
+    (picked?: SpeakerParticipantOption) => {
+      const option = picked ?? selectedOption;
+      if (!option) {
+        return;
+      }
 
-    setAssigning(true);
-    void getCurrentHumanId(selectedOption)
-      .then(async (humanId) => {
-        if (!humanId) return;
-        await linkHumanToSession(humanId);
-        await onSelect(
-          humanId,
-          showAssignmentScope && applyToAllMatching ? "all" : "segment",
-        );
-      })
-      .catch((error) => {
-        console.error("[transcript] failed to prepare speaker", error);
-        toast.error(tm`Couldn't change the speaker. Try again.`);
-      })
-      .finally(() => setAssigning(false));
-  }, [
-    applyToAllMatching,
-    getCurrentHumanId,
-    linkHumanToSession,
-    onSelect,
-    selectedOption,
-    showAssignmentScope,
-  ]);
+      setAssigning(true);
+      void getCurrentHumanId(option)
+        .then(async (humanId) => {
+          if (!humanId) return;
+          await linkHumanToSession(humanId);
+          await onSelect(
+            humanId,
+            showAssignmentScope && applyToAllMatching ? "all" : "segment",
+          );
+        })
+        .catch((error) => {
+          console.error("[transcript] failed to prepare speaker", error);
+          toast.error(tm`Couldn't change the speaker. Try again.`);
+        })
+        .finally(() => setAssigning(false));
+    },
+    [
+      applyToAllMatching,
+      getCurrentHumanId,
+      linkHumanToSession,
+      onSelect,
+      selectedOption,
+      showAssignmentScope,
+    ],
+  );
 
   return (
     <div className="flex max-h-[min(var(--radix-popover-content-available-height,calc(100vh-1rem)),28rem)] min-h-0 flex-col gap-1 overflow-hidden">
@@ -532,6 +539,40 @@ export function SpeakerParticipantPicker({
               onChange={(e) => {
                 setQuery(e.target.value);
                 setSelectedOption(null);
+              }}
+              // Fork: arrows move through the people and Return assigns the
+              // highlighted one, or the first, as a Mac combo box does;
+              // Return did nothing, so "Add Dana" needed the mouse (live task
+              // test, Oct 10; Apple HIG, Combo boxes; WCAG 2.2 SC 2.1.1).
+              onKeyDown={(event) => {
+                const options = [
+                  ...groups.flatMap((group) => group.options),
+                  ...(createOption ? [createOption] : []),
+                ];
+                if (options.length === 0) return;
+                if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                  event.preventDefault();
+                  const index = selectedOption
+                    ? options.indexOf(selectedOption)
+                    : -1;
+                  const step = event.key === "ArrowDown" ? 1 : -1;
+                  const next =
+                    index === -1
+                      ? step === 1
+                        ? 0
+                        : options.length - 1
+                      : (index + step + options.length) % options.length;
+                  setSelectedOption(options[next] ?? null);
+                  return;
+                }
+                if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+                  event.preventDefault();
+                  if (assigning) return;
+                  const option = selectedOption ?? options[0];
+                  if (!option) return;
+                  setSelectedOption(option);
+                  handleConfirm(option);
+                }
               }}
             />
           </div>
@@ -613,7 +654,7 @@ export function SpeakerParticipantPicker({
             "disabled:pointer-events-none disabled:opacity-50",
           ])}
           disabled={!selectedOption || assigning}
-          onClick={handleConfirm}
+          onClick={() => handleConfirm()}
         >
           {/* Fork: names the action (ux-audit-oct3 C, HIG buttons). */}
           <Trans>Assign</Trans>
