@@ -401,6 +401,17 @@ describe("SettingsNav", () => {
     expect(screen.queryByText("Appearance")).toBeNull();
   });
 
+  it("finds pages kept out of the list, such as Templates", () => {
+    render(<SettingsNav />);
+    fireEvent.change(screen.getByRole("textbox", { name: "Search settings" }), {
+      target: { value: "templates" },
+    });
+    const templates = screen.getByText("Templates").closest("button");
+    expect(templates).toBeTruthy();
+    fireEvent.click(templates!);
+    expect(mocks.openNew).toHaveBeenCalledWith({ type: "templates" });
+  });
+
   it("shows an empty state when no settings match", () => {
     render(<SettingsNav />);
 

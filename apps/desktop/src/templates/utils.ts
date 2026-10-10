@@ -12,6 +12,7 @@ import {
 
 import { useWebResources } from "~/shared/ui/resource-list";
 import { type Tab, useTabs } from "~/store/zustand/tabs";
+import { requestTemplateNameFocus } from "./focus-new-template";
 
 export const AUTO_TEMPLATE_ID = "__auto__";
 
@@ -173,6 +174,7 @@ export function useTemplateTab(tab: Extract<Tab, { type: "templates" }>) {
     });
 
     if (id) {
+      requestTemplateNameFocus(id);
       setSelectedMineId(id);
     }
 

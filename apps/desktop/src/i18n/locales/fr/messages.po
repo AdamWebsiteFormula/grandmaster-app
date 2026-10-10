@@ -2826,8 +2826,6 @@ msgstr ""
 #: src/sidebar/automations.tsx
 #: src/sidebar/timeline/index.tsx
 #: src/templates/sections-editor.tsx
-#: src/templates/template-form.tsx
-#: src/templates/template-sidebar.tsx
 msgid "Delete"
 msgstr ""
 
@@ -2954,6 +2952,8 @@ msgstr ""
 
 #: src/contacts/contact-page-header.tsx
 #: src/sidebar/home-nav.tsx
+#: src/templates/template-form.tsx
+#: src/templates/template-sidebar.tsx
 msgid "Delete…"
 msgstr ""
 
@@ -6989,6 +6989,10 @@ msgstr ""
 
 #: src/templates/sections-editor.tsx
 msgid "Section deleted"
+msgstr ""
+
+#: src/templates/sections-editor.tsx
+msgid "Section name"
 msgstr ""
 
 #: src/chat/components/chat-page.tsx

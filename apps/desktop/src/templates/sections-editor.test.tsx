@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { SectionsList } from "./sections-editor";
@@ -44,5 +44,14 @@ describe("SectionsList", () => {
     expect(label).toContain("disabled:text-muted-foreground");
     expect(label).toContain("disabled:opacity-100");
     expect(label).not.toContain("disabled:opacity-50");
+  });
+
+  it("puts the cursor in a new section's name", () => {
+    render(<SectionsList disabled={false} items={items} onChange={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Add section" }));
+
+    const names = screen.getAllByRole("textbox", { name: "Section name" });
+    expect(document.activeElement).toBe(names[names.length - 1]);
   });
 });

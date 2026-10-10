@@ -30,6 +30,7 @@ import { ResourceShareButton, sharedTemplatePayload } from "~/resource-sharing";
 import { useSetSettingValue } from "~/settings/queries";
 import { useConfigValue } from "~/shared/config";
 import { STATUS_BADGE_CLASS } from "~/shared/ui/status-badge";
+import { takeTemplateNameFocus } from "./focus-new-template";
 
 // Fork: a tag is a raised chip. --muted is the panel's own color in light, so
 // a bg-muted chip vanished there. A card-white chip with a hairline, as the
@@ -244,6 +245,12 @@ export function TemplateForm({
                   {(field.state.value || t`Enter template title`) + " "}
                 </span>
                 <Input
+                  ref={(input) => {
+                    if (input && takeTemplateNameFocus(template.id)) {
+                      input.focus();
+                      input.select();
+                    }
+                  }}
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   // Fork: labeled field (ux-audit-oct3 B, WCAG 4.1.2).
@@ -345,7 +352,7 @@ export function TemplateForm({
                   onClick={() => setConfirmingDelete(true)}
                   className="text-destructive focus:text-destructive cursor-pointer"
                 >
-                  <Trans>Delete</Trans>
+                  <Trans>Delete…</Trans>
                 </DropdownMenuItem>
               </AppFloatingPanel>
             </DropdownMenuContent>

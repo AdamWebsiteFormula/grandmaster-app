@@ -31,8 +31,11 @@ export function SettingsNav() {
   const { t } = useLingui();
   const { isPro } = useBillingAccess();
   const { isSignedIn } = useUpshotPlan();
-  // Fork: entries kept only for the ⌘K navigator stay out of the sidebar.
-  const groups = useSettingsNavGroups()
+  // Fork: entries kept only for the ⌘K navigator stay out of the sidebar,
+  // but a search finds them (Templates, Folders), as macOS System Settings
+  // search finds every pane (live task test, Oct 9).
+  const allGroups = useSettingsNavGroups();
+  const groups = allGroups
     .map((group) => ({
       ...group,
       items: group.items.filter(
@@ -68,7 +71,7 @@ export function SettingsNav() {
   // show only as search results, as macOS System Settings search finds
   // settings inside a pane.
   const visibleGroups = query
-    ? groups
+    ? allGroups
         .map((group) =>
           group.label.toLowerCase().includes(query)
             ? group

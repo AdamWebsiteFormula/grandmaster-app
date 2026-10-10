@@ -673,7 +673,7 @@ function TemplateListItem({
       { separator: true as const },
       {
         id: `delete-template-${template.id}`,
-        text: t`Delete`,
+        text: t`Delete…`,
         action: () => onDelete(template.id),
       },
     ],

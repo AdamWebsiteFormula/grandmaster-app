@@ -18,6 +18,8 @@ import { Input } from "@anlg/ui/components/ui/input";
 import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
+let pendingSectionFocusKey: string | null = null;
+
 type SectionDraft = TemplateSection & { key: string };
 
 function useEditableSections({
@@ -76,14 +78,13 @@ function useEditableSections({
 
   return {
     drafts,
-    addSection: useCallback(
-      () =>
-        commit((prev) => [
-          ...prev,
-          { title: "", description: "", key: crypto.randomUUID() },
-        ]),
-      [commit],
-    ),
+    addSection: useCallback(() => {
+      const key = crypto.randomUUID();
+      // Fork: the new section's name takes typing at once (live task test,
+      // Oct 9; Apple HIG, Entering data).
+      pendingSectionFocusKey = key;
+      commit((prev) => [...prev, { title: "", description: "", key }]);
+    }, [commit]),
     changeSection: useCallback(
       (draft: SectionDraft) =>
         commit((prev) => prev.map((s) => (s.key === draft.key ? draft : s))),
@@ -318,9 +319,16 @@ function SectionItem({
           width (picture review, Oct 6: 24 pt left, 60 pt right margins). */}
       <div className={cn(["flex flex-col gap-1", !disabled && "pr-9"])}>
         <Input
+          ref={(input) => {
+            if (input && pendingSectionFocusKey === item.key) {
+              pendingSectionFocusKey = null;
+              input.focus();
+            }
+          }}
           disabled={disabled}
           value={item.title}
           onChange={(e) => onChange({ ...item, title: e.target.value })}
+          aria-label={t`Section name`}
           placeholder={t`Untitled`}
           // Fork: a read-only label keeps full opacity in the muted text
           // color. The Input's disabled:opacity-50 left it near 3.3:1 on

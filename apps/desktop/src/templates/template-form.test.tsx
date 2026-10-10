@@ -100,7 +100,7 @@ describe("TemplateForm", () => {
       screen.getByRole("button", { name: "Template actions" }),
       { button: 0, ctrlKey: false },
     );
-    fireEvent.click(await screen.findByRole("menuitem", { name: "Delete" }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Delete…" }));
     expect(
       screen.getByText(
         "This is your default template. New notes will use Auto.",
@@ -129,7 +129,7 @@ describe("TemplateForm", () => {
       screen.getByRole("button", { name: "Template actions" }),
       { button: 0, ctrlKey: false },
     );
-    fireEvent.click(await screen.findByRole("menuitem", { name: "Delete" }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Delete…" }));
 
     expect(handleDeleteTemplate).not.toHaveBeenCalled();
     expect(screen.getByText("Delete “Standup”?")).toBeTruthy();
@@ -154,7 +154,7 @@ describe("TemplateForm", () => {
       screen.getByRole("button", { name: "Template actions" }),
       { button: 0, ctrlKey: false },
     );
-    fireEvent.click(await screen.findByRole("menuitem", { name: "Delete" }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Delete…" }));
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
     expect(handleDeleteTemplate).not.toHaveBeenCalled();
