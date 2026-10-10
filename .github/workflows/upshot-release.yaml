@@ -4,13 +4,18 @@
 # Infisical, code signing or updater feed. Installers are unsigned.
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: "App version, the same as the Mac build's APP_VERSION"
+        default: "1.0.0"
+        required: true
 
 permissions:
   contents: read
 
 env:
-  APP_VERSION: "1.0.0"
-  VITE_APP_VERSION: "1.0.0"
+  APP_VERSION: ${{ inputs.version }}
+  VITE_APP_VERSION: ${{ inputs.version }}
   VITE_API_URL: "http://localhost:3001"
   # Upshot AI Worker origin (grandmaster/worker), same as release.sh.
   VITE_AI_API_URL: "https://upshot-ai.adam-694.workers.dev"
