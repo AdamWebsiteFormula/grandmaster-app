@@ -27,7 +27,11 @@ import {
   useUpshotAccount,
   useUpshotPro,
 } from "./index";
-import { stopWaitingForSignIn, UpshotSignInChoices } from "./sign-in";
+import {
+  stopWaitingForSignIn,
+  UpshotSignInChoices,
+  useUpshotSignIn,
+} from "./sign-in";
 
 import {
   GlassDialogCancelButton,
@@ -71,6 +75,10 @@ export function UpshotUpgradeDialog() {
     reason,
   } = useUpgradeDialog();
   const signedIn = useUpshotAccount((state) => !!state.session);
+  // Fork: while the browser sign-in runs, its own Cancel is the only one
+  // (in-app test, Oct 9: two Cancel buttons that did different things;
+  // NN/g heuristic #4, consistency).
+  const waitingForSignIn = useUpshotSignIn((state) => state.waitingFor !== null);
   const [step, setStep] = useState<"form" | "browser">("form");
   const [alreadyPro, setAlreadyPro] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -189,9 +197,11 @@ export function UpshotUpgradeDialog() {
             ) : null}
 
             <DialogFooter className="flex gap-2 sm:justify-normal sm:space-x-0">
-              <GlassDialogCancelButton disabled={busy} onClick={close}>
-                <Trans>Cancel</Trans>
-              </GlassDialogCancelButton>
+              {waitingForSignIn && !signedIn ? null : (
+                <GlassDialogCancelButton disabled={busy} onClick={close}>
+                  <Trans>Cancel</Trans>
+                </GlassDialogCancelButton>
+              )}
               {signedIn ? (
                 <Button
                   type="submit"

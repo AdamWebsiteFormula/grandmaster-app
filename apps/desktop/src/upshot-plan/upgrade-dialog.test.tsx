@@ -194,9 +194,10 @@ describe("UpshotUpgradeDialog", () => {
       null,
     );
 
-    // The dialog has its own Cancel; the one in the waiting line is first.
-    const [waitingCancel] = screen.getAllByRole("button", { name: "Cancel" });
-    fireEvent.click(waitingCancel);
+    // Fork (Oct 9): one Cancel while waiting, not the dialog's as well.
+    const cancels = screen.getAllByRole("button", { name: "Cancel" });
+    expect(cancels).toHaveLength(1);
+    fireEvent.click(cancels[0]);
     expect(useUpshotSignIn.getState().waitingFor).toBeNull();
     expect(
       screen.getByRole("button", { name: "Continue with Google" }),
@@ -204,7 +205,7 @@ describe("UpshotUpgradeDialog", () => {
     expect(useUpgradeDialog.getState().open).toBe(true);
   });
 
-  it("Cancel closes the dialog and stops waiting for the browser", async () => {
+  it("Esc closes the dialog and stops waiting for the browser", async () => {
     render(<UpshotUpgradeDialog />);
     await act(() => openUpgrade("year"));
     fireEvent.click(
@@ -214,8 +215,9 @@ describe("UpshotUpgradeDialog", () => {
       expect(useUpshotSignIn.getState().waitingFor).toBe("google"),
     );
 
-    const cancels = screen.getAllByRole("button", { name: "Cancel" });
-    fireEvent.click(cancels[cancels.length - 1]);
+    fireEvent.keyDown(document.activeElement ?? document.body, {
+      key: "Escape",
+    });
     expect(useUpgradeDialog.getState().open).toBe(false);
     expect(useUpshotSignIn.getState().waitingFor).toBeNull();
     expect(mocks.stopCallbackServer).toHaveBeenCalled();

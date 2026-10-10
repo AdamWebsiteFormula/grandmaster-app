@@ -36,7 +36,7 @@ Requests to the live Worker as a signed-out old app sends them:
 - Create account (`/auth/signup`): 410 "Upshot now signs in with Google or Microsoft. Download the new Upshot: …/releases/latest"
 - Sign in with a password (`/auth/login`): 410 with the message in item 5 (live from Oct 9, Worker version dc3d8ee7).
 
-10. **Open, small. The browser page says "Connected successfully" after a sign-in.** `plugins/deeplink2/src/server/mod.rs` (`ui_content`). The Google or Microsoft sign-in returns a `code`, and the page for any code says "Connected successfully. Returning to Upshot to finish connecting." That page is meant for Connect calendar. It shows even when the code then fails. Found: APP (a fake code, Oct 9).
+10. **Fixed (Oct 9, see 12). The browser page said "Connected successfully" after a sign-in.** `plugins/deeplink2/src/server/mod.rs` (`ui_content`). The Google or Microsoft sign-in returns a `code`, and the page for any code says "Connected successfully. Returning to Upshot to finish connecting." That page is meant for Connect calendar. It shows even when the code then fails. Found: APP (a fake code, Oct 9).
 
 ## In-app test (Oct 9, 1:27 to 1:35 AM)
 
@@ -64,6 +64,33 @@ Not tested in the app, and why:
 - Deploy note: Wrangler needs Node 22 or later; the shell default is Node 20. Use `PATH=/usr/local/bin:$PATH npx wrangler deploy --var REQUIRE_ACCOUNT:1`.
 - Trade-off: a deleted or signed-out account keeps its pass until it ends (3 hours at most), as AssemblyAI's session tokens do.
 
+## In-app test, part 2 (Oct 9, 8 PM, Adam at the Mac)
+
+Build from 1a5b290 (meeting pass and the 410 change), on a fresh copy of Adam's notes in a throwaway HOME, driven with the computer-use app_* tools in the background. Adam closed his own Upshot first and left full screen so the test window was on his desktop.
+
+| Test | Result |
+| --- | --- |
+| Signed out: chat question | Pass. "Sign in to use Upshot AI. It's free." with a Sign in button. |
+| Sign in dialog from chat | Pass. "Upshot AI and Upshot transcription need a free account." Google, Microsoft, privacy link. |
+| Continue with Microsoft | Pass. Finished in the browser; the dialog closed; Retry answered with 4 meetings for today in Eastern Time. |
+| Settings: account | Pass. Adam Willingham, adam@websiteformula.co, Pro. Calendar: "Outlook calendar · Coming soon" (Microsoft sign-in). |
+| Sign out | Pass. Free plan, Sign in at the bottom of Settings. |
+| Continue with Google | Pass. Adam picked the account in the browser; Pro again; Calendar: "Google Calendar · Coming soon". |
+| Record, live transcript | Pass. Recording timer, Stop, "No sound from the other side yet"; live transcript with speaker turns from a spoken test script (uses the new meeting pass). |
+| Stop, summary | Pass. Title "Bug fixes and release planning"; Bug sweep and Next steps from what was said. |
+| Transcript and audio | Pass. 0:33 audio with waveform; transcript with times. |
+| Folders | Pass. New folder "Sweep test" created and opened. |
+| Templates | Pass. File › Blank note › New template opens the template page with the list. |
+| Dark mode | Pass. General, Plan (Pro, compare table), Templates. |
+| Meeting popup | Pass. Opening the mic from a test tool shows "Meeting detected · Take notes · Not now". |
+
+Found in this test:
+
+11. **Fixed. Two Cancel buttons while waiting for the browser.** `apps/desktop/src/upshot-plan/upgrade-dialog.tsx`. The waiting line's Cancel (back to the buttons) and the dialog's Cancel (close) showed together. Now only the waiting line's Cancel shows; Esc still closes the dialog.
+12. **Fixed (item 10). The browser page after a sign-in said "Connected successfully".** `plugins/deeplink2/src/server/mod.rs`. Now "Almost done. Return to Upshot to finish. You can close this tab." for any returned code, since sign-in and Connect calendar both land there.
+
+Not tested: the template menu inside a note (a dropdown needs the window in front), audio playback sound, and an Intel build.
+
 ## Decisions for Adam
 
-1. **Finish the in-app test** with the screen unlocked: Microsoft sign-in, sign out and in, record, Stop, summary, transcript and audio, chat, folders, templates, settings, meeting popup, light and dark.
+1. **Finish the in-app test** (done Oct 9, part 2) with the screen unlocked: Microsoft sign-in, sign out and in, record, Stop, summary, transcript and audio, chat, folders, templates, settings, meeting popup, light and dark.

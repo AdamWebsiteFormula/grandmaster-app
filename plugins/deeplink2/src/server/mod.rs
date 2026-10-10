@@ -146,10 +146,13 @@ fn ui_content(deep_link: &DeepLink) -> (bool, &'static str, &'static str) {
                 && search.access_token.is_empty()
                 && search.refresh_token.is_empty() =>
         {
+            // Fork: Google or Microsoft sign-in and Connect calendar both
+            // land here, and the app finishes either one, so the page says
+            // neither "Connected" nor "Signed in" (in-app test, Oct 9).
             (
                 true,
-                "Connected successfully",
-                "Returning to Upshot to finish connecting.",
+                "Almost done",
+                "Return to Upshot to finish. You can close this tab.",
             )
         }
         // Fork: Google or Microsoft sends no code when the person cancels
@@ -394,6 +397,14 @@ mod tests {
         assert!(html.contains("Sign-in did not finish"));
         assert!(!html.contains("Signed in successfully"));
         assert!(!html.contains("open-app"));
+    }
+
+    #[test]
+    fn sign_in_code_never_says_connected() {
+        let html = render_html_from_callback("/auth/callback", "code=abc123", "upshot");
+        assert!(html.contains("Almost done"));
+        assert!(!html.contains("Connected successfully"));
+        assert!(!html.contains("Signed in successfully"));
     }
 
     #[test]
