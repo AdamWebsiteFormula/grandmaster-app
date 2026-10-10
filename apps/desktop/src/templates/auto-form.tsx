@@ -201,6 +201,7 @@ export function AutoFormatForm({
                     size="icon"
                     variant="ghost"
                     aria-label={t`Template actions`}
+                    title={t`Template actions`}
                     className="text-muted-foreground hover:bg-accent hover:text-foreground rounded-full"
                   >
                     <DotsThree size={16} />

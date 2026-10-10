@@ -183,6 +183,7 @@ function WebTemplatePreview({
                     actionsOpen && "bg-muted text-foreground hover:bg-accent",
                   ])}
                   aria-label={t`Template actions`}
+                  title={t`Template actions`}
                 >
                   <DotsThree className="size-4" />
                 </Button>

@@ -170,6 +170,7 @@ export function AutoFormatExamplesDialog({
                   variant="ghost"
                   className="text-muted-foreground size-7"
                   aria-label={t`Remove example ${index + 1}`}
+                  title={t`Remove example ${index + 1}`}
                   onClick={() => removeExample(index)}
                   disabled={inferenceMutation.isPending}
                 >

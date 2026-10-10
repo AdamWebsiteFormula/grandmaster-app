@@ -71,6 +71,7 @@ export function NewPersonForm({
               type="submit"
               className="text-muted-foreground hover:text-muted-foreground shrink-0 transition-colors"
               aria-label={t`Add person`}
+              title={t`Add person`}
             >
               <ArrowElbowDownLeft className="size-4" />
             </button>

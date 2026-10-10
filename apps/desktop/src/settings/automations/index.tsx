@@ -240,6 +240,7 @@ function AutomationActionsMenu({
           variant="ghost"
           className="text-muted-foreground hover:text-foreground"
           aria-label={t`Automation actions`}
+          title={t`Automation actions`}
         >
           <DotsThree className="size-4" />
         </Button>

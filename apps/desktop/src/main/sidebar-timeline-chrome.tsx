@@ -142,6 +142,9 @@ export function LeftSurfaceChromeButton({
     <button
       type="button"
       aria-label={ariaLabel}
+      // Fork: icon-only buttons get a hover label (Apple HIG, Offering help;
+      // NN/g Tooltip Guidelines).
+      title={label ? undefined : ariaLabel}
       data-tauri-drag-region="false"
       disabled={disabled}
       className={cn([

@@ -261,6 +261,7 @@ export function MultiSelectionBar({
       <button
         type="button"
         aria-label={t`Clear selection`}
+        title={t`Clear selection`}
         disabled={deleteMutation.isPending}
         className="hover:bg-accent flex size-7 items-center justify-center rounded-full focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"
         onClick={onClear}

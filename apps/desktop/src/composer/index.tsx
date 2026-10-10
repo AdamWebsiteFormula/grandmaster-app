@@ -128,6 +128,7 @@ function ComposerSettingsCard() {
         <button
           type="button"
           aria-label={t`Close`}
+          title={t`Close`}
           onClick={() => void dismissComposer()}
           data-tauri-drag-region="false"
           className={cn([
@@ -217,6 +218,7 @@ function ComposerInput({
           <button
             type="button"
             aria-label={t`Close`}
+            title={t`Close`}
             onClick={() => void dismissComposer()}
             data-tauri-drag-region="false"
             className={cn([
@@ -272,6 +274,7 @@ function ComposerInput({
           <button
             type="button"
             aria-label={t`Send`}
+            title={t`Send`}
             onClick={handleSubmit}
             disabled={disabled}
             className={cn([

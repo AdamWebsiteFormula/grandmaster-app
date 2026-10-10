@@ -58,6 +58,7 @@ function SortDropdown({
           variant="ghost"
           className="text-muted-foreground hover:text-foreground"
           aria-label={t`Sort options`}
+          title={t`Sort options`}
         >
           <ArrowsDownUp size={16} />
         </Button>
@@ -171,6 +172,7 @@ export function ColumnHeader({
                 onClick={() => onSearchChange("")}
                 className="text-muted-foreground hover:text-foreground h-4 w-4 shrink-0 transition-colors"
                 aria-label={t`Clear search`}
+                title={t`Clear search`}
               >
                 <X className="h-4 w-4" />
               </button>

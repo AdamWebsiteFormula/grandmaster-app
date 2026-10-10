@@ -301,6 +301,7 @@ function ChatQueue({
               // Fork: translated label (journey-after P3 "Chat queue";
               // WCAG 4.1.2).
               aria-label={t`Remove queued message: ${message.content}`}
+              title={t`Remove queued message: ${message.content}`}
               onClick={() => onRemoveMessage(message.id)}
               className="hover:bg-accent/20 inline-flex size-6 items-center justify-center rounded-md"
             >

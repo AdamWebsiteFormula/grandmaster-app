@@ -57,6 +57,7 @@ export function ProviderSearch({
           onClick={() => onChange("")}
           className="text-muted-foreground hover:text-foreground shrink-0 transition-colors"
           aria-label={t`Clear search`}
+          title={t`Clear search`}
         >
           <X className="size-3.5" />
         </button>

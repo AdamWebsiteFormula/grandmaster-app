@@ -47,6 +47,7 @@ export function FolderMaterialsPanel({ folderPath }: { folderPath: string }) {
           <button
             type="button"
             aria-label={t`Rename folder`}
+            title={t`Rename folder`}
             disabled={busy}
             className={cn([
               "text-muted-foreground hover:bg-accent hover:text-foreground flex size-6 items-center justify-center rounded-full",
@@ -60,6 +61,7 @@ export function FolderMaterialsPanel({ folderPath }: { folderPath: string }) {
           <button
             type="button"
             aria-label={t`Delete folder`}
+            title={t`Delete folder`}
             disabled={busy}
             className={cn([
               "text-muted-foreground hover:bg-accent hover:text-destructive flex size-6 items-center justify-center rounded-full",
@@ -81,6 +83,7 @@ export function FolderMaterialsPanel({ folderPath }: { folderPath: string }) {
           <button
             type="button"
             aria-label={t`Add material`}
+            title={t`Add material`}
             disabled={busy}
             className={cn([
               "text-muted-foreground hover:bg-accent hover:text-foreground flex size-6 items-center justify-center rounded-full",
@@ -130,6 +133,7 @@ export function FolderMaterialsPanel({ folderPath }: { folderPath: string }) {
                 <button
                   type="button"
                   aria-label={t`Remove ${material.filename}`}
+                  title={t`Remove ${material.filename}`}
                   disabled={busy}
                   className={cn([
                     "text-muted-foreground hover:bg-accent hover:text-foreground flex size-5 items-center justify-center rounded-full",

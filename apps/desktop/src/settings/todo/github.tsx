@@ -170,6 +170,7 @@ export function GitHubTodoProviderContent({
             }
             className="text-muted-foreground hover:text-muted-foreground transition-colors"
             aria-label={t`Open repository on GitHub`}
+            title={t`Open repository on GitHub`}
           >
             <ArrowSquareOut className="size-3.5" />
           </button>
@@ -178,6 +179,7 @@ export function GitHubTodoProviderContent({
             onClick={() => setRepository("")}
             className="text-muted-foreground hover:text-muted-foreground transition-colors"
             aria-label={t`Remove repository`}
+            title={t`Remove repository`}
           >
             <X className="size-3.5" />
           </button>

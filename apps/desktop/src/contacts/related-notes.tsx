@@ -47,6 +47,7 @@ export function RelatedNotesSection({
                 variant="ghost"
                 className="text-muted-foreground hover:text-foreground size-7"
                 aria-label={t`Sort options`}
+                title={t`Sort options`}
               >
                 <ArrowsDownUp size={15} />
               </Button>
@@ -104,6 +105,7 @@ export function RelatedNotesSection({
               onClick={() => setSearch("")}
               className="text-muted-foreground hover:text-foreground shrink-0 transition-colors"
               aria-label={t`Clear search`}
+              title={t`Clear search`}
             >
               <X className="size-3.5" />
             </button>

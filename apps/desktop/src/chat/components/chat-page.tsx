@@ -197,6 +197,7 @@ export function ChatPage() {
               <button
                 type="submit"
                 aria-label={t`Send`}
+                title={t`Send`}
                 disabled={!value.trim()}
                 // Fork: the brand accent marks Send once there is text (Claude.ai;
                 // Apple HIG, Color: the accent marks the primary action).

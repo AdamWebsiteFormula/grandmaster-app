@@ -254,6 +254,7 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
                   actionsOpen && "bg-muted text-foreground hover:bg-accent",
                 ])}
                 aria-label={t`Folder actions`}
+                title={t`Folder actions`}
               >
                 <DotsThree className="size-4" />
               </Button>

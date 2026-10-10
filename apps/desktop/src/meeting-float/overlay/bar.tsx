@@ -212,6 +212,9 @@ function FloatingControls({
           aria-label={
             isExpanded ? "Collapse live transcript" : "Expand live transcript"
           }
+          title={
+            isExpanded ? "Collapse live transcript" : "Expand live transcript"
+          }
           onClick={() => onToggleExpanded(!isExpanded)}
           className="flex items-center justify-center"
           style={{
@@ -320,6 +323,7 @@ function PillControls({
           type="button"
           data-tauri-drag-region="false"
           aria-label="Expand live transcript"
+          title="Expand live transcript"
           onClick={() => onToggleExpanded(true)}
           className="flex items-center justify-center"
           style={{

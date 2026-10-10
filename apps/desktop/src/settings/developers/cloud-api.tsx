@@ -191,6 +191,7 @@ function CloudEndpoint({
           size="sm"
           className="size-7 shrink-0 p-0"
           aria-label={t`Copy ${label} URL`}
+          title={t`Copy ${label} URL`}
           onClick={() => void copyText(value, copyMessage)}
         >
           <Copy className="size-3.5" />

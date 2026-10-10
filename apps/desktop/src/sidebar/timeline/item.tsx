@@ -357,6 +357,7 @@ const ItemBase = memo(function ItemBase({
         <button
           type="button"
           aria-label={t`Stop listening`}
+          title={t`Stop listening`}
           onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();

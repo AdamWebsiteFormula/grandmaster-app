@@ -644,6 +644,7 @@ export function TranscriptViewer({
             <button
               type="button"
               aria-label={t`Scroll to top`}
+              title={t`Scroll to top`}
               onClick={scrollToTop}
               disabled={isAtTop}
               className={cn([
@@ -658,6 +659,7 @@ export function TranscriptViewer({
             <button
               type="button"
               aria-label={t`Scroll to bottom`}
+              title={t`Scroll to bottom`}
               onClick={scrollToBottom}
               disabled={isAtBottom}
               className={cn([

@@ -107,6 +107,7 @@ export function AutomationsNav() {
           variant="ghost"
           className="text-muted-foreground hover:text-foreground relative z-[60]"
           aria-label={t`New automation`}
+          title={t`New automation`}
           onClick={() => {
             const workflow = createEmptyWorkflow();
             void saveAutomationWorkflows([workflow, ...workflows]).then(() => {
@@ -150,6 +151,7 @@ export function AutomationsNav() {
                 "transition-colors",
               ])}
               aria-label={t`Clear search`}
+              title={t`Clear search`}
             >
               <X className="size-4" />
             </button>

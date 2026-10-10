@@ -389,6 +389,7 @@ function WorkspaceTabs({
         <button
           type="button"
           aria-label={t`Create a shared workspace`}
+          title={t`Create a shared workspace`}
           aria-pressed={isCreating}
           onClick={onCreate}
           className={cn([
@@ -994,6 +995,7 @@ function WorkspacePanel({
                                 variant="ghost"
                                 className="size-8"
                                 aria-label={t`Actions for ${invitation.email}`}
+                                title={t`Actions for ${invitation.email}`}
                                 disabled={
                                   resendInvite.isPending ||
                                   cancelInvite.isPending
@@ -1931,6 +1933,7 @@ function MemberRow({
                 variant="ghost"
                 className="size-8"
                 aria-label={t`Actions for ${member.email}`}
+                title={t`Actions for ${member.email}`}
               >
                 <DotsThree className="size-4" />
               </Button>

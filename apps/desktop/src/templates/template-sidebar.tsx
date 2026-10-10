@@ -481,6 +481,7 @@ export function TemplatesSidebarContent({
                   "transition-colors",
                 ])}
                 aria-label={t`Clear search`}
+                title={t`Clear search`}
               >
                 <X className="h-4 w-4" />
               </button>

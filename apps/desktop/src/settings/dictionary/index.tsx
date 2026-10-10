@@ -294,6 +294,7 @@ function DictionaryTermRow({
           onClick={saveEdit}
           disabled={!nextTerm}
           aria-label={t`Save`}
+          title={t`Save`}
         >
           <Check className="size-4" />
         </Button>
@@ -304,6 +305,7 @@ function DictionaryTermRow({
           className="text-muted-foreground hover:text-foreground size-7 shrink-0"
           onClick={() => setEditValue(null)}
           aria-label={t`Cancel`}
+          title={t`Cancel`}
         >
           <X className="size-4" />
         </Button>
@@ -322,6 +324,7 @@ function DictionaryTermRow({
           className="text-muted-foreground hover:text-foreground size-7 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
           onClick={() => setEditValue(term)}
           aria-label={`${t`Edit`}: ${term}`}
+          title={`${t`Edit`}: ${term}`}
         >
           <PencilSimple className="size-4" />
         </Button>
@@ -332,6 +335,7 @@ function DictionaryTermRow({
           className="text-muted-foreground hover:text-foreground size-7 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
           onClick={() => onRemove(term)}
           aria-label={t`Remove ${term}`}
+          title={t`Remove ${term}`}
         >
           <MinusCircle className="size-4" />
         </Button>

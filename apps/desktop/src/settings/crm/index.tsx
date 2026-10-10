@@ -226,6 +226,7 @@ function CrmProviderRow({
                     size="sm"
                     smoothCorners={false}
                     aria-label={t`More options`}
+                    title={t`More options`}
                     disabled={
                       verifyMutation.isPending || disconnectMutation.isPending
                     }

@@ -192,6 +192,7 @@ export function SpokenLanguagesView({
                     variant="ghost"
                     size="sm"
                     aria-label={t`Remove ${name}`}
+                    title={t`Remove ${name}`}
                     className="size-5 rounded-full p-0 hover:bg-transparent"
                     onClick={() =>
                       onChange(selectedLanguageCodes.filter((c) => c !== code))

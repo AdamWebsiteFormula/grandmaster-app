@@ -718,6 +718,7 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
               <button
                 type="button"
                 aria-label={t`Close`}
+                title={t`Close`}
                 onClick={() => handleOpenChange(false)}
                 className={cn([
                   // Fork: -mr-[5px] ends the X on the magnifier's mirror inset

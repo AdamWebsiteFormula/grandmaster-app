@@ -118,6 +118,7 @@ export function FolderMaterialTile({
       <button
         type="button"
         aria-label={t`Remove ${material.filename}`}
+        title={t`Remove ${material.filename}`}
         disabled={busy}
         className={cn([
           "text-muted-foreground hover:bg-accent hover:text-foreground",

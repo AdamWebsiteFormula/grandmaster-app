@@ -180,6 +180,7 @@ function SearchField({
           onClick={() => onChange("")}
           className="hover:bg-accent rounded-sm p-1"
           aria-label={t`Clear search`}
+          title={t`Clear search`}
         >
           <X className="text-muted-foreground size-3.5" />
         </button>
@@ -293,6 +294,7 @@ export function TemplateIconPicker({
                 "border-border bg-muted/60 hover:bg-accent size-9 border dark:bg-transparent",
           ])}
           aria-label={label ?? t`Choose template icon`}
+          title={label ?? t`Choose template icon`}
         >
           <TemplateIconGlyph
             icon={selected}

@@ -183,6 +183,7 @@ export function ChatMessageInput({
               <button
                 type="button"
                 aria-label={t`Start voice input`}
+                title={t`Start voice input`}
                 onClick={() => void dictation.start()}
                 disabled={Boolean(disabled)}
                 className={cn([
@@ -200,6 +201,7 @@ export function ChatMessageInput({
                 variant="ghost"
                 className="h-7 w-7 rounded-full"
                 aria-label={t`Stop response`}
+                title={t`Stop response`}
               >
                 <Square size={14} />
               </Button>
@@ -268,6 +270,7 @@ function SendButton({
     <button
       type="button"
       aria-label={t`Send message`}
+      title={t`Send message`}
       onClick={onClick}
       disabled={disabled}
       className={cn([
@@ -350,6 +353,13 @@ function VoiceStatus({
               ? t`Transcribing voice input`
               : t`Stop voice input`
         }
+        title={
+          phase === "starting"
+            ? t`Starting voice input`
+            : phase === "transcribing"
+              ? t`Transcribing voice input`
+              : t`Stop voice input`
+        }
         onClick={onStop}
         disabled={isProcessing}
         className="bg-muted text-foreground inline-flex size-7 shrink-0 items-center justify-center rounded-full disabled:opacity-60 focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"
@@ -367,6 +377,7 @@ function VoiceStatus({
           variant="ghost"
           className="h-7 w-7 rounded-full"
           aria-label={t`Stop response`}
+          title={t`Stop response`}
         >
           <Square size={14} />
         </Button>

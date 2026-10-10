@@ -114,6 +114,7 @@ export function LocalFileModel({
         <button
           type="button"
           aria-label={t`Clear selected model`}
+          title={t`Clear selected model`}
           className="text-muted-foreground hover:text-foreground flex size-6 shrink-0 items-center justify-center rounded-full"
           onClick={() => clearModel.mutate()}
         >

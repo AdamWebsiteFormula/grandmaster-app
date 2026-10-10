@@ -1161,6 +1161,7 @@ function LocalModelDropdownActions({
       <button
         type="button"
         aria-label={t`Show in Finder`}
+        title={t`Show in Finder`}
         className={cn([
           "flex size-6 items-center justify-center rounded-full",
           "text-muted-foreground hover:text-foreground",
@@ -1176,6 +1177,7 @@ function LocalModelDropdownActions({
       <button
         type="button"
         aria-label={t`Delete model`}
+        title={t`Delete model`}
         className={cn([
           "flex size-6 items-center justify-center rounded-full",
           "text-destructive hover:bg-destructive/10",

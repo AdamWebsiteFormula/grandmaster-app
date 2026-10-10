@@ -253,6 +253,7 @@ function PageButton({
     <button
       type="button"
       aria-label={label}
+      title={label}
       disabled={disabled}
       onClick={onClick}
       className="text-muted-foreground hover:bg-accent hover:text-foreground inline-flex size-7 cursor-pointer items-center justify-center rounded-lg transition-colors disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"

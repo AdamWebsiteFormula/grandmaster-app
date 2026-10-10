@@ -135,6 +135,7 @@ export function NormalMessage({
                 onClick={handleCopy}
                 className={`p-1.5 transition-colors ${copied ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                 aria-label={copied ? t`Copied` : t`Copy message`}
+                title={copied ? t`Copied` : t`Copy message`}
               >
                 {copied ? <Check size={14} /> : <Copy size={14} />}
               </button>
@@ -146,6 +147,7 @@ export function NormalMessage({
                   onClick={handleReload}
                   className="text-muted-foreground hover:text-foreground p-1.5 transition-colors focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"
                   aria-label={t`Regenerate message`}
+                  title={t`Regenerate message`}
                 >
                   <ArrowCounterClockwise size={14} />
                 </button>

@@ -286,6 +286,7 @@ export function ShareInviteRecipientRows({
         <button
           type="button"
           aria-label={`Remove ${label}`}
+          title={`Remove ${label}`}
           disabled={disabled}
           onClick={() => invite.remove(recipient.email)}
           className="text-muted-foreground hover:bg-accent hover:text-foreground flex size-7 shrink-0 items-center justify-center rounded-md disabled:cursor-not-allowed"

@@ -295,6 +295,7 @@ function WebhookRow({
           size="sm"
           className="text-destructive h-7"
           aria-label={t`Delete webhook`}
+          title={t`Delete webhook`}
           onClick={onDelete}
         >
           <Trash className="size-3.5" />

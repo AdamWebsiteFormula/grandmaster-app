@@ -967,6 +967,7 @@ function RefreshBillingButton() {
       disabled={auth.isRefreshingSession}
       className="text-muted-foreground hover:text-muted-foreground transition-colors disabled:opacity-50"
       aria-label={t`Refresh billing status`}
+      title={t`Refresh billing status`}
     >
       <ArrowsClockwise
         className={cn(["size-3", auth.isRefreshingSession && "animate-spin"])}

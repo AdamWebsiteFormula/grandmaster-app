@@ -44,6 +44,7 @@ export function DateEditor({ sessionId }: { sessionId: string }) {
           className="text-muted-foreground hover:bg-accent hover:text-foreground size-7 rounded-full"
           onClick={() => setIsEditing(true)}
           aria-label={t`Edit date`}
+          title={t`Edit date`}
         >
           <Pencil size={16} />
         </Button>
@@ -156,6 +157,7 @@ function EditableDateForm({
                   className="text-muted-foreground size-7 shrink-0 rounded-full hover:bg-destructive/10 hover:text-destructive"
                   onClick={onCancel}
                   aria-label={t`Cancel date edit`}
+                  title={t`Cancel date edit`}
                 >
                   <X size={16} />
                 </Button>
@@ -171,6 +173,7 @@ function EditableDateForm({
                     onClick={() => void form.handleSubmit()}
                     disabled={!canSubmit}
                     aria-label={t`Save date`}
+                    title={t`Save date`}
                   >
                     <Check size={16} />
                   </Button>

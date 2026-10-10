@@ -270,6 +270,7 @@ function SectionItem({
                 variant="ghost"
                 className="text-muted-foreground hover:text-muted-foreground h-7 w-7"
                 aria-label={t`Section actions`}
+                title={t`Section actions`}
               >
                 <DotsThree className="size-4" />
               </Button>

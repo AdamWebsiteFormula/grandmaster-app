@@ -633,6 +633,7 @@ function SessionCommentItem({
             size="icon"
             className="text-muted-foreground size-6"
             aria-label={t`Delete comment`}
+            title={t`Delete comment`}
             disabled={deleteDisabled}
             onClick={onDelete}
           >

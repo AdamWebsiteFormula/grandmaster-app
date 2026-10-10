@@ -108,6 +108,7 @@ function DeviceTitle({
           size="icon"
           className="text-muted-foreground hover:text-foreground size-6 shrink-0"
           aria-label={t`Rename device`}
+          title={t`Rename device`}
           onClick={onRename}
         >
           <PencilSimple className="size-3.5" />

@@ -98,6 +98,7 @@ export function OrganizationItem({
               : "text-muted-foreground/70 hover:text-muted-foreground opacity-0 group-hover:opacity-100",
           ])}
           aria-label={isPinned ? "Unpin organization" : "Pin organization"}
+          title={isPinned ? "Unpin organization" : "Pin organization"}
         >
           <PushPin
             className="size-3.5"

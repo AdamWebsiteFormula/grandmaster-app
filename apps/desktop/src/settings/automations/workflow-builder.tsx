@@ -347,6 +347,7 @@ function WorkflowCard({
               className="text-muted-foreground ml-auto size-7"
               onClick={onRemove}
               aria-label={t`Remove step`}
+              title={t`Remove step`}
             >
               <Trash size={13} />
             </Button>

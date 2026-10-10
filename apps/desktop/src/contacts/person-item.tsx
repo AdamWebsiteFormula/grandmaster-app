@@ -107,6 +107,7 @@ export function PersonItem({
               : "text-muted-foreground/70 hover:text-muted-foreground opacity-0 group-hover:opacity-100",
           ])}
           aria-label={isPinned ? "Unpin contact" : "Pin contact"}
+          title={isPinned ? "Unpin contact" : "Pin contact"}
         >
           <PushPin
             className="size-3.5"

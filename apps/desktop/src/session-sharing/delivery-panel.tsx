@@ -71,6 +71,7 @@ export function ShareLinkActions({
             size="icon"
             variant="ghost"
             aria-label={t`More options`}
+            title={t`More options`}
             smoothCorners={false}
             className="text-muted-foreground hover:text-foreground h-7 w-6 rounded-l-none rounded-r-md"
           >
@@ -120,6 +121,7 @@ function ShareRecapFormHeading({
           type="button"
           onClick={onBack}
           aria-label={t`Back`}
+          title={t`Back`}
           className="text-muted-foreground hover:text-foreground flex size-6 shrink-0 items-center justify-center rounded-md"
         >
           <CaretLeft className="size-4" aria-hidden="true" />

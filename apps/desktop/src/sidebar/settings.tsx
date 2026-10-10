@@ -156,6 +156,7 @@ export function SettingsNav() {
                 "transition-colors",
               ])}
               aria-label={t`Clear search`}
+              title={t`Clear search`}
             >
               <X className="size-4" />
             </button>

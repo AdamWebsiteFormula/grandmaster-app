@@ -202,6 +202,7 @@ function DevtoolsStatusBarContent(props: Record<never, never>) {
           <button
             type="button"
             aria-label="Copy diagnostics"
+            title="Copy diagnostics"
             className={BUTTON_CLASS}
             onClick={() => void copyDiagnostics()}
           >
@@ -212,6 +213,7 @@ function DevtoolsStatusBarContent(props: Record<never, never>) {
           <button
             type="button"
             aria-label="Collapse developer bar"
+            title="Collapse developer bar"
             className={cn([BUTTON_CLASS, "pr-2.5"])}
             onClick={toggleCollapsed}
           >

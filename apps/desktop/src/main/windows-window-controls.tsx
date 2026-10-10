@@ -94,6 +94,7 @@ function WindowControlButton({
     <button
       type="button"
       aria-label={ariaLabel}
+      title={ariaLabel}
       data-tauri-drag-region="false"
       className={cn([
         "text-foreground flex h-10 w-[46px] items-center justify-center transition-colors",

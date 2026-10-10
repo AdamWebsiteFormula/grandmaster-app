@@ -475,6 +475,7 @@ export function NotificationSettingsView() {
                                                   variant="ghost"
                                                   size="sm"
                                                   aria-label={t`Remove ${bundleIdToName(bundleId)}`}
+                                                  title={t`Remove ${bundleIdToName(bundleId)}`}
                                                   className="-my-1 -mr-1.5 size-6 p-0 hover:bg-transparent"
                                                   onClick={(event) => {
                                                     event.stopPropagation();

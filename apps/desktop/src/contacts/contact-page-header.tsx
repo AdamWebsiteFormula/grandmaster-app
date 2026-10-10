@@ -65,6 +65,7 @@ export function ContactPageHeader({
                 data-tauri-drag-region="false"
                 className="text-muted-foreground hover:bg-accent hover:text-foreground rounded-full"
                 aria-label={t`Contact options`}
+                title={t`Contact options`}
               >
                 <DotsThree size={16} />
               </Button>
