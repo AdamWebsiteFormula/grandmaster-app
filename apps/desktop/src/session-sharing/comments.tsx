@@ -42,6 +42,7 @@ import {
 import { trackAnalyticsEvent } from "~/analytics";
 import { useAuth } from "~/auth";
 import { loadManagedSharedNoteForSession } from "~/shared-notes/cache";
+import { confirmDelete } from "~/shared/confirm-delete";
 
 const MAX_COMMENT_BODY_BYTES = 16_384;
 const EMPTY_COMMENTS: SessionShareComment[] = [];
@@ -403,6 +404,7 @@ export function SessionCommentsLayer({
 }: {
   controller: SessionCommentsController;
 }) {
+  const { t } = useLingui();
   const auth = useAuth();
   const authorImageUrl = getProviderProfileImageUrl(auth.session?.user);
   const openComments = controller.openAnchor
@@ -456,7 +458,13 @@ export function SessionCommentsLayer({
                   controller.deletingCommentId === comment.commentId
                 }
                 deleteDisabled={controller.deletePending}
-                onDelete={() => controller.deleteComment(comment.commentId)}
+                // Fork: ask first, as Google Docs does; a deleted comment
+                // can't come back (delete sweep, Oct 10; Apple HIG, Alerts).
+                onDelete={() =>
+                  void confirmDelete(t`Delete this comment?`).then(
+                    (ok) => ok && controller.deleteComment(comment.commentId),
+                  )
+                }
                 showDelete={comment.isAuthor || controller.manageAccess}
               />
             ))}

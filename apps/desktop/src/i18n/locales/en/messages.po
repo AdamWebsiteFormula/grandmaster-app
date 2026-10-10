@@ -2929,6 +2929,10 @@ msgstr "Delete template"
 msgid "Delete this automation?"
 msgstr "Delete this automation?"
 
+#: src/session-sharing/comments.tsx
+msgid "Delete this comment?"
+msgstr "Delete this comment?"
+
 #: src/contacts/contact-actions.ts
 msgid "Delete this contact?"
 msgstr "Delete this contact?"

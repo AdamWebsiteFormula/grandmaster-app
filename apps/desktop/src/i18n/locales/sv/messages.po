@@ -2929,6 +2929,10 @@ msgstr ""
 msgid "Delete this automation?"
 msgstr ""
 
+#: src/session-sharing/comments.tsx
+msgid "Delete this comment?"
+msgstr ""
+
 #: src/contacts/contact-actions.ts
 msgid "Delete this contact?"
 msgstr ""
