@@ -244,7 +244,7 @@ function RenderMeeting({ result }: { result: MeetingSearchResult }) {
     <button
       type="button"
       onClick={handleClick}
-      className="flex w-full flex-col gap-1 text-left text-xs"
+      className="flex w-full flex-col gap-1 text-left text-xs focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
     >
       <span className="truncate font-medium">{result.title || "Untitled"}</span>
       {dateLabel && (

@@ -278,6 +278,7 @@ function SendButton({
           "hover:brightness-90",
           "active:bg-primary/80 active:scale-[0.97]",
         ],
+        "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
       ])}
     >
       <ArrowUp size={15} weight="bold" />
@@ -351,7 +352,7 @@ function VoiceStatus({
         }
         onClick={onStop}
         disabled={isProcessing}
-        className="bg-muted text-foreground inline-flex size-7 shrink-0 items-center justify-center rounded-full disabled:opacity-60"
+        className="bg-muted text-foreground inline-flex size-7 shrink-0 items-center justify-center rounded-full disabled:opacity-60 focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"
       >
         {isProcessing ? (
           <CircleNotch className="size-3.5 animate-spin" />

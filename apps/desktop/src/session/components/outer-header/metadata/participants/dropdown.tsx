@@ -62,6 +62,7 @@ export function ParticipantDropdown({
             className={cn([
               "w-full px-3 py-1.5 text-left text-sm",
               selectedIndex === index ? "bg-muted" : "hover:bg-accent",
+              "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset",
             ])}
             onClick={() => onSelect(option)}
             onMouseEnter={() => onHover(index)}

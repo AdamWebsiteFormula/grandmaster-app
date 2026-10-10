@@ -652,6 +652,7 @@ export function SpeakerParticipantPicker({
             "bg-primary text-primary-foreground h-8 rounded-full px-3 text-xs font-medium",
             "hover:brightness-90",
             "disabled:pointer-events-none disabled:opacity-50",
+            "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset",
           ])}
           disabled={!selectedOption || assigning}
           onClick={() => handleConfirm()}
@@ -690,6 +691,7 @@ function ParticipantOptionButton({
       className={cn([
         "flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm",
         selected ? "bg-accent text-accent-foreground" : "hover:bg-accent",
+        "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset",
       ])}
       onClick={() => onSelect(option)}
     >

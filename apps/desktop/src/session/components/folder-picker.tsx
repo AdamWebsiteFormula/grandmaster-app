@@ -109,6 +109,7 @@ export function FolderPicker({
               "text-muted-foreground hover:bg-accent hover:text-foreground transition-colors",
               squircleFocusVisibleClassName,
               open && "bg-accent text-foreground",
+              "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset",
             ])}
           >
             {currentPath ? (
@@ -363,6 +364,7 @@ function FolderPickerContent({
         className={cn([
           "flex w-full items-center justify-center gap-1 px-3 py-1.5 text-xs font-medium",
           "text-muted-foreground hover:bg-accent hover:text-foreground transition-colors",
+          "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset",
         ])}
       >
         {t`See all folders`}

@@ -253,6 +253,7 @@ function NavItem({
         active
           ? "bg-sidebar-accent text-foreground font-medium"
           : "text-muted-foreground hover:bg-accent hover:text-foreground",
+        "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
       ])}
     >
       <span className="flex size-4 shrink-0 items-center justify-center">

@@ -53,6 +53,7 @@ export function ShareMenu({
               "border-input bg-card dark:bg-muted text-foreground hover:bg-accent dark:hover:bg-accent ml-1 inline-flex h-7 shrink-0 cursor-pointer items-center rounded-full border px-3 text-sm font-medium transition-colors",
               menuTriggerFocusClassName,
               open && "bg-accent dark:bg-accent",
+              "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
             ])}
           >
             {t`Share`}

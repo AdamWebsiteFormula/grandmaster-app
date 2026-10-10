@@ -144,7 +144,7 @@ export function NormalMessage({
               {handleReload && (
                 <button
                   onClick={handleReload}
-                  className="text-muted-foreground hover:text-foreground p-1.5 transition-colors"
+                  className="text-muted-foreground hover:text-foreground p-1.5 transition-colors focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"
                   aria-label={t`Regenerate message`}
                 >
                   <ArrowCounterClockwise size={14} />

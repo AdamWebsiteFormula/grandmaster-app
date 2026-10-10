@@ -68,6 +68,7 @@ export function ChatModelMenu({
             // The floating bar reserves a fixed width (chat-input.css).
             compact ? "w-[72px] justify-center" : "max-w-36",
             "disabled:cursor-default disabled:opacity-45",
+            "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
           ])}
         >
           <span className="truncate">{label}</span>

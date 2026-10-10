@@ -255,7 +255,7 @@ function PageButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="text-muted-foreground hover:bg-accent hover:text-foreground inline-flex size-7 cursor-pointer items-center justify-center rounded-lg transition-colors disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent"
+      className="text-muted-foreground hover:bg-accent hover:text-foreground inline-flex size-7 cursor-pointer items-center justify-center rounded-lg transition-colors disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"
     >
       {children}
     </button>
@@ -548,7 +548,7 @@ function FollowUpItem({
           type="button"
           onClick={() => openNote(item.session_id!)}
           title={t`Open ${noteTitle}`}
-          className="text-muted-foreground hover:text-foreground max-w-56 shrink-0 cursor-pointer truncate text-xs transition-colors"
+          className="text-muted-foreground hover:text-foreground focus-visible:ring-ring max-w-56 shrink-0 cursor-pointer truncate rounded-sm text-xs transition-colors focus-visible:ring-2 focus-visible:outline-none"
         >
           {noteTitle}
         </button>
@@ -610,7 +610,22 @@ export function RecentNotes({
       {/* Fork: -mx-2 lines the day labels and titles up with "Coming up"
           and its card; the rows keep px-2 for their hover fill (Apple HIG,
           Layout: indented items read as subordinate). */}
-      <div className="-mx-2 flex flex-col gap-5">
+      {/* Fork: Down and Up move between note rows, across day groups, as
+          Apple Notes' and Mail's lists do; Tab stays for leaving the list
+          (live task test, Oct 10; Apple HIG, Keyboards). */}
+      <div
+        className="-mx-2 flex flex-col gap-5"
+        onKeyDown={(event) => {
+          if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+          const rows = Array.from(
+            event.currentTarget.querySelectorAll<HTMLElement>("li > button"),
+          );
+          const index = rows.indexOf(event.target as HTMLElement);
+          if (index === -1) return;
+          event.preventDefault();
+          rows[index + (event.key === "ArrowDown" ? 1 : -1)]?.focus();
+        }}
+      >
         {groups.map((group) => (
           <div key={group.key} className="flex flex-col">
             <h3 className="text-muted-foreground px-2 pb-1 text-xs font-medium">
@@ -721,7 +736,9 @@ function RecentNoteRow({
       <InteractiveButton
         onClick={open}
         contextMenu={contextMenu}
-        className="hover:bg-accent flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors"
+        // Fork: the app's focus ring, not WebKit's blue outline, as every
+        // other control has (live task test, Oct 10; NN/g #4).
+        className="hover:bg-accent focus-visible:ring-ring flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none"
       >
         {/* Fork: the first attendee's initial in a rounded square, as
             Granola's meeting rows have; without attendees, a neutral note
@@ -832,7 +849,7 @@ function ShortcutItem({
     <button
       type="button"
       onClick={onClick}
-      className="group text-foreground hover:bg-accent -mx-3 flex cursor-pointer items-center justify-between gap-8 rounded-lg px-3 py-2 text-sm transition-colors"
+      className="group text-foreground hover:bg-accent -mx-3 flex cursor-pointer items-center justify-between gap-8 rounded-lg px-3 py-2 text-sm transition-colors focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"
     >
       <span>{label}</span>
       {shortcut ? <Kbd>{shortcut}</Kbd> : null}

@@ -214,6 +214,7 @@ export function ChatPage() {
                       // and drew it at 4.9:1, reading as enabled (picture
                       // review, Oct 9; NN/g #4).
                       "bg-foreground/10 text-foreground/30! dark:bg-foreground/15",
+                  "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
                 ])}
               >
                 <ArrowUp className="size-4" weight="bold" />

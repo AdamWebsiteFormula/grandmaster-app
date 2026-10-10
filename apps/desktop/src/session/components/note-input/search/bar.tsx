@@ -52,6 +52,7 @@ function ToggleButton({
             active
               ? "bg-accent text-muted-foreground"
               : "text-muted-foreground hover:bg-accent hover:text-muted-foreground",
+            "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
           ])}
         >
           {children}
@@ -88,6 +89,7 @@ function IconButton({
         disabled
           ? "text-muted-foreground/70 cursor-not-allowed"
           : "text-muted-foreground hover:bg-accent",
+        "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
       ])}
     >
       {children}
