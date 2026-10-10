@@ -60,7 +60,21 @@ export function AutoFormatExamplesDialog({
       onGenerated(format);
       onClose();
     },
-    onError: (error) => toast.error(error.message),
+    // Fork: our own messages say what to do; anything else (a model or
+    // network failure) gets a plain line instead of its raw text (error
+    // sweep, Oct 10; NN/g #9).
+    onError: (error) => {
+      const known = [
+        t`Upshot AI is getting ready. Try again in a minute.`,
+        t`Add at least one example summary.`,
+      ];
+      if (known.includes(error.message)) {
+        toast.error(error.message);
+        return;
+      }
+      console.error("[templates] format from examples failed", error);
+      toast.error(t`Couldn't learn the format from these examples. Try again.`);
+    },
   });
 
   const updateExample = (index: number, value: string) => {

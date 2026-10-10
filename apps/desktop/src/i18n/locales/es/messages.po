@@ -2431,6 +2431,10 @@ msgstr ""
 msgid "Couldn't keep this version. Try again."
 msgstr ""
 
+#: src/templates/auto-format-examples-dialog.tsx
+msgid "Couldn't learn the format from these examples. Try again."
+msgstr ""
+
 #: src/settings/ai/stt/health.tsx
 msgid "Couldn’t load the on-device model. Pick another model, or delete and download this one again."
 msgstr ""

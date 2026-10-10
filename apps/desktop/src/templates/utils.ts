@@ -1,5 +1,5 @@
 import { t } from "@lingui/core/macro";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 
 import { parseWebTemplates, type WebTemplate } from "./codec";
 import {
@@ -165,20 +165,29 @@ export function useTemplateTab(tab: Extract<Tab, { type: "templates" }>) {
     [updateTabState, tab],
   );
 
+  // Fork: a quick double-click on + made two "New template"s; one create
+  // runs at a time (live task test, Oct 10; NN/g #5).
+  const creatingRef = useRef(false);
   const createDefaultTemplate = useCallback(async () => {
-    const id = await createTemplate({
-      // Fork: sentence case (journey-after P3 "Templates").
-      title: t`New template`,
-      description: "",
-      sections: [],
-    });
+    if (creatingRef.current) return null;
+    creatingRef.current = true;
+    try {
+      const id = await createTemplate({
+        // Fork: sentence case (journey-after P3 "Templates").
+        title: t`New template`,
+        description: "",
+        sections: [],
+      });
 
-    if (id) {
-      requestTemplateNameFocus(id);
-      setSelectedMineId(id);
+      if (id) {
+        requestTemplateNameFocus(id);
+        setSelectedMineId(id);
+      }
+
+      return id;
+    } finally {
+      creatingRef.current = false;
     }
-
-    return id;
   }, [createTemplate, setSelectedMineId]);
 
   return {
