@@ -1,5 +1,5 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { Button } from "@anlg/ui/components/ui/button";
 import {
@@ -35,6 +35,15 @@ export function FolderNameDialog({
   const { t } = useLingui();
   const [value, setValue] = useState(initialValue);
   const [error, setError] = useState<string | null>(null);
+  // Stable, so it runs only when the field mounts (each time the dialog
+  // opens), not on every keystroke.
+  const selectNameOnOpen = useCallback((input: HTMLInputElement | null) => {
+    if (!input) return;
+    window.requestAnimationFrame(() => {
+      input.focus();
+      input.select();
+    });
+  }, []);
   const [busy, setBusy] = useState(false);
 
   const [syncedSource, setSyncedSource] = useState({ open, initialValue });
@@ -94,6 +103,10 @@ export function FolderNameDialog({
         >
           <Input
             autoFocus
+            // Fork: the name opens selected, so typing replaces it, as
+            // Finder's rename does (live task test, Oct 10: "Test Folder
+            // 1Clients"; Apple HIG, Entering data).
+            ref={selectNameOnOpen}
             value={value}
             disabled={busy}
             aria-label={t`Folder name`}
