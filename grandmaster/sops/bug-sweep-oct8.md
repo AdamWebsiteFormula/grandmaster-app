@@ -94,3 +94,11 @@ Not tested: the template menu inside a note (a dropdown needs the window in fron
 ## Decisions for Adam
 
 1. **Finish the in-app test** (done Oct 9, part 2) with the screen unlocked: Microsoft sign-in, sign out and in, record, Stop, summary, transcript and audio, chat, folders, templates, settings, meeting popup, light and dark.
+
+## Published: Upshot 1.0.1 (Oct 10, Adam's OK)
+
+- Release v1.0.1, marked Latest, built from commit 79ed048 in a clean worktree (other sessions' unsaved edits left out). Mac: `APP_VERSION=1.0.1 release.sh` for aarch64 and x86_64. Windows and Linux: cloud run 38015125704 (`upshot-release.yaml` now takes a version input).
+- 11 files: both DMGs, the Windows setup, AppImage, deb, both `.app.tar.gz` with `.sig`, `latest.json` (darwin-aarch64 and darwin-x86_64) and `SHA256SUMS.txt`. Key scan 0 on every installer; Mac signature ok; both Mac builds open (Intel under Rosetta); the run's Windows and Linux first-run and Home screenshots look right.
+- Checked after publishing: releases/latest is 1.0.1; the update feed answers version 1.0.1 with both Mac URLs; the download links answer 200; the published checksums match the local files.
+- Adam ran the publish script himself (the permission check blocks Claude from publishing) and saved `~/.upshot-release/updater.key` in his password manager.
+- Copies of 1.0.0 have no updater: those people download 1.0.1 once. Windows and Linux are not in the update feed yet.
