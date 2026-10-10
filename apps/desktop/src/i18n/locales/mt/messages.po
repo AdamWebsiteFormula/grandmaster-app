@@ -1233,7 +1233,6 @@ msgid "Can't hear the other side. Check your computer's sound output."
 msgstr ""
 
 #: src/calendar/components/apple/permission.tsx
-#: src/contacts/contact-actions.ts
 #: src/folders/folder-editor.tsx
 #: src/imports/screen.tsx
 #: src/main/move-to-applications.ts
@@ -1251,7 +1250,6 @@ msgstr ""
 #: src/settings/sync/index.tsx
 #: src/settings/team/index.tsx
 #: src/settings/todo/github.tsx
-#: src/shared/confirm-delete.ts
 #: src/shared/ui/destructive-confirmation-dialog.tsx
 #: src/sidebar/folder-name-dialog.tsx
 #: src/templates/auto-format-examples-dialog.tsx
@@ -2823,12 +2821,11 @@ msgstr ""
 msgid "Default sharing"
 msgstr ""
 
-#: src/contacts/contact-actions.ts
 #: src/folders/folder-editor.tsx
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 #: src/settings/ai/stt/select.tsx
 #: src/settings/developers/webhooks.tsx
-#: src/shared/confirm-delete.ts
+#: src/shared/confirm-delete.tsx
 #: src/sidebar/automations.tsx
 #: src/sidebar/timeline/index.tsx
 #: src/templates/sections-editor.tsx
@@ -2950,8 +2947,8 @@ msgid "Delete this recording?"
 msgstr ""
 
 #: src/session/components/note-input/meta-chips.tsx
-msgid "Delete this summary?"
-msgstr ""
+#~ msgid "Delete this summary?"
+#~ msgstr ""
 
 #: src/settings/developers/webhooks.tsx
 msgid "Delete this webhook?"
@@ -9368,9 +9365,8 @@ msgstr ""
 msgid "You can use up to three example summaries."
 msgstr ""
 
-#: src/contacts/contact-actions.ts
 #: src/session/components/note-input/header-enhanced.tsx
-#: src/shared/confirm-delete.ts
+#: src/shared/confirm-delete.tsx
 msgid "You can't undo this."
 msgstr ""
 

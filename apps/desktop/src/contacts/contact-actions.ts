@@ -1,25 +1,21 @@
 import { t } from "@lingui/core/macro";
-import { ask } from "@tauri-apps/plugin-dialog";
 
 import { toast } from "@anlg/ui/components/ui/toast";
 
 import { deleteHuman, deleteOrganization } from "./queries";
+
+import { confirmDelete } from "~/shared/confirm-delete";
 
 type ContactKind = "person" | "organization";
 
 // Fork: deleting a contact had no confirmation and failed silently, and it
 // can't be undone (task sweep, Oct 9; Apple HIG, Alerts: confirm actions
 // people can't undo, title the cancel button "Cancel"; NN/g #5, #9).
+// Uses the app's own red dialog, as every other delete does.
 export async function confirmContactDelete(kind: ContactKind) {
-  return ask(t`You can't undo this.`, {
-    title:
-      kind === "person"
-        ? t`Delete this contact?`
-        : t`Delete this organization?`,
-    kind: "warning",
-    okLabel: t`Delete`,
-    cancelLabel: t`Cancel`,
-  });
+  return confirmDelete(
+    kind === "person" ? t`Delete this contact?` : t`Delete this organization?`,
+  );
 }
 
 export async function deleteContactOrSay(kind: ContactKind, id: string) {

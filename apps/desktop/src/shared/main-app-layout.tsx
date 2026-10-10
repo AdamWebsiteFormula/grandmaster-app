@@ -24,6 +24,7 @@ import { MeetingImportSync } from "~/services/meeting-import-sync";
 import { getOrCreateSessionForEventId } from "~/session/queries";
 import { WorkspaceInvitationToasts } from "~/settings/team/invitation-toast";
 import { useMyWorkspacesWithMirror } from "~/settings/team/mirror";
+import { ConfirmDeleteHost } from "~/shared/confirm-delete";
 import { useZoomShortcuts } from "~/shared/zoom";
 import { UndoDeleteToast } from "~/sidebar/toast/undo-delete-toast";
 import { isTabInputSupported, useTabs } from "~/store/zustand/tabs";
@@ -52,6 +53,7 @@ function MainAppContent() {
       {isMainWindow ? <EnterpriseCaptureSync /> : null}
       {isMainWindow ? <WorkspaceInvitationToasts /> : null}
       <UndoDeleteToast />
+      <ConfirmDeleteHost />
       <KeyboardShortcutsDialog />
     </>
   );

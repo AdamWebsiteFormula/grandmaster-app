@@ -1,13 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  ask: vi.fn(() => Promise.resolve(true)),
+  confirmDelete: vi.fn(() => Promise.resolve(true)),
   deleteHuman: vi.fn(() => Promise.resolve()),
   deleteOrganization: vi.fn(() => Promise.resolve()),
   toastError: vi.fn(),
 }));
 
-vi.mock("@tauri-apps/plugin-dialog", () => ({ ask: mocks.ask }));
+vi.mock("~/shared/confirm-delete", () => ({
+  confirmDelete: mocks.confirmDelete,
+}));
 
 vi.mock("./queries", () => ({
   deleteHuman: mocks.deleteHuman,
@@ -28,14 +30,7 @@ describe("contact delete", () => {
   it("asks first, with Cancel to back out", async () => {
     await confirmContactDelete("person");
 
-    expect(mocks.ask).toHaveBeenCalledWith(
-      "You can't undo this.",
-      expect.objectContaining({
-        title: "Delete this contact?",
-        okLabel: "Delete",
-        cancelLabel: "Cancel",
-      }),
-    );
+    expect(mocks.confirmDelete).toHaveBeenCalledWith("Delete this contact?");
   });
 
   it("says so when a delete fails", async () => {
