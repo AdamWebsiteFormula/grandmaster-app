@@ -46,6 +46,28 @@ it("creates a note in the active sidebar folder", async () => {
   });
 });
 
+it("makes one note when the button is clicked twice quickly", async () => {
+  let finish: (id: string) => void = () => {};
+  mocks.createSession.mockImplementationOnce(
+    () => new Promise<string>((resolve) => (finish = resolve)),
+  );
+  const { result } = renderHook(() => useNewNote());
+
+  act(() => {
+    result.current();
+    result.current();
+  });
+  finish("only-session");
+
+  await vi.waitFor(() => {
+    expect(useTabs.getState().currentTab).toMatchObject({
+      type: "sessions",
+      id: "only-session",
+    });
+  });
+  expect(mocks.createSession).toHaveBeenCalledTimes(1);
+});
+
 it("can open a listening note without a listener provider", async () => {
   mocks.createSession.mockResolvedValueOnce("new-session");
   const { result } = renderHook(() => useNewNoteAndListen());

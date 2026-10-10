@@ -1,8 +1,9 @@
 import { useLingui } from "@lingui/react/macro";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 
 import { ArrowElbowDownLeft } from "@anlg/ui/components/icons";
 
+import { showContactNotSavedToast } from "~/contacts/contact-actions";
 import { createHuman } from "~/contacts/queries";
 
 export function NewPersonForm({
@@ -15,13 +16,20 @@ export function NewPersonForm({
   const { t } = useLingui();
   const [name, setName] = useState("");
 
+  // Fork: a double Return made two people; one add runs at a time, and a
+  // failure says so (double-click sweep, Oct 10; NN/g #5 and #9).
+  const addingRef = useRef(false);
   const handleAdd = async () => {
+    if (addingRef.current) return;
+    addingRef.current = true;
     try {
       const humanId = await createHuman({ name: name.trim() });
       setName("");
       onSave(humanId);
     } catch (error) {
-      console.error("[contacts] failed to create contact", error);
+      showContactNotSavedToast(error);
+    } finally {
+      addingRef.current = false;
     }
   };
 

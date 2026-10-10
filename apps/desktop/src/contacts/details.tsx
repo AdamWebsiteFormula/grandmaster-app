@@ -1,5 +1,5 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 
 import {
   Buildings,
@@ -697,7 +697,12 @@ function OrganizationControl({
   const showCreateOption = searchTerm.trim() && organizations.length === 0;
   const itemCount = organizations.length + (showCreateOption ? 1 : 0);
 
+  // Fork: a double Return or click made two organizations; one create runs
+  // at a time (double-click sweep, Oct 10; NN/g #5).
+  const creatingRef = useRef(false);
   const handleCreateOrganization = async () => {
+    if (creatingRef.current) return;
+    creatingRef.current = true;
     try {
       const organizationId = await createOrganization({
         name: searchTerm.trim(),
@@ -709,6 +714,8 @@ function OrganizationControl({
       // Oct 9; NN/g #9).
       console.error("[contacts] failed to create organization", error);
       toast.error(t`Couldn't add this organization. Try again.`);
+    } finally {
+      creatingRef.current = false;
     }
   };
 

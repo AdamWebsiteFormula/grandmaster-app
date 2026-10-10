@@ -437,7 +437,12 @@ function TemplateEmptyState({
       userTemplates,
     ],
   );
+  // Fork: a double click made two templates; one create runs at a time
+  // (double-click sweep, Oct 10; NN/g #5).
+  const creatingTemplateRef = useRef(false);
   const handleCreateTemplate = useCallback(() => {
+    if (creatingTemplateRef.current) return;
+    creatingTemplateRef.current = true;
     void (async () => {
       const templateId = await createTemplate({
         // Fork: sentence case (ux-audit-oct3 C).
@@ -455,7 +460,9 @@ function TemplateEmptyState({
         isWebMode: false,
         showHomepage: false,
       });
-    })();
+    })().finally(() => {
+      creatingTemplateRef.current = false;
+    });
   }, [createTemplate, openTemplatesTab]);
 
   return (

@@ -7,12 +7,24 @@ import { listenerStore } from "~/store/zustand/listener/instance";
 import { useTabs } from "~/store/zustand/tabs";
 import { showStillRecordingToast } from "~/stt/recording-request-toasts";
 
-function createNoteSession() {
+// Fork: a quick double-click on "Blank note" or "Record meeting" made two
+// notes; one create runs at a time, and the extra click does nothing
+// (live task test, Oct 10; NN/g heuristic #5, error prevention).
+let creatingNote: Promise<string> | null = null;
+
+function createNoteSession(): Promise<string> | null {
+  if (creatingNote) return null;
   const { noteFilter, folderFilter } = useSidebarNotes.getState();
   const folderId = folderIdForNewNote(noteFilter, folderFilter);
-  return folderId === undefined
-    ? createSession()
-    : createSession("", undefined, { folder_id: folderId });
+  const pending = (
+    folderId === undefined
+      ? createSession()
+      : createSession("", undefined, { folder_id: folderId })
+  ).finally(() => {
+    creatingNote = null;
+  });
+  creatingNote = pending;
+  return pending;
 }
 
 export function useNewNote({
@@ -30,7 +42,7 @@ export function useNewNote({
   const handler = useCallback(() => {
     const ff = behavior === "new" ? openNew : openCurrent;
     void createNoteSession()
-      .then((sessionId) => {
+      ?.then((sessionId) => {
         ff({ type: "sessions", id: sessionId });
       })
       .catch((error) => {
@@ -69,7 +81,7 @@ export function openNewNoteAndListen({
   }
 
   void createNoteSession()
-    .then((sessionId) => {
+    ?.then((sessionId) => {
       openSessionAndListen(sessionId, { behavior });
     })
     .catch((error) => {
