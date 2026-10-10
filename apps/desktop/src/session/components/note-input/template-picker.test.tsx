@@ -118,6 +118,17 @@ describe("TemplatePickerPopover", () => {
     expect(screen.getByLabelText("Current template")).not.toBeNull();
   });
 
+  // Fork test: picker sweep, Oct 10 (Return in the search did nothing).
+  it("picks the top match when Return is pressed in the search", () => {
+    const { onSelectTemplate } = renderPicker();
+    const search = screen.getByRole("textbox", { name: "Search templates" });
+
+    fireEvent.change(search, { target: { value: "stand" } });
+    fireEvent.keyDown(search, { key: "Enter" });
+
+    expect(onSelectTemplate).toHaveBeenCalledTimes(1);
+  });
+
   it("checks Auto when the summary used no template", () => {
     renderPicker(null);
 

@@ -94,6 +94,17 @@ export function FoldersSidebar() {
                   if (event.key === "Escape") {
                     setSearch("");
                   }
+                  // Fork: Return opens the top match, as Settings search
+                  // does (picker sweep, Oct 10; NN/g #4).
+                  if (
+                    event.key === "Enter" &&
+                    !event.nativeEvent.isComposing &&
+                    search.trim() &&
+                    filteredFolders[0]
+                  ) {
+                    event.preventDefault();
+                    setSelectedPath(filteredFolders[0]);
+                  }
                 }}
                 placeholder={t`Search folders`}
                 className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm placeholder:text-sm focus:outline-hidden"

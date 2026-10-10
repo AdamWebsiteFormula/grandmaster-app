@@ -83,6 +83,17 @@ export function RelatedNotesSection({
             onChange={(event) => setSearch(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Escape") setSearch("");
+              // Fork: Return opens the top match, as Settings search does
+              // (picker sweep, Oct 10; NN/g #4).
+              if (
+                event.key === "Enter" &&
+                !event.nativeEvent.isComposing &&
+                search.trim() &&
+                visibleSessions[0]
+              ) {
+                event.preventDefault();
+                onSessionClick(visibleSessions[0].id);
+              }
             }}
             placeholder={t`Search`}
             className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm focus:outline-hidden"

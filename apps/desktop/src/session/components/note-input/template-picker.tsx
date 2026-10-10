@@ -415,8 +415,21 @@ export function TemplatePickerPopover({
         e.preventDefault();
         focusResult(navigableResults.length - 1);
       }
+
+      // Fork: with words typed, Return picks the top match, as a Mac
+      // search menu does; it did nothing (picker sweep, Oct 10; Apple HIG,
+      // Combo boxes). An empty box does nothing, since a pick can rewrite
+      // the summary.
+      if (
+        e.key === "Enter" &&
+        !e.nativeEvent.isComposing &&
+        search.trim().length > 0
+      ) {
+        e.preventDefault();
+        resultRefs.current[0]?.click();
+      }
     },
-    [focusResult, navigableResults.length],
+    [focusResult, navigableResults.length, search],
   );
   const handleResultKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {

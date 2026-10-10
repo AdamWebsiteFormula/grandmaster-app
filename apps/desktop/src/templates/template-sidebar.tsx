@@ -457,6 +457,17 @@ export function TemplatesSidebarContent({
                 if (e.key === "Escape") {
                   setSearch("");
                 }
+                // Fork: Return selects the top match, as Settings search
+                // does (picker sweep, Oct 10; NN/g #4).
+                if (
+                  e.key === "Enter" &&
+                  !e.nativeEvent.isComposing &&
+                  search.trim() &&
+                  combinedTemplates[0]
+                ) {
+                  e.preventDefault();
+                  selectCombinedTemplate(combinedTemplates[0]);
+                }
               }}
               placeholder={t`Search templates`}
               className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm placeholder:text-sm focus:outline-hidden"
