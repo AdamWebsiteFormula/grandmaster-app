@@ -6440,6 +6440,7 @@ msgstr ""
 msgid "Removed from “{previous}”"
 msgstr ""
 
+#: src/resource-sharing/share-dialog.tsx
 #: src/settings/ai/shared/index.tsx
 msgid "Removing…"
 msgstr ""
@@ -6683,6 +6684,10 @@ msgstr ""
 
 #: src/settings/developers/api-key-row.tsx
 msgid "Revoke"
+msgstr ""
+
+#: src/settings/developers/api-key-row.tsx
+msgid "Revoking…"
 msgstr ""
 
 #: src/settings/dictation-shortcut.tsx

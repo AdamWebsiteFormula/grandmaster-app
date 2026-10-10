@@ -405,6 +405,9 @@ function AuthenticatedResourceShareButton({
                       key={guest.guestId}
                       label={guest.email}
                       onRemove={() => revoke.mutate(guest.guestId)}
+                      removing={
+                        revoke.isPending && revoke.variables === guest.guestId
+                      }
                     />
                   ))}
                 </div>
@@ -463,9 +466,11 @@ function ShareGate({
 function AccessRow({
   label,
   onRemove,
+  removing = false,
 }: {
   label: React.ReactNode;
   onRemove?: () => void;
+  removing?: boolean;
 }) {
   return (
     <div className="flex min-h-8 items-center justify-between gap-2 text-sm">
@@ -477,8 +482,11 @@ function AccessRow({
           variant="ghost"
           className={cn(["h-7 rounded-full px-2 text-xs"])}
           onClick={onRemove}
+          // Fork: say it is working and take one click (pending-state sweep,
+          // Oct 10; NN/g #1, visibility of system status).
+          disabled={removing}
         >
-          <Trans>Remove</Trans>
+          {removing ? <Trans>Removing…</Trans> : <Trans>Remove</Trans>}
         </Button>
       ) : (
         <span className="text-muted-foreground text-xs">

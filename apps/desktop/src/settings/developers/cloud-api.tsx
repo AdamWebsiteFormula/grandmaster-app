@@ -300,6 +300,9 @@ function CloudApiKeys() {
               key={key.id}
               apiKey={key}
               onRevoke={() => revokeMutation.mutate(key.id)}
+              revoking={
+                revokeMutation.isPending && revokeMutation.variables === key.id
+              }
             />
           ))}
         </ul>
@@ -311,9 +314,11 @@ function CloudApiKeys() {
 function CloudApiKeyRow({
   apiKey,
   onRevoke,
+  revoking,
 }: {
   apiKey: CloudApiKey;
   onRevoke: () => void;
+  revoking: boolean;
 }) {
-  return <ApiKeyRow apiKey={apiKey} onRevoke={onRevoke} />;
+  return <ApiKeyRow apiKey={apiKey} onRevoke={onRevoke} revoking={revoking} />;
 }

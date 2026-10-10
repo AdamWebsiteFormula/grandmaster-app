@@ -5,6 +5,7 @@ import { Button } from "@anlg/ui/components/ui/button";
 export function ApiKeyRow({
   apiKey,
   onRevoke,
+  revoking = false,
 }: {
   apiKey: {
     name: string;
@@ -13,6 +14,7 @@ export function ApiKeyRow({
     last_used_at: string | null;
   };
   onRevoke: () => void;
+  revoking?: boolean;
 }) {
   return (
     <li className="flex items-center justify-between gap-3 text-sm">
@@ -34,8 +36,11 @@ export function ApiKeyRow({
           size="sm"
           className="text-destructive h-7"
           onClick={onRevoke}
+          // Fork: say it is working and take one click (pending-state sweep,
+          // Oct 10; NN/g #1, visibility of system status).
+          disabled={revoking}
         >
-          {t`Revoke`}
+          {revoking ? t`Revoking…` : t`Revoke`}
         </Button>
       </div>
     </li>
