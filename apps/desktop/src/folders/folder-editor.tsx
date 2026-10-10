@@ -337,12 +337,23 @@ export function FolderEditor({ folderPath }: { folderPath: string }) {
                 NN/g #8). */}
             {noteCount !== null && (noteCount > 0 || materials.length > 0) ? (
               <p className="text-muted-foreground text-sm tabular-nums">
+                {/* Fork: only the counts above zero, "1 note", not
+                    "1 note · 0 files" (live task test, Oct 9; Apple HIG,
+                    Writing: cut words that add nothing). */}
                 {[
-                  noteCount === 1 ? t`1 note` : t`${noteCount} notes`,
-                  materials.length === 1
-                    ? t`1 file`
-                    : t`${materials.length} files`,
-                ].join(" · ")}
+                  noteCount === 0
+                    ? null
+                    : noteCount === 1
+                      ? t`1 note`
+                      : t`${noteCount} notes`,
+                  materials.length === 0
+                    ? null
+                    : materials.length === 1
+                      ? t`1 file`
+                      : t`${materials.length} files`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
               </p>
             ) : null}
           </header>

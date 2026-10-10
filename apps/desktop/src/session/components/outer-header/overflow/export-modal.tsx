@@ -5,6 +5,7 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { format as formatDateFns } from "date-fns";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { hasSummaryContent } from "@anlg/utils/session";
 import { json2md } from "@anlg/editor/markdown";
 import { commands as analyticsCommands } from "@anlg/plugin-analytics";
 import {
@@ -114,7 +115,12 @@ export function ExportModal({
   // Fork: with no summary yet, default to My notes and disable Summary, so an
   // export never "succeeds" with only a title (journey-after P2 "Export, no
   // summary"; NN/g #1, #5).
-  const hasSummary = enhancedNoteRecords.length > 0;
+  // Fork: an empty summary record (left by a summary that never finished)
+  // doesn't count, as the Generate summary card judges it (live task test,
+  // Oct 9).
+  const hasSummary = enhancedNoteRecords.some((note) =>
+    hasSummaryContent(note.content, sessionTitle),
+  );
   useEffect(() => {
     if (includeTouchedRef.current) return;
     setIncludeSummaryState(hasSummary);
@@ -131,6 +137,9 @@ export function ExportModal({
     useTranscriptExportSegments(sessionId);
 
   const transcripts = useSessionTranscriptMetadata(sessionId);
+  // Fork: a note with no recording can't export a transcript, so the box is
+  // off, as Summary's is (live task test, Oct 9; NN/g #5).
+  const hasTranscript = transcripts.length > 0;
 
   const transcriptDuration = useMemo((): string | null => {
     if (transcripts.length === 0) {
@@ -516,7 +525,9 @@ export function ExportModal({
                   ],
                 ] as const
               ).map(([id, label, checked, setter]) => {
-                const unavailable = id === "summary" && !hasSummary;
+                const unavailable =
+                  (id === "summary" && !hasSummary) ||
+                  (id === "transcript" && !hasTranscript);
                 return (
                   <label
                     key={id}
@@ -531,7 +542,7 @@ export function ExportModal({
                       checked={unavailable ? false : checked}
                       disabled={unavailable}
                       aria-describedby={
-                        unavailable ? "export-no-summary" : undefined
+                        unavailable ? "export-unavailable" : undefined
                       }
                       onChange={(e) => setter(e.target.checked)}
                       // Fork: neutral, as the radios above and the Home
@@ -544,12 +555,18 @@ export function ExportModal({
                 );
               })}
             </div>
-            {hasSummary ? null : (
+            {hasSummary && hasTranscript ? null : (
               <p
-                id="export-no-summary"
+                id="export-unavailable"
                 className="text-muted-foreground text-xs"
               >
-                <Trans>No summary yet</Trans>
+                {!hasSummary && !hasTranscript ? (
+                  <Trans>No summary or transcript yet</Trans>
+                ) : !hasSummary ? (
+                  <Trans>No summary yet</Trans>
+                ) : (
+                  <Trans>No transcript yet</Trans>
+                )}
               </p>
             )}
           </fieldset>

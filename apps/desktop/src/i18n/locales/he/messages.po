@@ -3734,7 +3734,6 @@ msgstr ""
 msgid "General access"
 msgstr ""
 
-#: src/session/components/note-input/enhanced/generate-summary.tsx
 #: src/session/components/note-input/generate-summary-offer.tsx
 #: src/session/components/outer-header/overflow/index.tsx
 msgid "Generate summary"
@@ -5253,10 +5252,13 @@ msgid "No speech detected"
 msgstr ""
 
 #: src/session/components/outer-header/overflow/export-modal.tsx
+msgid "No summary or transcript yet"
+msgstr ""
+
+#: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "No summary yet"
 msgstr ""
 
-#: src/session/components/note-input/enhanced/generate-summary.tsx
 #: src/session/components/note-input/generate-summary-offer.tsx
 msgid "No summary yet. Turn this meeting into clear notes."
 msgstr ""
@@ -5279,6 +5281,10 @@ msgstr ""
 
 #: src/session/components/note-input/transcript/screens/empty.tsx
 msgid "No transcript available"
+msgstr ""
+
+#: src/session/components/outer-header/overflow/export-modal.tsx
+msgid "No transcript yet"
 msgstr ""
 
 #: src/settings/team/index.tsx

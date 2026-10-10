@@ -67,6 +67,10 @@ vi.mock("~/ai/contexts", () => ({
     select({ generate: vi.fn() }),
 }));
 
+vi.mock("../generate-summary-offer", () => ({
+  GenerateSummaryOffer: () => <div data-testid="generate-summary-offer" />,
+}));
+
 vi.mock("~/session/queries", () => ({
   useEnhancedNote: () =>
     hoisted.noteExists ? { content: hoisted.content } : null,
@@ -382,9 +386,14 @@ describe("Enhanced", () => {
 
     expect(screen.getByText("Enhanced editor")).not.toBeNull();
     expect(screen.queryByRole("status")).toBeNull();
-    // Fork: the empty summary also offers to generate one.
+    // Fork: the empty summary also offers to generate one, with the My
+    // notes card under the title.
+    expect(screen.getByTestId("generate-summary-offer")).toBeTruthy();
     expect(
-      screen.getByRole("button", { name: /Generate summary/ }),
+      screen
+        .getByText("Enhanced editor")
+        .compareDocumentPosition(screen.getByTestId("generate-summary-offer")) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
   });
 

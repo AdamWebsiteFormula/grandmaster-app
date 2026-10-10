@@ -9,6 +9,7 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  transcriptMetadata: [] as Array<{ startedAt: number; endedAt?: number }>,
   settings: vi.fn(),
   downloadDir: vi.fn(),
   exportPdf: vi.fn(),
@@ -51,7 +52,9 @@ vi.mock("~/session/utils", () => ({ getSessionEvent: () => null }));
 vi.mock("~/session/components/note-input/transcript/export-data", () => ({
   useTranscriptExportSegments: () => ({ data: [], isLoading: false }),
 }));
-vi.mock("~/stt/queries", () => ({ useSessionTranscriptMetadata: () => [] }));
+vi.mock("~/stt/queries", () => ({
+  useSessionTranscriptMetadata: () => mocks.transcriptMetadata,
+}));
 
 import { ExportModal } from "./export-modal";
 
@@ -174,8 +177,13 @@ describe("ExportModal destination", () => {
     const summary = screen.getByRole("checkbox", { name: "Summary" });
     expect(summary.hasAttribute("disabled")).toBe(true);
     expect((summary as HTMLInputElement).checked).toBe(false);
-    expect(summary.getAttribute("aria-describedby")).toBe("export-no-summary");
-    expect(screen.getByText("No summary yet")).toBeTruthy();
+    expect(summary.getAttribute("aria-describedby")).toBe("export-unavailable");
+    expect(screen.getByText("No summary or transcript yet")).toBeTruthy();
+    expect(
+      screen
+        .getByRole("checkbox", { name: "Transcript" })
+        .hasAttribute("disabled"),
+    ).toBe(true);
     expect(
       (screen.getByRole("checkbox", { name: "My notes" }) as HTMLInputElement)
         .checked,

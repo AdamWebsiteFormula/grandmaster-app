@@ -1,6 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 
 import { ArrowCounterClockwise } from "@anlg/ui/components/icons";
+import { Button } from "@anlg/ui/components/ui/button";
 import { cn } from "@anlg/utils";
 
 import { MessageBubble, MessageContainer } from "./shared";
@@ -71,6 +72,29 @@ export function ErrorMessage({
     "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
   ]);
 
+  // Fork: being signed out is not an error, so it reads as a normal reply
+  // with Sign in as its button, as the summary card does; red stays for real
+  // failures (live task test, Oct 9; Apple HIG, Color: red signals danger;
+  // NN/g #9).
+  if (needsSignIn) {
+    return (
+      <MessageContainer align="start">
+        <MessageBubble variant="assistant">
+          <p className="text-sm">{message}</p>
+          <Button
+            type="button"
+            size="sm"
+            variant="default"
+            className="mt-2 mb-1"
+            onClick={() => openUpshotSignIn("hosted")}
+          >
+            <Trans>Sign in</Trans>
+          </Button>
+        </MessageBubble>
+      </MessageContainer>
+    );
+  }
+
   return (
     <MessageContainer align="start">
       <MessageBubble variant="error">
@@ -78,15 +102,7 @@ export function ErrorMessage({
         {detail ? (
           <p className="mt-0.5 text-xs break-words opacity-80">{detail}</p>
         ) : null}
-        {needsSignIn ? (
-          <button
-            type="button"
-            onClick={() => openUpshotSignIn("hosted")}
-            className={buttonClass}
-          >
-            <Trans>Sign in</Trans>
-          </button>
-        ) : onRetry ? (
+        {onRetry ? (
           // Fork: a visible text button, not a hover-only 20px icon (ux-audit-oct3 D,
           // WCAG 2.4.7, 2.5.8).
           <button type="button" onClick={onRetry} className={buttonClass}>

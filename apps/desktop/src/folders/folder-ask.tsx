@@ -57,12 +57,13 @@ export function FolderAskComposer({ folderPath }: { folderPath: string }) {
         // Fork: the brand accent marks Send once there is text (Claude.ai;
         // Apple HIG, Color: the accent marks the primary action). Empty, it
         // looks unavailable in dark too, as on the Chat page (Apple HIG,
-        // Buttons).
+        // Buttons). The empty Send matches Chat's pale chip and dimmed arrow
+        // (live task test, Oct 9: a solid gray read as ready; NN/g #4).
         className={cn([
-          "inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition disabled:cursor-default disabled:opacity-45 dark:disabled:opacity-100",
+          "inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition disabled:cursor-default",
           value.trim()
             ? "bg-primary text-primary-foreground hover:brightness-90"
-            : "bg-foreground text-background dark:bg-foreground/15 dark:text-foreground/40",
+            : "bg-foreground/10 text-foreground/30! dark:bg-foreground/15",
         ])}
       >
         <ArrowUp className="size-4" weight="bold" />

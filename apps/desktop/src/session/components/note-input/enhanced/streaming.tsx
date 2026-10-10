@@ -16,7 +16,14 @@ import { createTaskId } from "~/store/zustand/ai-task/task-configs";
 import { getPersistableGeneratedTitle } from "~/store/zustand/ai-task/task-configs/title-success";
 import { isLocalModelProviderId } from "~/store/zustand/ai-task/tasks";
 
-function SummaryTitleSpace({ title }: { title: string }) {
+export function SummaryTitleSpace({
+  title,
+  pending = true,
+}: {
+  title: string;
+  /** False when no title is coming (an error or sign-in view): no pulse. */
+  pending?: boolean;
+}) {
   return (
     <div
       data-testid="summary-title-space"
@@ -30,14 +37,14 @@ function SummaryTitleSpace({ title }: { title: string }) {
         <h1 className="text-foreground font-display text-2xl font-semibold tracking-[-0.01em]">
           {title}
         </h1>
-      ) : (
+      ) : pending ? (
         <span
           aria-hidden="true"
           className="text-muted-foreground font-display animate-pulse text-2xl font-semibold tracking-[-0.01em]"
         >
           <Trans>Generating title…</Trans>
         </span>
-      )}
+      ) : null}
     </div>
   );
 }
