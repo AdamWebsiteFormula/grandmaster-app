@@ -362,7 +362,23 @@ export async function completeUpshotOAuth(code: string): Promise<boolean> {
         }
       : { code, code_verifier: pending.verifier },
   });
-  await saveSession(toSession(data, data.user?.email ?? "", pending.provider));
+  // Fork (Oct 9 bug sweep): Connect calendar must not switch the Upshot
+  // account. If another Google or Microsoft account was picked at consent,
+  // keep the signed-in one and say so.
+  const current = useUpshotAccount.getState().session;
+  const email = data.user?.email ?? "";
+  if (
+    pending.calendar &&
+    current &&
+    email.toLowerCase() !== current.email.toLowerCase()
+  ) {
+    throw new UpshotRequestError(
+      `Choose ${current.email}, the account you signed in with, to connect its calendar.`,
+      0,
+      "calendar_other_account",
+    );
+  }
+  await saveSession(toSession(data, email, pending.provider));
   useUpshotAccount.setState({ sessionEnded: false });
   return true;
 }
@@ -391,6 +407,13 @@ async function refresh(session: UpshotSession): Promise<UpshotSession> {
     const data = await workerFetch<WorkerSession>("/auth/refresh", {
       body: { refresh_token: session.refresh_token },
     });
+    // Fork (Oct 9 bug sweep): a Sign out (or another sign-in) while this
+    // refresh ran wins; never write the old account back.
+    const current = useUpshotAccount.getState().session;
+    if (!current) {
+      throw new UpshotRequestError("Sign in to continue.", 401);
+    }
+    if (current.refresh_token !== session.refresh_token) return current;
     const next = toSession(data, session.email, session.provider);
     await saveSession(next);
     return next;
@@ -398,7 +421,12 @@ async function refresh(session: UpshotSession): Promise<UpshotSession> {
     // Fork: only a rejected refresh token ends the session; a network or
     // Worker error keeps it and says what went wrong, instead of a false
     // "Sign in to continue." (journey-account-settings P2; NN/g #9).
-    if (error instanceof UpshotRequestError && error.status === 401) {
+    if (
+      error instanceof UpshotRequestError &&
+      error.status === 401 &&
+      useUpshotAccount.getState().session?.refresh_token ===
+        session.refresh_token
+    ) {
       await saveSession(null);
       useUpshotAccount.setState({ sessionEnded: true });
       throw new UpshotRequestError(SESSION_ENDED, 401, "session_ended");
@@ -521,10 +549,37 @@ export const upshotAuthFetch: typeof fetch = async (input, init) => {
   const headers = new Headers(init?.headers);
   headers.set("Authorization", `Bearer ${token}`);
   const response = await providerFetch(input, { ...init, headers });
-  // The Worker's own message also tells old apps to update; this app only
-  // needs to ask for sign-in.
-  return response.status === 401 ? signInRequiredResponse() : response;
+  if (response.status !== 401) return response;
+  // Fork (Oct 9 bug sweep): the Worker refused a token this Mac thought was
+  // valid. Refresh once and retry (RFC 6750 §3.1, invalid_token); if the
+  // account is still refused, sign this Mac out, so Settings never shows
+  // "signed in" beside "Sign in to use Upshot AI". The Worker's own message
+  // also tells old apps to update; this app only needs to ask for sign-in.
+  try {
+    const fresh = await refreshNow(token);
+    if (fresh) {
+      headers.set("Authorization", `Bearer ${fresh}`);
+      const retried = await providerFetch(input, { ...init, headers });
+      if (retried.status !== 401) return retried;
+      await saveSession(null);
+      useUpshotAccount.setState({ sessionEnded: true });
+    }
+  } catch {
+    // A rejected refresh already signed out (refresh()); offline keeps it.
+  }
+  return signInRequiredResponse();
 };
+
+/** A refreshed access token after the Worker refused `refused`, or null. */
+async function refreshNow(refused: string): Promise<string | null> {
+  const session = useUpshotAccount.getState().session;
+  if (!session) return null;
+  if (session.access_token !== refused) return session.access_token;
+  refreshing ??= refresh(session).finally(() => {
+    refreshing = null;
+  });
+  return (await refreshing).access_token;
+}
 
 /** Test helper: forget the in-memory session and load state. */
 export function resetUpshotAccountForTests(): void {

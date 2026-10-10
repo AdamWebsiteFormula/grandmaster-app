@@ -22,7 +22,7 @@
 // Secrets: CALENDAR_TOKEN_KEY (32 random bytes, base64), GOOGLE_CLIENT_ID,
 // GOOGLE_CLIENT_SECRET, MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET.
 
-import { requireAccount, signInRequired } from "./auth.js";
+import { accountOrResponse, requireAccount } from "./auth.js";
 import { json, readSmallJson, userRateLimited } from "./http.js";
 
 export const INTEGRATION_BY_PROVIDER = {
@@ -42,6 +42,7 @@ const GRAPH_API = "https://graph.microsoft.com/v1.0";
 export const MICROSOFT_CALENDAR_SCOPES = "offline_access Calendars.Read";
 
 const RECONNECT = "Connect your calendar again in Settings › Calendar.";
+const CALENDAR_UNREADABLE = "Your calendar couldn't be read. Try again.";
 
 // ---------- on/off per provider ----------
 //
@@ -350,8 +351,10 @@ function validEventsInput(input) {
 }
 
 export async function handleCalendar(request, env, pathname) {
-  const account = await requireAccount(request, env);
-  if (!account) return signInRequired();
+  const { account, response } = await accountOrResponse(
+    requireAccount(request, env),
+  );
+  if (response) return response;
   if (await userRateLimited(env, "calendar", account.id)) {
     return json(429, "Too many calendar requests. Try again in a minute.");
   }
@@ -360,7 +363,14 @@ export async function handleCalendar(request, env, pathname) {
   }
 
   if (request.method === "GET" && pathname === "/nango/connections") {
-    const rows = await connectionsFor(env, account.id);
+    // Fork (Oct 9 bug sweep): a Supabase error is a JSON 502, not a crash.
+    let rows;
+    try {
+      rows = await connectionsFor(env, account.id);
+    } catch {
+      console.error("calendar rows error");
+      return json(502, CALENDAR_UNREADABLE);
+    }
     return Response.json(
       {
         connections: rows
@@ -407,7 +417,9 @@ export async function handleCalendar(request, env, pathname) {
       : kind === "google"
         ? googleEventsUrl(input)
         : outlookEventsUrl(input);
-  const result = await providerGet(url, token);
+  const result = await providerGet(url, token).catch(() => ({
+    response: json(502, CALENDAR_UNREADABLE),
+  }));
   if (result.reconnect) {
     accessCache.delete(`${account.id}:${provider}`);
     return reconnect();

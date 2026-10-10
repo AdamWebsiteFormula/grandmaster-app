@@ -26,7 +26,7 @@
 // Secret: DEEPGRAM_API_KEY (Cloudflare dashboard › Worker › Settings ›
 // Variables and Secrets). Without it every route answers a clear 503.
 
-import { accountRequired, signInRequired, sttAccount } from "./auth.js";
+import { accountOrResponse, accountRequired, sttAccount } from "./auth.js";
 import { json, rateLimited, userRateLimited } from "./http.js";
 
 export const DEEPGRAM_LISTEN = "https://api.deepgram.com/v1/listen";
@@ -158,8 +158,10 @@ export async function handleStt(request, env, url) {
   // the session or a meeting pass (auth.js) as Deepgram's "Token <key>"; it
   // never reaches Deepgram.
   if (accountRequired(env)) {
-    const account = await sttAccount(request, env);
-    if (!account) return signInRequired();
+    const { account, response } = await accountOrResponse(
+      sttAccount(request, env),
+    );
+    if (response) return response;
     if (await userRateLimited(env, "stt", account.id)) {
       return json(429, "Upshot transcription is busy. Try again in a minute.");
     }

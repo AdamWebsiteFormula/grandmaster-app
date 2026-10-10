@@ -2388,3 +2388,55 @@ test("stt pass: expired, forged or other sealed values are refused", async () =>
     },
   );
 });
+
+// ---------- Supabase errors are not "signed out" (Oct 9 bug sweep) ----------
+
+test("account: Supabase down answers 503 try again, not sign in; a bad token is still 401", async () => {
+  for (const [label, handler, status, code] of [
+    ["5xx", () => new Response("down", { status: 500 }), 503, "account_check_unavailable"],
+    ["429", () => new Response("busy", { status: 429 }), 503, "account_check_unavailable"],
+    ["no answer", () => { throw new TypeError("fetch failed"); }, 503, "account_check_unavailable"],
+    ["403 bad jwt", () => Response.json({ code: "bad_jwt" }, { status: 403 }), 401, "sign_in_required"],
+  ]) {
+    clearAccountCacheForTests();
+    const mock = mockFetch([["https://sb.test/auth/v1/user", handler]]);
+    try {
+      const chat = await worker.fetch(
+        accountChatRequest({ authorization: `Bearer ${GOOGLE_TOKEN}` }),
+        accountEnv,
+      );
+      assert.equal(chat.status, status, `chat ${label}`);
+      assert.equal((await chat.json()).error.code, code, `chat ${label}`);
+      const stt = await worker.fetch(
+        new Request("https://w/stt/listen?model=cloud", {
+          headers: { upgrade: "websocket", authorization: `Token ${GOOGLE_TOKEN}` },
+        }),
+        accountEnv,
+      );
+      assert.equal(stt.status, status, `stt ${label}`);
+      assert.ok(!mock.calls.some((c) => c.url.includes("openrouter") || c.url.includes("deepgram")));
+    } finally {
+      mock.restore();
+    }
+  }
+});
+
+test("calendar: a Supabase error on the connection list is a JSON 502, not a crash", async () => {
+  clearAccountCacheForTests();
+  const mock = mockFetch([
+    ["https://sb.test/auth/v1/user", supabaseUser],
+    ["https://sb.test/rest/v1/calendar_connections", () => new Response("down", { status: 503 })],
+  ]);
+  try {
+    const response = await worker.fetch(
+      new Request("https://w/nango/connections", {
+        headers: { authorization: `Bearer ${GOOGLE_TOKEN}` },
+      }),
+      calendarEnv,
+    );
+    assert.equal(response.status, 502);
+    assert.match((await response.json()).error.message, /couldn't be read/);
+  } finally {
+    mock.restore();
+  }
+});

@@ -277,6 +277,80 @@ describe("Upshot account session", () => {
     });
   });
 
+  // Fork (Oct 9 bug sweep): a refused token is refreshed once and retried.
+  it("upshotAuthFetch refreshes once after a Worker 401 and retries", async () => {
+    saveSession(Date.now() / 1000 + 3600);
+    mocks.fetch
+      .mockResolvedValueOnce(
+        Response.json({ error: { message: "x" } }, { status: 401 }),
+      )
+      .mockResolvedValueOnce(
+        Response.json({
+          access_token: "new-access",
+          refresh_token: "new-refresh",
+          expires_at: Date.now() / 1000 + 3600,
+          user: { id: "u", email: "judge@example.com" },
+        }),
+      )
+      .mockResolvedValueOnce(Response.json({ choices: [] }));
+    const response = await upshotAuthFetch(
+      "https://upshot-ai.example.workers.dev/llm/x",
+      { method: "POST", body: "{}" },
+    );
+    expect(response.status).toBe(200);
+    const [, , retry] = mocks.fetch.mock.calls;
+    expect(new Headers(retry[1].headers).get("Authorization")).toBe(
+      "Bearer new-access",
+    );
+    expect(useUpshotAccount.getState().session?.access_token).toBe(
+      "new-access",
+    );
+  });
+
+  it("upshotAuthFetch signs out when the account is refused even after a refresh", async () => {
+    saveSession(Date.now() / 1000 + 3600);
+    mocks.fetch.mockImplementation(async (url: string) =>
+      url.endsWith("/auth/refresh")
+        ? Response.json({
+            access_token: "new-access",
+            refresh_token: "new-refresh",
+            expires_at: Date.now() / 1000 + 3600,
+            user: { id: "u", email: "judge@example.com" },
+          })
+        : Response.json({ error: { message: "x" } }, { status: 401 }),
+    );
+    const response = await upshotAuthFetch(
+      "https://upshot-ai.example.workers.dev/llm/x",
+    );
+    expect((await response.json()).error.code).toBe("sign_in_required");
+    expect(useUpshotAccount.getState().session).toBeNull();
+    expect(useUpshotAccount.getState().sessionEnded).toBe(true);
+  });
+
+  it("a Sign out while a refresh runs stays signed out", async () => {
+    saveSession(Date.now() / 1000 - 10);
+    let answer: (value: Response) => void = () => {};
+    mocks.fetch.mockReturnValue(
+      new Promise<Response>((resolve) => {
+        answer = resolve;
+      }),
+    );
+    const token = getUpshotAccessToken();
+    await vi.waitFor(() => expect(mocks.fetch).toHaveBeenCalled());
+    await signOutUpshot();
+    answer(
+      Response.json({
+        access_token: "new-access",
+        refresh_token: "new-refresh",
+        expires_at: Date.now() / 1000 + 3600,
+        user: { id: "u", email: "judge@example.com" },
+      }),
+    );
+    await expect(token).rejects.toMatchObject({ status: 401 });
+    expect(useUpshotAccount.getState().session).toBeNull();
+    expect(mocks.saved).toBeNull();
+  });
+
   it("upshotAuthFetch passes other Worker answers through", async () => {
     saveSession(Date.now() / 1000 + 3600);
     mocks.fetch.mockResolvedValue(
@@ -514,6 +588,31 @@ describe("Upshot account session", () => {
       // account was first made with email.
       expect(useUpshotAccount.getState().session?.provider).toBe("azure");
       expect(JSON.parse(mocks.saved!).provider).toBe("azure");
+    });
+
+    it("Connect calendar with another account keeps the signed-in one", async () => {
+      saveSession(NOW + 3600, jwt(["google"]));
+      await getUpshotAccessToken(NOW);
+      await startUpshotOAuth(
+        "google",
+        { startCallbackServer: async () => 4321, openUrl: async () => {} },
+        { calendar: true },
+      );
+      mocks.fetch.mockResolvedValue(
+        Response.json({
+          access_token: jwt(["google"]),
+          refresh_token: "other-refresh",
+          expires_at: NOW + 3600,
+          user: { id: "u2", email: "someone.else@example.com" },
+        }),
+      );
+      await expect(completeUpshotOAuth("the-code")).rejects.toMatchObject({
+        code: "calendar_other_account",
+      });
+      expect(useUpshotAccount.getState().session?.email).toBe(
+        "judge@example.com",
+      );
+      expect(JSON.parse(mocks.saved!).refresh_token).toBe("old-refresh");
     });
 
     it("plain sign-in asks for no calendar and sends only the code", async () => {

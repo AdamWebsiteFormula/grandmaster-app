@@ -13,6 +13,7 @@
 // Nothing in a request or response is logged.
 
 import {
+  accountOrResponse,
   accountRequired,
   GOOGLE_CALLBACK_PATH,
   handleAuth,
@@ -21,7 +22,6 @@ import {
   handleOAuthStart,
   handleSttPass,
   requireAccount,
-  signInRequired,
 } from "./auth.js";
 import { handleBilling, handleDeleteAccount } from "./billing.js";
 import { calendarProviders, handleCalendar } from "./calendar.js";
@@ -139,8 +139,10 @@ export default {
     // Fork: a free account is required (Adam, Oct 5), with a limit per
     // person next to the per-IP one (OWASP LLM10:2025).
     if (accountRequired(env)) {
-      const account = await requireAccount(request, env);
-      if (!account) return signInRequired();
+      const { account, response } = await accountOrResponse(
+        requireAccount(request, env),
+      );
+      if (response) return response;
       if (await userRateLimited(env, "chat", account.id)) {
         return json(429, "You're using Upshot AI a lot. Try again in a minute.");
       }

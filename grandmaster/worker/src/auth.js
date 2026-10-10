@@ -430,22 +430,38 @@ export async function handleAuth(request, env, pathname) {
   return json(404, "Not found");
 }
 
-/** The signed-in user for a request's Bearer token, or null. */
-export async function getUser(request, env, token = bearerToken(request)) {
-  if (!token || !configured(env)) return null;
-  const response = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
-    headers: {
-      apikey: env.SUPABASE_PUBLISHABLE_KEY,
-      authorization: `Bearer ${token}`,
-    },
-  });
-  if (!response.ok) return null;
+// Fork (Oct 9 bug sweep): Supabase being down is not "signed out". Its
+// /auth/v1/user answers 401 or 403 for a bad or expired token and 404 for
+// a deleted user; anything else (5xx, 429, no answer) is a server problem,
+// and the app gets 503 "try again", not "sign in" (RFC 9110 §15.6.4).
+export class AccountCheckUnavailable extends Error {}
+
+async function lookUpUser(env, token) {
+  let response;
+  try {
+    response = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
+      headers: {
+        apikey: env.SUPABASE_PUBLISHABLE_KEY,
+        authorization: `Bearer ${token}`,
+      },
+    });
+  } catch {
+    throw new AccountCheckUnavailable();
+  }
+  if ([401, 403, 404].includes(response.status)) return null;
+  if (!response.ok) throw new AccountCheckUnavailable();
   const user = await response.json().catch(() => null);
   if (!user?.id) return null;
   const providers = Array.isArray(user.app_metadata?.providers)
     ? user.app_metadata.providers
     : [user.app_metadata?.provider].filter(Boolean);
   return { id: user.id, email: user.email ?? null, token, providers };
+}
+
+/** The signed-in user for a request's Bearer token, or null. */
+export async function getUser(request, env, token = bearerToken(request)) {
+  if (!token || !configured(env)) return null;
+  return lookUpUser(env, token).catch(() => null);
 }
 
 /** Google or Microsoft proved this account's email. */
@@ -475,7 +491,8 @@ export async function requireAccount(request, env, now = Date.now()) {
   if (!token) return null;
   const cached = accountCache.get(token);
   if (cached && cached.until > now) return cached.user;
-  const user = await getUser(request, env, token);
+  if (!configured(env)) return null;
+  const user = await lookUpUser(env, token);
   const proven = isProvenAccount(user) ? user : null;
   if (proven) {
     if (accountCache.size >= ACCOUNT_CACHE_MAX) {
@@ -492,6 +509,26 @@ export async function requireAccount(request, env, now = Date.now()) {
  */
 export function accountRequired(env) {
   return env.REQUIRE_ACCOUNT !== "0";
+}
+
+/**
+ * requireAccount (or sttAccount) as { account } or a ready { response }:
+ * 401 to sign in, or 503 when Supabase can't be asked.
+ */
+export async function accountOrResponse(check) {
+  try {
+    const account = await check;
+    return account ? { account } : { response: signInRequired() };
+  } catch (error) {
+    if (!(error instanceof AccountCheckUnavailable)) throw error;
+    return {
+      response: json(
+        503,
+        "Upshot can't check your account right now. Try again in a minute.",
+        "account_check_unavailable",
+      ),
+    };
+  }
 }
 
 /** 401 with the sign-in message, for chat and transcription. */
@@ -517,8 +554,10 @@ export async function handleSttPass(request, env) {
     return json(503, "Upshot transcription isn't available yet.", "stt_pass_unavailable");
   }
   if (await rateLimited(request, env, "auth")) return json(429, TOO_MANY);
-  const account = await requireAccount(request, env);
-  if (!account) return signInRequired();
+  const { account, response } = await accountOrResponse(
+    requireAccount(request, env),
+  );
+  if (response) return response;
   const expiresAt = Math.floor(Date.now() / 1000) + STT_PASS_SECONDS;
   const pass = await seal(env, { p: "stt", u: account.id, exp: expiresAt });
   return ok({ pass: `${STT_PASS_PREFIX}${pass}`, expires_at: expiresAt });

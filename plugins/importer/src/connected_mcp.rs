@@ -754,7 +754,16 @@ fn parse_tagged_meetings(text: &str) -> Option<Value> {
             let Some(name_end) = tail.find('>') else {
                 break;
             };
-            let name = &tail[..name_end];
+            // Fork (Oct 9 bug sweep): a child tag can carry attributes
+            // (<transcript speaker="x">) or close itself (<notes/>); the close
+            // tag uses the name alone, so one such tag no longer drops the
+            // fields after it.
+            let tag = &tail[..name_end];
+            if tag.ends_with('/') {
+                children = &tail[name_end + 1..];
+                continue;
+            }
+            let name = tag.split_whitespace().next().unwrap_or("");
             let close = format!("</{name}>");
             let Some(content_end) = tail.find(&close) else {
                 break;
@@ -762,7 +771,7 @@ fn parse_tagged_meetings(text: &str) -> Option<Value> {
             let content = unescape_xml(tail[name_end + 1..content_end].trim());
             if name == "known_participants" {
                 record.insert("attendees".to_string(), tagged_participants(&content));
-            } else if !name.is_empty() && !name.contains([' ', '/']) {
+            } else if !name.is_empty() && !name.contains('/') {
                 record.insert(name.to_string(), Value::String(content));
             }
             children = &tail[content_end + close.len()..];
@@ -1536,6 +1545,16 @@ mod tests {
         let arguments = default_list_arguments(&list, 0);
         assert_eq!(arguments["time_range"], "custom");
         assert_eq!(arguments["custom_start"], "2000-01-01");
+    }
+
+    #[test]
+    fn tagged_meetings_read_past_child_tags_with_attributes() {
+        let text = "<meetings_data count=\"1\">\n<meeting id=\"m-1\" title=\"T\" date=\"Oct 5, 2026 12:00 PM BST\">\n<notes/>\n<transcript speaker=\"Ann\">Hello</transcript>\n<summary>Ship it</summary>\n</meeting>\n</meetings_data>";
+        let payload = parse_tagged_meetings(text).unwrap();
+        let meeting = &payload[0];
+        assert_eq!(meeting["transcript"], "Hello");
+        assert_eq!(meeting["summary"], "Ship it");
+        assert!(meeting.get("notes").is_none());
     }
 
     #[test]
