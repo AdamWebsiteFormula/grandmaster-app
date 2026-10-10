@@ -137,10 +137,13 @@ function loadRecentEmojiIds() {
 function SearchField({
   value,
   onChange,
+  onSubmit,
   placeholder,
 }: {
   value: string;
   onChange: (value: string) => void;
+  /** Return picks the first match (picker sweep, Oct 10; Apple HIG). */
+  onSubmit?: () => void;
   placeholder: string;
 }) {
   const { t } = useLingui();
@@ -148,10 +151,26 @@ function SearchField({
     <div className="border-border flex h-12 items-center gap-2 border-b px-4">
       <MagnifyingGlass className="text-muted-foreground size-4 shrink-0" />
       <input
-        aria-label={t`Search icons`}
+        // Fork: the field's own name; the emoji search said "Search icons"
+        // (picker sweep, Oct 10; WCAG 2.2 SC 4.1.2).
+        aria-label={placeholder}
+        // Fork: the cursor starts in search, as Slack's and Notion's icon
+        // pickers do (picker sweep, Oct 10).
+        autoFocus
         type="text"
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        onKeyDown={(event) => {
+          if (
+            event.key === "Enter" &&
+            !event.nativeEvent.isComposing &&
+            value.trim() &&
+            onSubmit
+          ) {
+            event.preventDefault();
+            onSubmit();
+          }
+        }}
         placeholder={placeholder}
         className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm outline-hidden"
       />
@@ -378,6 +397,10 @@ export function TemplateIconPicker({
               <SearchField
                 value={iconSearch}
                 onChange={setIconSearch}
+                onSubmit={() => {
+                  const first = filteredIcons[0];
+                  if (first) selectIcon(first.value);
+                }}
                 placeholder={t`Search icons`}
               />
               <div className="scroll-fade-y max-h-[360px] overflow-y-auto p-3">
@@ -415,6 +438,10 @@ export function TemplateIconPicker({
               <SearchField
                 value={emojiSearch}
                 onChange={setEmojiSearch}
+                onSubmit={() => {
+                  const first = filteredEmojiCategories[0]?.items[0];
+                  if (first) selectEmoji(first);
+                }}
                 placeholder={t`Search emoji`}
               />
               <div className="scroll-fade-y max-h-[480px] overflow-y-auto px-4 py-3">
