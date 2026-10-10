@@ -131,7 +131,14 @@ function ReadyApp() {
             {isMainWindow ? <TrayScheduleSync /> : null}
             {isMainWindow ? <TrayRecordingSync /> : null}
             {isMainWindow && !isAppStoreBuild() ? <UpdaterMeetingSync /> : null}
-            <Toaster position="bottom-right" theme={theme} />
+            {/* Fork: toasts sit above the note, Home and Chat bottom bars
+                instead of covering them (Material Design 3, Snackbar:
+                place above bottom app bars; owner pick, Oct 9). */}
+            <Toaster
+              position="bottom-right"
+              theme={theme}
+              className="bottom-18"
+            />
           </AppLockGate>
         </TaskSchedulerProvider>
       </AppI18nProvider>
