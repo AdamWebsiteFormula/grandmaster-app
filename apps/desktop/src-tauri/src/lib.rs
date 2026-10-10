@@ -89,6 +89,13 @@ fn should_allow_immediate_exit() -> bool {
     EXIT_FLUSH_COMPLETE.load(Ordering::SeqCst) || anlg_intercept::should_force_quit()
 }
 
+// FOCUS_MOVE blocks Shift+Tab, which breaks backward keyboard navigation.
+#[cfg_attr(any(debug_assertions, feature = "devtools"), allow(dead_code))]
+fn prevent_default_flags() -> tauri_plugin_prevent_default::Flags {
+    tauri_plugin_prevent_default::Flags::all()
+        .difference(tauri_plugin_prevent_default::Flags::FOCUS_MOVE)
+}
+
 fn create_audio_provider(_bundle_id: &str) -> std::sync::Arc<dyn anlg_audio_actual::AudioProvider> {
     #[cfg(any(feature = "dev", feature = "devtools"))]
     {
@@ -392,7 +399,7 @@ pub fn main() {
 
     #[cfg(all(not(debug_assertions), not(feature = "devtools")))]
     {
-        let plugin = tauri_plugin_prevent_default::init();
+        let plugin = tauri_plugin_prevent_default::with_flags(prevent_default_flags());
         builder = builder.plugin(plugin);
     }
 
@@ -763,6 +770,14 @@ mod test {
         assert!(!should_allow_immediate_exit());
         anlg_intercept::set_force_quit();
         assert!(should_allow_immediate_exit());
+    }
+
+    #[test]
+    fn release_build_keeps_shift_tab_focus_move() {
+        let flags = prevent_default_flags();
+        assert!(!flags.contains(tauri_plugin_prevent_default::Flags::FOCUS_MOVE));
+        assert!(flags.contains(tauri_plugin_prevent_default::Flags::RELOAD));
+        assert!(flags.contains(tauri_plugin_prevent_default::Flags::CONTEXT_MENU));
     }
 
     #[test]
