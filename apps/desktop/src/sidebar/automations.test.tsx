@@ -54,6 +54,10 @@ const mocks = vi.hoisted(() => ({
   }>,
 }));
 
+vi.mock("~/shared/confirm-delete", () => ({
+  confirmDelete: vi.fn(() => Promise.resolve(true)),
+}));
+
 vi.mock("~/chat/store/queries", () => ({
   useChatGroups: () => mocks.automations,
 }));
@@ -222,7 +226,7 @@ describe("AutomationsNav", () => {
     expect(mocks.removeStarterDraft).toHaveBeenCalledWith("slack-recap");
   });
 
-  it("offers edit and delete in the chat automation context menu", () => {
+  it("offers edit and delete in the chat automation context menu", async () => {
     render(<AutomationsNav />);
 
     const chatAutomationButton = screen
@@ -234,7 +238,9 @@ describe("AutomationsNav", () => {
     expect(mocks.showContextMenu).toHaveBeenCalled();
 
     findContextMenuItem("delete-automation-automation-2")?.action();
-    expect(mocks.deleteChatAutomation).toHaveBeenCalledWith("automation-2");
+    await vi.waitFor(() =>
+      expect(mocks.deleteChatAutomation).toHaveBeenCalledWith("automation-2"),
+    );
   });
 
   it("filters starters and chat automations together", () => {

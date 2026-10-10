@@ -53,6 +53,10 @@ const mocks = vi.hoisted(() => ({
   toastWarning: vi.fn(),
 }));
 
+vi.mock("~/shared/confirm-delete", () => ({
+  confirmDelete: vi.fn(() => Promise.resolve(true)),
+}));
+
 vi.mock("~/auth/billing-context", () => ({
   useBillingAccess: () => mocks.billing,
 }));
@@ -298,7 +302,7 @@ describe("AutomationsContent", () => {
 
       fireEvent.click(await screen.findByText(menuItem));
 
-      expect(mock).toHaveBeenCalledWith(id);
+      await waitFor(() => expect(mock).toHaveBeenCalledWith(id));
     },
   );
 

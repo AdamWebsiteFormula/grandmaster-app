@@ -1251,6 +1251,7 @@ msgstr ""
 #: src/settings/sync/index.tsx
 #: src/settings/team/index.tsx
 #: src/settings/todo/github.tsx
+#: src/shared/confirm-delete.ts
 #: src/shared/ui/destructive-confirmation-dialog.tsx
 #: src/sidebar/folder-name-dialog.tsx
 #: src/templates/auto-format-examples-dialog.tsx
@@ -2827,6 +2828,7 @@ msgstr ""
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 #: src/settings/ai/stt/select.tsx
 #: src/settings/developers/webhooks.tsx
+#: src/shared/confirm-delete.ts
 #: src/sidebar/automations.tsx
 #: src/sidebar/timeline/index.tsx
 #: src/templates/sections-editor.tsx
@@ -2922,6 +2924,11 @@ msgstr ""
 msgid "Delete template"
 msgstr ""
 
+#: src/settings/automations/index.tsx
+#: src/sidebar/automations.tsx
+msgid "Delete this automation?"
+msgstr ""
+
 #: src/contacts/contact-actions.ts
 msgid "Delete this contact?"
 msgstr ""
@@ -2936,6 +2943,10 @@ msgstr ""
 
 #: src/audio-player/delete-recording-confirm.tsx
 msgid "Delete this recording?"
+msgstr ""
+
+#: src/session/components/note-input/meta-chips.tsx
+msgid "Delete this summary?"
 msgstr ""
 
 #: src/settings/developers/webhooks.tsx
@@ -6323,11 +6334,14 @@ msgstr ""
 #: src/session-sharing/access-management.tsx
 #: src/session/components/note-input/header-enhanced.tsx
 #: src/sidebar/automations.tsx
+#: src/sidebar/folder-materials.tsx
 msgid "Remove"
 msgstr ""
 
+#. placeholder {0}: material.filename
 #. placeholder {0}: removingMaterial?.filename
 #: src/folders/folder-editor.tsx
+#: src/sidebar/folder-materials.tsx
 msgid "Remove “{0}”?"
 msgstr ""
 
@@ -6683,7 +6697,12 @@ msgid "Review transfer"
 msgstr ""
 
 #: src/settings/developers/api-key-row.tsx
+#: src/settings/developers/cloud-api.tsx
 msgid "Revoke"
+msgstr ""
+
+#: src/settings/developers/cloud-api.tsx
+msgid "Revoke this key?"
 msgstr ""
 
 #: src/settings/developers/api-key-row.tsx
@@ -9347,6 +9366,7 @@ msgstr ""
 
 #: src/contacts/contact-actions.ts
 #: src/session/components/note-input/header-enhanced.tsx
+#: src/shared/confirm-delete.ts
 msgid "You can't undo this."
 msgstr ""
 

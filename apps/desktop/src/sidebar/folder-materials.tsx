@@ -15,6 +15,7 @@ import {
 } from "~/session/folder-attachments";
 import { deleteNamedFolder, renameNamedFolder } from "~/session/folder-catalog";
 import { FolderInstructionsField } from "~/session/folder-instructions";
+import { confirmDelete } from "~/shared/confirm-delete";
 import { useFolderMaterialUpload } from "~/shared/hooks/useFileUpload";
 import { DestructiveConfirmationDialog } from "~/shared/ui/destructive-confirmation-dialog";
 
@@ -141,6 +142,13 @@ export function FolderMaterialsPanel({ folderPath }: { folderPath: string }) {
                     "disabled:opacity-50",
                   ])}
                   onClick={async () => {
+                    // Fork: this deletes the file from disk; ask first, as
+                    // the folder page does (folders/folder-editor.tsx).
+                    const ok = await confirmDelete(
+                      t`Remove “${material.filename}”?`,
+                      t`Remove`,
+                    );
+                    if (!ok) return;
                     setBusy(true);
                     try {
                       await deleteLocalFolderMaterial({

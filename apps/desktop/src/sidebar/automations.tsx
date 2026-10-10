@@ -34,6 +34,7 @@ import {
   parseSharedAutomationPayload,
   SharedResourceLibrarySection,
 } from "~/resource-sharing";
+import { confirmDelete } from "~/shared/confirm-delete";
 import { useNativeContextMenu } from "~/shared/hooks/useNativeContextMenu";
 
 export function AutomationsNav() {
@@ -390,7 +391,10 @@ function WorkflowListItem({
       {
         id: `delete-automation-${workflow.id}`,
         text: t`Delete`,
-        action: () => deleteWorkflow.mutate(workflow.id),
+        action: () =>
+          void confirmDelete(t`Delete this automation?`).then(
+            (ok) => ok && deleteWorkflow.mutate(workflow.id),
+          ),
       },
     ],
     [deleteWorkflow, onSelect, t, workflow.chatGroupId, workflow.id],
@@ -448,7 +452,10 @@ function ChatAutomationListItem({
       {
         id: `delete-automation-${automation.id}`,
         text: t`Delete`,
-        action: () => deleteChatAutomation.mutate(automation.id),
+        action: () =>
+          void confirmDelete(t`Delete this automation?`).then(
+            (ok) => ok && deleteChatAutomation.mutate(automation.id),
+          ),
       },
     ],
     [automation.id, deleteChatAutomation, onSelect, t],

@@ -77,6 +77,7 @@ import {
   useStoredSettingValues,
 } from "~/settings/queries";
 import type { SettingValues } from "~/settings/schema";
+import { confirmDelete } from "~/shared/confirm-delete";
 import { StandardContentWrapper } from "~/shared/main";
 
 export function TabContentAutomations() {
@@ -273,7 +274,11 @@ function ChatAutomationDetails({ groupId }: { groupId: string }) {
       workflow={workflow}
       title={group?.title.trim() || workflow.title || t`Untitled automation`}
       description={createdAt ? <Trans>Created {createdAt}</Trans> : null}
-      onDelete={() => deleteChatAutomation.mutate(groupId)}
+      onDelete={() =>
+        void confirmDelete(t`Delete this automation?`).then(
+          (ok) => ok && deleteChatAutomation.mutate(groupId),
+        )
+      }
     />
   );
 }
@@ -293,7 +298,11 @@ function PersistedWorkflowDetails({ workflowId }: { workflowId: string }) {
           workflow.
         </Trans>
       }
-      onDelete={() => deleteWorkflow.mutate(workflowId)}
+      onDelete={() =>
+        void confirmDelete(t`Delete this automation?`).then(
+          (ok) => ok && deleteWorkflow.mutate(workflowId),
+        )
+      }
     />
   );
 }
@@ -481,7 +490,8 @@ function StarterAutomationDetails({ starterId }: { starterId: StarterId }) {
       await setSettingValue("automation_draft_template", starterId);
     },
     onSuccess: () => toast.success(t`Automation draft saved`),
-    onError: () => toast.error(t`Couldn't save the automation draft. Try again.`),
+    onError: () =>
+      toast.error(t`Couldn't save the automation draft. Try again.`),
   });
 
   const setEnabledMutation = useMutation({

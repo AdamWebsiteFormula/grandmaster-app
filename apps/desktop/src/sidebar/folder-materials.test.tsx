@@ -38,6 +38,10 @@ vi.mock("@lingui/react/macro", () => ({
   }),
 }));
 
+vi.mock("~/shared/confirm-delete", () => ({
+  confirmDelete: vi.fn(() => Promise.resolve(true)),
+}));
+
 vi.mock("~/session/folder-catalog", () => ({
   createNamedFolder: mocks.createNamedFolder,
   deleteNamedFolder: mocks.deleteNamedFolder,

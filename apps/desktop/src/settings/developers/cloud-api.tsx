@@ -26,6 +26,7 @@ import {
 import { env } from "~/env";
 import { SettingsSectionTitle } from "~/settings/page-title";
 import { PlanGate } from "~/settings/plan-gate";
+import { confirmDelete } from "~/shared/confirm-delete";
 
 const CLOUD_API_BASE_URL = new URL("/v1", env.VITE_API_URL).toString();
 const CLOUD_MCP_URL = new URL("/mcp", env.VITE_API_URL).toString();
@@ -299,7 +300,11 @@ function CloudApiKeys() {
             <CloudApiKeyRow
               key={key.id}
               apiKey={key}
-              onRevoke={() => revokeMutation.mutate(key.id)}
+              onRevoke={() =>
+                void confirmDelete(t`Revoke this key?`, t`Revoke`).then(
+                  (ok) => ok && revokeMutation.mutate(key.id),
+                )
+              }
               revoking={
                 revokeMutation.isPending && revokeMutation.variables === key.id
               }

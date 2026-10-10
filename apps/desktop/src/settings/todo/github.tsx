@@ -210,6 +210,16 @@ export function GitHubTodoProviderContent({
                   setShowSuggestions(true);
                 }}
                 onFocus={() => setShowSuggestions(true)}
+                // Fork: Escape closes the list first, then cancels the add,
+                // like the Cancel button (Escape sweep, Oct 10; Apple HIG,
+                // Keyboards: Escape cancels).
+                onKeyDown={(e) => {
+                  if (e.key !== "Escape" || hasSuggestions) return;
+                  e.preventDefault();
+                  setShowAddInput(false);
+                  setInputValue("");
+                  setDebouncedInput("");
+                }}
               />
               <button
                 type="submit"
