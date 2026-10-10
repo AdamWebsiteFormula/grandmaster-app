@@ -410,6 +410,37 @@ export function showSuccessToast(message: string): AppToastHandle {
   return showAppToast({ message, tone: "success" });
 }
 
+/**
+ * Runs the newest visible toast action whose label passes `matches`, as a
+ * click on it would, and returns whether one ran. Lets a keyboard shortcut
+ * (⌘Z for Undo) reach a toast's action.
+ */
+export function runLatestAppToastAction(
+  matches: (label: ReactNode) => boolean,
+): boolean {
+  const toast = [...appToastSnapshot]
+    .reverse()
+    .find(
+      (item) =>
+        item.phase === "visible" &&
+        item.action !== undefined &&
+        matches(item.action.label),
+    );
+  const action = toast?.action;
+  if (!toast || !action) return false;
+
+  try {
+    action.onClick(
+      new MouseEvent("click") as unknown as ReactMouseEvent<HTMLButtonElement>,
+    );
+  } finally {
+    if (action.dismissOnClick !== false) {
+      dismissAppToast(toast.id, 1, "user");
+    }
+  }
+  return true;
+}
+
 export function dismissAppToasts(): void {
   const leaving = appToastSnapshot.filter((toast) => toast.phase === "visible");
   appToastTimers.forEach((_, id) => clearAppToastTimer(id));

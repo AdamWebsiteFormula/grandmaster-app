@@ -15,6 +15,7 @@ import {
   type AppToastHandle,
   AppToaster,
   dismissAppToasts,
+  runLatestAppToastAction,
   showAppToast,
   showErrorToast,
   showSuccessToast,
@@ -243,4 +244,36 @@ describe("app toast", () => {
       expect(document.querySelector("[data-app-toast]")).toBeNull();
     },
   );
+
+  it("runs the newest matching action, as a click would", () => {
+    const older = vi.fn();
+    const newer = vi.fn();
+    showAppToast({
+      message: "First",
+      action: { label: "Undo", onClick: older },
+    });
+    showAppToast({
+      message: "Second",
+      action: { label: "Undo", onClick: newer },
+    });
+    showAppToast({
+      message: "Third",
+      action: { label: "Open", onClick: vi.fn() },
+    });
+
+    let ran = false;
+    act(() => {
+      ran = runLatestAppToastAction((label) => label === "Undo");
+    });
+
+    expect(ran).toBe(true);
+    expect(newer).toHaveBeenCalledOnce();
+    expect(older).not.toHaveBeenCalled();
+  });
+
+  it("does nothing without a matching toast", () => {
+    showAppToast({ message: "Saved" });
+
+    expect(runLatestAppToastAction((label) => label === "Undo")).toBe(false);
+  });
 });

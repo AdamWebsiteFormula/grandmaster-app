@@ -8563,6 +8563,7 @@ msgstr "Unavailable"
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
 #: src/settings/ai/shared/provider-selection-prompt.ts
 #: src/settings/dictionary/index.tsx
+#: src/shared/toast-undo-shortcut.ts
 #: src/sidebar/toast/undo-delete-toast.tsx
 #: src/templates/sections-editor.tsx
 msgid "Undo"
