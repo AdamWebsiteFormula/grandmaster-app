@@ -550,11 +550,23 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
   const resultValuesRef = useRef(resultValues);
   resultValuesRef.current = resultValues;
   const lastQueryRef = useRef(query);
+  // Fork: only a row the person picked (arrows or pointer) stays selected
+  // when later results arrive; an automatic pick follows the new first row.
+  // Recent notes load after the Go to pages, so "Home" stayed selected over
+  // the first recent note (live task test, Oct 10; Spotlight selects the
+  // top row).
+  const userPickedRef = useRef(false);
   useLayoutEffect(() => {
     const sameQuery = lastQueryRef.current === query;
     lastQueryRef.current = query;
+    if (!sameQuery) userPickedRef.current = false;
     const current = selectedValueRef.current;
-    if (sameQuery && current && resultValuesRef.current.has(current)) {
+    if (
+      sameQuery &&
+      userPickedRef.current &&
+      current &&
+      resultValuesRef.current.has(current)
+    ) {
       return;
     }
     setSelectedValue(firstResultValue);
@@ -683,7 +695,10 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
           <CommandPrimitive
             shouldFilter={false}
             value={selectedValue}
-            onValueChange={setSelectedValue}
+            onValueChange={(value) => {
+              userPickedRef.current = true;
+              setSelectedValue(value);
+            }}
             className="flex flex-col"
           >
             <div className="border-border/60 flex items-center gap-3 border-b px-4 py-3">

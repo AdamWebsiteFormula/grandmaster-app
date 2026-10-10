@@ -29,6 +29,7 @@ const mocks = vi.hoisted(() => ({
   newNoteAndListen: vi.fn(),
   select: vi.fn(),
   tabs: [] as Array<{ type: string }>,
+  recentIds: [] as string[],
   platform: "macos",
 }));
 
@@ -73,7 +74,7 @@ vi.mock("~/store/zustand/tabs", () => {
     openNew: mocks.openNew,
     select: mocks.select,
     tabs: mocks.tabs,
-    recentlyOpenedSessionIds: [] as string[],
+    recentlyOpenedSessionIds: mocks.recentIds,
   });
   const useTabs = (selector: (s: ReturnType<typeof state>) => unknown) =>
     selector(state());
@@ -392,6 +393,31 @@ describe("OpenNoteDialog", () => {
       type: "sessions",
       id: "content-match",
     });
+  });
+
+  // Fork test: live task test, Oct 10 (Home stayed selected over the first
+  // recent note, which loads a moment later).
+  it("selects the first recent note once it loads", () => {
+    mocks.recentIds = ["recent-1"];
+    mocks.sessions = [];
+    const { rerender } = render(
+      <OpenNoteDialog open onOpenChange={mocks.onOpenChange} />,
+    );
+
+    mocks.sessions = [
+      {
+        id: "recent-1",
+        title: "Budget review",
+        created_at: "2026-10-09T09:00:00.000Z",
+      },
+    ];
+    rerender(<OpenNoteDialog open onOpenChange={mocks.onOpenChange} />);
+
+    const selected = screen
+      .getAllByRole("option")
+      .find((option) => option.getAttribute("aria-selected") === "true");
+    expect(selected?.textContent).toContain("Budget review");
+    mocks.recentIds = [];
   });
 
   it("selects the first result after the note-text matches arrive", async () => {
