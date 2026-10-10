@@ -100,7 +100,7 @@ export function SettingsConnectors() {
           icon={FolderSimple}
           title={<Trans>Export folder</Trans>}
           // Fork: the serial comma (Apple Style Guide; NN/g #4).
-          description={<Trans>Save PDF, text, and Markdown exports.</Trans>}
+          description={<Trans>Where PDF, text, and Markdown exports are saved.</Trans>}
           onClick={() => open("app", SETTINGS_ANCHORS.storage)}
         />
         <SettingLinkRow

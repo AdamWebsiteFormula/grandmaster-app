@@ -61,11 +61,11 @@ export function ExportLocationRow() {
         <SettingIconTile icon={FolderSimple} />
         <div className="min-w-0 flex-1">
           <h3 className="text-sm font-medium">
-            <Trans>Export location</Trans>
+            <Trans>Export folder</Trans>
           </h3>
           <p className="text-muted-foreground mt-0.5 text-xs">
             {/* Fork: the serial comma (Apple Style Guide; NN/g #4). */}
-            <Trans>Save PDF, text, and Markdown exports to this folder.</Trans>
+            <Trans>Where PDF, text, and Markdown exports are saved.</Trans>
           </p>
           {directory && (
             <Button

@@ -49,11 +49,15 @@ export function PrivacySection() {
 
   const lockAppEnabled = resolveConfigValue("lock_app", settingsQuery.data);
   const authAvailable = available === true;
-  const lockAppDescription = !authAvailable
-    ? t`Device authentication is not available on this computer.`
-    : platform() === "windows"
-      ? t`Require Windows Hello face, PIN, or password when opening Upshot.`
-      : t`Require Touch ID or your password when opening Upshot.`;
+  // Fork: "not available" only once the check says so; while it runs the
+  // row shows what it does (picture review, Oct 9: the check flashed "not
+  // available"; NN/g #1).
+  const lockAppDescription =
+    available === false
+      ? t`Device authentication is not available on this computer.`
+      : platform() === "windows"
+        ? t`Require Windows Hello face, PIN, or password when opening Upshot.`
+        : t`Require Touch ID or your password when opening Upshot.`;
 
   return (
     <>

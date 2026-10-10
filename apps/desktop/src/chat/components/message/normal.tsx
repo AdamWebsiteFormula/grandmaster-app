@@ -298,7 +298,10 @@ function Text({ part }: { part: Extract<Part, { type: "text" }> }) {
     <Streamdown
       icons={streamdownIcons}
       components={chatComponents}
-      className="overflow-wrap-anywhere min-w-0 px-0.5 py-1"
+      // Fork: a drafted email or note in a code box wraps instead of running
+      // off the right edge (live task test, Oct 9; Apple HIG, Layout: avoid
+      // sideways scrolling for reading text).
+      className="overflow-wrap-anywhere min-w-0 px-0.5 py-1 [&_pre]:whitespace-pre-wrap [&_pre]:[overflow-wrap:anywhere] [&_pre_code]:whitespace-pre-wrap"
       caret="block"
       isAnimating={isAnimating}
       linkSafety={{ enabled: false }}

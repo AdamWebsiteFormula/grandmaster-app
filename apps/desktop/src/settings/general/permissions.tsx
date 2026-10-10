@@ -75,26 +75,33 @@ function PermissionRow({
 
   return (
     <div className="flex items-center justify-between gap-4">
-      <SettingIconTile icon={icon} />
-      <div className="min-w-0 flex-1">
-        {/* Fork: red and the warning icon only once access is denied; a
+      {/* Fork: tile and text sit 12 pt apart, as in every other Settings
+          row; the row's 16 pt gap put this text 4 pt to the right (picture
+          review, Oct 9; Apple HIG, Layout). */}
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <SettingIconTile icon={icon} />
+        <div className="min-w-0 flex-1">
+          {/* Fork: red and the warning icon only once access is denied; a
             permission not asked for yet is a normal row with its Allow button
             (design-system: red is for errors; NN/g heuristic #4). */}
-        <div
-          className={cn([
-            "mb-0.5 flex items-center gap-2",
-            isDenied && "text-destructive",
-          ])}
-        >
-          {isDenied && <WarningCircle className="size-4" />}
-          <h3 className="text-sm font-medium">{title}</h3>
+          <div
+            className={cn([
+              "mb-0.5 flex items-center gap-2",
+              isDenied && "text-destructive",
+            ])}
+          >
+            {/* Fork: the warning follows the title, so every title starts
+                on one edge (picture review, Oct 9; Apple HIG, Layout). */}
+            <h3 className="text-sm font-medium">{title}</h3>
+            {isDenied && <WarningCircle className="size-4" aria-hidden />}
+          </div>
+          <p className="text-muted-foreground text-xs">{description}</p>
+          {error && (
+            <p role="alert" className="text-destructive mt-1 text-xs">
+              {error}
+            </p>
+          )}
         </div>
-        <p className="text-muted-foreground text-xs">{description}</p>
-        {error && (
-          <p role="alert" className="text-destructive mt-1 text-xs">
-            {error}
-          </p>
-        )}
       </div>
       {/* Fork: text buttons say what happens, and a granted permission is a
           quiet "Allowed" (ux-audit-oct3 E, HIG buttons). One row-button size

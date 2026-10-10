@@ -3422,12 +3422,13 @@ msgstr ""
 
 #: src/settings/automations/starter-config.tsx
 #: src/settings/connectors/index.tsx
+#: src/settings/general/storage/export-location.tsx
 msgid "Export folder"
 msgstr ""
 
 #: src/settings/general/storage/export-location.tsx
-msgid "Export location"
-msgstr ""
+#~ msgid "Export location"
+#~ msgstr ""
 
 #: src/settings/automations/workflow-builder.tsx
 msgid "Export the meeting as Markdown"
@@ -6741,12 +6742,12 @@ msgid "Save meetings to Google Drive"
 msgstr ""
 
 #: src/settings/general/storage/export-location.tsx
-msgid "Save PDF, text, and Markdown exports to this folder."
-msgstr ""
+#~ msgid "Save PDF, text, and Markdown exports to this folder."
+#~ msgstr ""
 
 #: src/settings/connectors/index.tsx
-msgid "Save PDF, text, and Markdown exports."
-msgstr ""
+#~ msgid "Save PDF, text, and Markdown exports."
+#~ msgstr ""
 
 #: src/settings/team/index.tsx
 msgid "Save policies"
@@ -9235,6 +9236,11 @@ msgstr ""
 
 #: src/onboarding/final.tsx
 msgid "When Upshot starts, it sends: “{MEETING_DISCLOSURE_MESSAGE}”"
+msgstr ""
+
+#: src/settings/connectors/index.tsx
+#: src/settings/general/storage/export-location.tsx
+msgid "Where PDF, text, and Markdown exports are saved."
 msgstr ""
 
 #: src/settings/ai/stt/local-file-model.tsx

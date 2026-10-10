@@ -438,11 +438,12 @@ function FollowUpEmailChip() {
             // envelope, which read as a send button beside the field
             // (picture review, Oct 6; NN/g "Icon Usability"). Chat's
             // recipes keep the same prompt one click away.
-            // Fork: mr-2 ends the chip 12 pt inside the bar, clear of the
-            // bar's rounded end, as Transcript sits on the left (picture
-            // review, Oct 9: 4 pt, pinched into the curve; Apple HIG,
-            // Layout).
-            className={cn([barChipClassName, "mr-2 @max-[21rem]/ask:hidden!"])}
+            // Fork: the chip sits 5 pt inside the bar's end, the same as
+            // its top and bottom, so its pill is concentric with the bar's
+            // rounded end and its label sits about 16 pt in, as Transcript's
+            // does on the left (picture review round 35, Oct 9: 4 pt read
+            // pinched, 12 pt loose; Apple HIG, Layout: concentric corners).
+            className={cn([barChipClassName, "mr-px @max-[21rem]/ask:hidden!"])}
           >
             <Envelope aria-hidden className="text-muted-foreground size-3.5" />
             <span className="truncate">{label}</span>

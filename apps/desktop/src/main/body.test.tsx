@@ -4,6 +4,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
 } from "@testing-library/react";
 import { forwardRef, useImperativeHandle } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -186,14 +187,15 @@ describe("ClassicMainBody", () => {
     act(() => {
       mocks.onPanelLayout?.([27, 73]);
     });
-    await act(async () => {
+    act(() => {
       window.dispatchEvent(new Event("resize"));
-      await new Promise((resolve) => setTimeout(resolve, 50));
     });
 
     const defaultSize = (200 / window.innerWidth) * 100;
-    expect(mocks.leftSidebarPanelHandle.resize).toHaveBeenCalledWith(
-      defaultSize,
+    await waitFor(() =>
+      expect(mocks.leftSidebarPanelHandle.resize).toHaveBeenCalledWith(
+        defaultSize,
+      ),
     );
   });
 

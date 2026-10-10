@@ -139,9 +139,9 @@ describe("ExportLocationRow", () => {
   it("puts the description under the title and the folder beside its button", async () => {
     renderRow();
     const folder = await screen.findByText("~/Downloads");
-    const title = screen.getByRole("heading", { name: "Export location" });
+    const title = screen.getByRole("heading", { name: "Export folder" });
     const description = screen.getByText(
-      "Save PDF, text, and Markdown exports to this folder.",
+      "Where PDF, text, and Markdown exports are saved.",
     );
     expect(description.parentElement).toBe(title.parentElement);
     const choose = screen.getByRole("button", { name: "Choose folder" });
