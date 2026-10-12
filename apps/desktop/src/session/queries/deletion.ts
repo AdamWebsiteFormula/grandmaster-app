@@ -17,6 +17,7 @@ type SessionEmptySqlRow = {
   meeting_chat_count: number;
   manual_participant_count: number;
   tag_count: number;
+  attachment_count: number;
 };
 
 export async function softDeleteSession(
@@ -85,7 +86,14 @@ export async function isSessionEmpty(sessionId: string): Promise<boolean> {
           SELECT COUNT(*)
           FROM session_tags
           WHERE session_id = sessions.id AND deleted_at IS NULL
-        ) AS tag_count
+        ) AS tag_count,
+        -- Fork: a recording or dropped file keeps the note, even when its
+        -- transcription failed (data-safety audit, Oct 11).
+        (
+          SELECT COUNT(*)
+          FROM session_attachments
+          WHERE session_id = sessions.id AND deleted_at IS NULL
+        ) AS attachment_count
       FROM sessions
       LEFT JOIN session_documents AS note
         ON note.id = sessions.id
@@ -106,7 +114,8 @@ export async function isSessionEmpty(sessionId: string): Promise<boolean> {
     Number(row.enhanced_note_count) === 0 &&
     Number(row.meeting_chat_count) === 0 &&
     Number(row.manual_participant_count) === 0 &&
-    Number(row.tag_count) === 0
+    Number(row.tag_count) === 0 &&
+    Number(row.attachment_count) === 0
   );
 }
 

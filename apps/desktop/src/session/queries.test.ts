@@ -359,6 +359,7 @@ describe("session SQLite operations", () => {
         meeting_chat_count: 0,
         manual_participant_count: 0,
         tag_count: 0,
+        attachment_count: 0,
       },
     ]);
 
@@ -373,6 +374,10 @@ describe("session SQLite operations", () => {
     ["captured meeting chat", { meeting_chat_count: 1 }],
     ["manual participant", { manual_participant_count: 1 }],
     ["tag", { tag_count: 1 }],
+    // Fork: a recording whose transcription failed has audio but no
+    // transcript; closing its tab must not delete it (data-safety audit,
+    // Oct 11).
+    ["recording or file", { attachment_count: 1 }],
   ])("keeps a session with %s data", async (_label, overrides) => {
     mocks.execute.mockResolvedValueOnce([
       {
@@ -385,6 +390,7 @@ describe("session SQLite operations", () => {
         meeting_chat_count: 0,
         manual_participant_count: 0,
         tag_count: 0,
+        attachment_count: 0,
         ...overrides,
       },
     ]);
