@@ -47,7 +47,8 @@ export async function renameNamedFolder(
     return newPath;
   }
 
-  if (await folderNameTaken(newPath)) {
+  const caseOnly = oldPath.toLowerCase() === newPath.toLowerCase();
+  if (!caseOnly && (await folderNameTaken(newPath))) {
     throw new Error("folder_target_exists");
   }
 
@@ -76,9 +77,9 @@ export async function deleteNamedFolder(folderPath: string): Promise<void> {
       SELECT id, folder_path
       FROM sessions
       WHERE deleted_at IS NULL
-        AND (folder_path = ? OR folder_path LIKE ? OR folder_path LIKE ?)
+        AND (folder_path = ? OR instr(folder_path, ?) = 1 OR instr(folder_path, ?) = 1)
     `,
-    [path, `${path}/%`, `${path}\\%`],
+    [path, `${path}/`, `${path}\\`],
   );
 
   for (const session of sessions) {
@@ -234,6 +235,9 @@ export function useFolderWorkspaceId(folderPath: string): string {
   return data;
 }
 
+// Fork: case-insensitive, as Finder and Explorer are: "clients" next to
+// "Clients" is one folder on disk, so deleting one erased the other (data-
+// safety audit, Oct 11).
 async function folderNameTaken(path: string): Promise<boolean> {
   const rows = await liveQueryClient.execute<{ present: number }>(
     `
@@ -242,21 +246,25 @@ async function folderNameTaken(path: string): Promise<boolean> {
         SELECT path AS folder_path
         FROM folders
         WHERE deleted_at IS NULL
-          AND path = ?
+          AND lower(path) = lower(?)
         UNION
         SELECT folder_path
         FROM folder_attachments
         WHERE deleted_at IS NULL
-          AND folder_path = ?
+          AND lower(folder_path) = lower(?)
         UNION
         SELECT folder_path
         FROM sessions
         WHERE deleted_at IS NULL
-          AND (folder_path = ? OR folder_path LIKE ? OR folder_path LIKE ?)
+          AND (
+            lower(folder_path) = lower(?)
+            OR instr(lower(folder_path), lower(?)) = 1
+            OR instr(lower(folder_path), lower(?)) = 1
+          )
       )
       LIMIT 1
     `,
-    [path, path, path, `${path}/%`, `${path}\\%`],
+    [path, path, path, `${path}/`, `${path}\\`],
   );
   return rows.length > 0;
 }

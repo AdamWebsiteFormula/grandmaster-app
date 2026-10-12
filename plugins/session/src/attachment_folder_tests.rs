@@ -720,6 +720,83 @@ async fn rename_folder_catalog_rewrites_exact_and_nested_paths() {
     );
 }
 
+// Fork: a rename carries subfolder rows (and their instructions) along, and
+// folder matching is exact: no case folding, no `_`/`%` wildcards
+// (data-safety audit, Oct 11).
+#[tokio::test]
+async fn rename_and_delete_folder_catalog_match_only_that_folder() {
+    let db = test_db().await;
+    sqlx::query(
+        "INSERT INTO folders (id, path) VALUES
+           ('f-1', 'Clients'), ('f-2', 'Clients/Acme'), ('f-3', 'clients/Other'),
+           ('f-4', 'Q1-plan/Sub')",
+    )
+    .execute(db.pool())
+    .await
+    .unwrap();
+    sqlx::query(
+        "INSERT INTO sessions (id, owner_user_id, folder_path) VALUES
+           ('s-1', 'u', 'Clients/Acme'), ('s-2', 'u', 'clients/Other'),
+           ('s-3', 'u', 'Q1-plan/Sub')",
+    )
+    .execute(db.pool())
+    .await
+    .unwrap();
+
+    rename_folder_catalog(
+        db.pool(),
+        RenameFolderCatalogRequest {
+            old_path: "Clients".to_string(),
+            new_path: "Customers".to_string(),
+        },
+    )
+    .await
+    .unwrap();
+    delete_folder_catalog(
+        db.pool(),
+        DeleteFolderCatalogRequest {
+            path: "Q1_plan".to_string(),
+        },
+    )
+    .await
+    .unwrap();
+
+    let folders: Vec<(String, String)> = sqlx::query_as(
+        "SELECT id, path FROM folders WHERE deleted_at IS NULL ORDER BY id",
+    )
+    .fetch_all(db.pool())
+    .await
+    .unwrap();
+    let folders: Vec<(&str, &str)> = folders
+        .iter()
+        .map(|(id, path)| (id.as_str(), path.as_str()))
+        .filter(|(id, _)| id.starts_with("f-"))
+        .collect();
+    assert_eq!(
+        folders,
+        vec![
+            ("f-1", "Customers"),
+            ("f-2", "Customers/Acme"),
+            ("f-3", "clients/Other"),
+            ("f-4", "Q1-plan/Sub"),
+        ]
+    );
+
+    let session_paths: Vec<String> =
+        sqlx::query_scalar("SELECT folder_path FROM sessions ORDER BY id")
+            .fetch_all(db.pool())
+            .await
+            .unwrap();
+    assert_eq!(
+        session_paths,
+        vec![
+            "Customers/Acme".to_string(),
+            "clients/Other".to_string(),
+            "Q1-plan/Sub".to_string()
+        ]
+    );
+}
+
 #[tokio::test]
 async fn delete_folder_catalog_tombstones_nested_and_clears_sessions() {
     let db = test_db().await;

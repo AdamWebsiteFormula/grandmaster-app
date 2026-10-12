@@ -79,7 +79,7 @@ pub async fn insert_folder_attachment(
             SELECT session.workspace_id
             FROM sessions AS session
             WHERE session.deleted_at IS NULL
-              AND (session.folder_path = ? OR session.folder_path LIKE ?)
+              AND (session.folder_path = ? OR instr(session.folder_path, ?) = 1)
             ORDER BY session.updated_at DESC, session.id
             LIMIT 1
           ), ''),
@@ -104,7 +104,7 @@ pub async fn insert_folder_attachment(
     )
     .bind(id)
     .bind(folder_path)
-    .bind(format!("{folder_path}/%"))
+    .bind(format!("{folder_path}/"))
     .bind(folder_path)
     .bind(filename)
     .bind(relative_path)
@@ -179,7 +179,7 @@ pub async fn insert_folder_if_missing(
             SELECT session.workspace_id
             FROM sessions AS session
             WHERE session.deleted_at IS NULL
-              AND (session.folder_path = ? OR session.folder_path LIKE ?)
+              AND (session.folder_path = ? OR instr(session.folder_path, ?) = 1)
             ORDER BY session.updated_at DESC, session.id
             LIMIT 1
           ), ''),
@@ -193,7 +193,7 @@ pub async fn insert_folder_if_missing(
     )
     .bind(id)
     .bind(path)
-    .bind(format!("{path}/%"))
+    .bind(format!("{path}/"))
     .bind(path)
     .bind(path)
     .execute(&mut *conn)
@@ -201,6 +201,10 @@ pub async fn insert_folder_if_missing(
     Ok(result.rows_affected())
 }
 
+// Fork: folder matching is an exact, case-sensitive prefix test (`instr(..) =
+// 1`); `LIKE` folded case and read `_`/`%` in names as wildcards, so renaming
+// or deleting one folder touched another. A rename also carries subfolder
+// rows along (data-safety audit, Oct 11).
 pub async fn rename_folder_row(
     conn: &mut SqliteConnection,
     new_path: &str,
@@ -209,14 +213,22 @@ pub async fn rename_folder_row(
     let result = sqlx::query(
         "UPDATE folders
         SET
-          path = ?,
+          path = CASE
+            WHEN path = ? THEN ?
+            ELSE ? || substr(path, length(?) + 1)
+          END,
           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
           deleted_at = NULL
-        WHERE path = ?
-          AND deleted_at IS NULL",
+        WHERE deleted_at IS NULL
+          AND (path = ? OR instr(path, ?) = 1 OR instr(path, ?) = 1)",
     )
+    .bind(old_path)
+    .bind(new_path)
     .bind(new_path)
     .bind(old_path)
+    .bind(old_path)
+    .bind(format!("{old_path}/"))
+    .bind(format!("{old_path}\\"))
     .execute(&mut *conn)
     .await?;
     Ok(result.rows_affected())
@@ -236,15 +248,15 @@ pub async fn rewrite_folder_attachment_paths(
           END,
           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
         WHERE deleted_at IS NULL
-          AND (folder_path = ? OR folder_path LIKE ? OR folder_path LIKE ?)",
+          AND (folder_path = ? OR instr(folder_path, ?) = 1 OR instr(folder_path, ?) = 1)",
     )
     .bind(old_path)
     .bind(new_path)
     .bind(new_path)
     .bind(old_path)
     .bind(old_path)
-    .bind(format!("{old_path}/%"))
-    .bind(format!("{old_path}\\%"))
+    .bind(format!("{old_path}/"))
+    .bind(format!("{old_path}\\"))
     .execute(&mut *conn)
     .await?;
     Ok(result.rows_affected())
@@ -264,15 +276,15 @@ pub async fn rewrite_session_folder_paths(
           END,
           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
         WHERE deleted_at IS NULL
-          AND (folder_path = ? OR folder_path LIKE ? OR folder_path LIKE ?)",
+          AND (folder_path = ? OR instr(folder_path, ?) = 1 OR instr(folder_path, ?) = 1)",
     )
     .bind(old_path)
     .bind(new_path)
     .bind(new_path)
     .bind(old_path)
     .bind(old_path)
-    .bind(format!("{old_path}/%"))
-    .bind(format!("{old_path}\\%"))
+    .bind(format!("{old_path}/"))
+    .bind(format!("{old_path}\\"))
     .execute(&mut *conn)
     .await?;
     Ok(result.rows_affected())
@@ -288,11 +300,11 @@ pub async fn tombstone_folders_under(
           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
           deleted_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
         WHERE deleted_at IS NULL
-          AND (path = ? OR path LIKE ? OR path LIKE ?)",
+          AND (path = ? OR instr(path, ?) = 1 OR instr(path, ?) = 1)",
     )
     .bind(path)
-    .bind(format!("{path}/%"))
-    .bind(format!("{path}\\%"))
+    .bind(format!("{path}/"))
+    .bind(format!("{path}\\"))
     .execute(&mut *conn)
     .await?;
     Ok(result.rows_affected())
@@ -308,11 +320,11 @@ pub async fn tombstone_folder_attachments_under(
           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
           deleted_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
         WHERE deleted_at IS NULL
-          AND (folder_path = ? OR folder_path LIKE ? OR folder_path LIKE ?)",
+          AND (folder_path = ? OR instr(folder_path, ?) = 1 OR instr(folder_path, ?) = 1)",
     )
     .bind(path)
-    .bind(format!("{path}/%"))
-    .bind(format!("{path}\\%"))
+    .bind(format!("{path}/"))
+    .bind(format!("{path}\\"))
     .execute(&mut *conn)
     .await?;
     Ok(result.rows_affected())
@@ -328,11 +340,11 @@ pub async fn clear_session_folder_paths(
           folder_path = '',
           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
         WHERE deleted_at IS NULL
-          AND (folder_path = ? OR folder_path LIKE ? OR folder_path LIKE ?)",
+          AND (folder_path = ? OR instr(folder_path, ?) = 1 OR instr(folder_path, ?) = 1)",
     )
     .bind(path)
-    .bind(format!("{path}/%"))
-    .bind(format!("{path}\\%"))
+    .bind(format!("{path}/"))
+    .bind(format!("{path}\\"))
     .execute(&mut *conn)
     .await?;
     Ok(result.rows_affected())

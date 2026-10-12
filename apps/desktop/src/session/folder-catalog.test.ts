@@ -1,4 +1,9 @@
+import { createRequire } from "node:module";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { DatabaseSync } = createRequire(import.meta.url)(
+  "node:sqlite",
+) as typeof import("node:sqlite");
 
 const mocks = vi.hoisted(() => ({
   createFolder: vi.fn(),
@@ -87,6 +92,39 @@ describe("folder catalog", () => {
     );
     expect(mocks.createFolder).not.toHaveBeenCalled();
     expect(mocks.ensureFolderCatalog).not.toHaveBeenCalled();
+  });
+
+  // Fork: on a Mac (and Windows) "clients" and "Clients" are one folder on
+  // disk; deleting one would erase the other's files. Refuse it, as Finder
+  // does (data-safety audit, Oct 11).
+  it("treats a name that differs only by case as taken", async () => {
+    const db = new DatabaseSync(":memory:");
+    try {
+      db.exec(`
+        CREATE TABLE folders (path TEXT, deleted_at TEXT);
+        CREATE TABLE folder_attachments (folder_path TEXT, deleted_at TEXT);
+        CREATE TABLE sessions (folder_path TEXT, deleted_at TEXT);
+        INSERT INTO folders VALUES ('Clients', NULL);
+        INSERT INTO sessions VALUES ('Work/Acme', NULL);
+      `);
+      mocks.execute.mockImplementation(async (sql: string, params: string[]) =>
+        db.prepare(sql).all(...params),
+      );
+
+      await expect(createNamedFolder("clients")).rejects.toThrow(
+        "folder_target_exists",
+      );
+      await expect(createNamedFolder("work")).rejects.toThrow(
+        "folder_target_exists",
+      );
+      await expect(createNamedFolder("Q1_plan")).resolves.toBe("Q1_plan");
+      await expect(renameNamedFolder("Clients", "clients")).resolves.toBe(
+        "clients",
+      );
+      expect(mocks.renameFolder).toHaveBeenCalledWith("Clients", "clients");
+    } finally {
+      db.close();
+    }
   });
 
   it("rejects the unfiled folder", async () => {
