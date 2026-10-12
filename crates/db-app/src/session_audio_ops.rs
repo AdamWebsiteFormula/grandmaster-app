@@ -86,6 +86,11 @@ pub async fn get_session_audio_retention_candidate(
 
 /// Sessions whose primary audio attachment is tombstoned but may still exist
 /// on this device.
+///
+/// Fork: only tombstones older than an hour. A just-deleted note can still be
+/// restored with Undo, and the note's own finalize step removes its folder
+/// when the Undo window ends; this sweep is the fallback (data-safety audit,
+/// Oct 11).
 pub async fn list_logically_deleted_session_audio(
     pool: &SqlitePool,
 ) -> Result<Vec<String>, sqlx::Error> {
@@ -97,6 +102,8 @@ pub async fn list_logically_deleted_session_audio(
          WHERE attachment.source_type = 'session_audio'
            AND attachment.source_id = 'primary'
            AND attachment.deleted_at IS NOT NULL
+           AND COALESCE(julianday(attachment.deleted_at), 0)
+             < julianday('now', '-1 hour')
            AND COALESCE(local.availability, 'present') != 'absent'
          ORDER BY attachment.session_id",
     )
@@ -115,6 +122,8 @@ pub async fn session_audio_is_logically_deleted(
            WHERE attachment.id = ?
              AND attachment.session_id = ?
              AND attachment.deleted_at IS NOT NULL
+             AND COALESCE(julianday(attachment.deleted_at), 0)
+               < julianday('now', '-1 hour')
              AND NOT EXISTS(
                SELECT 1
                FROM attachment_local_state AS local

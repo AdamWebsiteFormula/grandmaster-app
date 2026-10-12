@@ -108,3 +108,50 @@ async fn logically_deleted_session_audio_is_listed_until_marked_absent() {
             .unwrap()
     );
 }
+
+// Fork: a note deleted a moment ago can still come back with Undo, so its
+// audio must stay on disk until the grace period ends (data-safety audit,
+// Oct 11).
+#[tokio::test]
+async fn just_deleted_session_audio_waits_out_the_undo_window() {
+    let db = test_db().await;
+    let pool = db.pool();
+    sqlx::raw_sql(
+        r#"INSERT INTO sessions (id, created_at, deleted_at)
+           VALUES ('fresh', '2026-01-01T00:00:00.000Z',
+                   strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));
+           INSERT INTO session_attachments (
+             id, session_id, source_type, source_id, metadata_json, deleted_at
+           ) VALUES ('session-audio:fresh', 'fresh', 'session_audio', 'primary',
+                     '{}', strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));"#,
+    )
+    .execute(pool)
+    .await
+    .unwrap();
+
+    assert!(
+        list_logically_deleted_session_audio(pool)
+            .await
+            .unwrap()
+            .is_empty()
+    );
+    assert!(
+        !session_audio_is_logically_deleted(pool, "fresh")
+            .await
+            .unwrap()
+    );
+
+    sqlx::query(
+        "UPDATE session_attachments
+         SET deleted_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-2 hours')
+         WHERE id = 'session-audio:fresh'",
+    )
+    .execute(pool)
+    .await
+    .unwrap();
+
+    assert_eq!(
+        list_logically_deleted_session_audio(pool).await.unwrap(),
+        vec!["fresh".to_string()]
+    );
+}
