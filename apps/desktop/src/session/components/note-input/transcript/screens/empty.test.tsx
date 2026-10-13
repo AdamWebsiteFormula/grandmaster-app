@@ -53,15 +53,19 @@ describe("TranscriptEmptyState", () => {
     expect(screen.getByText("Transcription failed").className).toContain(
       "text-base",
     );
-    // Fork: journey-meeting P3, plain words first, raw error small below.
+    // Fork: journey-meeting P3, plain words first; the raw error waits
+    // behind Show details (error sweep, Oct 12).
     expect(
       screen.getByText(
         "Upshot couldn't transcribe this audio. Try again, or pick another model.",
       ).className,
     ).toContain("text-sm");
     expect(
-      screen.getByText("The transcription provider timed out.").className,
-    ).toContain("text-xs");
+      screen
+        .getByText("The transcription provider timed out.")
+        .closest("details")?.open,
+    ).toBe(false);
+    expect(screen.getByText("Show details").closest("summary")).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Transcribe again" }));
     expect(onRetranscribe).toHaveBeenCalledTimes(1);

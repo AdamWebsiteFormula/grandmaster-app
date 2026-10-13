@@ -3980,6 +3980,10 @@ msgstr ""
 msgid "Hide deleted events"
 msgstr ""
 
+#: src/shared/ui/error-details.tsx
+msgid "Hide details"
+msgstr ""
+
 #: src/calendar/components/event-chip.tsx
 msgid "Hide event"
 msgstr ""
@@ -7357,6 +7361,10 @@ msgstr ""
 
 #: src/sidebar/timeline/index.tsx
 msgid "Show deleted events"
+msgstr ""
+
+#: src/shared/ui/error-details.tsx
+msgid "Show details"
 msgstr ""
 
 #: src/sidebar/timeline/item.tsx

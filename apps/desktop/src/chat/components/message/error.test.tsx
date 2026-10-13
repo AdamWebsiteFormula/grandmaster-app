@@ -158,11 +158,12 @@ describe("ErrorMessage sign-in required", () => {
     expect(screen.queryByText("Failed to fetch")).toBeNull();
   });
 
-  it("says other failures plainly and keeps the raw text small", () => {
+  it("says other failures plainly and keeps the raw text behind Show details", () => {
     render(<ErrorMessage error={new Error("boom")} onRetry={vi.fn()} />);
 
     expect(screen.getByText("Upshot couldn't answer. Try again.")).toBeTruthy();
-    expect(screen.getByText("boom").className).toContain("text-xs");
+    expect(screen.getByText("Show details").closest("summary")).toBeTruthy();
+    expect(screen.getByText("boom").closest("details")?.open).toBe(false);
   });
 
   it("signed out with no retry still offers Sign in", () => {

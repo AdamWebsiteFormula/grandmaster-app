@@ -13,6 +13,7 @@ import {
 } from "~/ai/task-window-sync";
 import { useEnhancedNote } from "~/session/queries";
 import { isNetworkError } from "~/shared/network-error";
+import { ErrorDetails } from "~/shared/ui/error-details";
 import { createTaskId } from "~/store/zustand/ai-task/task-configs";
 import { openUpshotSignIn } from "~/upshot-plan";
 import { isSignInRequiredError, useUpshotAccount } from "~/upshot-plan/session";
@@ -159,9 +160,10 @@ export function EnhanceError({
           {message}
         </p>
         {!askedToSignIn && errorKind === "other" && error?.message ? (
-          <p className="text-muted-foreground text-xs break-words">
-            {error.message}
-          </p>
+          <ErrorDetails
+            detail={error.message}
+            className="text-muted-foreground mx-auto"
+          />
         ) : null}
       </div>
       {action}

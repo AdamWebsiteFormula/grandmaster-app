@@ -7,6 +7,7 @@ import { cn } from "@anlg/utils";
 import { MessageBubble, MessageContainer } from "./shared";
 
 import { isNetworkError } from "~/shared/network-error";
+import { ErrorDetails } from "~/shared/ui/error-details";
 import { openUpshotSignIn } from "~/upshot-plan";
 import { isSignInRequiredError, useUpshotAccount } from "~/upshot-plan/session";
 
@@ -99,9 +100,7 @@ export function ErrorMessage({
     <MessageContainer align="start">
       <MessageBubble variant="error">
         <p className="text-sm">{message}</p>
-        {detail ? (
-          <p className="mt-0.5 text-xs break-words opacity-80">{detail}</p>
-        ) : null}
+        {detail ? <ErrorDetails detail={detail} className="mt-0.5" /> : null}
         {onRetry ? (
           // Fork: a visible text button, not a hover-only 20px icon (ux-audit-oct3 D,
           // WCAG 2.4.7, 2.5.8).

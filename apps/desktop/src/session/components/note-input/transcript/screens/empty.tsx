@@ -9,6 +9,7 @@ import {
 import { Button } from "@anlg/ui/components/ui/button";
 import { Spinner } from "@anlg/ui/components/ui/spinner";
 
+import { ErrorDetails } from "~/shared/ui/error-details";
 import { useTabs } from "~/store/zustand/tabs";
 
 export function TranscriptEmptyState({
@@ -52,12 +53,12 @@ export function TranscriptEmptyState({
           <p className="text-muted-foreground text-sm leading-relaxed">
             {t`Upshot couldn't transcribe this audio. Try again, or pick another model.`}
           </p>
-          <p
-            data-transcript-raw-error
-            className="text-muted-foreground text-xs break-words"
-          >
-            {error}
-          </p>
+          {error ? (
+            <ErrorDetails
+              detail={error}
+              className="text-muted-foreground mx-auto"
+            />
+          ) : null}
         </div>
         {/* Fork: a way to fix the cause, not only retry (ux-audit-oct3 C, NN/g #9). */}
         <div className="flex items-center gap-2">
