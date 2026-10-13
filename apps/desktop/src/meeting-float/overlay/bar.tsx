@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { useEffect, useRef, useState } from "react";
 
 import type {
@@ -69,7 +70,9 @@ export function FloatingBarOverlay({
             bottom: FLOATING_BAR_INSET,
             top:
               FLOATING_BAR_INSET +
-              (showsHoverHandle ? 0 : FLOATING_BAR_HOVER_HANDLE_RESERVED_HEIGHT),
+              (showsHoverHandle
+                ? 0
+                : FLOATING_BAR_HOVER_HANDLE_RESERVED_HEIGHT),
             borderRadius: FLOATING_BAR_PILL_WIDTH / 2,
             background: PILL_SURFACE,
             boxShadow: `inset 0 0 0 0.5px ${PILL_STROKE}`,
@@ -210,10 +213,10 @@ function FloatingControls({
           type="button"
           data-tauri-drag-region="false"
           aria-label={
-            isExpanded ? "Collapse live transcript" : "Expand live transcript"
+            isExpanded ? t`Collapse live transcript` : t`Expand live transcript`
           }
           title={
-            isExpanded ? "Collapse live transcript" : "Expand live transcript"
+            isExpanded ? t`Collapse live transcript` : t`Expand live transcript`
           }
           onClick={() => onToggleExpanded(!isExpanded)}
           className="flex items-center justify-center"
@@ -256,7 +259,10 @@ function PillControls({
   onToggleExpanded: (expanded: boolean) => void;
 }) {
   const [stopHovered, setStopHovered] = useState(false);
-  const cell = { width: FLOATING_BAR_PILL_CELL, height: FLOATING_BAR_PILL_CELL };
+  const cell = {
+    width: FLOATING_BAR_PILL_CELL,
+    height: FLOATING_BAR_PILL_CELL,
+  };
 
   return (
     <div
@@ -266,8 +272,8 @@ function PillControls({
       <button
         type="button"
         data-tauri-drag-region="false"
-        aria-label="Open Upshot"
-        title="Open Upshot"
+        aria-label={t`Open Upshot`}
+        title={t`Open Upshot`}
         onClick={() => onOpenMain?.()}
         className="flex items-center justify-center"
         style={cell}
@@ -292,8 +298,8 @@ function PillControls({
       <button
         type="button"
         data-tauri-drag-region="false"
-        aria-label="Stop recording"
-        title="Stop recording"
+        aria-label={t`Stop recording`}
+        title={t`Stop recording`}
         onClick={onStop}
         onMouseEnter={() => setStopHovered(true)}
         onMouseLeave={() => setStopHovered(false)}
@@ -322,8 +328,8 @@ function PillControls({
         <button
           type="button"
           data-tauri-drag-region="false"
-          aria-label="Expand live transcript"
-          title="Expand live transcript"
+          aria-label={t`Expand live transcript`}
+          title={t`Expand live transcript`}
           onClick={() => onToggleExpanded(true)}
           className="flex items-center justify-center"
           style={{
@@ -358,8 +364,8 @@ function StopControl({
       type="button"
       data-tauri-drag-region="false"
       // Fork: shared recording vocabulary, and a visible name before hover (ux-audit-oct3 C, NN/g #1, #4).
-      aria-label={state.dictation ? "Finish dictation" : "Stop recording"}
-      title={state.dictation ? "Finish dictation" : "Stop recording"}
+      aria-label={state.dictation ? t`Finish dictation` : t`Stop recording`}
+      title={state.dictation ? t`Finish dictation` : t`Stop recording`}
       disabled={state.dictation?.phase === "transcribing"}
       onClick={onStop}
       onMouseEnter={() => setHovered(true)}

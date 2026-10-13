@@ -1714,6 +1714,10 @@ msgstr ""
 msgid "Collaborator"
 msgstr ""
 
+#: src/meeting-float/overlay/bar.tsx
+msgid "Collapse live transcript"
+msgstr ""
+
 #: src/automations/starters.tsx
 #: src/settings/automations/markdown-export-options.tsx
 msgid "Collect action items"
@@ -3424,6 +3428,10 @@ msgstr ""
 msgid "Exclude apps from detection"
 msgstr ""
 
+#: src/meeting-float/overlay/bar.tsx
+msgid "Expand live transcript"
+msgstr ""
+
 #: src/settings/automations/index.tsx
 msgid "Expected output"
 msgstr ""
@@ -3570,6 +3578,10 @@ msgstr ""
 
 #: src/imports/screen.tsx
 msgid "Finish connecting in your browser."
+msgstr ""
+
+#: src/meeting-float/overlay/bar.tsx
+msgid "Finish dictation"
 msgstr ""
 
 #: src/settings/general/account.tsx
@@ -5615,6 +5627,7 @@ msgid "Open the meeting link when a scheduled meeting begins."
 msgstr ""
 
 #: src/composer/index.tsx
+#: src/meeting-float/overlay/bar.tsx
 #: src/onboarding/final.tsx
 #: src/services/enhancer/summary-notification.ts
 #: src/store/zustand/listener/general-batch.ts
@@ -7829,6 +7842,7 @@ msgstr ""
 msgid "Stop listening"
 msgstr ""
 
+#: src/meeting-float/overlay/bar.tsx
 #: src/session/components/floating/recording-bar.tsx
 #: src/session/components/outer-header/index.tsx
 #: src/session/components/outer-header/overflow/listening.tsx

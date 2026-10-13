@@ -1714,6 +1714,10 @@ msgstr "Cloud sync resumes when the current activity finishes."
 msgid "Collaborator"
 msgstr "Collaborator"
 
+#: src/meeting-float/overlay/bar.tsx
+msgid "Collapse live transcript"
+msgstr "Collapse live transcript"
+
 #: src/automations/starters.tsx
 #: src/settings/automations/markdown-export-options.tsx
 msgid "Collect action items"
@@ -3424,6 +3428,10 @@ msgstr "Examples must be Markdown or plain text files."
 msgid "Exclude apps from detection"
 msgstr "Exclude apps from detection"
 
+#: src/meeting-float/overlay/bar.tsx
+msgid "Expand live transcript"
+msgstr "Expand live transcript"
+
 #: src/settings/automations/index.tsx
 msgid "Expected output"
 msgstr "Expected output"
@@ -3571,6 +3579,10 @@ msgstr "Finish checkout in your browser to unlock more, then return to Upshot."
 #: src/imports/screen.tsx
 msgid "Finish connecting in your browser."
 msgstr "Finish connecting in your browser."
+
+#: src/meeting-float/overlay/bar.tsx
+msgid "Finish dictation"
+msgstr "Finish dictation"
 
 #: src/settings/general/account.tsx
 msgid "Finish in your browser, then return to Upshot."
@@ -5615,6 +5627,7 @@ msgid "Open the meeting link when a scheduled meeting begins."
 msgstr "Open the meeting link when a scheduled meeting begins."
 
 #: src/composer/index.tsx
+#: src/meeting-float/overlay/bar.tsx
 #: src/onboarding/final.tsx
 #: src/services/enhancer/summary-notification.ts
 #: src/store/zustand/listener/general-batch.ts
@@ -7829,6 +7842,7 @@ msgstr "Stop it first to record this meeting."
 msgid "Stop listening"
 msgstr "Stop listening"
 
+#: src/meeting-float/overlay/bar.tsx
 #: src/session/components/floating/recording-bar.tsx
 #: src/session/components/outer-header/index.tsx
 #: src/session/components/outer-header/overflow/listening.tsx
