@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from "@anlg/ui/components/ui/dialog";
 import { Input } from "@anlg/ui/components/ui/input";
+import { toast } from "@anlg/ui/components/ui/toast";
 
 import { type Provider } from "../shared";
 import {
@@ -354,7 +355,14 @@ export function ConnectSubscriptionDialog({
     if (session?.kind !== "device") {
       return;
     }
-    await navigator.clipboard.writeText(session.userCode);
+    // Fork: say it worked or failed (copy sweep, Oct 13; NN/g #1).
+    try {
+      await navigator.clipboard.writeText(session.userCode);
+      toast.success(t`Code copied`);
+    } catch (error) {
+      console.error("[subscriptions] failed to copy code", error);
+      toast.error(t`Couldn't copy the code. Type it in instead.`);
+    }
   };
 
   const showCodeInput =

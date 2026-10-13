@@ -7,10 +7,14 @@ import {
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ copy: vi.fn() }));
+const mocks = vi.hoisted(() => ({ copy: vi.fn(), toastError: vi.fn() }));
 
 vi.mock("~/session/components/note-input/header-shared", () => ({
   copyTextToClipboard: mocks.copy,
+}));
+
+vi.mock("@anlg/ui/components/ui/toast", () => ({
+  toast: { error: mocks.toastError },
 }));
 
 import { NormalMessage } from "./normal";
@@ -61,5 +65,10 @@ describe("NormalMessage copy", () => {
 
     await waitFor(() => expect(mocks.copy).toHaveBeenCalled());
     expect(screen.queryByRole("button", { name: "Copied" })).toBeNull();
+    await waitFor(() =>
+      expect(mocks.toastError).toHaveBeenCalledWith(
+        "Couldn't copy this message. Try again.",
+      ),
+    );
   });
 });

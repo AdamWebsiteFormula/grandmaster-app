@@ -188,7 +188,14 @@ export function E2eeSetupDialog({
                 disabled={copyMutation.isPending}
               >
                 <Copy className="size-3.5" aria-hidden="true" />
-                <Trans>Copy recovery key</Trans>
+                {/* Fork: say it worked, and when the key leaves the
+                    clipboard, as password managers do (copy sweep,
+                    Oct 13; NN/g #1). */}
+                {copyMutation.isSuccess ? (
+                  <Trans>Copied. Clears in 1 minute</Trans>
+                ) : (
+                  <Trans>Copy recovery key</Trans>
+                )}
               </Button>
               <Button
                 variant="outline"

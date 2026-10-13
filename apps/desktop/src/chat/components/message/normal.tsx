@@ -10,6 +10,7 @@ import {
   Copy,
 } from "@anlg/ui/components/icons";
 import { streamdownIcons } from "@anlg/ui/components/streamdown-icons";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { useMountEffect } from "@anlg/ui/hooks/use-mount-effect";
 import { cn } from "@anlg/utils";
 
@@ -77,7 +78,11 @@ export function NormalMessage({
       const copiedOk = await copyTextToClipboard(text, undefined, {
         html: true,
       });
-      if (!copiedOk) return;
+      // Fork: a failed copy said nothing (copy sweep, Oct 13; NN/g #1).
+      if (!copiedOk) {
+        toast.error(t`Couldn't copy this message. Try again.`);
+        return;
+      }
       if (copiedResetTimeoutRef.current !== null) {
         window.clearTimeout(copiedResetTimeoutRef.current);
       }
@@ -89,7 +94,7 @@ export function NormalMessage({
     } catch {
       // ignore
     }
-  }, [message]);
+  }, [message, t]);
 
   if (!hasRenderableContent(message)) {
     return null;
@@ -145,7 +150,7 @@ export function NormalMessage({
               {handleReload && (
                 <button
                   onClick={handleReload}
-                  className="text-muted-foreground hover:text-foreground p-1.5 transition-colors focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"
+                  className="text-muted-foreground hover:text-foreground focus-visible:ring-ring p-1.5 transition-colors focus-visible:ring-2 focus-visible:outline-none"
                   aria-label={t`Regenerate message`}
                   title={t`Regenerate message`}
                 >
@@ -303,7 +308,7 @@ function Text({ part }: { part: Extract<Part, { type: "text" }> }) {
       // Fork: a drafted email or note in a code box wraps instead of running
       // off the right edge (live task test, Oct 9; Apple HIG, Layout: avoid
       // sideways scrolling for reading text).
-      className="overflow-wrap-anywhere min-w-0 px-0.5 py-1 [&_pre]:whitespace-pre-wrap [&_pre]:[overflow-wrap:anywhere] [&_pre_code]:whitespace-pre-wrap"
+      className="overflow-wrap-anywhere min-w-0 px-0.5 py-1 [&_pre]:[overflow-wrap:anywhere] [&_pre]:whitespace-pre-wrap [&_pre_code]:whitespace-pre-wrap"
       caret="block"
       isAnimating={isAnimating}
       linkSafety={{ enabled: false }}

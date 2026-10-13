@@ -1725,6 +1725,10 @@ msgstr ""
 msgid "Cloud sync resumes when the current activity finishes."
 msgstr ""
 
+#: src/settings/ai/llm/subscriptions/connect.tsx
+msgid "Code copied"
+msgstr ""
+
 #: src/session-sharing/comments.tsx
 msgid "Collaborator"
 msgstr ""
@@ -2070,6 +2074,10 @@ msgstr ""
 msgid "Copied to clipboard"
 msgstr ""
 
+#: src/settings/general/e2ee-setup.tsx
+msgid "Copied. Clears in 1 minute"
+msgstr ""
+
 #: src/main/windows-title-bar.tsx
 #: src/session/components/note-input/header-raw.tsx
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
@@ -2371,12 +2379,20 @@ msgstr ""
 msgid "Couldn't check your plan. Try again in a minute."
 msgstr ""
 
+#: src/settings/ai/llm/subscriptions/connect.tsx
+msgid "Couldn't copy the code. Type it in instead."
+msgstr ""
+
 #: src/settings/developers/cli.tsx
 msgid "Couldn't copy the MCP configuration. Try again."
 msgstr ""
 
 #: src/session/components/note-input/header-transcript.tsx
 msgid "Couldn't copy the transcript. Try again."
+msgstr ""
+
+#: src/chat/components/message/normal.tsx
+msgid "Couldn't copy this message. Try again."
 msgstr ""
 
 #: src/session/components/outer-header/share-actions.ts

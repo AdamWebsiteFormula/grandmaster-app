@@ -1725,6 +1725,10 @@ msgstr "Cloud sync resumes after this meeting finishes processing."
 msgid "Cloud sync resumes when the current activity finishes."
 msgstr "Cloud sync resumes when the current activity finishes."
 
+#: src/settings/ai/llm/subscriptions/connect.tsx
+msgid "Code copied"
+msgstr "Code copied"
+
 #: src/session-sharing/comments.tsx
 msgid "Collaborator"
 msgstr "Collaborator"
@@ -2070,6 +2074,10 @@ msgstr "Copied"
 msgid "Copied to clipboard"
 msgstr "Copied to clipboard"
 
+#: src/settings/general/e2ee-setup.tsx
+msgid "Copied. Clears in 1 minute"
+msgstr "Copied. Clears in 1 minute"
+
 #: src/main/windows-title-bar.tsx
 #: src/session/components/note-input/header-raw.tsx
 #: src/session/components/note-input/transcript/renderer/selection-menu.tsx
@@ -2371,6 +2379,10 @@ msgstr "Couldn't check your plan. Check your connection."
 msgid "Couldn't check your plan. Try again in a minute."
 msgstr "Couldn't check your plan. Try again in a minute."
 
+#: src/settings/ai/llm/subscriptions/connect.tsx
+msgid "Couldn't copy the code. Type it in instead."
+msgstr "Couldn't copy the code. Type it in instead."
+
 #: src/settings/developers/cli.tsx
 msgid "Couldn't copy the MCP configuration. Try again."
 msgstr "Couldn't copy the MCP configuration. Try again."
@@ -2378,6 +2390,10 @@ msgstr "Couldn't copy the MCP configuration. Try again."
 #: src/session/components/note-input/header-transcript.tsx
 msgid "Couldn't copy the transcript. Try again."
 msgstr "Couldn't copy the transcript. Try again."
+
+#: src/chat/components/message/normal.tsx
+msgid "Couldn't copy this message. Try again."
+msgstr "Couldn't copy this message. Try again."
 
 #: src/session/components/outer-header/share-actions.ts
 msgid "Couldn't copy your full notes. Try again."
