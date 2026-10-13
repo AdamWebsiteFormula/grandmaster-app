@@ -5394,6 +5394,10 @@ msgstr ""
 msgid "No summary or transcript yet"
 msgstr ""
 
+#: src/session/components/note-input/header-enhanced.tsx
+msgid "No summary to copy yet"
+msgstr ""
+
 #: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "No summary yet"
 msgstr ""

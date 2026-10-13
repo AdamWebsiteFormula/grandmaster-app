@@ -487,6 +487,10 @@ function CopyNotesButton({
   onCopy: () => void;
 }) {
   const label = tm`Copy notes`;
+  // Fork: a dimmed button says why on hover; a disabled button can't show a
+  // tooltip, so it stays hoverable and does nothing (disabled-reason sweep,
+  // Oct 13; NN/g, disabled buttons should explain themselves).
+  const tooltip = disabled ? tm`No summary to copy yet` : label;
 
   // Own provider so the header renders anywhere, including tests.
   return (
@@ -498,21 +502,22 @@ function CopyNotesButton({
             data-tauri-drag-region="false"
             type="button"
             aria-label={label}
-            disabled={disabled}
+            aria-disabled={disabled || undefined}
             onClick={(event) => {
               event.stopPropagation();
+              if (disabled) return;
               onCopy();
             }}
             className={iconHeaderViewClassName(
               false,
               "tray",
-              "px-1.5 disabled:pointer-events-none disabled:opacity-40",
+              "px-1.5 aria-disabled:cursor-default aria-disabled:opacity-40",
             )}
           >
             <Copy className="size-3.5" />
           </button>
         </TooltipTrigger>
-        <TooltipContent side="bottom">{label}</TooltipContent>
+        <TooltipContent side="bottom">{tooltip}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );

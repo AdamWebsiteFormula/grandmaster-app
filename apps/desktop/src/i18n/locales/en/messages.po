@@ -5394,6 +5394,10 @@ msgstr "No speech detected. Try again."
 msgid "No summary or transcript yet"
 msgstr "No summary or transcript yet"
 
+#: src/session/components/note-input/header-enhanced.tsx
+msgid "No summary to copy yet"
+msgstr "No summary to copy yet"
+
 #: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "No summary yet"
 msgstr "No summary yet"

@@ -487,7 +487,8 @@ describe("SessionViewSwitcher", () => {
     renderSwitcher({ currentTab: { type: "enhanced", id: "note-1" } });
 
     const copyButton = screen.getByRole("button", { name: "Copy notes" });
-    expect((copyButton as HTMLButtonElement).disabled).toBe(true);
+    // Fork: aria-disabled, so the tooltip can say why (Oct 13).
+    expect(copyButton.getAttribute("aria-disabled")).toBe("true");
   });
 
   it("hides the view switcher when the memo is the only view", () => {
