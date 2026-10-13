@@ -2311,6 +2311,10 @@ msgstr "Couldn't add the template. Try again."
 msgid "Couldn't add the webhook. Try again."
 msgstr "Couldn't add the webhook. Try again."
 
+#: src/session/components/note-input/file-handler.ts
+msgid "Couldn't add this attachment. Try again."
+msgstr "Couldn't add this attachment. Try again."
+
 #: src/resource-sharing/library.tsx
 msgid "Couldn't add this item. Try again."
 msgstr "Couldn't add this item. Try again."
@@ -2621,8 +2625,12 @@ msgid "Couldn't transcribe this recording again"
 msgstr "Couldn't transcribe this recording again"
 
 #: src/chat/components/input/use-dictation.ts
-msgid "Couldn't transcribe voice input"
-msgstr "Couldn't transcribe voice input"
+#~ msgid "Couldn't transcribe voice input"
+#~ msgstr "Couldn't transcribe voice input"
+
+#: src/chat/components/input/use-dictation.ts
+msgid "Couldn't transcribe voice input. Try again."
+msgstr "Couldn't transcribe voice input. Try again."
 
 #: src/lock/notes.ts
 msgid "Couldn't unlock this note. Try again."
@@ -3056,9 +3064,17 @@ msgstr "Devices"
 msgid "Dictation"
 msgstr "Dictation"
 
+#: src/dictation/lifecycle.tsx
+msgid "Dictation is unavailable while Upshot is recording a meeting."
+msgstr "Dictation is unavailable while Upshot is recording a meeting."
+
 #: src/settings/dictation-shortcut.tsx
 msgid "Dictation shortcut"
 msgstr "Dictation shortcut"
+
+#: src/dictation/lifecycle.tsx
+msgid "Dictation stopped. Try again."
+msgstr "Dictation stopped. Try again."
 
 #: src/settings/dictation.tsx
 msgid "Dictation uses your microphone, transcription provider, languages, and dictionary. Temporary audio is deleted after transcription. Your last transcript stays in memory until dictation is disabled or Upshot closes."
@@ -5284,6 +5300,10 @@ msgstr "No sound from the other side yet"
 #: src/chat/components/input/use-dictation.ts
 msgid "No speech detected"
 msgstr "No speech detected"
+
+#: src/dictation/controller.ts
+msgid "No speech detected. Try again."
+msgstr "No speech detected. Try again."
 
 #: src/session/components/outer-header/overflow/export-modal.tsx
 msgid "No summary or transcript yet"
@@ -8578,6 +8598,10 @@ msgstr "Turn on {0} in System Settings"
 #: src/settings/general/notification.tsx
 msgid "Turn on Allow notifications to change these."
 msgstr "Turn on Allow notifications to change these."
+
+#: src/dictation/lifecycle.tsx
+msgid "Turn on microphone access in Settings › Permissions before dictating."
+msgstr "Turn on microphone access in Settings › Permissions before dictating."
 
 #: src/onboarding/permissions.tsx
 msgid "Turn on Upshot in Screen & System Audio Recording"

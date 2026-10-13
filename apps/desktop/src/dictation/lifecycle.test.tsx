@@ -315,9 +315,7 @@ describe("dictation access and lifecycle", () => {
     expect(useDictationStatus.getState().owner).toBeNull();
     expect(mocks.captureTarget).not.toHaveBeenCalled();
     expect(mocks.startSystemRecording).not.toHaveBeenCalled();
-    expect(useDictationStatus.getState().error).toMatch(
-      /microphone permission/u,
-    );
+    expect(useDictationStatus.getState().error).toMatch(/microphone access/u);
   });
 
   it.each(["windows", "linux"])(

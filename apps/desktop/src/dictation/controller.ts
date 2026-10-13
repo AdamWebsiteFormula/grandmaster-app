@@ -1,3 +1,7 @@
+import { t } from "@lingui/core/macro";
+
+import { UserFacingError } from "~/shared/user-facing-error";
+
 export type DictationPhase = "idle" | "starting" | "recording" | "transcribing";
 
 export class DictationController {
@@ -91,7 +95,7 @@ export class DictationController {
       if (this.cancelled) return;
       const text = (await this.dependencies.transcribe(path)).trim();
       if (this.cancelled) return;
-      if (!text) throw new Error("No speech detected. Please try again.");
+      if (!text) throw new UserFacingError(t`No speech detected. Try again.`);
       this.dependencies.onTranscript(text);
       await this.dependencies.insert(text);
     } catch (error) {

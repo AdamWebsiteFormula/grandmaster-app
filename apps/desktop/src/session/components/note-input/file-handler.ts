@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { isTauri } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import {
@@ -59,9 +60,9 @@ export function useNoteFileHandlerConfig(sessionId: string) {
     [handleDrop],
   );
   const handleFileUploadError = useCallback((error: unknown) => {
-    toast.error(
-      error instanceof Error ? error.message : "Could not add this attachment.",
-    );
+    // Fork: the raw Rust text stays in the log (error sweep, Oct 12).
+    console.error("[attachments] failed to add", error);
+    toast.error(t`Couldn't add this attachment. Try again.`);
   }, []);
 
   const resetAudioDrag = useCallback(() => {

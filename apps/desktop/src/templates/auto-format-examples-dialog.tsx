@@ -28,9 +28,7 @@ import {
 } from "./auto-format-inference";
 
 import { useLanguageModel } from "~/ai/hooks";
-
-// Our own messages, already worded for people; shown as they are.
-class SayAsIsError extends Error {}
+import { UserFacingError } from "~/shared/user-facing-error";
 
 export function AutoFormatExamplesDialog({
   onClose,
@@ -51,12 +49,12 @@ export function AutoFormatExamplesDialog({
     mutationFn: async () => {
       if (!model) {
         // Fork: the same words chat uses while Upshot AI loads (NN/g #4).
-        throw new SayAsIsError(
+        throw new UserFacingError(
           t`Upshot AI is getting ready. Try again in a minute.`,
         );
       }
       if (populatedExamples.length === 0) {
-        throw new SayAsIsError(t`Add at least one example summary.`);
+        throw new UserFacingError(t`Add at least one example summary.`);
       }
 
       return inferSummaryFormat({ model, examples: populatedExamples });
@@ -69,7 +67,7 @@ export function AutoFormatExamplesDialog({
     // network failure) gets a plain line instead of its raw text (error
     // sweep, Oct 10; NN/g #9).
     onError: (error) => {
-      if (error instanceof SayAsIsError) {
+      if (error instanceof UserFacingError) {
         toast.error(error.message);
         return;
       }

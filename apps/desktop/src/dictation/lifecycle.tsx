@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { Channel } from "@tauri-apps/api/core";
 import { platform } from "@tauri-apps/plugin-os";
 import { useRef } from "react";
@@ -20,6 +21,7 @@ import { useAuth } from "~/auth";
 import { useBillingAccess } from "~/auth/billing-context";
 import { useSettingsReady } from "~/settings/queries";
 import { useConfigValue } from "~/shared/config";
+import { UserFacingError, userFacingMessage } from "~/shared/user-facing-error";
 import { useListener } from "~/stt/contexts";
 import { useRunBatch } from "~/stt/useRunBatch";
 import { useSTTConnection } from "~/stt/useSTTConnection";
@@ -121,7 +123,13 @@ function ActiveDictation({
     let presentation: Promise<void> = Promise.resolve();
     const onError = (error: unknown) => {
       if (disposed) return;
-      const message = error instanceof Error ? error.message : String(error);
+      const message = userFacingMessage(
+        error,
+        t`Dictation stopped. Try again.`,
+      );
+      if (!(error instanceof UserFacingError)) {
+        console.error("[dictation] failed", error);
+      }
       useDictationStatus.setState({ error: message });
       toast.error(message);
     };
@@ -157,14 +165,14 @@ function ActiveDictation({
             await permissions.checkPermission("microphone"),
           );
           if (permission !== "authorized")
-            throw new Error(
-              "Enable microphone permission in Settings > Permissions before dictating.",
+            throw new UserFacingError(
+              t`Turn on microphone access in Settings › Permissions before dictating.`,
             );
         }
         const capture = unwrap(await transcription.getCaptureState());
         if (capture !== "inactive")
-          throw new Error(
-            "Dictation is unavailable while Upshot is recording a meeting.",
+          throw new UserFacingError(
+            t`Dictation is unavailable while Upshot is recording a meeting.`,
           );
         abort.signal.throwIfAborted();
         target = unwrap(await dictation.captureTarget());

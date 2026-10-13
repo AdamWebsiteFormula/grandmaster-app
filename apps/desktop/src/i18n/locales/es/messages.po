@@ -2311,6 +2311,10 @@ msgstr ""
 msgid "Couldn't add the webhook. Try again."
 msgstr ""
 
+#: src/session/components/note-input/file-handler.ts
+msgid "Couldn't add this attachment. Try again."
+msgstr ""
+
 #: src/resource-sharing/library.tsx
 msgid "Couldn't add this item. Try again."
 msgstr ""
@@ -2621,7 +2625,11 @@ msgid "Couldn't transcribe this recording again"
 msgstr ""
 
 #: src/chat/components/input/use-dictation.ts
-msgid "Couldn't transcribe voice input"
+#~ msgid "Couldn't transcribe voice input"
+#~ msgstr ""
+
+#: src/chat/components/input/use-dictation.ts
+msgid "Couldn't transcribe voice input. Try again."
 msgstr ""
 
 #: src/lock/notes.ts
@@ -3056,9 +3064,17 @@ msgstr ""
 msgid "Dictation"
 msgstr "Dictado"
 
+#: src/dictation/lifecycle.tsx
+msgid "Dictation is unavailable while Upshot is recording a meeting."
+msgstr ""
+
 #: src/settings/dictation-shortcut.tsx
 msgid "Dictation shortcut"
 msgstr "Atajo de dictado"
+
+#: src/dictation/lifecycle.tsx
+msgid "Dictation stopped. Try again."
+msgstr ""
 
 #: src/settings/dictation.tsx
 msgid "Dictation uses your microphone, transcription provider, languages, and dictionary. Temporary audio is deleted after transcription. Your last transcript stays in memory until dictation is disabled or Upshot closes."
@@ -5283,6 +5299,10 @@ msgstr ""
 
 #: src/chat/components/input/use-dictation.ts
 msgid "No speech detected"
+msgstr ""
+
+#: src/dictation/controller.ts
+msgid "No speech detected. Try again."
 msgstr ""
 
 #: src/session/components/outer-header/overflow/export-modal.tsx
@@ -8577,6 +8597,10 @@ msgstr ""
 
 #: src/settings/general/notification.tsx
 msgid "Turn on Allow notifications to change these."
+msgstr ""
+
+#: src/dictation/lifecycle.tsx
+msgid "Turn on microphone access in Settings › Permissions before dictating."
 msgstr ""
 
 #: src/onboarding/permissions.tsx

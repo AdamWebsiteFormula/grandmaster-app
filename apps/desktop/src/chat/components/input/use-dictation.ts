@@ -159,9 +159,7 @@ export function useDictation({
           description: t`Try speaking a little closer to the microphone.`,
         });
       } else {
-        toast.error(t`Couldn't transcribe voice input`, {
-          description: message,
-        });
+        toast.error(t`Couldn't transcribe voice input. Try again.`);
       }
       console.error("[chat-dictation] failed to transcribe recording", error);
     } finally {
