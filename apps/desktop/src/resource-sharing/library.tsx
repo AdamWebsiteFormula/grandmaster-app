@@ -28,6 +28,7 @@ import {
   GlassDialogCancelButton,
   GlassDialogContent,
 } from "~/shared/ui/glass-dialog";
+import { UserFacingError, userFacingMessage } from "~/shared/user-facing-error";
 
 export function SharedResourceLibrarySection(props: {
   resourceType: SharedResourceType;
@@ -60,16 +61,20 @@ function AuthenticatedSharedResourceLibrarySection({
   }, [resources.data, search]);
   const importResource = useMutation({
     mutationFn: async () => {
-      if (!selected) throw new Error("Choose an item to add");
+      if (!selected) throw new UserFacingError(t`Choose an item to add.`);
       await onImport(selected);
     },
     onSuccess: () => {
       toast.success(t`Added a copy to your library.`);
       setSelected(null);
     },
+    // Fork: server text stays in the log (error sweep, Oct 12).
     onError: (error) => {
+      if (!(error instanceof UserFacingError)) {
+        console.error("[sharing] import failed", error);
+      }
       toast.error(
-        error instanceof Error ? error.message : t`Couldn't add this item. Try again.`,
+        userFacingMessage(error, t`Couldn't add this item. Try again.`),
       );
     },
   });

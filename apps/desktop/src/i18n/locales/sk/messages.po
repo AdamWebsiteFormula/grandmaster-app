@@ -1502,6 +1502,10 @@ msgstr ""
 msgid "Choose an export folder first."
 msgstr ""
 
+#: src/resource-sharing/library.tsx
+msgid "Choose an item to add."
+msgstr ""
+
 #: src/settings/automations/markdown-export-options.tsx
 msgid "Choose at least one section to export."
 msgstr ""
@@ -2439,6 +2443,10 @@ msgstr ""
 msgid "Couldn't export this note. Pick another folder and try again."
 msgstr ""
 
+#: src/resource-sharing/share-dialog.tsx
+msgid "Couldn't invite this person. Try again."
+msgstr ""
+
 #: src/session/components/note-conflict-banner.tsx
 msgid "Couldn't keep this version. Try again."
 msgstr ""
@@ -2524,6 +2532,7 @@ msgstr ""
 msgid "Couldn't remove the webhook. Try again."
 msgstr ""
 
+#: src/resource-sharing/share-dialog.tsx
 #: src/session/components/outer-header/metadata/participants/chip.tsx
 #: src/session/components/outer-header/metadata/participants/input.tsx
 msgid "Couldn't remove this person. Try again."
@@ -2606,6 +2615,10 @@ msgstr ""
 msgid "Couldn't set up the Glaido folder. Try again."
 msgstr ""
 
+#: src/resource-sharing/share-dialog.tsx
+msgid "Couldn't share this. Try again."
+msgstr ""
+
 #. placeholder {0}: material.filename
 #: src/folders/folder-material-tile.tsx
 msgid "Couldn't show {0}. Try again."
@@ -2618,6 +2631,10 @@ msgstr ""
 
 #: src/chat/components/input/use-dictation.ts
 msgid "Couldn't start voice input"
+msgstr ""
+
+#: src/resource-sharing/share-dialog.tsx
+msgid "Couldn't stop sharing. Try again."
 msgstr ""
 
 #: src/session/components/note-input/transcript/actions.ts

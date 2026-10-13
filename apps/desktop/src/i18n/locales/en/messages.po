@@ -1502,6 +1502,10 @@ msgstr "Choose an AI model in Settings first."
 msgid "Choose an export folder first."
 msgstr "Choose an export folder first."
 
+#: src/resource-sharing/library.tsx
+msgid "Choose an item to add."
+msgstr "Choose an item to add."
+
 #: src/settings/automations/markdown-export-options.tsx
 msgid "Choose at least one section to export."
 msgstr "Choose at least one section to export."
@@ -2439,6 +2443,10 @@ msgstr "Couldn't export the PDF. Try again, or pick another format or folder."
 msgid "Couldn't export this note. Pick another folder and try again."
 msgstr "Couldn't export this note. Pick another folder and try again."
 
+#: src/resource-sharing/share-dialog.tsx
+msgid "Couldn't invite this person. Try again."
+msgstr "Couldn't invite this person. Try again."
+
 #: src/session/components/note-conflict-banner.tsx
 msgid "Couldn't keep this version. Try again."
 msgstr "Couldn't keep this version. Try again."
@@ -2524,6 +2532,7 @@ msgstr "Couldn’t reach the on-device model. Quit and reopen Upshot, or pick an
 msgid "Couldn't remove the webhook. Try again."
 msgstr "Couldn't remove the webhook. Try again."
 
+#: src/resource-sharing/share-dialog.tsx
 #: src/session/components/outer-header/metadata/participants/chip.tsx
 #: src/session/components/outer-header/metadata/participants/input.tsx
 msgid "Couldn't remove this person. Try again."
@@ -2606,6 +2615,10 @@ msgstr "Couldn’t set up {name}. You can pick an engine later in Settings › T
 msgid "Couldn't set up the Glaido folder. Try again."
 msgstr "Couldn't set up the Glaido folder. Try again."
 
+#: src/resource-sharing/share-dialog.tsx
+msgid "Couldn't share this. Try again."
+msgstr "Couldn't share this. Try again."
+
 #. placeholder {0}: material.filename
 #: src/folders/folder-material-tile.tsx
 msgid "Couldn't show {0}. Try again."
@@ -2619,6 +2632,10 @@ msgstr "Couldn't show this note. Try again."
 #: src/chat/components/input/use-dictation.ts
 msgid "Couldn't start voice input"
 msgstr "Couldn't start voice input"
+
+#: src/resource-sharing/share-dialog.tsx
+msgid "Couldn't stop sharing. Try again."
+msgstr "Couldn't stop sharing. Try again."
 
 #: src/session/components/note-input/transcript/actions.ts
 msgid "Couldn't transcribe this recording again"

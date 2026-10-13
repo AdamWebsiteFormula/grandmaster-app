@@ -1,6 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   CircleNotch,
@@ -181,6 +181,21 @@ function AuthenticatedResourceShareButton({
   const signedIn = Boolean(auth.session && !auth.session.user.is_anonymous);
   const error =
     publish.error ?? invite.error ?? revoke.error ?? stopSharing.error;
+  // Fork: the server's words ("live document not permitted") stay in the
+  // log; people read what failed and what to do (error sweep, Oct 12; NN/g
+  // error message guidelines).
+  const errorLine = publish.error
+    ? t`Couldn't share this. Try again.`
+    : invite.error
+      ? t`Couldn't invite this person. Try again.`
+      : revoke.error
+        ? t`Couldn't remove this person. Try again.`
+        : stopSharing.error
+          ? t`Couldn't stop sharing. Try again.`
+          : null;
+  useEffect(() => {
+    if (error) console.error("[sharing] request failed", error);
+  }, [error]);
 
   return (
     <>
@@ -414,7 +429,7 @@ function AuthenticatedResourceShareButton({
               ) : null}
 
               {error && !teamUpsell ? (
-                <p className="text-destructive text-xs">{error.message}</p>
+                <p className="text-destructive text-xs">{errorLine}</p>
               ) : null}
 
               <DialogFooter className="items-center sm:justify-between">
