@@ -5,6 +5,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { platform } from "@tauri-apps/plugin-os";
 import { useRef, useState } from "react";
 
 import {
@@ -86,6 +87,7 @@ import { useConfigValues } from "~/shared/config";
 import { isMac } from "~/shared/shortcut-label";
 import { DestructiveConfirmationDialog } from "~/shared/ui/destructive-confirmation-dialog";
 import { SettingsAlertToast } from "~/shared/ui/settings-alert";
+import { STATUS_BADGE_CLASS } from "~/shared/ui/status-badge";
 import {
   canAppleSpeechTranscribe,
   isConfiguredSttModel,
@@ -104,7 +106,6 @@ import {
   getDefaultSttModel,
   getPreferredProviderModel,
 } from "~/stt/model-selection";
-import { STATUS_BADGE_CLASS } from "~/shared/ui/status-badge";
 
 export function SelectProviderAndModel() {
   const { t } = useLingui();
@@ -1131,6 +1132,15 @@ function LocalModelDropdownActions({
   onRequestDelete: () => void;
 }) {
   const { t } = useLingui();
+  // Fork: the file manager's own name on each platform, as the note's
+  // Show in Finder does (session/components/outer-header/overflow/misc.tsx).
+  const os = platform();
+  const showInFolderLabel =
+    os === "macos"
+      ? t`Show in Finder`
+      : os === "windows"
+        ? t`Show in File Explorer`
+        : t`Show in folder`;
 
   const stopSelect = (event: React.SyntheticEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -1160,8 +1170,8 @@ function LocalModelDropdownActions({
     >
       <button
         type="button"
-        aria-label={t`Show in Finder`}
-        title={t`Show in Finder`}
+        aria-label={showInFolderLabel}
+        title={showInFolderLabel}
         className={cn([
           "flex size-6 items-center justify-center rounded-full",
           "text-muted-foreground hover:text-foreground",

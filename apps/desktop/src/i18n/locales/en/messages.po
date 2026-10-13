@@ -7447,6 +7447,7 @@ msgstr "Show in Dock"
 
 #: src/folders/folder-material-tile.tsx
 #: src/session/components/outer-header/overflow/misc.tsx
+#: src/settings/ai/stt/select.tsx
 #: src/sidebar/timeline/item.tsx
 msgid "Show in File Explorer"
 msgstr "Show in File Explorer"
@@ -7462,6 +7463,7 @@ msgstr "Show in Finder"
 #: src/calendar/components/session-chip.tsx
 #: src/folders/folder-material-tile.tsx
 #: src/session/components/outer-header/overflow/misc.tsx
+#: src/settings/ai/stt/select.tsx
 #: src/sidebar/timeline/item.tsx
 msgid "Show in folder"
 msgstr "Show in folder"
