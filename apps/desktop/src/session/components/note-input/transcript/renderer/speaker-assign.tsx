@@ -2,7 +2,6 @@ import { t as tm } from "@lingui/core/macro";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useCallback, useMemo, useRef, useState } from "react";
 
-import { toast } from "@anlg/ui/components/ui/toast";
 import type { EventParticipant } from "@anlg/store";
 import { MagnifyingGlass, Plus } from "@anlg/ui/components/icons";
 import { Checkbox } from "@anlg/ui/components/ui/checkbox";
@@ -12,6 +11,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@anlg/ui/components/ui/popover";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
 import { preserveScrollPosition } from "./viewport-hooks";
@@ -26,6 +26,7 @@ import {
   useSession,
   useSessionParticipants,
 } from "~/session/queries";
+import { titleWhenTruncated } from "~/shared/ui/title-when-truncated";
 import type { Segment } from "~/stt/live-segment";
 import {
   assignSessionTranscriptSpeaker,
@@ -708,11 +709,17 @@ function ParticipantOptionButton({
         />
       )}
       <span className="min-w-0 flex-1">
-        <span className="block truncate font-medium">
+        <span
+          onMouseEnter={titleWhenTruncated}
+          className="block truncate font-medium"
+        >
           {option.isCreateOption ? t`Add "${option.name}"` : option.name}
         </span>
         {option.email && (
-          <span className="text-muted-foreground block truncate text-xs">
+          <span
+            onMouseEnter={titleWhenTruncated}
+            className="text-muted-foreground block truncate text-xs"
+          >
             {option.email}
           </span>
         )}

@@ -41,6 +41,7 @@ import { useSessionSummaries } from "~/session/queries";
 import { useDurableSharedNotes } from "~/shared-notes/cache";
 import { useEmptyNoteIds } from "~/shared/empty-note-ids";
 import { shortcutLabel } from "~/shared/shortcut-label";
+import { titleWhenTruncated } from "~/shared/ui/title-when-truncated";
 import { useNewNote, useNewNoteAndListen } from "~/shared/useNewNote";
 import { useSettingsNavGroups } from "~/sidebar/settings-nav-groups";
 import { type TabInput, useTabs } from "~/store/zustand/tabs";
@@ -799,7 +800,10 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
                           ])}
                         >
                           <FileText className="text-muted-foreground h-4 w-4 shrink-0" />
-                          <span className="truncate">
+                          <span
+                            onMouseEnter={titleWhenTruncated}
+                            className="truncate"
+                          >
                             <MatchText text={session.title} query={query} />
                           </span>
                         </CommandPrimitive.Item>
@@ -843,7 +847,10 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
                           ) : (
                             <FileText className="text-muted-foreground h-4 w-4 shrink-0" />
                           )}
-                          <span className="truncate">
+                          <span
+                            onMouseEnter={titleWhenTruncated}
+                            className="truncate"
+                          >
                             <MatchText text={note.title} query={query} />
                           </span>
                         </CommandPrimitive.Item>
@@ -880,7 +887,10 @@ export function OpenNoteDialog({ open, onOpenChange }: OpenNoteDialogProps) {
                         >
                           <FileText className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0" />
                           <span className="flex min-w-0 flex-col gap-0.5">
-                            <span className="truncate">
+                            <span
+                              onMouseEnter={titleWhenTruncated}
+                              className="truncate"
+                            >
                               <MatchText text={note.title} query={query} />
                             </span>
                             {snippet ? (

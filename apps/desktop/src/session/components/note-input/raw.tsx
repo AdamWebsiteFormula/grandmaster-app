@@ -32,6 +32,7 @@ import { useAttachmentResolver } from "~/session/hooks/useAttachmentResolver";
 import { useCreatePreMeetingBrief } from "~/session/hooks/useCreatePreMeetingBrief";
 import { useUpdateSession } from "~/session/queries";
 import { removeDocumentTitle } from "~/session/title-content";
+import { titleWhenTruncated } from "~/shared/ui/title-when-truncated";
 import { useListener } from "~/stt/contexts";
 import {
   TemplateIconGlyph,
@@ -522,7 +523,10 @@ function TemplateSection({
           ])}
         >
           <TemplateIconGlyph icon={template.icon} className="size-4 text-sm" />
-          <span className="min-w-0 truncate text-sm font-medium">
+          <span
+            onMouseEnter={titleWhenTruncated}
+            className="min-w-0 truncate text-sm font-medium"
+          >
             {template.title || t`Untitled`}
           </span>
         </button>

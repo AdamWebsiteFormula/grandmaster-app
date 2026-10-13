@@ -16,6 +16,7 @@ import { useToolState } from "./shared";
 import { trackAnalyticsEvent } from "~/analytics";
 import { Disclosure } from "~/chat/components/message/shared";
 import { ToolRenderer } from "~/chat/components/message/types";
+import { titleWhenTruncated } from "~/shared/ui/title-when-truncated";
 import { useTabs } from "~/store/zustand/tabs";
 
 type Renderer = ToolRenderer<"tool-search_meetings">;
@@ -244,9 +245,11 @@ function RenderMeeting({ result }: { result: MeetingSearchResult }) {
     <button
       type="button"
       onClick={handleClick}
-      className="flex w-full flex-col gap-1 text-left text-xs focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
+      className="focus-visible:ring-ring flex w-full flex-col gap-1 text-left text-xs focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
     >
-      <span className="truncate font-medium">{result.title || "Untitled"}</span>
+      <span onMouseEnter={titleWhenTruncated} className="truncate font-medium">
+        {result.title || "Untitled"}
+      </span>
       {dateLabel && (
         <span className="text-muted-foreground text-xs tabular-nums">
           {dateLabel}

@@ -17,7 +17,6 @@ import {
   Sparkle,
   X,
 } from "@anlg/ui/components/icons";
-import { toast } from "@anlg/ui/components/ui/toast";
 import { Button } from "@anlg/ui/components/ui/button";
 import {
   AppFloatingPanel,
@@ -27,6 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@anlg/ui/components/ui/dropdown-menu";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { useSquircleRef } from "@anlg/ui/hooks/use-squircle";
 import { cn } from "@anlg/utils";
 
@@ -42,6 +42,7 @@ import {
 } from "~/resource-sharing";
 import { useConfigValue } from "~/shared/config";
 import { useNativeContextMenu } from "~/shared/hooks/useNativeContextMenu";
+import { titleWhenTruncated } from "~/shared/ui/title-when-truncated";
 import { type Tab } from "~/store/zustand/tabs";
 
 type SortOption = "alphabetical" | "reverse-alphabetical";
@@ -713,7 +714,10 @@ function TemplateListItem({
           {/* Fork: regular weight, medium only on the open row, as the
               sidebar and Chat lists (picture review, Oct 9; Apple HIG,
               Typography). */}
-          <div className={cn(["truncate", selected && "font-medium"])}>
+          <div
+            onMouseEnter={titleWhenTruncated}
+            className={cn(["truncate", selected && "font-medium"])}
+          >
             {template.title?.trim() || t`Untitled template`}
           </div>
         </div>

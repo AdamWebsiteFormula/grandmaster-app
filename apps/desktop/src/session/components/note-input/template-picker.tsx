@@ -16,16 +16,17 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@anlg/ui/components/ui/popover";
+import { toast } from "@anlg/ui/components/ui/toast";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@anlg/ui/components/ui/tooltip";
-import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
 import { useWebResources } from "~/shared/ui/resource-list";
+import { titleWhenTruncated } from "~/shared/ui/title-when-truncated";
 import {
   DEFAULT_TEMPLATE_ICON,
   filterWebTemplatesAgainstUserTemplates,
@@ -698,7 +699,10 @@ function TemplateResultButton({
         onKeyDown={onKeyDown}
       >
         <TemplateIconGlyph icon={icon} className="size-4 text-sm" />
-        <span className="text-foreground min-w-0 truncate text-sm font-medium">
+        <span
+          onMouseEnter={titleWhenTruncated}
+          className="text-foreground min-w-0 truncate text-sm font-medium"
+        >
           {title}
         </span>
         {isFavorite ? (

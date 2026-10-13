@@ -39,6 +39,7 @@ import {
   GlassDialogCancelButton,
   GlassDialogContent,
 } from "~/shared/ui/glass-dialog";
+import { titleWhenTruncated } from "~/shared/ui/title-when-truncated";
 import { useTabs } from "~/store/zustand/tabs";
 import { TemplateIconGlyph } from "~/templates/template-icon";
 
@@ -314,7 +315,12 @@ function FolderPickerContent({
                       icon={resolvedFolderIcon(path, folderIcons)}
                       className="size-4 opacity-70"
                     />
-                    <span className="min-w-0 flex-1 truncate">{path}</span>
+                    <span
+                      onMouseEnter={titleWhenTruncated}
+                      className="min-w-0 flex-1 truncate"
+                    >
+                      {path}
+                    </span>
                     {path === currentPath ? (
                       <Check className="size-4 shrink-0" />
                     ) : null}

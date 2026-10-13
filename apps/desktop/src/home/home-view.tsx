@@ -56,6 +56,7 @@ import { usePermission } from "~/shared/hooks/usePermissions";
 import { useTimeFormat } from "~/shared/hooks/useTimeFormat";
 import { isMac, kbdLabel } from "~/shared/shortcut-label";
 import { InteractiveButton } from "~/shared/ui/interactive-button";
+import { titleWhenTruncated } from "~/shared/ui/title-when-truncated";
 import {
   openNewNoteAndListen,
   openSessionAndListen,
@@ -256,7 +257,7 @@ function PageButton({
       title={label}
       disabled={disabled}
       onClick={onClick}
-      className="text-muted-foreground hover:bg-accent hover:text-foreground inline-flex size-7 cursor-pointer items-center justify-center rounded-lg transition-colors disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"
+      className="text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-ring inline-flex size-7 cursor-pointer items-center justify-center rounded-lg transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent"
     >
       {children}
     </button>
@@ -790,7 +791,10 @@ function RecentNoteRow({
             </span>
           </span>
           {details ? (
-            <span className="text-muted-foreground truncate text-xs tabular-nums">
+            <span
+              onMouseEnter={titleWhenTruncated}
+              className="text-muted-foreground truncate text-xs tabular-nums"
+            >
               {details}
             </span>
           ) : null}
@@ -850,7 +854,7 @@ function ShortcutItem({
     <button
       type="button"
       onClick={onClick}
-      className="group text-foreground hover:bg-accent -mx-3 flex cursor-pointer items-center justify-between gap-8 rounded-lg px-3 py-2 text-sm transition-colors focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"
+      className="group text-foreground hover:bg-accent focus-visible:ring-ring -mx-3 flex cursor-pointer items-center justify-between gap-8 rounded-lg px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
     >
       <span>{label}</span>
       {shortcut ? <Kbd>{shortcut}</Kbd> : null}
