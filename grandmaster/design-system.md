@@ -14,7 +14,7 @@ Dark-first. True black base. One accent. Written Oct 2, 2026. The SOP that appli
 | Glaido | Value | Upshot |
 |---|---|---|
 | Background | `#0D0D0D` | `0 0% 0%` true black (Adam's call), panels `0 0% 6%` |
-| Text | `#FFFFFF`, secondary `#B6B6B6` | `0 0% 96%`, muted `0 0% 60%` |
+| Text | `#FFFFFF`, secondary `#B6B6B6` | `0 0% 96%`, muted `0 0% 62%` |
 | Accent | one, lime `#BFF549`, black text on it | one, orange `#FF6A1F` (app icon), black text on it |
 | Borders | `#252525` | `0 0% 24%` (`#3D3D3D`), raised Oct 3 (see Contrast below) |
 | Shadows | none | none on black; 1 px borders instead |
@@ -36,7 +36,7 @@ Bare HSL triples in `packages/design-system/src/tokens.css`, read as `hsl(var(--
 | `--panel` | `0 0% 6%` | `60 5% 96%` | The main panel (`bg-panel`): a warm canvas under white cards in light, as Granola's light mode (white cards on an off-white canvas); the window and sidebar stay `--background` (98%), so the canvas step and the panel border separate them. Added Oct 3 (redline3-oct3 S1) |
 | `--popover` | `0 0% 8%` | `0 0% 100%` | Menus and popovers (dialogs: see Dialogs below) |
 | `--secondary`, `--muted` | `0 0% 10%` | `60 5% 96%` | Quiet fills, chips, inputs |
-| `--muted-foreground` | `0 0% 60%` | `25 5% 40%` | Metadata, hints, placeholders (4.6:1 or more on every surface, both themes) |
+| `--muted-foreground` | `0 0% 62%` | `25 5% 40%` | Metadata, hints, placeholders (4.6:1 or more on every surface, both themes) |
 | `--accent` | `0 0% 13%` | `60 5% 94%` | Hover fill; track of a segmented control on a `bg-muted` card (shadcn name, not the brand accent) |
 | `--sidebar-accent` | `0 0% 19%` | `60 5% 90%` | Active sidebar row (Home nav and Settings nav), above the 13% hover |
 | `--border` | `0 0% 24%` | `24 6% 90%` | Hairlines |
