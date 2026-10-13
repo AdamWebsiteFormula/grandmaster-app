@@ -58,7 +58,9 @@ export function ParticipantDropdown({
     <div
       ref={floatingRef}
       style={floatingStyles}
-      className="bg-popover overflow-hidden rounded-md border shadow-md"
+      // Fork: above the note's date-and-people popover (z-50), which hid
+      // the top of this list (in-app test, Oct 13).
+      className="bg-popover z-[60] overflow-hidden rounded-md border shadow-md"
       onMouseDown={(event) => {
         event.preventDefault();
         event.stopPropagation();
