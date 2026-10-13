@@ -29,6 +29,9 @@ import {
 
 import { useLanguageModel } from "~/ai/hooks";
 
+// Our own messages, already worded for people; shown as they are.
+class SayAsIsError extends Error {}
+
 export function AutoFormatExamplesDialog({
   onClose,
   onGenerated,
@@ -48,10 +51,12 @@ export function AutoFormatExamplesDialog({
     mutationFn: async () => {
       if (!model) {
         // Fork: the same words chat uses while Upshot AI loads (NN/g #4).
-        throw new Error(t`Upshot AI is getting ready. Try again in a minute.`);
+        throw new SayAsIsError(
+          t`Upshot AI is getting ready. Try again in a minute.`,
+        );
       }
       if (populatedExamples.length === 0) {
-        throw new Error(t`Add at least one example summary.`);
+        throw new SayAsIsError(t`Add at least one example summary.`);
       }
 
       return inferSummaryFormat({ model, examples: populatedExamples });
@@ -64,11 +69,7 @@ export function AutoFormatExamplesDialog({
     // network failure) gets a plain line instead of its raw text (error
     // sweep, Oct 10; NN/g #9).
     onError: (error) => {
-      const known = [
-        t`Upshot AI is getting ready. Try again in a minute.`,
-        t`Add at least one example summary.`,
-      ];
-      if (known.includes(error.message)) {
+      if (error instanceof SayAsIsError) {
         toast.error(error.message);
         return;
       }
