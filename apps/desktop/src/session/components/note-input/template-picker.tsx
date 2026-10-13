@@ -119,7 +119,7 @@ export function TemplatePickerPopover({
 
         onSelectTemplate({
           templateId,
-          title: template.title || "Untitled",
+          title: template.title || t`Untitled`,
         });
       })();
     },
@@ -226,30 +226,30 @@ export function TemplatePickerPopover({
   >(() => {
     const favoriteItems = filteredFavoriteTemplates.map((template) => ({
       key: template.id,
-      title: template.title || "Untitled",
+      title: template.title || t`Untitled`,
       icon: template.icon,
       isFavorite: true,
       onClick: () =>
         handleUseTemplate({
           templateId: template.id,
-          title: template.title || "Untitled",
+          title: template.title || t`Untitled`,
         }),
     }));
 
     const userItems = filteredOtherTemplates.map((template) => ({
       key: template.id,
-      title: template.title || "Untitled",
+      title: template.title || t`Untitled`,
       icon: template.icon,
       onClick: () =>
         handleUseTemplate({
           templateId: template.id,
-          title: template.title || "Untitled",
+          title: template.title || t`Untitled`,
         }),
     }));
 
     const webItems = filteredWebTemplates.map((template, index) => ({
       key: template.slug || `library-${index}`,
-      title: template.title || "Untitled",
+      title: template.title || t`Untitled`,
       icon: template.icon,
       onClick: () => handleWebTemplateClick(template),
     }));
@@ -265,6 +265,7 @@ export function TemplatePickerPopover({
     filteredWebTemplates,
     handleWebTemplateClick,
     handleUseTemplate,
+    t,
   ]);
   // Fork: the template in use sits first, with a check and a regenerate
   // button, as in Granola's template menu (granola-compare-oct3 §3).
@@ -309,12 +310,12 @@ export function TemplatePickerPopover({
   >(() => {
     const autoSection = {
       key: "auto",
-      title: "Auto",
+      title: t`Auto`,
       showHeader: false,
       items: [
         {
           key: "auto",
-          title: "Auto",
+          title: t`Auto`,
           icon: {
             type: "icon",
             value: "sparkles",
@@ -334,7 +335,7 @@ export function TemplatePickerPopover({
         ? [
             {
               key: "current",
-              title: "Current template",
+              title: t`Current template`,
               showHeader: false,
               items: [currentTemplateItem],
             },
@@ -345,10 +346,10 @@ export function TemplatePickerPopover({
         autoSection,
         {
           key: "templates",
-          title: "Templates",
+          title: t`Templates`,
           showHeader: false,
           items: listedTemplateItems,
-          emptyMessage: "No templates yet",
+          emptyMessage: t`No templates yet`,
         },
       ];
     }
@@ -357,7 +358,7 @@ export function TemplatePickerPopover({
       autoSection,
       {
         key: "create",
-        title: "Create new template",
+        title: t`Create new template`,
         // Fork: neutral, orange marks only the main action (design-system.md
         // The one accent; Apple HIG Color).
         icon: <Plus className="text-muted-foreground h-3.5 w-3.5" />,
@@ -375,7 +376,7 @@ export function TemplatePickerPopover({
         ? [
             {
               key: "templates",
-              title: "Templates",
+              title: t`Templates`,
               showHeader: false,
               items: templateItems,
             },
@@ -390,6 +391,7 @@ export function TemplatePickerPopover({
     listedTemplateItems,
     templateItems,
     trimmedSearch,
+    t,
   ]);
   const navigableResults = useMemo(
     () => resultSections.flatMap((section) => section.items),

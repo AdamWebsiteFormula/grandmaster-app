@@ -64,7 +64,7 @@ function parseMeetingSearchResults(output: unknown): MeetingSearchResult[] {
     return [
       {
         id,
-        title: typeof title === "string" ? title : "Untitled",
+        title: typeof title === "string" ? title : t`Untitled`,
         excerpt: typeof excerpt === "string" ? excerpt : "",
         score: typeof score === "number" ? score : 0,
         created_at:
@@ -148,7 +148,7 @@ const getTitle = (part: Part) => {
     return `Searched for: ${titleQuery}`;
   }
   if (part.state === "output-error") {
-    return part.input ? `Search failed: ${titleQuery}` : "Search failed";
+    return part.input ? t`Search failed: ${titleQuery}` : t`Search failed`;
   }
   return "Search";
 };
@@ -248,7 +248,7 @@ function RenderMeeting({ result }: { result: MeetingSearchResult }) {
       className="focus-visible:ring-ring flex w-full flex-col gap-1 text-left text-xs focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
     >
       <span onMouseEnter={titleWhenTruncated} className="truncate font-medium">
-        {result.title || "Untitled"}
+        {result.title || t`Untitled`}
       </span>
       {dateLabel && (
         <span className="text-muted-foreground text-xs tabular-nums">
@@ -256,7 +256,7 @@ function RenderMeeting({ result }: { result: MeetingSearchResult }) {
         </span>
       )}
       <span className="text-muted-foreground line-clamp-3 break-words">
-        {result.excerpt || "No excerpt available"}
+        {result.excerpt || t`No excerpt available`}
       </span>
     </button>
   );

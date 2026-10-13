@@ -618,6 +618,10 @@ msgstr "Add organization"
 msgid "Add participant"
 msgstr "Add participant"
 
+#: src/session/components/outer-header/metadata/participants/input.tsx
+msgid "Add participants"
+msgstr "Add participants"
+
 #: src/billing/trial-payment-reminder-dialog.tsx
 #: src/settings/general/billing.tsx
 msgid "Add payment method"
@@ -1007,8 +1011,10 @@ msgid "Authorize access in your browser, then return to Upshot."
 msgstr "Authorize access in your browser, then return to Upshot."
 
 #: src/chat/components/input/model-menu.tsx
+#: src/session/components/note-input/template-picker.tsx
 #: src/settings/appearance/theme.tsx
 #: src/templates/auto-form.tsx
+#: src/templates/template-sidebar.tsx
 msgid "Auto"
 msgstr "Auto"
 
@@ -2094,6 +2100,7 @@ msgstr "Copy link"
 msgid "Copy message"
 msgstr "Copy message"
 
+#: src/session/components/note-input/header-enhanced.tsx
 #: src/session/components/outer-header/share-menu.tsx
 msgid "Copy notes"
 msgstr "Copy notes"
@@ -2731,6 +2738,10 @@ msgstr "Create Linear issues from action items"
 msgid "Create my first template"
 msgstr "Create my first template"
 
+#: src/session/components/note-input/template-picker.tsx
+msgid "Create new template"
+msgstr "Create new template"
+
 #: src/templates/details.tsx
 msgid "Create template"
 msgstr "Create template"
@@ -3152,6 +3163,7 @@ msgstr "Documentation"
 msgid "Don't save"
 msgstr "Don't save"
 
+#: src/meeting-float/overlay/bar.tsx
 #: src/resource-sharing/share-dialog.tsx
 #: src/session/components/version-history-dialog.tsx
 #: src/settings/stats/badge-collection.tsx
@@ -3504,6 +3516,10 @@ msgstr "Export…"
 msgid "Exporting…"
 msgstr "Exporting…"
 
+#: src/main/update-banner.tsx
+msgid "Failed to download update."
+msgstr "Failed to download update."
+
 #: src/calendar/components/oauth/provider-content.tsx
 msgid "Failed to load integration status"
 msgstr "Failed to load integration status"
@@ -3652,6 +3668,11 @@ msgstr "Finishing connection…"
 #: src/session/components/note-input/transcript/screens/listening.tsx
 msgid "Finishing transcript…"
 msgstr "Finishing transcript…"
+
+#: src/meeting-float/overlay/bar.tsx
+#: src/meeting-float/overlay/dictation.tsx
+msgid "Finishing…"
+msgstr "Finishing…"
 
 #: src/settings/stats/badge-collection.tsx
 msgid "First words"
@@ -3857,6 +3878,10 @@ msgstr "Go back to now"
 msgid "Go to"
 msgstr "Go to"
 
+#: src/meeting-float/overlay/bar.tsx
+msgid "Go to bottom"
+msgstr "Go to bottom"
+
 #: src/shared/control.tsx
 msgid "Go to Home"
 msgstr "Go to Home"
@@ -3972,6 +3997,10 @@ msgstr "Help Upshot read meeting details"
 msgid "Hi {firstName}, what do you want to know?"
 msgstr "Hi {firstName}, what do you want to know?"
 
+#: src/meeting-float/overlay/live-caption.tsx
+msgid "Hide"
+msgstr "Hide"
+
 #: src/calendar/components/event-chip.tsx
 msgid "Hide all events in this series"
 msgstr "Hide all events in this series"
@@ -3992,6 +4021,7 @@ msgstr "Hide event"
 msgid "Hide preview"
 msgstr "Hide preview"
 
+#: src/main/sidebar-timeline-chrome.tsx
 #: src/main/windows-title-bar.tsx
 msgid "Hide sidebar"
 msgstr "Hide sidebar"
@@ -4004,6 +4034,7 @@ msgstr "Hide sync log"
 msgid "Hide this event"
 msgstr "Hide this event"
 
+#: src/meeting-float/overlay/live-caption.tsx
 #: src/session/components/floating/index.tsx
 msgid "Hide transcript"
 msgstr "Hide transcript"
@@ -4286,6 +4317,10 @@ msgstr "Job title"
 #~ msgid "Job Title"
 #~ msgstr "Job Title"
 
+#: src/session/components/outer-header/metadata/index.tsx
+msgid "Join"
+msgstr "Join"
+
 #: src/session/components/outer-header/index.tsx
 msgid "Join & record"
 msgstr "Join & record"
@@ -4499,6 +4534,7 @@ msgstr "Listed folders"
 msgid "Listed meetings"
 msgstr "Listed meetings"
 
+#: src/meeting-float/overlay/dictation.tsx
 #: src/settings/dictation.tsx
 msgid "Listening…"
 msgstr "Listening…"
@@ -4518,6 +4554,10 @@ msgstr "Little steps worth keeping. Collect them at your own pace."
 #: src/settings/ai/stt/select.tsx
 msgid "Live"
 msgstr "Live"
+
+#: src/meeting-float/overlay/dictation.tsx
+msgid "Live preview is unavailable. Your text will appear when you finish."
+msgstr "Live preview is unavailable. Your text will appear when you finish."
 
 #: src/settings/dictation.tsx
 msgid "Live transcript preview"
@@ -4756,6 +4796,10 @@ msgstr "Meeting history imported"
 #: src/onboarding/index.tsx
 msgid "Meeting history skipped"
 msgstr "Meeting history skipped"
+
+#: src/session/components/outer-header/metadata/index.tsx
+msgid "Meeting link"
+msgstr "Meeting link"
 
 #: src/session-sharing/delivery-management.ts
 #: src/session-sharing/index.tsx
@@ -5171,6 +5215,10 @@ msgstr "No earlier versions yet."
 msgid "No emoji found"
 msgstr "No emoji found"
 
+#: src/chat/components/message/tool/search-meetings.tsx
+msgid "No excerpt available"
+msgstr "No excerpt available"
+
 #: src/sidebar/timeline/utils/index.ts
 msgid "No folder"
 msgstr "No folder"
@@ -5350,7 +5398,13 @@ msgstr "No sync activity yet."
 msgid "No team selected yet."
 msgstr "No team selected yet."
 
+#: src/templates/template-sidebar.tsx
+msgid "No templates found"
+msgstr "No templates found"
+
+#: src/session/components/note-input/template-picker.tsx
 #: src/templates/details.tsx
+#: src/templates/template-sidebar.tsx
 msgid "No templates yet"
 msgstr "No templates yet"
 
@@ -6332,6 +6386,10 @@ msgstr "Recording time"
 msgid "Recording…"
 msgstr "Recording…"
 
+#: src/settings/general/e2ee-setup.tsx
+msgid "Recovery key"
+msgstr "Recovery key"
+
 #: src/main/windows-title-bar.tsx
 msgid "Redo"
 msgstr "Redo"
@@ -6927,6 +6985,14 @@ msgstr "Search emoji"
 #~ msgid "Search emoji…"
 #~ msgstr "Search emoji…"
 
+#: src/chat/components/message/tool/search-meetings.tsx
+msgid "Search failed"
+msgstr "Search failed"
+
+#: src/chat/components/message/tool/search-meetings.tsx
+msgid "Search failed: {titleQuery}"
+msgstr "Search failed: {titleQuery}"
+
 #: src/folders/sidebar.tsx
 msgid "Search folders"
 msgstr "Search folders"
@@ -7444,9 +7510,14 @@ msgstr "Show or hide the sidebar"
 msgid "Show previews"
 msgstr "Show previews"
 
+#: src/main/sidebar-timeline-chrome.tsx
 #: src/main/windows-title-bar.tsx
 msgid "Show sidebar"
 msgstr "Show sidebar"
+
+#: src/main/sidebar-timeline-chrome.tsx
+msgid "Show sidebar, meeting coming up"
+msgstr "Show sidebar, meeting coming up"
 
 #: src/session/components/note-input/meta-chips.tsx
 msgid "Show summary"
@@ -7842,6 +7913,7 @@ msgstr "Starting voice input"
 #~ msgstr "Starting your trial..."
 
 #: src/chat/components/input/index.tsx
+#: src/meeting-float/overlay/dictation.tsx
 #: src/session/components/outer-header/index.tsx
 msgid "Starting…"
 msgstr "Starting…"
@@ -7878,6 +7950,7 @@ msgstr "Stone"
 
 #: src/audio-player/timeline.tsx
 #: src/composer/index.tsx
+#: src/meeting-float/overlay/bar.tsx
 #: src/session/components/floating/recording-bar.tsx
 #: src/session/components/note-input/enhanced/streaming.tsx
 #: src/session/components/outer-header/index.tsx
@@ -7966,6 +8039,7 @@ msgstr "Summarize this week's meetings"
 #: src/contacts/details.tsx
 #: src/edit/tab-content.tsx
 #: src/session/components/floating/index.tsx
+#: src/session/components/note-input/header-shared.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
 #: src/settings/automations/markdown-export-options.tsx
 msgid "Summary"
@@ -8167,6 +8241,7 @@ msgstr "Template name"
 msgid "template, format"
 msgstr "template, format"
 
+#: src/session/components/note-input/template-picker.tsx
 #: src/sidebar/settings-nav-groups.ts
 #: src/templates/template-sidebar.tsx
 msgid "Templates"
@@ -8458,6 +8533,10 @@ msgstr "Transcript copied to clipboard"
 msgid "Transcript is still being written."
 msgstr "Transcript is still being written."
 
+#: src/meeting-float/overlay/live-caption.tsx
+msgid "Transcript opacity"
+msgstr "Transcript opacity"
+
 #: src/settings/ai/stt/index.tsx
 #: src/sidebar/settings-nav-groups.ts
 msgid "Transcription"
@@ -8624,6 +8703,10 @@ msgstr "Turn on {0} in System Settings"
 msgid "Turn on Allow notifications to change these."
 msgstr "Turn on Allow notifications to change these."
 
+#: src/meeting-float/overlay/dictation.tsx
+msgid "Turn on Live transcript preview in Settings › Dictation to see words as you speak."
+msgstr "Turn on Live transcript preview in Settings › Dictation to see words as you speak."
+
 #: src/dictation/lifecycle.tsx
 msgid "Turn on microphone access in Settings › Permissions before dictating."
 msgstr "Turn on microphone access in Settings › Permissions before dictating."
@@ -8697,6 +8780,17 @@ msgstr "Unknown"
 msgid "Unknown date"
 msgstr "Unknown date"
 
+#: src/chat/components/message/tool/edit-summary.tsx
+#: src/chat/components/message/tool/generic.tsx
+#: src/chat/components/message/tool/shared.tsx
+#: src/chat/components/message/tool/update-prompt-template.tsx
+msgid "Unknown error"
+msgstr "Unknown error"
+
+#: src/main/update-banner.tsx
+msgid "Unknown update error."
+msgstr "Unknown update error."
+
 #: src/lock/screen.tsx
 msgid "Unlock"
 msgstr "Unlock"
@@ -8747,9 +8841,11 @@ msgstr "Unpin organization"
 msgid "until transcribed"
 msgstr "until transcribed"
 
+#: src/chat/components/message/tool/search-meetings.tsx
 #: src/contacts/related-notes.tsx
 #: src/home/home-view.tsx
 #: src/session/components/note-input/raw.tsx
+#: src/session/components/note-input/template-picker.tsx
 #: src/session/components/outer-header/overflow/export-modal.tsx
 #: src/session/components/title-input.tsx
 #: src/shared-notes/index.tsx
@@ -8759,6 +8855,7 @@ msgstr "until transcribed"
 #: src/sidebar/toast/undo-delete-toast.tsx
 #: src/templates/details.tsx
 #: src/templates/sections-editor.tsx
+#: src/templates/template-sidebar.tsx
 msgid "Untitled"
 msgstr "Untitled"
 

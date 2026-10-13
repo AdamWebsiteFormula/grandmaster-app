@@ -1,3 +1,5 @@
+import { t } from "@lingui/core/macro";
+
 import { MagicWand } from "@anlg/ui/components/icons";
 
 import { defineTool } from "./define-tool";
@@ -38,7 +40,7 @@ export const ToolUpdatePromptTemplate = defineTool({
   renderFooter: ({ failed, errorText, parsed }) => (
     <ToolCardFooters failed={failed} errorText={errorText} rawText={null}>
       {parsed?.status === "error" ? (
-        <ToolCardFooterError text={parsed.message ?? "Unknown error"} />
+        <ToolCardFooterError text={parsed.message ?? t`Unknown error`} />
       ) : parsed?.message ? (
         <p className="text-muted-foreground text-xs">{parsed.message}</p>
       ) : null}

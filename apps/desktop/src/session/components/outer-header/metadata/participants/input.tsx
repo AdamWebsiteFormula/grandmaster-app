@@ -56,7 +56,7 @@ export function ParticipantInput({ sessionId }: { sessionId: string }) {
   } = useParticipantInput(sessionId);
   const { enhanceContact, enhancingHumanId, showEnhancementButtons } =
     useEventContactEnhancement(sessionId);
-  const placeholder = "Add participants";
+  const placeholder = t`Add participants`;
 
   const inputRef = useRef<HTMLInputElement>(null);
   const autoCloserRef = useAutoCloser(() => setShowDropdown(false), {

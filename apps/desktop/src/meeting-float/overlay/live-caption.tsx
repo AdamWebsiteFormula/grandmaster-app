@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { useState } from "react";
 
 import {
@@ -166,7 +167,7 @@ export function LiveCaptionOverlay({
             max={LIVE_CAPTION_MAX_OPACITY}
             step={0.01}
             value={opacity}
-            aria-label="Transcript opacity"
+            aria-label={t`Transcript opacity`}
             data-tauri-drag-region="false"
             onChange={(event) => {
               onOpacityChange(Number(event.currentTarget.value));
@@ -177,7 +178,7 @@ export function LiveCaptionOverlay({
           <button
             type="button"
             data-tauri-drag-region="false"
-            aria-label="Hide transcript"
+            aria-label={t`Hide transcript`}
             onClick={onHide}
             className="h-5 rounded-full px-2 text-xs font-semibold text-white/90"
             style={{
@@ -185,7 +186,7 @@ export function LiveCaptionOverlay({
               boxShadow: "inset 0 0 0 0.5px rgba(255, 255, 255, 0.18)",
             }}
           >
-            Hide
+            {t`Hide`}
           </button>
         </div>
       </div>

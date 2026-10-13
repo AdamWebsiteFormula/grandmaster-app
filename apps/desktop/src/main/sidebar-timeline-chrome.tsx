@@ -1,3 +1,4 @@
+import { t as tm } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react/macro";
 import { memo, type ReactNode } from "react";
 
@@ -70,12 +71,12 @@ function SidebarTimelineChrome({
           <LeftSurfaceChromeButton
             ariaLabel={
               sidebarExpanded
-                ? "Hide sidebar"
+                ? tm`Hide sidebar`
                 : // Fork: the badge is said, not only shown (ux-audit-oct3 B,
                   // WCAG 1.4.1).
                   collapsedBadge
-                  ? "Show sidebar, meeting coming up"
-                  : "Show sidebar"
+                  ? tm`Show sidebar, meeting coming up`
+                  : tm`Show sidebar`
             }
             badge={collapsedBadge}
             onClick={onToggleSidebar}

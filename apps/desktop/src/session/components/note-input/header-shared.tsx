@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { DOMSerializer, Node as PMNode } from "prosemirror-model";
 
 import {
@@ -155,7 +156,7 @@ export function getEnhancedNoteTitle({
 
   const title = typeof rawTitle === "string" ? rawTitle.trim() : "";
   if (!title) {
-    return "Summary";
+    return t`Summary`;
   }
 
   const isGeneratedTitle =
@@ -165,7 +166,7 @@ export function getEnhancedNoteTitle({
     ISO_TITLE_RE.test(title);
 
   if (isGeneratedTitle) {
-    return "Summary";
+    return t`Summary`;
   }
 
   return title;

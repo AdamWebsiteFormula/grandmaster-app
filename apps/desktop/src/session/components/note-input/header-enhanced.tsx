@@ -1,15 +1,16 @@
+import { t as tm } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useCallback, useMemo, useState } from "react";
 
 import { CaretDown, Copy, Sparkle } from "@anlg/ui/components/icons";
 import { Spinner } from "@anlg/ui/components/ui/spinner";
+import { toast } from "@anlg/ui/components/ui/toast";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@anlg/ui/components/ui/tooltip";
-import { toast } from "@anlg/ui/components/ui/toast";
 import { cn } from "@anlg/utils";
 
 import {
@@ -485,7 +486,7 @@ function CopyNotesButton({
   disabled: boolean;
   onCopy: () => void;
 }) {
-  const label = "Copy notes";
+  const label = tm`Copy notes`;
 
   // Own provider so the header renders anywhere, including tests.
   return (

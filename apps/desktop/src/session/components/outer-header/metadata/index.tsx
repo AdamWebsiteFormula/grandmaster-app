@@ -167,7 +167,7 @@ export function EventDisplay({
                 className="text-muted-foreground shrink-0"
               />
               <span className="truncate">
-                {meetingDomain || "Meeting link"}
+                {meetingDomain || t`Meeting link`}
               </span>
             </div>
             <Button
@@ -176,7 +176,7 @@ export function EventDisplay({
               className="shrink-0"
               onClick={handleJoinMeeting}
             >
-              Join
+              {t`Join`}
             </Button>
           </div>
         </>

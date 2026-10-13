@@ -134,7 +134,7 @@ export function ToolGeneric({ part }: { part: Record<string, unknown> }) {
           <InputDisplay input={part.input} />
           {failed ? (
             <p className="text-destructive text-xs">
-              {String(part.errorText ?? "Unknown error")}
+              {String(part.errorText ?? t`Unknown error`)}
             </p>
           ) : null}
           {outputText ? (

@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import type { ImgHTMLAttributes, ReactNode } from "react";
 import { Streamdown } from "streamdown";
 
@@ -126,7 +127,7 @@ export function ToolCardFooters({
     <>
       {children}
       {failed ? (
-        <ToolCardFooterError text={String(errorText ?? "Unknown error")} />
+        <ToolCardFooterError text={String(errorText ?? t`Unknown error`)} />
       ) : null}
       {rawText ? <ToolCardFooterRaw text={rawText} /> : null}
     </>

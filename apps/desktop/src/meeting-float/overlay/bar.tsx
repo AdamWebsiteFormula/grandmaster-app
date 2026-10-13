@@ -381,12 +381,12 @@ function StopControl({
     >
       {state.dictation?.phase === "transcribing" ? (
         <span role="status" className="text-xs">
-          Finishing…
+          {t`Finishing…`}
         </span>
       ) : hovered ? (
         <span className="flex items-center gap-1.5 text-xs font-semibold">
           <Square size={9} />
-          {state.dictation ? "Done" : "Stop"}
+          {state.dictation ? t`Done` : t`Stop`}
         </span>
       ) : (
         <DancingSticks
@@ -497,7 +497,7 @@ function TranscriptList({
           }}
         >
           <CaretDown size={10} weight="bold" />
-          Go to bottom
+          {t`Go to bottom`}
         </button>
       ) : null}
     </div>

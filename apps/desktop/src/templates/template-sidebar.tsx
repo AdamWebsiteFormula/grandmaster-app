@@ -203,7 +203,7 @@ export function TemplatesSidebarContent({
     Array<
       | {
           key: typeof AUTO_TEMPLATE_ID;
-          title: "Auto";
+          title: string;
           selected: boolean;
           source: "auto";
           customized: boolean;
@@ -233,7 +233,7 @@ export function TemplatesSidebarContent({
         ? [
             {
               key: AUTO_TEMPLATE_ID as typeof AUTO_TEMPLATE_ID,
-              title: "Auto" as const,
+              title: t`Auto`,
               selected:
                 !isWebMode && effectiveSelectedMineId === AUTO_TEMPLATE_ID,
               source: "auto" as const,
@@ -243,7 +243,7 @@ export function TemplatesSidebarContent({
         : [];
     const mine = filteredMine.map((template) => ({
       key: template.id,
-      title: template.title?.trim() || "Untitled",
+      title: template.title?.trim() || t`Untitled`,
       selected: !isWebMode && effectiveSelectedMineId === template.id,
       pinned: Boolean(template.pinned),
       source: "user" as const,
@@ -252,7 +252,7 @@ export function TemplatesSidebarContent({
 
     const web = filteredWeb.map(({ template, index }) => ({
       key: template.slug || `web-${index}`,
-      title: template.title?.trim() || "Untitled",
+      title: template.title?.trim() || t`Untitled`,
       selected: isWebMode && effectiveSelectedWebIndex === index,
       pinned: false as const,
       source: "web" as const,
@@ -269,6 +269,7 @@ export function TemplatesSidebarContent({
     filteredWeb,
     isWebMode,
     search,
+    t,
   ]);
 
   const hasResults = combinedTemplates.length > 0;
@@ -506,7 +507,7 @@ export function TemplatesSidebarContent({
               className="text-muted-foreground/70 mx-auto mb-2"
             />
             <p className="text-sm">
-              {search ? "No templates found" : "No templates yet"}
+              {search ? t`No templates found` : t`No templates yet`}
             </p>
             {!search && (
               <button

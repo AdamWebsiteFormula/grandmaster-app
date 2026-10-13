@@ -1,3 +1,4 @@
+import { t as tm } from "@lingui/core/macro";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
 
@@ -126,7 +127,7 @@ export const ToolEditSummary = defineTool({
       <ToolCardFooters failed={failed} errorText={errorText} rawText={null}>
         {parsed?.status === "error" ? (
           <div className="space-y-2">
-            <ToolCardFooterError text={parsed.message ?? "Unknown error"} />
+            <ToolCardFooterError text={parsed.message ?? tm`Unknown error`} />
             {parsed.candidates && parsed.candidates.length > 0 ? (
               <div className="border-border bg-muted text-muted-foreground space-y-1 rounded-md border p-2 text-[12px]">
                 {parsed.candidates.map((candidate) => (
@@ -166,7 +167,7 @@ export const ToolEditMemo = defineTool({
     <>
       <ToolCardFooters failed={failed} errorText={errorText} rawText={null}>
         {parsed?.status === "error" ? (
-          <ToolCardFooterError text={parsed.message ?? "Unknown error"} />
+          <ToolCardFooterError text={parsed.message ?? tm`Unknown error`} />
         ) : null}
       </ToolCardFooters>
       <EditActions toolCallId={toolCallId} target="memo" />

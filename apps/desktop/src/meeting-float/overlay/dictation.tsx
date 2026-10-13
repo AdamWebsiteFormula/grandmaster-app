@@ -1,3 +1,5 @@
+import { t } from "@lingui/core/macro";
+
 import type { FloatingBarState } from "@anlg/plugin-windows";
 
 export function DictationTranscript({
@@ -9,14 +11,14 @@ export function DictationTranscript({
 }) {
   const status =
     dictation.phase === "transcribing"
-      ? "Finishing…"
+      ? t`Finishing…`
       : dictation.phase === "starting"
-        ? "Starting…"
-        : "Listening…";
+        ? t`Starting…`
+        : t`Listening…`;
   const empty = dictation.previewUnavailable
-    ? "Live preview is unavailable. Your text will appear when you finish."
+    ? t`Live preview is unavailable. Your text will appear when you finish.`
     : !dictation.previewEnabled
-      ? "Enable Live transcript preview in Settings → Dictation to see words as you speak."
+      ? t`Turn on Live transcript preview in Settings › Dictation to see words as you speak.`
       : status;
 
   return (

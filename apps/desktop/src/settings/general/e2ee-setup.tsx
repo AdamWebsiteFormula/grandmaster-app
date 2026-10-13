@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
@@ -217,7 +218,7 @@ export function E2eeSetupDialog({
               <importForm.Field name="recoveryKey">
                 {(field) => (
                   <Input
-                    aria-label="Recovery key"
+                    aria-label={t`Recovery key`}
                     value={field.state.value}
                     onChange={(event) => field.handleChange(event.target.value)}
                     placeholder="anarlog-e2ee-v1:..."
@@ -260,7 +261,7 @@ export function E2eeSetupDialog({
           )}
 
           {error && (
-            <p className="mt-3 text-center text-xs text-destructive">
+            <p className="text-destructive mt-3 text-center text-xs">
               {error.message}
             </p>
           )}
