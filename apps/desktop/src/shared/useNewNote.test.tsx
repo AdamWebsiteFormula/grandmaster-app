@@ -68,6 +68,32 @@ it("makes one note when the button is clicked twice quickly", async () => {
   expect(mocks.createSession).toHaveBeenCalledTimes(1);
 });
 
+it("still records when a blank note is being made", async () => {
+  let finishBlank: (id: string) => void = () => {};
+  mocks.createSession
+    .mockImplementationOnce(
+      () => new Promise<string>((resolve) => (finishBlank = resolve)),
+    )
+    .mockResolvedValueOnce("listen-session");
+  const blank = renderHook(() => useNewNote());
+  const listen = renderHook(() => useNewNoteAndListen());
+
+  act(() => {
+    blank.result.current();
+    listen.result.current();
+  });
+
+  await vi.waitFor(() => {
+    expect(useTabs.getState().currentTab).toMatchObject({
+      type: "sessions",
+      id: "listen-session",
+      state: { autoStart: true },
+    });
+  });
+  expect(mocks.createSession).toHaveBeenCalledTimes(2);
+  finishBlank("blank-session");
+});
+
 it("can open a listening note without a listener provider", async () => {
   mocks.createSession.mockResolvedValueOnce("new-session");
   const { result } = renderHook(() => useNewNoteAndListen());

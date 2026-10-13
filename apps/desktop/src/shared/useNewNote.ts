@@ -8,12 +8,18 @@ import { useTabs } from "~/store/zustand/tabs";
 import { showStillRecordingToast } from "~/stt/recording-request-toasts";
 
 // Fork: a quick double-click on "Blank note" or "Record meeting" made two
-// notes; one create runs at a time, and the extra click does nothing
-// (live task test, Oct 10; NN/g heuristic #5, error prevention).
-let creatingNote: Promise<string> | null = null;
+// notes; one create of each kind runs at a time, and the extra click does
+// nothing. Kinds are separate, so a record request is never dropped while a
+// blank note is being made (live task test, Oct 10; sweep note, Oct 12;
+// NN/g heuristic #5, error prevention).
+type NoteKind = "blank" | "listen";
+const creatingNote: Record<NoteKind, Promise<string> | null> = {
+  blank: null,
+  listen: null,
+};
 
-function createNoteSession(): Promise<string> | null {
-  if (creatingNote) return null;
+function createNoteSession(kind: NoteKind): Promise<string> | null {
+  if (creatingNote[kind]) return null;
   const { noteFilter, folderFilter } = useSidebarNotes.getState();
   const folderId = folderIdForNewNote(noteFilter, folderFilter);
   const pending = (
@@ -21,9 +27,9 @@ function createNoteSession(): Promise<string> | null {
       ? createSession()
       : createSession("", undefined, { folder_id: folderId })
   ).finally(() => {
-    creatingNote = null;
+    creatingNote[kind] = null;
   });
-  creatingNote = pending;
+  creatingNote[kind] = pending;
   return pending;
 }
 
@@ -41,7 +47,7 @@ export function useNewNote({
 
   const handler = useCallback(() => {
     const ff = behavior === "new" ? openNew : openCurrent;
-    void createNoteSession()
+    void createNoteSession("blank")
       ?.then((sessionId) => {
         ff({ type: "sessions", id: sessionId });
       })
@@ -80,7 +86,7 @@ export function openNewNoteAndListen({
     return;
   }
 
-  void createNoteSession()
+  void createNoteSession("listen")
     ?.then((sessionId) => {
       openSessionAndListen(sessionId, { behavior });
     })
