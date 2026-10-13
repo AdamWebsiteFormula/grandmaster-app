@@ -9,14 +9,14 @@ import {
 } from "@floating-ui/react";
 import { t } from "@lingui/core/macro";
 import { useMutation } from "@tanstack/react-query";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useId, useMemo, useRef, useState } from "react";
 
 import { CircleNotch } from "@anlg/ui/components/icons";
 import { Badge } from "@anlg/ui/components/ui/badge";
 import { toast } from "@anlg/ui/components/ui/toast";
 
 import { ParticipantChip } from "./chip";
-import { ParticipantDropdown } from "./dropdown";
+import { ParticipantDropdown, participantOptionId } from "./dropdown";
 import {
   buildEventContactExtractionContextFromRecords,
   extractEventContacts,
@@ -111,6 +111,10 @@ export function ParticipantInput({ sessionId }: { sessionId: string }) {
     }
   };
 
+  const listboxId = useId();
+  const listOpen =
+    showDropdown && inputValue.trim().length > 0 && dropdownOptions.length > 0;
+
   const handleSelect = (option: Candidate) => {
     handleAddParticipant(option);
     inputRef.current?.focus();
@@ -146,6 +150,13 @@ export function ParticipantInput({ sessionId }: { sessionId: string }) {
 
         <input
           aria-label={t`Add participant`}
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={listOpen}
+          aria-controls={listOpen ? listboxId : undefined}
+          aria-activedescendant={
+            listOpen ? participantOptionId(listboxId, selectedIndex) : undefined
+          }
           ref={inputRef}
           type="text"
           className="placeholder:text-muted-foreground min-w-[120px] flex-1 bg-transparent text-sm outline-hidden"
@@ -160,6 +171,7 @@ export function ParticipantInput({ sessionId }: { sessionId: string }) {
       {showDropdown && inputValue.trim() && (
         <FloatingPortal>
           <ParticipantDropdown
+            listboxId={listboxId}
             floatingRef={refs.setFloating}
             floatingStyles={floatingStyles}
             options={dropdownOptions}

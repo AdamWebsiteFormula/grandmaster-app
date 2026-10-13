@@ -1,3 +1,5 @@
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import { type CSSProperties, useEffect, useRef } from "react";
 
 import { ArrowElbowDownLeft } from "@anlg/ui/components/icons";
@@ -12,7 +14,15 @@ type DropdownOption = {
   jobTitle?: string;
 };
 
+// Fork: a WAI-ARIA combobox list, so VoiceOver reads each suggestion as the
+// arrow keys move (accessibility sweep, Oct 12; WAI-ARIA APG, Combobox
+// pattern with aria-activedescendant). The input keeps keyboard focus.
+export function participantOptionId(listboxId: string, index: number) {
+  return `${listboxId}-option-${index}`;
+}
+
 export function ParticipantDropdown({
+  listboxId,
   floatingRef,
   floatingStyles,
   options,
@@ -20,6 +30,7 @@ export function ParticipantDropdown({
   onSelect,
   onHover,
 }: {
+  listboxId: string;
   floatingRef: (node: HTMLDivElement | null) => void;
   floatingStyles: CSSProperties;
   options: DropdownOption[];
@@ -53,13 +64,21 @@ export function ParticipantDropdown({
         event.stopPropagation();
       }}
     >
-      <div ref={listRef} className="max-h-50 overflow-auto py-1">
+      <div
+        ref={listRef}
+        id={listboxId}
+        role="listbox"
+        aria-label={t`Suggested people`}
+        className="max-h-50 overflow-auto py-1"
+      >
         {options.map((option, index) => (
-          <button
+          <div
             key={option.id}
-            type="button"
-            tabIndex={-1}
+            id={participantOptionId(listboxId, index)}
+            role="option"
+            aria-selected={selectedIndex === index}
             className={cn([
+              "cursor-default",
               "w-full px-3 py-1.5 text-left text-sm",
               selectedIndex === index ? "bg-muted" : "hover:bg-accent",
               "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset",
@@ -70,7 +89,9 @@ export function ParticipantDropdown({
             <span className="flex w-full items-center justify-between">
               {option.isNew ? (
                 <span>
-                  Add "<span className="font-medium">{option.name}</span>"
+                  <Trans>
+                    Add “<span className="font-medium">{option.name}</span>”
+                  </Trans>
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
@@ -86,7 +107,7 @@ export function ParticipantDropdown({
                 <ArrowElbowDownLeft className="text-muted-foreground size-3" />
               )}
             </span>
-          </button>
+          </div>
         ))}
       </div>
     </div>

@@ -490,6 +490,11 @@ msgstr "Add"
 msgid "Add \"{0}\""
 msgstr "Add \"{0}\""
 
+#. placeholder {0}: option.name
+#: src/session/components/outer-header/metadata/participants/dropdown.tsx
+msgid "Add “<0>{0}</0>”"
+msgstr "Add “<0>{0}</0>”"
+
 #. placeholder {0}: provider.displayName
 #: src/calendar/components/sidebar.tsx
 msgid "Add {0} account"
@@ -7896,6 +7901,10 @@ msgstr "Suggest a feature"
 #: src/session-sharing/invite-recipients.tsx
 msgid "Suggested attendees"
 msgstr "Suggested attendees"
+
+#: src/session/components/outer-header/metadata/participants/dropdown.tsx
+msgid "Suggested people"
+msgstr "Suggested people"
 
 #: src/session/components/note-input/raw.tsx
 msgid "Suggested templates"
