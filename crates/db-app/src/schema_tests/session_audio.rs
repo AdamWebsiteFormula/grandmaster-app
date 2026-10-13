@@ -109,6 +109,34 @@ async fn logically_deleted_session_audio_is_listed_until_marked_absent() {
     );
 }
 
+// Fork: the retention clock starts when the audio arrived, not when the note
+// was made; an imported old recording keeps its file date on the note
+// (data-safety audit, Oct 12).
+#[tokio::test]
+async fn audio_retention_counts_from_the_audio_not_the_note() {
+    let db = test_db().await;
+    let pool = db.pool();
+    sqlx::raw_sql(
+        r#"INSERT INTO sessions (id, created_at) VALUES
+             ('imported', '2025-01-01T00:00:00.000Z');
+           INSERT INTO session_attachments (
+             id, session_id, source_type, source_id, metadata_json,
+             created_at, updated_at
+           ) VALUES ('session-audio:imported', 'imported', 'session_audio',
+                     'primary', '{}', '2026-01-01T00:00:00.000Z',
+                     '2026-01-02T00:00:00.000Z');"#,
+    )
+    .execute(pool)
+    .await
+    .unwrap();
+
+    let candidate = get_session_audio_retention_candidate(pool, "imported")
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(candidate.created_at_ms, Some(1_767_312_000_000));
+}
+
 // Fork: a note deleted a moment ago can still come back with Undo, so its
 // audio must stay on disk until the grace period ends (data-safety audit,
 // Oct 11).

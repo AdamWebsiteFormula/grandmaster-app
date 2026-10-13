@@ -26,7 +26,17 @@ macro_rules! session_audio_retention_candidates_sql {
         concat!(
             "SELECT
            session.id AS session_id,
-           CAST(round((julianday(session.created_at) - 2440587.5) * 86400000.0) AS INTEGER)
+           -- Fork: the retention clock starts at the audio's last change,
+           -- not the note's creation; an imported recording keeps its old
+           -- file date on the note (data-safety audit, Oct 12).
+           CAST(round((julianday(COALESCE((
+             SELECT audio.updated_at
+             FROM session_attachments AS audio
+             WHERE audio.session_id = session.id
+               AND audio.source_type = 'session_audio'
+               AND audio.source_id = 'primary'
+               AND audio.deleted_at IS NULL
+           ), session.created_at)) - 2440587.5) * 86400000.0) AS INTEGER)
              AS created_at_ms,
            EXISTS(
              SELECT 1

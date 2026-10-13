@@ -127,7 +127,9 @@ fn retention_expired(
     policy: AudioRetentionPolicy,
     now_ms: i64,
 ) -> bool {
-    if policy == AudioRetentionPolicy::None && !candidate.has_words {
+    // Fork: audio with no transcript words is kept under every setting, not
+    // only "none" (data-safety audit, Oct 12).
+    if !candidate.has_words {
         return false;
     }
     is_expired(candidate.created_at_ms, policy, now_ms)
@@ -388,6 +390,26 @@ mod tests {
             i64::MAX
         ));
         assert!(is_expired(None, AudioRetentionPolicy::None, 0));
+    }
+
+    // Fork: audio with no transcript words (transcription failed or never
+    // ran) is the only copy of the meeting; no timed setting removes it
+    // (data-safety audit, Oct 12).
+    #[test]
+    fn retention_keeps_audio_that_has_no_transcript_words() {
+        let candidate = |has_words| anlg_db_app::SessionAudioRetentionCandidate {
+            session_id: "s1".into(),
+            created_at_ms: Some(1_000),
+            has_words,
+        };
+        for policy in [
+            AudioRetentionPolicy::None,
+            AudioRetentionPolicy::OneDay,
+            AudioRetentionPolicy::OneMonth,
+        ] {
+            assert!(!retention_expired(&candidate(false), policy, i64::MAX));
+            assert!(retention_expired(&candidate(true), policy, i64::MAX));
+        }
     }
 
     #[test]
